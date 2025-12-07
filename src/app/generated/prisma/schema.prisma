@@ -1,0 +1,673 @@
+model Cart {
+  id          String     @id @default(uuid())
+  customer    Customer   @relation(fields: [customer_id], references: [id])
+  customer_id String     @unique
+  status      CartStatus @default(ACTIVE)
+  expires_at  DateTime?
+
+  shop_carts ShopCart[]
+
+  @@index([customer_id])
+  @@index([status])
+  @@map("carts")
+}
+
+enum CartStatus {
+  ACTIVE // Sedang digunakan (default)
+  CHECKED_OUT // Semua toko sudah dicheckout
+  ABANDONED // Lama tidak dibuka (>1 jam)
+  EXPIRED // Kadaluarsa (>7 hari)
+  DELETED // Dihapus manual oleh user
+}
+
+model ShopCart {
+  id String @id @default(uuid())
+
+  cart            Cart           @relation(fields: [cart_id], references: [id], onDelete: Cascade)
+  cart_id         String
+  status          ShopCartStatus @default(PENDING)
+  shop            Shop           @relation(fields: [shop_id], references: [id])
+  shop_id         String
+  payment_method  PaymentMethod  @default(CASH)
+  post_order_type PostOrderType  @default(DELIVERY_TO_TABLE)
+
+  total_price Float    @default(0)
+  notes       String?
+  created_at  DateTime @default(now())
+
+  items    CartItem[]
+  order_id String?
+
+  @@index([cart_id])
+  @@index([shop_id])
+  @@map("shop_carts")
+}
+
+enum ShopCartStatus {
+  PENDING // Masih di keranjang, bisa diedit
+  ORDERED // Sudah jadi Order
+  REMOVED // Dihapus dari keranjang (tapi bisa restore)
+}
+
+model CartItem {
+  id                String   @id @default(nanoid())
+  shop_cart         ShopCart @relation(fields: [shop_cart_id], references: [id], onDelete: Cascade)
+  shop_cart_id      String
+  product           Product  @relation(fields: [product_id], references: [id])
+  product_id        String
+  product_option_id String? // Foreign key ke product option
+
+  selected_options ProductOptionValue[]
+
+  quantity     Int
+  price_at_add Float
+  notes        String?
+
+  @@index([shop_cart_id])
+  @@index([product_id])
+  @@map("cart_items")
+}
+
+model Conversation {
+  id         String   @id @default(cuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  participants ConversationParticipant[]
+
+  messages Message[]
+  order    Order[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  conversation    Conversation @relation(fields: [conversation_id], references: [id])
+  conversation_id String
+  user            User         @relation(fields: [user_id], references: [id])
+  user_id         String
+  is_read         Boolean      @default(false)
+
+  @@id([conversation_id, user_id])
+  @@index([user_id])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  created_at DateTime @default(now())
+  sender     User     @relation(fields: [sender_id], references: [id])
+  sender_id  String
+
+  conversation    Conversation @relation(fields: [conversation_id], references: [id])
+  conversation_id String
+
+  text String?     @db.Text
+  type MessageType @default(TEXT)
+
+  is_read Boolean   @default(false)
+  read_at DateTime?
+
+  order    Order?  @relation(fields: [order_id], references: [id], onDelete: SetNull)
+  order_id String?
+
+  media MessageMedia[]
+
+  @@index([conversation_id])
+  @@index([sender_id])
+  @@map("messages")
+}
+
+enum MessageType {
+  TEXT // Pesan teks biasa, bisa punya media
+  SYSTEM // Pesan otomatis sistem
+  ORDER // Pesan berkaitan dengan pesanan
+  PAYMENT_PROOF // Pesan berisi bukti pembayaran (khusus)
+}
+
+model MessageMedia {
+  id         String        @id @default(cuid())
+  url        String
+  mime_type  MediaMimeType
+  order_id   String?
+  message    Message       @relation(fields: [message_id], references: [id], onDelete: Cascade)
+  message_id String
+
+  @@index([message_id])
+  @@map("message_media")
+}
+
+enum MediaMimeType {
+  IMAGE
+  VIDEO
+}
+
+model QuickChat {
+  id      Int     @id @default(autoincrement())
+  message String
+  user    User?   @relation(fields: [user_id], references: [id])
+  user_id String?
+
+  @@map("quick_chats")
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  customer    Customer @relation(fields: [customer_id], references: [id])
+  customer_id String
+
+  shop              Shop      @relation(fields: [shop_id], references: [id])
+  shop_id           String
+  estimation        Int? // dalam menit
+  payment_proof_url String?
+  processed_at      DateTime? // waktu ketika order mulai diproses setelah pembayaran di verifikasi
+
+  rejected_reason  String?
+  cancelled_reason String?
+  cancelled_by_id  String?
+
+  total_price Float
+
+  status OrderStatus
+
+  type OrderType @default(READY)
+
+  testimony ShopTestimony?
+  complaint ShopComplaint?
+  refund    Refund?
+
+  conversation    Conversation  @relation(fields: [conversation_id], references: [id])
+  conversation_id String
+  message         Message[]
+  payment_method  PaymentMethod
+
+  order_items OrderItem[]
+
+  post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
+  table_number    Int?
+  floor           Int?
+  // courier_journey CourierJourney? @relation(fields: [courier_journey_id], references: [id])
+  // courier_journey_id String?     @unique // Relasi ke CourierJourney untuk COURIER_DELIVERY
+
+  @@index([shop_id, status]) // Sangat penting untuk dashboard penjual
+  @@index([customer_id, status]) // Penting untuk riwayat order pelanggan
+  @@index([shop_id, created_at]) // Untuk dashboard penjual (sortir by terbaru)
+  @@index([customer_id, created_at]) // Untuk riwayat pelanggan (sortir by terbaru)
+  @@index([status])
+  @@map("orders")
+}
+
+enum OrderType {
+  READY
+  PREORDER
+}
+
+model OrderItem {
+  id         String  @id @default(nanoid())
+  order      Order   @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id   String
+  product    Product @relation(fields: [product_id], references: [id])
+  product_id String
+
+  selected_options ProductOptionValue[]
+
+  quantity Int
+  price    Float
+  note     String?
+
+  @@index([order_id])
+  @@map("order_items")
+}
+
+enum OrderStatus {
+  PENDING_CONFIRMATION // customer buat order, tunggu shop konfirmasi
+  WAITING_PAYMENT // shop setuju, customer harus bayar
+  WAITING_CUSTOMER_ESTIMATION_CONFIRMATION // tunggu customer setuju dengan estimasi order
+  WAITING_SHOP_CONFIRMATION // customer sudah upload bukti
+  PROCESSING // shop terima pembayaran, pesanan diproses
+  COMPLETED // order selesai
+  REJECTED // ditolak karena stok tidak ada
+  PAYMENT_REJECTED // bukti pembayaran tidak valid
+  CANCELLED // pembatalan
+}
+
+enum PostOrderType {
+  DELIVERY_TO_TABLE
+  TAKEAWAY
+  COURIER_DELIVERY
+}
+
+// todo: buat type untuk disbursement apakah cash atau transfer
+model Refund {
+  id       String @id @default(uuid())
+  order    Order  @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id String @unique
+
+  complaint_proof_url    String? // bukti complaint   
+  disbursement_proof_url String? // bukti tf refund sudah dibayar
+  disbursement_mode      RefundDisbursementMode // mode pengembalian dana
+
+  amount      Float // jumlah refund
+  reason      RefundReason
+  status      RefundStatus @default(PENDING)
+  description String?      @db.Text
+
+  requested_at    DateTime  @default(now())
+  processed_at    DateTime?
+  rejected_reason String?
+
+  @@index([order_id])
+  @@index([status])
+  @@map("refunds")
+}
+
+enum RefundReason {
+  LATE_DELIVERY // terlambat > estimasi
+  WRONG_ORDER // salah pesanan
+  DAMAGED_FOOD // rusak
+  MISSING_ITEM // kurang item
+  OTHER // lain-lain
+}
+
+enum RefundStatus {
+  PENDING // menunggu proses
+  APPROVED // disetujui
+  REJECTED // ditolak
+  PROCESSED // uang sudah dikembalikan (butuh konfirmasi user)
+  CANCELLED // dibatalkan user
+}
+
+model Product {
+  id String @id @default(cuid())
+
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
+
+  name        String
+  description String? @db.Text
+  image_url   String
+  price       Float
+  cost        Float?
+  shop        Shop    @relation(fields: [shop_id], references: [id])
+  shop_id     String
+
+  options     ProductOption[]
+  order_items OrderItem[]
+  cart_items  CartItem[]
+
+  average_rating Float @default(0)
+  total_ratings  Int   @default(0)
+
+  is_available Boolean @default(true)
+
+  categories ProductCategory[]
+
+  @@index([name])
+  @@index([shop_id])
+  @@map("products")
+}
+
+// Pilihan produk (Tingkat Kepedasan, Kematangan)
+model ProductOption {
+  id         String  @id @default(nanoid())
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  product_id String
+
+  option String
+  values ProductOptionValue[]
+
+  is_required Boolean           @default(false)
+  type        ProductOptionType @default(SINGLE)
+
+  @@index([product_id])
+  @@map("product_options")
+}
+
+enum ProductOptionType {
+  SINGLE
+  MULTIPLE
+}
+
+// Nilai pilihan produk (Sedang, Pedas, Tidak Pedas)
+model ProductOptionValue {
+  id               String @id @default(nanoid())
+  value            String
+  additional_price Float?
+
+  product_option    ProductOption @relation(fields: [product_option_id], references: [id], onDelete: Cascade)
+  product_option_id String
+
+  order_items OrderItem[]
+  cart_items  CartItem[]
+
+  @@map("product_options_values")
+}
+
+model Category {
+  id        Int               @id @default(autoincrement())
+  name      String            @unique
+  slug      String            @unique
+  image_url String
+  products  ProductCategory[]
+
+  @@map("categories")
+}
+
+model ProductCategory {
+  product    Product @relation(fields: [product_id], references: [id])
+  product_id String
+
+  category    Category @relation(fields: [category_id], references: [id])
+  category_id Int
+
+  @@id([product_id, category_id])
+  @@index([category_id])
+  @@index([product_id])
+  @@map("product_categories")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../src/app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Canteen {
+  id        Int     @id @default(autoincrement())
+  name      String
+  image_url String
+  shops     Shop[]
+  slug      String? @unique
+
+  maps    CanteenMap[]
+  qrcodes TableQRCode[]
+
+  @@map("canteens")
+}
+
+model CanteenMap {
+  id Int @id @default(autoincrement())
+
+  image_url  String
+  floor      Int
+  canteen    Canteen       @relation(references: [id], fields: [canteen_id])
+  canteen_id Int
+  qrcodes    TableQRCode[]
+
+  @@map("canteen_maps")
+}
+
+model TableQRCode {
+  id String @id @default(uuid())
+
+  table_number Int
+  floor        Int
+  canteen      Canteen    @relation(references: [id], fields: [canteen_id])
+  canteen_id   Int
+  image_url    String
+  map          CanteenMap @relation(references: [id], fields: [map_id])
+  map_id       Int
+
+  @@unique([table_number, canteen_id, floor])
+  @@map("table_qrcodes")
+}
+
+model Faq {
+  id       Int    @id @default(autoincrement())
+  question String
+  answer   String @db.Text
+
+  @@map("faqs")
+}
+
+model Shop {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  image_url   String
+  canteen     Canteen @relation(fields: [canteen_id], references: [id])
+  canteen_id  Int
+
+  status           ShopStatus @default(ACTIVE)
+  suspended_reason String?
+
+  open_time  DateTime?
+  close_time DateTime?
+
+  products Product[]
+  orders   Order[]
+  owner    Owner     @relation(fields: [owner_id], references: [id])
+  owner_id String    @unique
+
+  order_mode               ShopOrderMode          @default(READY_ONLY) // metode menyiapkan order    
+  refund_disbursement_mode RefundDisbursementMode @default(CASH)
+
+  payments   Payment[]
+  billings   ShopBilling[]
+  qrcode_url String?
+
+  minimum_price Int?
+  maximum_price Int?
+
+  average_rating Float @default(0)
+  total_ratings  Int   @default(0)
+
+  shop_carts ShopCart[]
+
+  @@index([canteen_id])
+  @@index([name])
+  @@map("shops")
+}
+
+model ShopBilling {
+  id String @id @default(nanoid())
+
+  shop    Shop   @relation(fields: [shop_id], references: [id])
+  shop_id String
+
+  start_date DateTime
+  end_date   DateTime
+  // Jumlah komisi yang harus dibayar (1000 per quantity order item)
+  subtotal   Float
+  // Jumlah refund yang di proses
+  refund     Float
+  // Total akhir yang harus dibayar (subtotal - refund)
+  total      Float
+  status     ShopBillingStatus @default(UNPAID)
+
+  @@map("shop_billings")
+}
+
+enum ShopBillingStatus {
+  PAID // sudah terbayar
+  UNPAID // belum dibayar
+}
+
+enum RefundDisbursementMode {
+  CASH // tunai
+  TRANSFER // transfer
+}
+
+enum ShopOrderMode {
+  PREORDER_ONLY // hanya preorder
+  READY_ONLY // hanya pemesanan langsung
+  BOTH // bisa keduanya
+}
+
+enum ShopStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model ShopComplaint {
+  id         String   @id @default(nanoid())
+  created_at DateTime @default(now())
+
+  order    Order  @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id String @unique
+
+  proof_url String?
+  cause     String              @db.Text
+  feedback  String?             @db.Text
+  status    ShopComplaintStatus @default(PENDING)
+
+  @@map("shop_complaints")
+}
+
+enum ShopComplaintStatus {
+  PENDING // Baru dibuat, belum dilihat shop
+  UNDER_REVIEW // Shop sedang cek (lihat foto, chat, dll)
+  RESOLVED // Masalah selesai (bisa dengan/tanpa refund)
+  REJECTED // Ditolak (tidak valid, tidak cukup bukti)
+  ESCALATED // Naik ke admin/canteen (kasus berat)
+}
+
+model Payment {
+  method           PaymentMethod
+  qr_url           String?
+  account_number   String?
+  note             String? // bisa berupa nama akun dan bank
+  additional_price Float?
+  active           Boolean       @default(true)
+
+  shop    Shop   @relation(fields: [shop_id], references: [id])
+  shop_id String
+
+  @@unique([shop_id, method])
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  QRIS
+  BANK_TRANSFER
+  CASH
+}
+
+model ShopTestimony {
+  id      Int    @id @default(autoincrement())
+  message String @db.Text
+  rating  Int
+
+  created_at DateTime @default(now())
+
+  order    Order  @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id String @unique
+
+  @@map("shop_testimonies")
+}
+
+model AppTestimony {
+  id      Int     @id @default(autoincrement())
+  message String  @db.Text
+  from    String
+  role    String?
+
+  created_at DateTime @default(now())
+
+  @@map("app_testimonies")
+}
+
+model User {
+  id String @id @default(uuid())
+
+  role Role
+
+  name     String
+  username String? @unique
+  password String?
+  avatar   String  @default("avatars/default-avatar.jpg")
+
+  messages      Message[]
+  quick_chats   QuickChat[]
+  conversations ConversationParticipant[]
+
+  admin    Admin?
+  customer Customer?
+  owner    Owner?
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  last_login DateTime?
+
+  @@index([last_login])
+  @@index([role])
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+  SHOP_OWNER
+}
+
+model Admin {
+  id String @id @default(uuid())
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @unique
+
+  @@map("admins")
+}
+
+model Owner {
+  id String @id @default(uuid())
+
+  shop Shop?
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @unique
+
+  updated_at DateTime @updatedAt
+
+  @@map("owners")
+}
+
+model Customer {
+  id String @id @default(uuid())
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id String @unique
+
+  email        String?
+  phone_number String?
+
+  violations     CustomerViolation[]
+  suspend_until  DateTime?
+  suspend_reason String?
+
+  orders Order[]
+  cart   Cart?
+
+  // Data posisi terakhir pilih meja
+  canteen_id    Int?
+  floor         Int?
+  table_number  Int?
+  last_visit_at DateTime?
+
+  updated_at DateTime @updatedAt
+
+  @@map("customers")
+}
+
+model CustomerViolation {
+  id          Int                   @id @default(autoincrement())
+  timestamp   DateTime
+  type        CustomerViolationType
+  customer    Customer?             @relation(fields: [customer_id], references: [id])
+  customer_id String?
+  order_id    String?
+
+  @@map("customer_violations")
+}
+
+enum CustomerViolationType {
+  ORDER_CANCEL_WITHOUT_PAY
+}
