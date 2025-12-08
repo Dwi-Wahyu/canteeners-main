@@ -21,7 +21,7 @@ import { Loader } from "lucide-react";
 import { LoginSchema, LoginInput } from "@/features/auth/lib/auth-type";
 import { useEffect } from "react";
 
-export default function LoginKedaiPage() {
+export default function LoginPelangganPage() {
   const router = useRouter();
 
   const form = useForm<LoginInput>({
@@ -49,7 +49,7 @@ export default function LoginKedaiPage() {
         message: "Username atau Password salah",
       });
     } else {
-      router.push("/dashboard-kedai");
+      router.push("/dashboard-pelanggan");
     }
   }
 
@@ -57,7 +57,7 @@ export default function LoginKedaiPage() {
 
   useEffect(() => {
     if (session.status === "authenticated") {
-      router.push("/dashboard-kedai");
+      router.push("/dashboard-pelanggan");
     }
   }, [session, session.status]);
 
@@ -66,7 +66,7 @@ export default function LoginKedaiPage() {
       <Card className="mx-auto w-full md:max-w-md">
         <CardHeader>
           <CardTitle>Selamat Datang</CardTitle>
-          <CardDescription>Masukkan akun kedai anda</CardDescription>
+          <CardDescription>Masukkan akun anda</CardDescription>
         </CardHeader>
         <CardContent>
           <form

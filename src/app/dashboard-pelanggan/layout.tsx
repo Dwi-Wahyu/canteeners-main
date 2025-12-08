@@ -1,4 +1,3 @@
-import OwnerLayout from "@/components/layouts/owner-layout";
 import { auth } from "@/config/auth";
 import { redirect } from "next/navigation";
 
@@ -10,12 +9,12 @@ export default async function Layout({
   const session = await auth();
 
   if (!session) {
-    redirect("/login-kedai");
+    redirect("/login-pelanggan");
   }
 
-  if (session.user.role !== "SHOP_OWNER") {
+  if (session.user.role !== "CUSTOMER") {
     redirect("/");
   }
 
-  return <OwnerLayout>{children}</OwnerLayout>;
+  return <div>{children}</div>;
 }

@@ -31,6 +31,8 @@ model Order {
   message         Message[]
   payment_method  PaymentMethod
 
+  payment_proofs PaymentProof[]
+
   order_items OrderItem[]
 
   post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
@@ -45,6 +47,28 @@ model Order {
   @@index([customer_id, created_at]) // Untuk riwayat pelanggan (sortir by terbaru)
   @@index([status])
   @@map("orders")
+}
+
+model PaymentProof {
+  id String @id @default(nanoid())
+
+  image_url String
+
+  status          PaymentProofStatus @default(PENDING)
+  rejected_reason String?            @db.Text
+
+  order    Order  @relation(fields: [order_id], references: [id])
+  order_id String
+
+  created_at DateTime @default(now())
+
+  @@map("payment_proofs")
+}
+
+enum PaymentProofStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum OrderType {

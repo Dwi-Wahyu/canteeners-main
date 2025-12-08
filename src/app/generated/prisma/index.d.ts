@@ -59,6 +59,11 @@ export type QuickChat = $Result.DefaultSelection<Prisma.$QuickChatPayload>
  */
 export type Order = $Result.DefaultSelection<Prisma.$OrderPayload>
 /**
+ * Model PaymentProof
+ * 
+ */
+export type PaymentProof = $Result.DefaultSelection<Prisma.$PaymentProofPayload>
+/**
  * Model OrderItem
  * 
  */
@@ -211,6 +216,15 @@ export const MediaMimeType: {
 export type MediaMimeType = (typeof MediaMimeType)[keyof typeof MediaMimeType]
 
 
+export const PaymentProofStatus: {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
+export type PaymentProofStatus = (typeof PaymentProofStatus)[keyof typeof PaymentProofStatus]
+
+
 export const OrderType: {
   READY: 'READY',
   PREORDER: 'PREORDER'
@@ -359,6 +373,10 @@ export const MessageType: typeof $Enums.MessageType
 export type MediaMimeType = $Enums.MediaMimeType
 
 export const MediaMimeType: typeof $Enums.MediaMimeType
+
+export type PaymentProofStatus = $Enums.PaymentProofStatus
+
+export const PaymentProofStatus: typeof $Enums.PaymentProofStatus
 
 export type OrderType = $Enums.OrderType
 
@@ -623,6 +641,16 @@ export class PrismaClient<
     * ```
     */
   get order(): Prisma.OrderDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.paymentProof`: Exposes CRUD operations for the **PaymentProof** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PaymentProofs
+    * const paymentProofs = await prisma.paymentProof.findMany()
+    * ```
+    */
+  get paymentProof(): Prisma.PaymentProofDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.orderItem`: Exposes CRUD operations for the **OrderItem** model.
@@ -1293,6 +1321,7 @@ export namespace Prisma {
     MessageMedia: 'MessageMedia',
     QuickChat: 'QuickChat',
     Order: 'Order',
+    PaymentProof: 'PaymentProof',
     OrderItem: 'OrderItem',
     Refund: 'Refund',
     Product: 'Product',
@@ -1333,7 +1362,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "cart" | "shopCart" | "cartItem" | "conversation" | "conversationParticipant" | "message" | "messageMedia" | "quickChat" | "order" | "orderItem" | "refund" | "product" | "productOption" | "productOptionValue" | "category" | "productCategory" | "canteen" | "canteenMap" | "tableQRCode" | "faq" | "shop" | "shopBilling" | "shopComplaint" | "payment" | "shopTestimony" | "appTestimony" | "user" | "admin" | "owner" | "customer" | "customerViolation"
+      modelProps: "cart" | "shopCart" | "cartItem" | "conversation" | "conversationParticipant" | "message" | "messageMedia" | "quickChat" | "order" | "paymentProof" | "orderItem" | "refund" | "product" | "productOption" | "productOptionValue" | "category" | "productCategory" | "canteen" | "canteenMap" | "tableQRCode" | "faq" | "shop" | "shopBilling" | "shopComplaint" | "payment" | "shopTestimony" | "appTestimony" | "user" | "admin" | "owner" | "customer" | "customerViolation"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2000,6 +2029,80 @@ export namespace Prisma {
           count: {
             args: Prisma.OrderCountArgs<ExtArgs>
             result: $Utils.Optional<OrderCountAggregateOutputType> | number
+          }
+        }
+      }
+      PaymentProof: {
+        payload: Prisma.$PaymentProofPayload<ExtArgs>
+        fields: Prisma.PaymentProofFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PaymentProofFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PaymentProofFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>
+          }
+          findFirst: {
+            args: Prisma.PaymentProofFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PaymentProofFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>
+          }
+          findMany: {
+            args: Prisma.PaymentProofFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>[]
+          }
+          create: {
+            args: Prisma.PaymentProofCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>
+          }
+          createMany: {
+            args: Prisma.PaymentProofCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PaymentProofCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>[]
+          }
+          delete: {
+            args: Prisma.PaymentProofDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>
+          }
+          update: {
+            args: Prisma.PaymentProofUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>
+          }
+          deleteMany: {
+            args: Prisma.PaymentProofDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PaymentProofUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PaymentProofUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>[]
+          }
+          upsert: {
+            args: Prisma.PaymentProofUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PaymentProofPayload>
+          }
+          aggregate: {
+            args: Prisma.PaymentProofAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePaymentProof>
+          }
+          groupBy: {
+            args: Prisma.PaymentProofGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PaymentProofGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PaymentProofCountArgs<ExtArgs>
+            result: $Utils.Optional<PaymentProofCountAggregateOutputType> | number
           }
         }
       }
@@ -3736,6 +3839,7 @@ export namespace Prisma {
     messageMedia?: MessageMediaOmit
     quickChat?: QuickChatOmit
     order?: OrderOmit
+    paymentProof?: PaymentProofOmit
     orderItem?: OrderItemOmit
     refund?: RefundOmit
     product?: ProductOmit
@@ -4012,11 +4116,13 @@ export namespace Prisma {
 
   export type OrderCountOutputType = {
     message: number
+    payment_proofs: number
     order_items: number
   }
 
   export type OrderCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     message?: boolean | OrderCountOutputTypeCountMessageArgs
+    payment_proofs?: boolean | OrderCountOutputTypeCountPayment_proofsArgs
     order_items?: boolean | OrderCountOutputTypeCountOrder_itemsArgs
   }
 
@@ -4036,6 +4142,13 @@ export namespace Prisma {
    */
   export type OrderCountOutputTypeCountMessageArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MessageWhereInput
+  }
+
+  /**
+   * OrderCountOutputType without action
+   */
+  export type OrderCountOutputTypeCountPayment_proofsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PaymentProofWhereInput
   }
 
   /**
@@ -13694,6 +13807,7 @@ export namespace Prisma {
     refund?: boolean | Order$refundArgs<ExtArgs>
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
     message?: boolean | Order$messageArgs<ExtArgs>
+    payment_proofs?: boolean | Order$payment_proofsArgs<ExtArgs>
     order_items?: boolean | Order$order_itemsArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["order"]>
@@ -13779,6 +13893,7 @@ export namespace Prisma {
     refund?: boolean | Order$refundArgs<ExtArgs>
     conversation?: boolean | ConversationDefaultArgs<ExtArgs>
     message?: boolean | Order$messageArgs<ExtArgs>
+    payment_proofs?: boolean | Order$payment_proofsArgs<ExtArgs>
     order_items?: boolean | Order$order_itemsArgs<ExtArgs>
     _count?: boolean | OrderCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -13803,6 +13918,7 @@ export namespace Prisma {
       refund: Prisma.$RefundPayload<ExtArgs> | null
       conversation: Prisma.$ConversationPayload<ExtArgs>
       message: Prisma.$MessagePayload<ExtArgs>[]
+      payment_proofs: Prisma.$PaymentProofPayload<ExtArgs>[]
       order_items: Prisma.$OrderItemPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -14226,6 +14342,7 @@ export namespace Prisma {
     refund<T extends Order$refundArgs<ExtArgs> = {}>(args?: Subset<T, Order$refundArgs<ExtArgs>>): Prisma__RefundClient<$Result.GetResult<Prisma.$RefundPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     conversation<T extends ConversationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ConversationDefaultArgs<ExtArgs>>): Prisma__ConversationClient<$Result.GetResult<Prisma.$ConversationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     message<T extends Order$messageArgs<ExtArgs> = {}>(args?: Subset<T, Order$messageArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    payment_proofs<T extends Order$payment_proofsArgs<ExtArgs> = {}>(args?: Subset<T, Order$payment_proofsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     order_items<T extends Order$order_itemsArgs<ExtArgs> = {}>(args?: Subset<T, Order$order_itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -14752,6 +14869,30 @@ export namespace Prisma {
   }
 
   /**
+   * Order.payment_proofs
+   */
+  export type Order$payment_proofsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    where?: PaymentProofWhereInput
+    orderBy?: PaymentProofOrderByWithRelationInput | PaymentProofOrderByWithRelationInput[]
+    cursor?: PaymentProofWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PaymentProofScalarFieldEnum | PaymentProofScalarFieldEnum[]
+  }
+
+  /**
    * Order.order_items
    */
   export type Order$order_itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14791,6 +14932,1077 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: OrderInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PaymentProof
+   */
+
+  export type AggregatePaymentProof = {
+    _count: PaymentProofCountAggregateOutputType | null
+    _min: PaymentProofMinAggregateOutputType | null
+    _max: PaymentProofMaxAggregateOutputType | null
+  }
+
+  export type PaymentProofMinAggregateOutputType = {
+    id: string | null
+    image_url: string | null
+    status: $Enums.PaymentProofStatus | null
+    rejected_reason: string | null
+    order_id: string | null
+    created_at: Date | null
+  }
+
+  export type PaymentProofMaxAggregateOutputType = {
+    id: string | null
+    image_url: string | null
+    status: $Enums.PaymentProofStatus | null
+    rejected_reason: string | null
+    order_id: string | null
+    created_at: Date | null
+  }
+
+  export type PaymentProofCountAggregateOutputType = {
+    id: number
+    image_url: number
+    status: number
+    rejected_reason: number
+    order_id: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type PaymentProofMinAggregateInputType = {
+    id?: true
+    image_url?: true
+    status?: true
+    rejected_reason?: true
+    order_id?: true
+    created_at?: true
+  }
+
+  export type PaymentProofMaxAggregateInputType = {
+    id?: true
+    image_url?: true
+    status?: true
+    rejected_reason?: true
+    order_id?: true
+    created_at?: true
+  }
+
+  export type PaymentProofCountAggregateInputType = {
+    id?: true
+    image_url?: true
+    status?: true
+    rejected_reason?: true
+    order_id?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type PaymentProofAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PaymentProof to aggregate.
+     */
+    where?: PaymentProofWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PaymentProofs to fetch.
+     */
+    orderBy?: PaymentProofOrderByWithRelationInput | PaymentProofOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PaymentProofWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PaymentProofs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PaymentProofs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PaymentProofs
+    **/
+    _count?: true | PaymentProofCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PaymentProofMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PaymentProofMaxAggregateInputType
+  }
+
+  export type GetPaymentProofAggregateType<T extends PaymentProofAggregateArgs> = {
+        [P in keyof T & keyof AggregatePaymentProof]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePaymentProof[P]>
+      : GetScalarType<T[P], AggregatePaymentProof[P]>
+  }
+
+
+
+
+  export type PaymentProofGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PaymentProofWhereInput
+    orderBy?: PaymentProofOrderByWithAggregationInput | PaymentProofOrderByWithAggregationInput[]
+    by: PaymentProofScalarFieldEnum[] | PaymentProofScalarFieldEnum
+    having?: PaymentProofScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PaymentProofCountAggregateInputType | true
+    _min?: PaymentProofMinAggregateInputType
+    _max?: PaymentProofMaxAggregateInputType
+  }
+
+  export type PaymentProofGroupByOutputType = {
+    id: string
+    image_url: string
+    status: $Enums.PaymentProofStatus
+    rejected_reason: string | null
+    order_id: string
+    created_at: Date
+    _count: PaymentProofCountAggregateOutputType | null
+    _min: PaymentProofMinAggregateOutputType | null
+    _max: PaymentProofMaxAggregateOutputType | null
+  }
+
+  type GetPaymentProofGroupByPayload<T extends PaymentProofGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PaymentProofGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PaymentProofGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PaymentProofGroupByOutputType[P]>
+            : GetScalarType<T[P], PaymentProofGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PaymentProofSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    image_url?: boolean
+    status?: boolean
+    rejected_reason?: boolean
+    order_id?: boolean
+    created_at?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["paymentProof"]>
+
+  export type PaymentProofSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    image_url?: boolean
+    status?: boolean
+    rejected_reason?: boolean
+    order_id?: boolean
+    created_at?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["paymentProof"]>
+
+  export type PaymentProofSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    image_url?: boolean
+    status?: boolean
+    rejected_reason?: boolean
+    order_id?: boolean
+    created_at?: boolean
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["paymentProof"]>
+
+  export type PaymentProofSelectScalar = {
+    id?: boolean
+    image_url?: boolean
+    status?: boolean
+    rejected_reason?: boolean
+    order_id?: boolean
+    created_at?: boolean
+  }
+
+  export type PaymentProofOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "image_url" | "status" | "rejected_reason" | "order_id" | "created_at", ExtArgs["result"]["paymentProof"]>
+  export type PaymentProofInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+  export type PaymentProofIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+  export type PaymentProofIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    order?: boolean | OrderDefaultArgs<ExtArgs>
+  }
+
+  export type $PaymentProofPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PaymentProof"
+    objects: {
+      order: Prisma.$OrderPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      image_url: string
+      status: $Enums.PaymentProofStatus
+      rejected_reason: string | null
+      order_id: string
+      created_at: Date
+    }, ExtArgs["result"]["paymentProof"]>
+    composites: {}
+  }
+
+  type PaymentProofGetPayload<S extends boolean | null | undefined | PaymentProofDefaultArgs> = $Result.GetResult<Prisma.$PaymentProofPayload, S>
+
+  type PaymentProofCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PaymentProofFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PaymentProofCountAggregateInputType | true
+    }
+
+  export interface PaymentProofDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PaymentProof'], meta: { name: 'PaymentProof' } }
+    /**
+     * Find zero or one PaymentProof that matches the filter.
+     * @param {PaymentProofFindUniqueArgs} args - Arguments to find a PaymentProof
+     * @example
+     * // Get one PaymentProof
+     * const paymentProof = await prisma.paymentProof.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PaymentProofFindUniqueArgs>(args: SelectSubset<T, PaymentProofFindUniqueArgs<ExtArgs>>): Prisma__PaymentProofClient<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PaymentProof that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PaymentProofFindUniqueOrThrowArgs} args - Arguments to find a PaymentProof
+     * @example
+     * // Get one PaymentProof
+     * const paymentProof = await prisma.paymentProof.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PaymentProofFindUniqueOrThrowArgs>(args: SelectSubset<T, PaymentProofFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PaymentProofClient<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PaymentProof that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentProofFindFirstArgs} args - Arguments to find a PaymentProof
+     * @example
+     * // Get one PaymentProof
+     * const paymentProof = await prisma.paymentProof.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PaymentProofFindFirstArgs>(args?: SelectSubset<T, PaymentProofFindFirstArgs<ExtArgs>>): Prisma__PaymentProofClient<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PaymentProof that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentProofFindFirstOrThrowArgs} args - Arguments to find a PaymentProof
+     * @example
+     * // Get one PaymentProof
+     * const paymentProof = await prisma.paymentProof.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PaymentProofFindFirstOrThrowArgs>(args?: SelectSubset<T, PaymentProofFindFirstOrThrowArgs<ExtArgs>>): Prisma__PaymentProofClient<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PaymentProofs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentProofFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PaymentProofs
+     * const paymentProofs = await prisma.paymentProof.findMany()
+     * 
+     * // Get first 10 PaymentProofs
+     * const paymentProofs = await prisma.paymentProof.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const paymentProofWithIdOnly = await prisma.paymentProof.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PaymentProofFindManyArgs>(args?: SelectSubset<T, PaymentProofFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PaymentProof.
+     * @param {PaymentProofCreateArgs} args - Arguments to create a PaymentProof.
+     * @example
+     * // Create one PaymentProof
+     * const PaymentProof = await prisma.paymentProof.create({
+     *   data: {
+     *     // ... data to create a PaymentProof
+     *   }
+     * })
+     * 
+     */
+    create<T extends PaymentProofCreateArgs>(args: SelectSubset<T, PaymentProofCreateArgs<ExtArgs>>): Prisma__PaymentProofClient<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PaymentProofs.
+     * @param {PaymentProofCreateManyArgs} args - Arguments to create many PaymentProofs.
+     * @example
+     * // Create many PaymentProofs
+     * const paymentProof = await prisma.paymentProof.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PaymentProofCreateManyArgs>(args?: SelectSubset<T, PaymentProofCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PaymentProofs and returns the data saved in the database.
+     * @param {PaymentProofCreateManyAndReturnArgs} args - Arguments to create many PaymentProofs.
+     * @example
+     * // Create many PaymentProofs
+     * const paymentProof = await prisma.paymentProof.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PaymentProofs and only return the `id`
+     * const paymentProofWithIdOnly = await prisma.paymentProof.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PaymentProofCreateManyAndReturnArgs>(args?: SelectSubset<T, PaymentProofCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PaymentProof.
+     * @param {PaymentProofDeleteArgs} args - Arguments to delete one PaymentProof.
+     * @example
+     * // Delete one PaymentProof
+     * const PaymentProof = await prisma.paymentProof.delete({
+     *   where: {
+     *     // ... filter to delete one PaymentProof
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PaymentProofDeleteArgs>(args: SelectSubset<T, PaymentProofDeleteArgs<ExtArgs>>): Prisma__PaymentProofClient<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PaymentProof.
+     * @param {PaymentProofUpdateArgs} args - Arguments to update one PaymentProof.
+     * @example
+     * // Update one PaymentProof
+     * const paymentProof = await prisma.paymentProof.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PaymentProofUpdateArgs>(args: SelectSubset<T, PaymentProofUpdateArgs<ExtArgs>>): Prisma__PaymentProofClient<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PaymentProofs.
+     * @param {PaymentProofDeleteManyArgs} args - Arguments to filter PaymentProofs to delete.
+     * @example
+     * // Delete a few PaymentProofs
+     * const { count } = await prisma.paymentProof.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PaymentProofDeleteManyArgs>(args?: SelectSubset<T, PaymentProofDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PaymentProofs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentProofUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PaymentProofs
+     * const paymentProof = await prisma.paymentProof.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PaymentProofUpdateManyArgs>(args: SelectSubset<T, PaymentProofUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PaymentProofs and returns the data updated in the database.
+     * @param {PaymentProofUpdateManyAndReturnArgs} args - Arguments to update many PaymentProofs.
+     * @example
+     * // Update many PaymentProofs
+     * const paymentProof = await prisma.paymentProof.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PaymentProofs and only return the `id`
+     * const paymentProofWithIdOnly = await prisma.paymentProof.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PaymentProofUpdateManyAndReturnArgs>(args: SelectSubset<T, PaymentProofUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PaymentProof.
+     * @param {PaymentProofUpsertArgs} args - Arguments to update or create a PaymentProof.
+     * @example
+     * // Update or create a PaymentProof
+     * const paymentProof = await prisma.paymentProof.upsert({
+     *   create: {
+     *     // ... data to create a PaymentProof
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PaymentProof we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PaymentProofUpsertArgs>(args: SelectSubset<T, PaymentProofUpsertArgs<ExtArgs>>): Prisma__PaymentProofClient<$Result.GetResult<Prisma.$PaymentProofPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PaymentProofs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentProofCountArgs} args - Arguments to filter PaymentProofs to count.
+     * @example
+     * // Count the number of PaymentProofs
+     * const count = await prisma.paymentProof.count({
+     *   where: {
+     *     // ... the filter for the PaymentProofs we want to count
+     *   }
+     * })
+    **/
+    count<T extends PaymentProofCountArgs>(
+      args?: Subset<T, PaymentProofCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PaymentProofCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PaymentProof.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentProofAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PaymentProofAggregateArgs>(args: Subset<T, PaymentProofAggregateArgs>): Prisma.PrismaPromise<GetPaymentProofAggregateType<T>>
+
+    /**
+     * Group by PaymentProof.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PaymentProofGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PaymentProofGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PaymentProofGroupByArgs['orderBy'] }
+        : { orderBy?: PaymentProofGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PaymentProofGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPaymentProofGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PaymentProof model
+   */
+  readonly fields: PaymentProofFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PaymentProof.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PaymentProofClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    order<T extends OrderDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrderDefaultArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PaymentProof model
+   */
+  interface PaymentProofFieldRefs {
+    readonly id: FieldRef<"PaymentProof", 'String'>
+    readonly image_url: FieldRef<"PaymentProof", 'String'>
+    readonly status: FieldRef<"PaymentProof", 'PaymentProofStatus'>
+    readonly rejected_reason: FieldRef<"PaymentProof", 'String'>
+    readonly order_id: FieldRef<"PaymentProof", 'String'>
+    readonly created_at: FieldRef<"PaymentProof", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PaymentProof findUnique
+   */
+  export type PaymentProofFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentProof to fetch.
+     */
+    where: PaymentProofWhereUniqueInput
+  }
+
+  /**
+   * PaymentProof findUniqueOrThrow
+   */
+  export type PaymentProofFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentProof to fetch.
+     */
+    where: PaymentProofWhereUniqueInput
+  }
+
+  /**
+   * PaymentProof findFirst
+   */
+  export type PaymentProofFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentProof to fetch.
+     */
+    where?: PaymentProofWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PaymentProofs to fetch.
+     */
+    orderBy?: PaymentProofOrderByWithRelationInput | PaymentProofOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PaymentProofs.
+     */
+    cursor?: PaymentProofWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PaymentProofs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PaymentProofs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PaymentProofs.
+     */
+    distinct?: PaymentProofScalarFieldEnum | PaymentProofScalarFieldEnum[]
+  }
+
+  /**
+   * PaymentProof findFirstOrThrow
+   */
+  export type PaymentProofFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentProof to fetch.
+     */
+    where?: PaymentProofWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PaymentProofs to fetch.
+     */
+    orderBy?: PaymentProofOrderByWithRelationInput | PaymentProofOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PaymentProofs.
+     */
+    cursor?: PaymentProofWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PaymentProofs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PaymentProofs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PaymentProofs.
+     */
+    distinct?: PaymentProofScalarFieldEnum | PaymentProofScalarFieldEnum[]
+  }
+
+  /**
+   * PaymentProof findMany
+   */
+  export type PaymentProofFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * Filter, which PaymentProofs to fetch.
+     */
+    where?: PaymentProofWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PaymentProofs to fetch.
+     */
+    orderBy?: PaymentProofOrderByWithRelationInput | PaymentProofOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PaymentProofs.
+     */
+    cursor?: PaymentProofWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PaymentProofs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PaymentProofs.
+     */
+    skip?: number
+    distinct?: PaymentProofScalarFieldEnum | PaymentProofScalarFieldEnum[]
+  }
+
+  /**
+   * PaymentProof create
+   */
+  export type PaymentProofCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PaymentProof.
+     */
+    data: XOR<PaymentProofCreateInput, PaymentProofUncheckedCreateInput>
+  }
+
+  /**
+   * PaymentProof createMany
+   */
+  export type PaymentProofCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PaymentProofs.
+     */
+    data: PaymentProofCreateManyInput | PaymentProofCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PaymentProof createManyAndReturn
+   */
+  export type PaymentProofCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * The data used to create many PaymentProofs.
+     */
+    data: PaymentProofCreateManyInput | PaymentProofCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PaymentProof update
+   */
+  export type PaymentProofUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PaymentProof.
+     */
+    data: XOR<PaymentProofUpdateInput, PaymentProofUncheckedUpdateInput>
+    /**
+     * Choose, which PaymentProof to update.
+     */
+    where: PaymentProofWhereUniqueInput
+  }
+
+  /**
+   * PaymentProof updateMany
+   */
+  export type PaymentProofUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PaymentProofs.
+     */
+    data: XOR<PaymentProofUpdateManyMutationInput, PaymentProofUncheckedUpdateManyInput>
+    /**
+     * Filter which PaymentProofs to update
+     */
+    where?: PaymentProofWhereInput
+    /**
+     * Limit how many PaymentProofs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PaymentProof updateManyAndReturn
+   */
+  export type PaymentProofUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * The data used to update PaymentProofs.
+     */
+    data: XOR<PaymentProofUpdateManyMutationInput, PaymentProofUncheckedUpdateManyInput>
+    /**
+     * Filter which PaymentProofs to update
+     */
+    where?: PaymentProofWhereInput
+    /**
+     * Limit how many PaymentProofs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PaymentProof upsert
+   */
+  export type PaymentProofUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PaymentProof to update in case it exists.
+     */
+    where: PaymentProofWhereUniqueInput
+    /**
+     * In case the PaymentProof found by the `where` argument doesn't exist, create a new PaymentProof with this data.
+     */
+    create: XOR<PaymentProofCreateInput, PaymentProofUncheckedCreateInput>
+    /**
+     * In case the PaymentProof was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PaymentProofUpdateInput, PaymentProofUncheckedUpdateInput>
+  }
+
+  /**
+   * PaymentProof delete
+   */
+  export type PaymentProofDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
+    /**
+     * Filter which PaymentProof to delete.
+     */
+    where: PaymentProofWhereUniqueInput
+  }
+
+  /**
+   * PaymentProof deleteMany
+   */
+  export type PaymentProofDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PaymentProofs to delete
+     */
+    where?: PaymentProofWhereInput
+    /**
+     * Limit how many PaymentProofs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PaymentProof without action
+   */
+  export type PaymentProofDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PaymentProof
+     */
+    select?: PaymentProofSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PaymentProof
+     */
+    omit?: PaymentProofOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PaymentProofInclude<ExtArgs> | null
   }
 
 
@@ -39904,6 +41116,18 @@ export namespace Prisma {
   export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
 
 
+  export const PaymentProofScalarFieldEnum: {
+    id: 'id',
+    image_url: 'image_url',
+    status: 'status',
+    rejected_reason: 'rejected_reason',
+    order_id: 'order_id',
+    created_at: 'created_at'
+  };
+
+  export type PaymentProofScalarFieldEnum = (typeof PaymentProofScalarFieldEnum)[keyof typeof PaymentProofScalarFieldEnum]
+
+
   export const OrderItemScalarFieldEnum: {
     id: 'id',
     order_id: 'order_id',
@@ -40378,6 +41602,20 @@ export namespace Prisma {
    * Reference to a field of type 'OrderType[]'
    */
   export type ListEnumOrderTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentProofStatus'
+   */
+  export type EnumPaymentProofStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentProofStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'PaymentProofStatus[]'
+   */
+  export type ListEnumPaymentProofStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PaymentProofStatus[]'>
     
 
 
@@ -41054,6 +42292,7 @@ export namespace Prisma {
     refund?: XOR<RefundNullableScalarRelationFilter, RefundWhereInput> | null
     conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
     message?: MessageListRelationFilter
+    payment_proofs?: PaymentProofListRelationFilter
     order_items?: OrderItemListRelationFilter
   }
 
@@ -41084,6 +42323,7 @@ export namespace Prisma {
     refund?: RefundOrderByWithRelationInput
     conversation?: ConversationOrderByWithRelationInput
     message?: MessageOrderByRelationAggregateInput
+    payment_proofs?: PaymentProofOrderByRelationAggregateInput
     order_items?: OrderItemOrderByRelationAggregateInput
   }
 
@@ -41117,6 +42357,7 @@ export namespace Prisma {
     refund?: XOR<RefundNullableScalarRelationFilter, RefundWhereInput> | null
     conversation?: XOR<ConversationScalarRelationFilter, ConversationWhereInput>
     message?: MessageListRelationFilter
+    payment_proofs?: PaymentProofListRelationFilter
     order_items?: OrderItemListRelationFilter
   }, "id">
 
@@ -41170,6 +42411,66 @@ export namespace Prisma {
     post_order_type?: EnumPostOrderTypeWithAggregatesFilter<"Order"> | $Enums.PostOrderType
     table_number?: IntNullableWithAggregatesFilter<"Order"> | number | null
     floor?: IntNullableWithAggregatesFilter<"Order"> | number | null
+  }
+
+  export type PaymentProofWhereInput = {
+    AND?: PaymentProofWhereInput | PaymentProofWhereInput[]
+    OR?: PaymentProofWhereInput[]
+    NOT?: PaymentProofWhereInput | PaymentProofWhereInput[]
+    id?: StringFilter<"PaymentProof"> | string
+    image_url?: StringFilter<"PaymentProof"> | string
+    status?: EnumPaymentProofStatusFilter<"PaymentProof"> | $Enums.PaymentProofStatus
+    rejected_reason?: StringNullableFilter<"PaymentProof"> | string | null
+    order_id?: StringFilter<"PaymentProof"> | string
+    created_at?: DateTimeFilter<"PaymentProof"> | Date | string
+    order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
+  }
+
+  export type PaymentProofOrderByWithRelationInput = {
+    id?: SortOrder
+    image_url?: SortOrder
+    status?: SortOrder
+    rejected_reason?: SortOrderInput | SortOrder
+    order_id?: SortOrder
+    created_at?: SortOrder
+    order?: OrderOrderByWithRelationInput
+  }
+
+  export type PaymentProofWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: PaymentProofWhereInput | PaymentProofWhereInput[]
+    OR?: PaymentProofWhereInput[]
+    NOT?: PaymentProofWhereInput | PaymentProofWhereInput[]
+    image_url?: StringFilter<"PaymentProof"> | string
+    status?: EnumPaymentProofStatusFilter<"PaymentProof"> | $Enums.PaymentProofStatus
+    rejected_reason?: StringNullableFilter<"PaymentProof"> | string | null
+    order_id?: StringFilter<"PaymentProof"> | string
+    created_at?: DateTimeFilter<"PaymentProof"> | Date | string
+    order?: XOR<OrderScalarRelationFilter, OrderWhereInput>
+  }, "id">
+
+  export type PaymentProofOrderByWithAggregationInput = {
+    id?: SortOrder
+    image_url?: SortOrder
+    status?: SortOrder
+    rejected_reason?: SortOrderInput | SortOrder
+    order_id?: SortOrder
+    created_at?: SortOrder
+    _count?: PaymentProofCountOrderByAggregateInput
+    _max?: PaymentProofMaxOrderByAggregateInput
+    _min?: PaymentProofMinOrderByAggregateInput
+  }
+
+  export type PaymentProofScalarWhereWithAggregatesInput = {
+    AND?: PaymentProofScalarWhereWithAggregatesInput | PaymentProofScalarWhereWithAggregatesInput[]
+    OR?: PaymentProofScalarWhereWithAggregatesInput[]
+    NOT?: PaymentProofScalarWhereWithAggregatesInput | PaymentProofScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"PaymentProof"> | string
+    image_url?: StringWithAggregatesFilter<"PaymentProof"> | string
+    status?: EnumPaymentProofStatusWithAggregatesFilter<"PaymentProof"> | $Enums.PaymentProofStatus
+    rejected_reason?: StringNullableWithAggregatesFilter<"PaymentProof"> | string | null
+    order_id?: StringWithAggregatesFilter<"PaymentProof"> | string
+    created_at?: DateTimeWithAggregatesFilter<"PaymentProof"> | Date | string
   }
 
   export type OrderItemWhereInput = {
@@ -43168,6 +44469,7 @@ export namespace Prisma {
     refund?: RefundCreateNestedOneWithoutOrderInput
     conversation: ConversationCreateNestedOneWithoutOrderInput
     message?: MessageCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
     order_items?: OrderItemCreateNestedManyWithoutOrderInput
   }
 
@@ -43195,6 +44497,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
     refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
     message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
     order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
   }
 
@@ -43222,6 +44525,7 @@ export namespace Prisma {
     refund?: RefundUpdateOneWithoutOrderNestedInput
     conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
     message?: MessageUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUpdateManyWithoutOrderNestedInput
   }
 
@@ -43249,6 +44553,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
     refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
     message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 
@@ -43313,6 +44618,68 @@ export namespace Prisma {
     post_order_type?: EnumPostOrderTypeFieldUpdateOperationsInput | $Enums.PostOrderType
     table_number?: NullableIntFieldUpdateOperationsInput | number | null
     floor?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type PaymentProofCreateInput = {
+    id?: string
+    image_url: string
+    status?: $Enums.PaymentProofStatus
+    rejected_reason?: string | null
+    created_at?: Date | string
+    order: OrderCreateNestedOneWithoutPayment_proofsInput
+  }
+
+  export type PaymentProofUncheckedCreateInput = {
+    id?: string
+    image_url: string
+    status?: $Enums.PaymentProofStatus
+    rejected_reason?: string | null
+    order_id: string
+    created_at?: Date | string
+  }
+
+  export type PaymentProofUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    image_url?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentProofStatusFieldUpdateOperationsInput | $Enums.PaymentProofStatus
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    order?: OrderUpdateOneRequiredWithoutPayment_proofsNestedInput
+  }
+
+  export type PaymentProofUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    image_url?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentProofStatusFieldUpdateOperationsInput | $Enums.PaymentProofStatus
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    order_id?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PaymentProofCreateManyInput = {
+    id?: string
+    image_url: string
+    status?: $Enums.PaymentProofStatus
+    rejected_reason?: string | null
+    order_id: string
+    created_at?: Date | string
+  }
+
+  export type PaymentProofUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    image_url?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentProofStatusFieldUpdateOperationsInput | $Enums.PaymentProofStatus
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PaymentProofUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    image_url?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentProofStatusFieldUpdateOperationsInput | $Enums.PaymentProofStatus
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    order_id?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderItemCreateInput = {
@@ -45520,10 +46887,20 @@ export namespace Prisma {
     isNot?: RefundWhereInput | null
   }
 
+  export type PaymentProofListRelationFilter = {
+    every?: PaymentProofWhereInput
+    some?: PaymentProofWhereInput
+    none?: PaymentProofWhereInput
+  }
+
   export type OrderItemListRelationFilter = {
     every?: OrderItemWhereInput
     some?: OrderItemWhereInput
     none?: OrderItemWhereInput
+  }
+
+  export type PaymentProofOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type OrderItemOrderByRelationAggregateInput = {
@@ -45646,9 +47023,53 @@ export namespace Prisma {
     _max?: NestedEnumOrderTypeFilter<$PrismaModel>
   }
 
+  export type EnumPaymentProofStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentProofStatus | EnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentProofStatus[] | ListEnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentProofStatus[] | ListEnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentProofStatusFilter<$PrismaModel> | $Enums.PaymentProofStatus
+  }
+
   export type OrderScalarRelationFilter = {
     is?: OrderWhereInput
     isNot?: OrderWhereInput
+  }
+
+  export type PaymentProofCountOrderByAggregateInput = {
+    id?: SortOrder
+    image_url?: SortOrder
+    status?: SortOrder
+    rejected_reason?: SortOrder
+    order_id?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type PaymentProofMaxOrderByAggregateInput = {
+    id?: SortOrder
+    image_url?: SortOrder
+    status?: SortOrder
+    rejected_reason?: SortOrder
+    order_id?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type PaymentProofMinOrderByAggregateInput = {
+    id?: SortOrder
+    image_url?: SortOrder
+    status?: SortOrder
+    rejected_reason?: SortOrder
+    order_id?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type EnumPaymentProofStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentProofStatus | EnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentProofStatus[] | ListEnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentProofStatus[] | ListEnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentProofStatusWithAggregatesFilter<$PrismaModel> | $Enums.PaymentProofStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentProofStatusFilter<$PrismaModel>
+    _max?: NestedEnumPaymentProofStatusFilter<$PrismaModel>
   }
 
   export type OrderItemCountOrderByAggregateInput = {
@@ -47372,6 +48793,13 @@ export namespace Prisma {
     connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
   }
 
+  export type PaymentProofCreateNestedManyWithoutOrderInput = {
+    create?: XOR<PaymentProofCreateWithoutOrderInput, PaymentProofUncheckedCreateWithoutOrderInput> | PaymentProofCreateWithoutOrderInput[] | PaymentProofUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: PaymentProofCreateOrConnectWithoutOrderInput | PaymentProofCreateOrConnectWithoutOrderInput[]
+    createMany?: PaymentProofCreateManyOrderInputEnvelope
+    connect?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+  }
+
   export type OrderItemCreateNestedManyWithoutOrderInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -47402,6 +48830,13 @@ export namespace Prisma {
     connectOrCreate?: MessageCreateOrConnectWithoutOrderInput | MessageCreateOrConnectWithoutOrderInput[]
     createMany?: MessageCreateManyOrderInputEnvelope
     connect?: MessageWhereUniqueInput | MessageWhereUniqueInput[]
+  }
+
+  export type PaymentProofUncheckedCreateNestedManyWithoutOrderInput = {
+    create?: XOR<PaymentProofCreateWithoutOrderInput, PaymentProofUncheckedCreateWithoutOrderInput> | PaymentProofCreateWithoutOrderInput[] | PaymentProofUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: PaymentProofCreateOrConnectWithoutOrderInput | PaymentProofCreateOrConnectWithoutOrderInput[]
+    createMany?: PaymentProofCreateManyOrderInputEnvelope
+    connect?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
   }
 
   export type OrderItemUncheckedCreateNestedManyWithoutOrderInput = {
@@ -47495,6 +48930,20 @@ export namespace Prisma {
     deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
   }
 
+  export type PaymentProofUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<PaymentProofCreateWithoutOrderInput, PaymentProofUncheckedCreateWithoutOrderInput> | PaymentProofCreateWithoutOrderInput[] | PaymentProofUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: PaymentProofCreateOrConnectWithoutOrderInput | PaymentProofCreateOrConnectWithoutOrderInput[]
+    upsert?: PaymentProofUpsertWithWhereUniqueWithoutOrderInput | PaymentProofUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: PaymentProofCreateManyOrderInputEnvelope
+    set?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+    disconnect?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+    delete?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+    connect?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+    update?: PaymentProofUpdateWithWhereUniqueWithoutOrderInput | PaymentProofUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: PaymentProofUpdateManyWithWhereWithoutOrderInput | PaymentProofUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: PaymentProofScalarWhereInput | PaymentProofScalarWhereInput[]
+  }
+
   export type OrderItemUpdateManyWithoutOrderNestedInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -47553,6 +49002,20 @@ export namespace Prisma {
     deleteMany?: MessageScalarWhereInput | MessageScalarWhereInput[]
   }
 
+  export type PaymentProofUncheckedUpdateManyWithoutOrderNestedInput = {
+    create?: XOR<PaymentProofCreateWithoutOrderInput, PaymentProofUncheckedCreateWithoutOrderInput> | PaymentProofCreateWithoutOrderInput[] | PaymentProofUncheckedCreateWithoutOrderInput[]
+    connectOrCreate?: PaymentProofCreateOrConnectWithoutOrderInput | PaymentProofCreateOrConnectWithoutOrderInput[]
+    upsert?: PaymentProofUpsertWithWhereUniqueWithoutOrderInput | PaymentProofUpsertWithWhereUniqueWithoutOrderInput[]
+    createMany?: PaymentProofCreateManyOrderInputEnvelope
+    set?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+    disconnect?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+    delete?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+    connect?: PaymentProofWhereUniqueInput | PaymentProofWhereUniqueInput[]
+    update?: PaymentProofUpdateWithWhereUniqueWithoutOrderInput | PaymentProofUpdateWithWhereUniqueWithoutOrderInput[]
+    updateMany?: PaymentProofUpdateManyWithWhereWithoutOrderInput | PaymentProofUpdateManyWithWhereWithoutOrderInput[]
+    deleteMany?: PaymentProofScalarWhereInput | PaymentProofScalarWhereInput[]
+  }
+
   export type OrderItemUncheckedUpdateManyWithoutOrderNestedInput = {
     create?: XOR<OrderItemCreateWithoutOrderInput, OrderItemUncheckedCreateWithoutOrderInput> | OrderItemCreateWithoutOrderInput[] | OrderItemUncheckedCreateWithoutOrderInput[]
     connectOrCreate?: OrderItemCreateOrConnectWithoutOrderInput | OrderItemCreateOrConnectWithoutOrderInput[]
@@ -47565,6 +49028,24 @@ export namespace Prisma {
     update?: OrderItemUpdateWithWhereUniqueWithoutOrderInput | OrderItemUpdateWithWhereUniqueWithoutOrderInput[]
     updateMany?: OrderItemUpdateManyWithWhereWithoutOrderInput | OrderItemUpdateManyWithWhereWithoutOrderInput[]
     deleteMany?: OrderItemScalarWhereInput | OrderItemScalarWhereInput[]
+  }
+
+  export type OrderCreateNestedOneWithoutPayment_proofsInput = {
+    create?: XOR<OrderCreateWithoutPayment_proofsInput, OrderUncheckedCreateWithoutPayment_proofsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutPayment_proofsInput
+    connect?: OrderWhereUniqueInput
+  }
+
+  export type EnumPaymentProofStatusFieldUpdateOperationsInput = {
+    set?: $Enums.PaymentProofStatus
+  }
+
+  export type OrderUpdateOneRequiredWithoutPayment_proofsNestedInput = {
+    create?: XOR<OrderCreateWithoutPayment_proofsInput, OrderUncheckedCreateWithoutPayment_proofsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutPayment_proofsInput
+    upsert?: OrderUpsertWithoutPayment_proofsInput
+    connect?: OrderWhereUniqueInput
+    update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutPayment_proofsInput, OrderUpdateWithoutPayment_proofsInput>, OrderUncheckedUpdateWithoutPayment_proofsInput>
   }
 
   export type OrderCreateNestedOneWithoutOrder_itemsInput = {
@@ -49378,6 +50859,23 @@ export namespace Prisma {
     _max?: NestedEnumOrderTypeFilter<$PrismaModel>
   }
 
+  export type NestedEnumPaymentProofStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentProofStatus | EnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentProofStatus[] | ListEnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentProofStatus[] | ListEnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentProofStatusFilter<$PrismaModel> | $Enums.PaymentProofStatus
+  }
+
+  export type NestedEnumPaymentProofStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.PaymentProofStatus | EnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.PaymentProofStatus[] | ListEnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.PaymentProofStatus[] | ListEnumPaymentProofStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumPaymentProofStatusWithAggregatesFilter<$PrismaModel> | $Enums.PaymentProofStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumPaymentProofStatusFilter<$PrismaModel>
+    _max?: NestedEnumPaymentProofStatusFilter<$PrismaModel>
+  }
+
   export type NestedEnumRefundDisbursementModeFilter<$PrismaModel = never> = {
     equals?: $Enums.RefundDisbursementMode | EnumRefundDisbursementModeFieldRefInput<$PrismaModel>
     in?: $Enums.RefundDisbursementMode[] | ListEnumRefundDisbursementModeFieldRefInput<$PrismaModel>
@@ -50207,6 +51705,7 @@ export namespace Prisma {
     complaint?: ShopComplaintCreateNestedOneWithoutOrderInput
     refund?: RefundCreateNestedOneWithoutOrderInput
     message?: MessageCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
     order_items?: OrderItemCreateNestedManyWithoutOrderInput
   }
 
@@ -50233,6 +51732,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
     refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
     message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
     order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
   }
 
@@ -50558,6 +52058,7 @@ export namespace Prisma {
     complaint?: ShopComplaintCreateNestedOneWithoutOrderInput
     refund?: RefundCreateNestedOneWithoutOrderInput
     conversation: ConversationCreateNestedOneWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
     order_items?: OrderItemCreateNestedManyWithoutOrderInput
   }
 
@@ -50584,6 +52085,7 @@ export namespace Prisma {
     testimony?: ShopTestimonyUncheckedCreateNestedOneWithoutOrderInput
     complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
     refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
     order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
   }
 
@@ -50722,6 +52224,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUpdateOneWithoutOrderNestedInput
     refund?: RefundUpdateOneWithoutOrderNestedInput
     conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUpdateManyWithoutOrderNestedInput
   }
 
@@ -50748,6 +52251,7 @@ export namespace Prisma {
     testimony?: ShopTestimonyUncheckedUpdateOneWithoutOrderNestedInput
     complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
     refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 
@@ -51145,6 +52649,32 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PaymentProofCreateWithoutOrderInput = {
+    id?: string
+    image_url: string
+    status?: $Enums.PaymentProofStatus
+    rejected_reason?: string | null
+    created_at?: Date | string
+  }
+
+  export type PaymentProofUncheckedCreateWithoutOrderInput = {
+    id?: string
+    image_url: string
+    status?: $Enums.PaymentProofStatus
+    rejected_reason?: string | null
+    created_at?: Date | string
+  }
+
+  export type PaymentProofCreateOrConnectWithoutOrderInput = {
+    where: PaymentProofWhereUniqueInput
+    create: XOR<PaymentProofCreateWithoutOrderInput, PaymentProofUncheckedCreateWithoutOrderInput>
+  }
+
+  export type PaymentProofCreateManyOrderInputEnvelope = {
+    data: PaymentProofCreateManyOrderInput | PaymentProofCreateManyOrderInput[]
+    skipDuplicates?: boolean
+  }
+
   export type OrderItemCreateWithoutOrderInput = {
     id?: string
     quantity: number
@@ -51410,6 +52940,34 @@ export namespace Prisma {
     data: XOR<MessageUpdateManyMutationInput, MessageUncheckedUpdateManyWithoutOrderInput>
   }
 
+  export type PaymentProofUpsertWithWhereUniqueWithoutOrderInput = {
+    where: PaymentProofWhereUniqueInput
+    update: XOR<PaymentProofUpdateWithoutOrderInput, PaymentProofUncheckedUpdateWithoutOrderInput>
+    create: XOR<PaymentProofCreateWithoutOrderInput, PaymentProofUncheckedCreateWithoutOrderInput>
+  }
+
+  export type PaymentProofUpdateWithWhereUniqueWithoutOrderInput = {
+    where: PaymentProofWhereUniqueInput
+    data: XOR<PaymentProofUpdateWithoutOrderInput, PaymentProofUncheckedUpdateWithoutOrderInput>
+  }
+
+  export type PaymentProofUpdateManyWithWhereWithoutOrderInput = {
+    where: PaymentProofScalarWhereInput
+    data: XOR<PaymentProofUpdateManyMutationInput, PaymentProofUncheckedUpdateManyWithoutOrderInput>
+  }
+
+  export type PaymentProofScalarWhereInput = {
+    AND?: PaymentProofScalarWhereInput | PaymentProofScalarWhereInput[]
+    OR?: PaymentProofScalarWhereInput[]
+    NOT?: PaymentProofScalarWhereInput | PaymentProofScalarWhereInput[]
+    id?: StringFilter<"PaymentProof"> | string
+    image_url?: StringFilter<"PaymentProof"> | string
+    status?: EnumPaymentProofStatusFilter<"PaymentProof"> | $Enums.PaymentProofStatus
+    rejected_reason?: StringNullableFilter<"PaymentProof"> | string | null
+    order_id?: StringFilter<"PaymentProof"> | string
+    created_at?: DateTimeFilter<"PaymentProof"> | Date | string
+  }
+
   export type OrderItemUpsertWithWhereUniqueWithoutOrderInput = {
     where: OrderItemWhereUniqueInput
     update: XOR<OrderItemUpdateWithoutOrderInput, OrderItemUncheckedUpdateWithoutOrderInput>
@@ -51438,6 +52996,130 @@ export namespace Prisma {
     note?: StringNullableFilter<"OrderItem"> | string | null
   }
 
+  export type OrderCreateWithoutPayment_proofsInput = {
+    id?: string
+    created_at?: Date | string
+    updated_at?: Date | string
+    estimation?: number | null
+    payment_proof_url?: string | null
+    processed_at?: Date | string | null
+    rejected_reason?: string | null
+    cancelled_reason?: string | null
+    cancelled_by_id?: string | null
+    total_price: number
+    status: $Enums.OrderStatus
+    type?: $Enums.OrderType
+    payment_method: $Enums.PaymentMethod
+    post_order_type?: $Enums.PostOrderType
+    table_number?: number | null
+    floor?: number | null
+    customer: CustomerCreateNestedOneWithoutOrdersInput
+    shop: ShopCreateNestedOneWithoutOrdersInput
+    testimony?: ShopTestimonyCreateNestedOneWithoutOrderInput
+    complaint?: ShopComplaintCreateNestedOneWithoutOrderInput
+    refund?: RefundCreateNestedOneWithoutOrderInput
+    conversation: ConversationCreateNestedOneWithoutOrderInput
+    message?: MessageCreateNestedManyWithoutOrderInput
+    order_items?: OrderItemCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderUncheckedCreateWithoutPayment_proofsInput = {
+    id?: string
+    created_at?: Date | string
+    updated_at?: Date | string
+    customer_id: string
+    shop_id: string
+    estimation?: number | null
+    payment_proof_url?: string | null
+    processed_at?: Date | string | null
+    rejected_reason?: string | null
+    cancelled_reason?: string | null
+    cancelled_by_id?: string | null
+    total_price: number
+    status: $Enums.OrderStatus
+    type?: $Enums.OrderType
+    conversation_id: string
+    payment_method: $Enums.PaymentMethod
+    post_order_type?: $Enums.PostOrderType
+    table_number?: number | null
+    floor?: number | null
+    testimony?: ShopTestimonyUncheckedCreateNestedOneWithoutOrderInput
+    complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
+    refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
+    message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderCreateOrConnectWithoutPayment_proofsInput = {
+    where: OrderWhereUniqueInput
+    create: XOR<OrderCreateWithoutPayment_proofsInput, OrderUncheckedCreateWithoutPayment_proofsInput>
+  }
+
+  export type OrderUpsertWithoutPayment_proofsInput = {
+    update: XOR<OrderUpdateWithoutPayment_proofsInput, OrderUncheckedUpdateWithoutPayment_proofsInput>
+    create: XOR<OrderCreateWithoutPayment_proofsInput, OrderUncheckedCreateWithoutPayment_proofsInput>
+    where?: OrderWhereInput
+  }
+
+  export type OrderUpdateToOneWithWhereWithoutPayment_proofsInput = {
+    where?: OrderWhereInput
+    data: XOR<OrderUpdateWithoutPayment_proofsInput, OrderUncheckedUpdateWithoutPayment_proofsInput>
+  }
+
+  export type OrderUpdateWithoutPayment_proofsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    estimation?: NullableIntFieldUpdateOperationsInput | number | null
+    payment_proof_url?: NullableStringFieldUpdateOperationsInput | string | null
+    processed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelled_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelled_by_id?: NullableStringFieldUpdateOperationsInput | string | null
+    total_price?: FloatFieldUpdateOperationsInput | number
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    type?: EnumOrderTypeFieldUpdateOperationsInput | $Enums.OrderType
+    payment_method?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    post_order_type?: EnumPostOrderTypeFieldUpdateOperationsInput | $Enums.PostOrderType
+    table_number?: NullableIntFieldUpdateOperationsInput | number | null
+    floor?: NullableIntFieldUpdateOperationsInput | number | null
+    customer?: CustomerUpdateOneRequiredWithoutOrdersNestedInput
+    shop?: ShopUpdateOneRequiredWithoutOrdersNestedInput
+    testimony?: ShopTestimonyUpdateOneWithoutOrderNestedInput
+    complaint?: ShopComplaintUpdateOneWithoutOrderNestedInput
+    refund?: RefundUpdateOneWithoutOrderNestedInput
+    conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
+    message?: MessageUpdateManyWithoutOrderNestedInput
+    order_items?: OrderItemUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateWithoutPayment_proofsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer_id?: StringFieldUpdateOperationsInput | string
+    shop_id?: StringFieldUpdateOperationsInput | string
+    estimation?: NullableIntFieldUpdateOperationsInput | number | null
+    payment_proof_url?: NullableStringFieldUpdateOperationsInput | string | null
+    processed_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelled_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    cancelled_by_id?: NullableStringFieldUpdateOperationsInput | string | null
+    total_price?: FloatFieldUpdateOperationsInput | number
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    type?: EnumOrderTypeFieldUpdateOperationsInput | $Enums.OrderType
+    conversation_id?: StringFieldUpdateOperationsInput | string
+    payment_method?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    post_order_type?: EnumPostOrderTypeFieldUpdateOperationsInput | $Enums.PostOrderType
+    table_number?: NullableIntFieldUpdateOperationsInput | number | null
+    floor?: NullableIntFieldUpdateOperationsInput | number | null
+    testimony?: ShopTestimonyUncheckedUpdateOneWithoutOrderNestedInput
+    complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
+    refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
+    message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
   export type OrderCreateWithoutOrder_itemsInput = {
     id?: string
     created_at?: Date | string
@@ -51462,6 +53144,7 @@ export namespace Prisma {
     refund?: RefundCreateNestedOneWithoutOrderInput
     conversation: ConversationCreateNestedOneWithoutOrderInput
     message?: MessageCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
   }
 
   export type OrderUncheckedCreateWithoutOrder_itemsInput = {
@@ -51488,6 +53171,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
     refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
     message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
   }
 
   export type OrderCreateOrConnectWithoutOrder_itemsInput = {
@@ -51592,6 +53276,7 @@ export namespace Prisma {
     refund?: RefundUpdateOneWithoutOrderNestedInput
     conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
     message?: MessageUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
   }
 
   export type OrderUncheckedUpdateWithoutOrder_itemsInput = {
@@ -51618,6 +53303,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
     refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
     message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
   }
 
   export type ProductUpsertWithoutOrder_itemsInput = {
@@ -51706,6 +53392,7 @@ export namespace Prisma {
     complaint?: ShopComplaintCreateNestedOneWithoutOrderInput
     conversation: ConversationCreateNestedOneWithoutOrderInput
     message?: MessageCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
     order_items?: OrderItemCreateNestedManyWithoutOrderInput
   }
 
@@ -51732,6 +53419,7 @@ export namespace Prisma {
     testimony?: ShopTestimonyUncheckedCreateNestedOneWithoutOrderInput
     complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
     message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
     order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
   }
 
@@ -51774,6 +53462,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUpdateOneWithoutOrderNestedInput
     conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
     message?: MessageUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUpdateManyWithoutOrderNestedInput
   }
 
@@ -51800,6 +53489,7 @@ export namespace Prisma {
     testimony?: ShopTestimonyUncheckedUpdateOneWithoutOrderNestedInput
     complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
     message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 
@@ -52997,6 +54687,7 @@ export namespace Prisma {
     refund?: RefundCreateNestedOneWithoutOrderInput
     conversation: ConversationCreateNestedOneWithoutOrderInput
     message?: MessageCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
     order_items?: OrderItemCreateNestedManyWithoutOrderInput
   }
 
@@ -53023,6 +54714,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
     refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
     message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
     order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
   }
 
@@ -53458,6 +55150,7 @@ export namespace Prisma {
     refund?: RefundCreateNestedOneWithoutOrderInput
     conversation: ConversationCreateNestedOneWithoutOrderInput
     message?: MessageCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
     order_items?: OrderItemCreateNestedManyWithoutOrderInput
   }
 
@@ -53484,6 +55177,7 @@ export namespace Prisma {
     testimony?: ShopTestimonyUncheckedCreateNestedOneWithoutOrderInput
     refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
     message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
     order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
   }
 
@@ -53526,6 +55220,7 @@ export namespace Prisma {
     refund?: RefundUpdateOneWithoutOrderNestedInput
     conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
     message?: MessageUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUpdateManyWithoutOrderNestedInput
   }
 
@@ -53552,6 +55247,7 @@ export namespace Prisma {
     testimony?: ShopTestimonyUncheckedUpdateOneWithoutOrderNestedInput
     refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
     message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 
@@ -53690,6 +55386,7 @@ export namespace Prisma {
     refund?: RefundCreateNestedOneWithoutOrderInput
     conversation: ConversationCreateNestedOneWithoutOrderInput
     message?: MessageCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
     order_items?: OrderItemCreateNestedManyWithoutOrderInput
   }
 
@@ -53716,6 +55413,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
     refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
     message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
     order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
   }
 
@@ -53758,6 +55456,7 @@ export namespace Prisma {
     refund?: RefundUpdateOneWithoutOrderNestedInput
     conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
     message?: MessageUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUpdateManyWithoutOrderNestedInput
   }
 
@@ -53784,6 +55483,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
     refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
     message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 
@@ -54434,6 +56134,7 @@ export namespace Prisma {
     refund?: RefundCreateNestedOneWithoutOrderInput
     conversation: ConversationCreateNestedOneWithoutOrderInput
     message?: MessageCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofCreateNestedManyWithoutOrderInput
     order_items?: OrderItemCreateNestedManyWithoutOrderInput
   }
 
@@ -54460,6 +56161,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedCreateNestedOneWithoutOrderInput
     refund?: RefundUncheckedCreateNestedOneWithoutOrderInput
     message?: MessageUncheckedCreateNestedManyWithoutOrderInput
+    payment_proofs?: PaymentProofUncheckedCreateNestedManyWithoutOrderInput
     order_items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
   }
 
@@ -54906,6 +56608,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUpdateOneWithoutOrderNestedInput
     refund?: RefundUpdateOneWithoutOrderNestedInput
     message?: MessageUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUpdateManyWithoutOrderNestedInput
   }
 
@@ -54932,6 +56635,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
     refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
     message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 
@@ -54995,6 +56699,14 @@ export namespace Prisma {
     read_at?: Date | string | null
   }
 
+  export type PaymentProofCreateManyOrderInput = {
+    id?: string
+    image_url: string
+    status?: $Enums.PaymentProofStatus
+    rejected_reason?: string | null
+    created_at?: Date | string
+  }
+
   export type OrderItemCreateManyOrderInput = {
     id?: string
     product_id: string
@@ -55036,6 +56748,30 @@ export namespace Prisma {
     type?: EnumMessageTypeFieldUpdateOperationsInput | $Enums.MessageType
     is_read?: BoolFieldUpdateOperationsInput | boolean
     read_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type PaymentProofUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    image_url?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentProofStatusFieldUpdateOperationsInput | $Enums.PaymentProofStatus
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PaymentProofUncheckedUpdateWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    image_url?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentProofStatusFieldUpdateOperationsInput | $Enums.PaymentProofStatus
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PaymentProofUncheckedUpdateManyWithoutOrderInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    image_url?: StringFieldUpdateOperationsInput | string
+    status?: EnumPaymentProofStatusFieldUpdateOperationsInput | $Enums.PaymentProofStatus
+    rejected_reason?: NullableStringFieldUpdateOperationsInput | string | null
+    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type OrderItemUpdateWithoutOrderInput = {
@@ -55620,6 +57356,7 @@ export namespace Prisma {
     refund?: RefundUpdateOneWithoutOrderNestedInput
     conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
     message?: MessageUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUpdateManyWithoutOrderNestedInput
   }
 
@@ -55646,6 +57383,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
     refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
     message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 
@@ -55921,6 +57659,7 @@ export namespace Prisma {
     refund?: RefundUpdateOneWithoutOrderNestedInput
     conversation?: ConversationUpdateOneRequiredWithoutOrderNestedInput
     message?: MessageUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUpdateManyWithoutOrderNestedInput
   }
 
@@ -55947,6 +57686,7 @@ export namespace Prisma {
     complaint?: ShopComplaintUncheckedUpdateOneWithoutOrderNestedInput
     refund?: RefundUncheckedUpdateOneWithoutOrderNestedInput
     message?: MessageUncheckedUpdateManyWithoutOrderNestedInput
+    payment_proofs?: PaymentProofUncheckedUpdateManyWithoutOrderNestedInput
     order_items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
   }
 

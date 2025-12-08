@@ -1,6 +1,6 @@
 model Cart {
   id          String     @id @default(uuid())
-  customer    Customer   @relation(fields: [customer_id], references: [id])
+  customer    Customer   @relation(fields: [customer_id], references: [id], onDelete: Cascade)
   customer_id String     @unique
   status      CartStatus @default(ACTIVE)
   expires_at  DateTime?
@@ -184,6 +184,8 @@ model Order {
   message         Message[]
   payment_method  PaymentMethod
 
+  payment_proofs PaymentProof[]
+
   order_items OrderItem[]
 
   post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
@@ -198,6 +200,28 @@ model Order {
   @@index([customer_id, created_at]) // Untuk riwayat pelanggan (sortir by terbaru)
   @@index([status])
   @@map("orders")
+}
+
+model PaymentProof {
+  id String @id @default(nanoid())
+
+  image_url String
+
+  status          PaymentProofStatus @default(PENDING)
+  rejected_reason String?            @db.Text
+
+  order    Order  @relation(fields: [order_id], references: [id])
+  order_id String
+
+  created_at DateTime @default(now())
+
+  @@map("payment_proofs")
+}
+
+enum PaymentProofStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum OrderType {
@@ -576,7 +600,7 @@ model AppTestimony {
 }
 
 model User {
-  id String @id @default(uuid())
+  id String @id @default(uuid()) // jika role customer atau owner maka isi ini berupa firebase auth Uid
 
   role Role
 

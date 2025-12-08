@@ -21,6 +21,19 @@ export const authConfig: NextAuthConfig = {
 
         const user = await prisma.user.findFirst({
           where: { username },
+          include: {
+            owner: {
+              select: {
+                id: true,
+                shop: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
         });
 
         console.log(user);
@@ -50,6 +63,9 @@ export const authConfig: NextAuthConfig = {
           name: user.name,
           role: user.role,
           avatar: user.avatar,
+          shopId: user.owner?.shop?.id,
+          shopName: user.owner?.shop?.name,
+          ownerId: user.owner?.id,
         };
       },
     }),
@@ -66,6 +82,9 @@ export const authConfig: NextAuthConfig = {
         session.user.name = token.name as string;
         session.user.role = token.role as string;
         session.user.avatar = token.avatar as string;
+        session.user.shopName = token.shopName as string;
+        session.user.shopId = token.shopId as string;
+        session.user.ownerId = token.ownerId as string;
       }
       return session;
     },
@@ -76,6 +95,9 @@ export const authConfig: NextAuthConfig = {
         token.name = user.name;
         token.role = user.role;
         token.avatar = user.avatar;
+        token.shopName = user.shopName;
+        token.shopId = user.shopId;
+        token.ownerId = user.ownerId;
       }
       return token;
     },

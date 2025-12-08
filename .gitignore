@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+firebase-document-structure.md
+firebase-debug.log
+
 # testing
 /coverage
 

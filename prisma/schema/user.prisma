@@ -1,5 +1,5 @@
 model User {
-    id String @id @default(uuid())
+    id String @id @default(uuid()) // jika role customer atau owner maka isi ini berupa firebase auth Uid
 
     role Role
 

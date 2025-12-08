@@ -1,6 +1,6 @@
 model Cart {
   id          String     @id @default(uuid())
-  customer    Customer   @relation(fields: [customer_id], references: [id])
+  customer    Customer   @relation(fields: [customer_id], references: [id], onDelete: Cascade)
   customer_id String     @unique
   status      CartStatus @default(ACTIVE)
   expires_at  DateTime?

@@ -211,6 +211,15 @@ exports.Prisma.OrderScalarFieldEnum = {
   floor: 'floor'
 };
 
+exports.Prisma.PaymentProofScalarFieldEnum = {
+  id: 'id',
+  image_url: 'image_url',
+  status: 'status',
+  rejected_reason: 'rejected_reason',
+  order_id: 'order_id',
+  created_at: 'created_at'
+};
+
 exports.Prisma.OrderItemScalarFieldEnum = {
   id: 'id',
   order_id: 'order_id',
@@ -487,6 +496,12 @@ exports.OrderType = exports.$Enums.OrderType = {
   PREORDER: 'PREORDER'
 };
 
+exports.PaymentProofStatus = exports.$Enums.PaymentProofStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED'
+};
+
 exports.RefundDisbursementMode = exports.$Enums.RefundDisbursementMode = {
   CASH: 'CASH',
   TRANSFER: 'TRANSFER'
@@ -558,6 +573,7 @@ exports.Prisma.ModelName = {
   MessageMedia: 'MessageMedia',
   QuickChat: 'QuickChat',
   Order: 'Order',
+  PaymentProof: 'PaymentProof',
   OrderItem: 'OrderItem',
   Refund: 'Refund',
   Product: 'Product',

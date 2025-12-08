@@ -8,8 +8,9 @@ declare module "next-auth" {
       name: string;
       avatar: string;
       role: string;
-      owner_id?: string;
-      shop_id?: string;
+      ownerId?: string;
+      shopName?: string;
+      shopId?: string;
     };
   }
 
@@ -19,7 +20,8 @@ declare module "next-auth" {
     name: string;
     avatar: string;
     role: string;
-    owner_id?: string;
-    shop_id?: string;
+    ownerId?: string;
+    shopName?: string;
+    shopId?: string;
   }
 }
