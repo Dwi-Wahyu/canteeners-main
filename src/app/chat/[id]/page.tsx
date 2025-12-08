@@ -1,3 +1,5 @@
+import ClientChatPage from "./client-chat-page";
+
 export default async function ChatDetailPage({
   params,
 }: {
@@ -7,7 +9,7 @@ export default async function ChatDetailPage({
 
   return (
     <div>
-      <h1></h1>
+      <ClientChatPage chatId={id} />
     </div>
   );
 }

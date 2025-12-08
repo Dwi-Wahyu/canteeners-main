@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const uid = searchParams.get("uid") || nanoid();
+  const uid = searchParams.get("uid") || nanoid(); // firebase uid
 
   const token = await adminAuth.createCustomToken(uid, {
     guest: true,

@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import CreateShopConversation from "@/features/chat/ui/create-shop-conversation";
 import { getImageUrl } from "@/helper/get-image-url";
@@ -56,12 +55,16 @@ export default async function CanteenDetailPage({
               alt={shop.name}
               width={400}
               height={400}
+              loading="eager"
               className="rounded-lg shadow mb-2"
             />
 
             <h1>{shop.name}</h1>
 
-            <CreateShopConversation ownerUserId={shop.owner.user_id} />
+            <CreateShopConversation
+              ownerUserId={shop.owner.user_id}
+              shopName={shop.name}
+            />
           </CardContent>
         </Card>
       ))}

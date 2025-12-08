@@ -5,12 +5,11 @@ type GuestProfileStoreActions = {
   initializeGuestProfile: ({
     cartId,
     userId,
-    firebaseUid,
+    customerId,
   }: {
     cartId: string;
     userId: string;
     customerId: string;
-    firebaseUid: string;
   }) => void;
 
   setCustomerData: ({
@@ -26,7 +25,6 @@ type GuestProfileStore = {
   cartId: string;
   userId: string;
   customerId: string;
-  firebaseUid: string;
 
   name: string;
   avatar?: string;
@@ -41,6 +39,7 @@ export const useGuestProfileStore = create<GuestProfileStore>()(
         cartId: "",
         userId: "",
         customerId: "",
+        firebaseToken: "",
         firebaseUid: "",
         name: "",
         avatar: "",

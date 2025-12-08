@@ -1,13 +1,13 @@
 import { useGuestProfileStore } from "@/stores/guest-profile-store";
 
 export const useGuestCartId = () =>
-  useGuestProfileStore((state) => state.cart_id);
+  useGuestProfileStore((state) => state.cartId);
 
 export const useGuestUserId = () =>
-  useGuestProfileStore((state) => state.user_id);
+  useGuestProfileStore((state) => state.userId);
 
 export const useGuestCustomerId = () =>
-  useGuestProfileStore((state) => state.customer_id);
+  useGuestProfileStore((state) => state.customerId);
 
 export const useGuestName = () => useGuestProfileStore((state) => state.name);
 

@@ -1,10 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  useGuestUserId,
-  useInitializeGuestProfile,
-} from "@/hooks/use-guest-profile";
+import { useInitializeGuestProfile } from "@/hooks/use-guest-profile";
 import { useState } from "react";
 import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
 import { getAuth, signInAnonymously } from "firebase/auth";
@@ -16,10 +13,11 @@ import { toast } from "sonner";
 
 export default function CreateShopConversation({
   ownerUserId,
+  shopName,
 }: {
   ownerUserId: string;
+  shopName: string;
 }) {
-  const guestUserId = useGuestUserId();
   const initGuestProfile = useInitializeGuestProfile();
   const router = useRouter();
 
@@ -29,15 +27,13 @@ export default function CreateShopConversation({
   const auth = getAuth();
 
   function onClick() {
-    // console.log(auth.currentUser);
+    console.log(auth.currentUser);
 
-    console.log(ownerUserId);
-
-    // if (!guestUserId) {
-    //   setShowDialog(true);
-    // } else {
-    //   startChat();
-    // }
+    if (!auth.currentUser) {
+      setShowDialog(true);
+    } else {
+      startChat();
+    }
   }
 
   async function startChat() {
@@ -47,14 +43,16 @@ export default function CreateShopConversation({
       const result = await signInAnonymously(auth);
       user = result.user;
 
-      const guestUser = await createGuestCustomer();
+      const guestUser = await createGuestCustomer({
+        firebaseUserUid: user.uid,
+        guestName,
+      });
 
       if (guestUser.success && guestUser.data) {
         await initGuestProfile({
-          firebaseUid: user.uid,
           cartId: guestUser.data.cart_id,
           customerId: guestUser.data.customer_id,
-          userId: guestUser.data.user_id,
+          userId: guestUser.data.user_id, // firebase uid
         });
         toast.success("Berhasil membuat guest user");
       } else {
@@ -71,9 +69,18 @@ export default function CreateShopConversation({
     if (!chatSnap.exists()) {
       await setDoc(chatRef, {
         id: chatId,
-        guestId: user.uid,
-        ownerId: ownerUserId,
-        createdAt: serverTimestamp(),
+        buyerId: user.uid,
+        sellerId: ownerUserId,
+
+        participantIds: [user.uid, ownerUserId],
+
+        shopName,
+
+        lastMessageTimestamp: serverTimestamp(),
+        lastMessage: "",
+
+        unreadCountBuyer: 0,
+        unreadCountSeller: 0,
       });
     }
 

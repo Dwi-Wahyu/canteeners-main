@@ -13,6 +13,7 @@ export async function seedShops() {
   try {
     await prisma.user.create({
       data: {
+        id: process.env.OWNER_FIREBASE_UID,
         name: "Ahmad Subarjo",
         username: process.env.OWNER_USERNAME,
         password: bcrypt.hashSync(process.env.OWNER_PASSWORD!),
