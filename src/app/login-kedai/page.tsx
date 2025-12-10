@@ -20,9 +20,11 @@ import { useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
 import { LoginSchema, LoginInput } from "@/features/auth/lib/auth-type";
 import { useEffect } from "react";
+import { getUserByUsername } from "@/features/user/lib/user-queries";
 
 export default function LoginKedaiPage() {
   const router = useRouter();
+  const session = useSession();
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
@@ -49,11 +51,24 @@ export default function LoginKedaiPage() {
         message: "Username atau Password salah",
       });
     } else {
+      const user = await getUserByUsername(data.username);
+
+      if (!user) return;
+
+      const response = await fetch("/api/auth/firebase-token?uid=" + user.id);
+      const responseData = await response.json();
+      const firebaseToken = responseData.token;
+
+      console.log(responseData);
+
+      session.update({
+        ...session.data,
+        firebaseToken: firebaseToken,
+      });
+
       router.push("/dashboard-kedai");
     }
   }
-
-  const session = useSession();
 
   useEffect(() => {
     if (session.status === "authenticated") {

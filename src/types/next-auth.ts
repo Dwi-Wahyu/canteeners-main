@@ -11,6 +11,7 @@ declare module "next-auth" {
       ownerId?: string;
       shopName?: string;
       shopId?: string;
+      firebaseToken?: string;
     };
   }
 
@@ -23,5 +24,6 @@ declare module "next-auth" {
     ownerId?: string;
     shopName?: string;
     shopId?: string;
+    firebaseToken?: string;
   }
 }

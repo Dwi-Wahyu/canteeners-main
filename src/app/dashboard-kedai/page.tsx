@@ -7,6 +7,8 @@ export default async function DashboardKedai() {
     <div>
       <h1>Dashboard kedai</h1>
 
+      <h1>{session?.user.firebaseToken ?? "belum ada firebase token"}</h1>
+
       <h1>Selamat datang {session?.user.name}</h1>
     </div>
   );

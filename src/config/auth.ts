@@ -57,6 +57,12 @@ export const authConfig: NextAuthConfig = {
           },
         });
 
+        // Untuk menambahkan credential tambahan ke token Firebase
+        // const additionalClaims = {
+        //   role: user.role,
+        //   shopId: user.shopId,
+        // };
+
         return {
           id: user.id,
           username: user.username ?? "",

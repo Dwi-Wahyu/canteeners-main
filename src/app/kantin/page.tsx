@@ -1,20 +1,33 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { getImageUrl } from "@/helper/get-image-url";
-import { prisma } from "@/lib/prisma";
 import Image from "next/image";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
 export default async function CanteenPage() {
-  const canteens = await prisma.canteen.findMany();
+  const canteens = [
+    {
+      slug: "kantin-kudapan",
+      image_url: "canteens/kudapan.webp",
+      name: "Kantin Kudapan",
+    },
+    {
+      slug: "kantin-sastra",
+      image_url: "canteens/kansas.jpeg",
+      name: "Kantin Kudapan",
+    },
+    {
+      slug: "kantin-sosiologi",
+      image_url: "canteens/kansos.webp",
+      name: "Kantin Sosiologi",
+    },
+  ];
 
   return (
     <div className="p-5 flex flex-col gap-4">
       <h1>Daftar Kantin</h1>
 
-      {canteens.map((canteen) => (
-        <Link href={"/kantin/" + canteen.slug} key={canteen.id}>
+      {canteens.map((canteen, idx) => (
+        <Link href={"/kantin/" + canteen.slug} key={idx}>
           <Card>
             <CardContent>
               <Image
