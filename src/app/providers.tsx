@@ -5,12 +5,14 @@ import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "@/components/theme-provider";
+import { FirebaseAuthSync } from "@/hooks/firebase-auth-sync";
 
 const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
+      <FirebaseAuthSync />
       <QueryClientProvider client={queryClient}>
         <NuqsAdapter>
           <ThemeProvider

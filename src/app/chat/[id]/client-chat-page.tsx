@@ -1,10 +1,12 @@
 "use client";
 
-import { ChatInput } from "@/features/chat/ui/chat-list";
+import { ChatInput } from "@/features/chat/ui/chat-input";
 import { MessageList } from "@/features/chat/ui/message-list";
 import { db } from "@/lib/firebase/client";
 import { getAuth } from "firebase/auth";
 import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type ChatData = {
@@ -50,8 +52,12 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
   const isOwner = currentUser.uid === chatData.sellerId;
 
   return (
-    <div className="flex flex-col h-screen max-h-screen">
-      <div className="p-4 border-b bg-white shadow-sm z-10">
+    <div className="flex flex-col h-screen max-h-svh">
+      <div className="p-4 flex items-center gap-1 border-b bg-white shadow-sm z-10">
+        <Link className="text-muted-foreground" href={isOwner ? '/dashboard-kedia/chat' : '/chat'}>
+          <ChevronLeft className="w-5 h-5" />
+        </Link>
+
         <h1 className="font-semibold text-lg">
           Chat dengan {isOwner ? "Pelanggan" : "Kedai"}
         </h1>
@@ -65,35 +71,5 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
         isOwner={isOwner}
       />
     </div>
-
-    // <div>
-    //   {!currentUser ? (
-    //     <div>
-    //       <h1>Anda tidak berhak mengakses, user id belum ada</h1>
-    //     </div>
-    //   ) : (
-    //     <div>
-    //       <h1>{chatId}</h1>
-
-    //       {!chatData ? (
-    //         <div>
-    //           <h1>data chat tidak ditemukan</h1>
-    //         </div>
-    //       ) : (
-    //         <div>
-    //           {chatData.buyerId !== currentUser.uid ? (
-    //             <div>
-    //               <h1>Anda bukan peserta chat ini</h1>
-    //             </div>
-    //           ) : (
-    //             <div>
-    //               <h1>Terverifikasi</h1>
-    //             </div>
-    //           )}
-    //         </div>
-    //       )}
-    //     </div>
-    //   )}
-    // </div>
   );
 }

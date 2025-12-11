@@ -16,7 +16,6 @@ export default async function OwnerLayout({
 
   return (
     <div className="relative">
-      {/* todo: ambil dari session */}
       <OwnerTopbar shopName="Kedai Cawan" />
 
       <div className="p-5 pt-24">{children}</div>

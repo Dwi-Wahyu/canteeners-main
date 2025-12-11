@@ -57,12 +57,6 @@ export const authConfig: NextAuthConfig = {
           },
         });
 
-        // Untuk menambahkan credential tambahan ke token Firebase
-        // const additionalClaims = {
-        //   role: user.role,
-        //   shopId: user.shopId,
-        // };
-
         return {
           id: user.id,
           username: user.username ?? "",
@@ -91,10 +85,11 @@ export const authConfig: NextAuthConfig = {
         session.user.shopName = token.shopName as string;
         session.user.shopId = token.shopId as string;
         session.user.ownerId = token.ownerId as string;
+        session.user.firebaseToken = token.firebaseToken as string;
       }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.username = user.username;
@@ -105,6 +100,11 @@ export const authConfig: NextAuthConfig = {
         token.shopId = user.shopId;
         token.ownerId = user.ownerId;
       }
+
+      if (trigger === "update" && session?.firebaseToken) {
+        token.firebaseToken = session.firebaseToken;
+      }
+
       return token;
     },
   },

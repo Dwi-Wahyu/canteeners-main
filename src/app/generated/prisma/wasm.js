@@ -580,7 +580,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Programming\\Next js\\canteeners-main\\src\\app\\generated\\prisma",
+      "value": "C:\\Programming\\nextjs\\canteeners-main\\src\\app\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -594,7 +594,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Programming\\Next js\\canteeners-main\\prisma\\schema\\schema.prisma",
+    "sourceFilePath": "C:\\Programming\\nextjs\\canteeners-main\\prisma\\schema\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -608,7 +608,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": true,
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
