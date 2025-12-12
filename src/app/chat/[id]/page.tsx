@@ -1,4 +1,4 @@
-import ClientChatPage from "./client-chat-page";
+import ClientChatPage from "../../../features/chat/ui/client-chat-page";
 
 export default async function ChatDetailPage({
   params,

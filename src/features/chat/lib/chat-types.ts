@@ -13,7 +13,8 @@ export type Message = {
   type: "text" | "image";
   text?: string;
   imageUrl?: string | null; // Backward compatibility jika ada
-  media?: MediaItem[];
+  attachments?: MediaItem[];
+  media?: MediaItem[]; // Deprecated: use attachments instead
   readBy: string[];
   createdAt: Timestamp | null;
 };

@@ -21,6 +21,7 @@ import { Loader } from "lucide-react";
 import { LoginSchema, LoginInput } from "@/features/auth/lib/auth-type";
 import { useEffect } from "react";
 import { getUserByUsername } from "@/features/user/lib/user-queries";
+import { notificationDialog } from "@/hooks/use-notification-dialog";
 
 export default function LoginKedaiPage() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export default function LoginKedaiPage() {
   });
 
   async function onSubmit(data: LoginInput) {
+
     const res = await signIn("credentials", {
       username: data.username,
       password: data.password,
@@ -66,7 +68,14 @@ export default function LoginKedaiPage() {
         firebaseToken: firebaseToken,
       });
 
-      router.push("/dashboard-kedai");
+      if (firebaseToken) {
+        router.push("/dashboard-kedai");
+      } else {
+        notificationDialog.error({
+          title: "Gagal login",
+          message: "Silakan hubungi CS, akun mungkin belum diverifikasi dengan baik",
+        });
+      }
     }
   }
 

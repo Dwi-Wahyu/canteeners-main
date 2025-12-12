@@ -17,5 +17,5 @@ export default async function Layout({
     redirect("/");
   }
 
-  return <OwnerLayout>{children}</OwnerLayout>;
+  return <OwnerLayout avatar={session.user.avatar} shopName={session.user.shopName ?? "Belum Ada Nama Kedai"}>{children}</OwnerLayout>;
 }

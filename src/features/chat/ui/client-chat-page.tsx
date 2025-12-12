@@ -5,9 +5,8 @@ import { MessageList } from "@/features/chat/ui/message-list";
 import { db } from "@/lib/firebase/client";
 import { getAuth } from "firebase/auth";
 import { doc, getDoc, Timestamp } from "firebase/firestore";
-import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
+import ChatTopbar from "./chat-topbar";
 
 type ChatData = {
   id: string;
@@ -53,17 +52,9 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
 
   return (
     <div className="flex flex-col h-screen max-h-svh">
-      <div className="p-4 flex items-center gap-1 border-b bg-white shadow-sm z-10">
-        <Link className="text-muted-foreground" href={isOwner ? '/dashboard-kedia/chat' : '/chat'}>
-          <ChevronLeft className="w-5 h-5" />
-        </Link>
+      <ChatTopbar isOwner={isOwner} />
 
-        <h1 className="font-semibold text-lg">
-          Chat dengan {isOwner ? "Pelanggan" : "Kedai"}
-        </h1>
-      </div>
-
-      <MessageList chatId={chatId} currentUserId={currentUser.uid} />
+      <MessageList chatId={chatId} currentUserId={currentUser.uid} isOwner={isOwner} />
 
       <ChatInput
         chatId={chatId}

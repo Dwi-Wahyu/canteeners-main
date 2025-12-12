@@ -32,7 +32,7 @@ export default function GuestChatListPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // 1. Cek Status Login (Anonymous)
+  // Cek Status Login (Anonymous)
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -42,13 +42,13 @@ export default function GuestChatListPage() {
     return () => unsubscribe();
   }, []);
 
-  // 2. Ambil Data Chat Realtime
+  // Ambil Data Chat Realtime
   useEffect(() => {
     if (!user) return;
 
     const chatsRef = collection(db, "chats");
 
-    // Query: Cari chat dimana participantIds mengandung UID user saat ini
+    // Cari chat dimana participantIds mengandung UID user saat ini
     // Dan urutkan berdasarkan waktu pesan terakhir
     const q = query(
       chatsRef,
@@ -69,7 +69,7 @@ export default function GuestChatListPage() {
       },
       (error) => {
         console.error("Error fetching chats:", error);
-        // PENTING: Jika muncul error "index required", cek console browser
+        // Jika muncul error "index required", cek console browser
         // dan klik link yang diberikan Firebase untuk membuat index.
         setLoading(false);
       }
@@ -110,8 +110,8 @@ export default function GuestChatListPage() {
               // Format waktu (Fallback jika timestamp null saat pembuatan awal)
               const timeDisplay = chat.lastMessageTimestamp
                 ? format(chat.lastMessageTimestamp.toDate(), "dd MMM HH:mm", {
-                    locale: idLocale,
-                  })
+                  locale: idLocale,
+                })
                 : "Baru saja";
 
               return (
@@ -139,11 +139,10 @@ export default function GuestChatListPage() {
 
                     <div className="flex justify-between items-center">
                       <p
-                        className={`text-sm truncate ${
-                          unreadCount > 0
-                            ? "font-semibold text-gray-900"
-                            : "text-gray-500"
-                        }`}
+                        className={`text-sm truncate ${unreadCount > 0
+                          ? "font-semibold text-gray-900"
+                          : "text-gray-500"
+                          }`}
                       >
                         {chat.lastMessage || "Mulai percakapan..."}
                       </p>

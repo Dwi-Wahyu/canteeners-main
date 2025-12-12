@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import CanteenClient from "./canteen-client";
+import CanteenClient from "../../../features/canteen/ui/canteen-client";
+import { getCanteenBySlug } from "@/features/canteen/lib/canteen-queries";
 
 export default async function CanteenDetailPage({
   params,
@@ -14,5 +15,11 @@ export default async function CanteenDetailPage({
     return notFound();
   }
 
-  return <CanteenClient slug={slug} />;
+  const canteen = await getCanteenBySlug(slug);
+
+  if (!canteen) {
+    return notFound();
+  }
+
+  return <CanteenClient data={canteen} />;
 }

@@ -24,6 +24,7 @@ type ChatListItem = {
   lastMessageTimestamp: Timestamp;
   unreadCountBuyer: number;
   unreadCountSeller: number;
+  typing?: Record<string, boolean>;
 };
 
 export default function OwnerChatListPage() {
@@ -92,6 +93,12 @@ export default function OwnerChatListPage() {
             {chats.map((chat) => {
               const unreadCount = chat.unreadCountSeller || 0;
 
+              // Check Typing Status
+              const typingData = chat.typing || {};
+              // Buyer is the one NOT the seller. Since this is OwnerChatListPage, user is seller.
+              // We want to know if 'buyerId' is typing.
+              const isTyping = typingData[chat.buyerId] === true;
+
               const timeDisplay = chat.lastMessageTimestamp
                 ? format(chat.lastMessageTimestamp.toDate(), "dd MMM HH:mm", {
                   locale: idLocale,
@@ -121,8 +128,8 @@ export default function OwnerChatListPage() {
                     </div>
 
                     <div className="flex justify-between items-center mt-1">
-                      <p className={`text-sm truncate ${unreadCount > 0 ? "text-gray-900 font-medium" : "text-gray-500"}`}>
-                        {chat.lastMessage || "Lampiran gambar"}
+                      <p className={`text-sm truncate ${isTyping ? "text-green-600 font-medium italic animate-pulse" : (unreadCount > 0 ? "text-gray-900 font-medium" : "text-gray-500")}`}>
+                        {isTyping ? "Sedang mengetik..." : (chat.lastMessage || "Lampiran gambar")}
                       </p>
 
                       {unreadCount > 0 && (
