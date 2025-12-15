@@ -16,12 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
 import { LoginSchema, LoginInput } from "@/features/auth/lib/auth-type";
 import { useEffect } from "react";
 import { getUserByUsername } from "@/features/user/lib/user-queries";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
+import { useRouter } from "nextjs-toploader/app";
 
 export default function LoginKedaiPage() {
   const router = useRouter();
@@ -36,10 +36,10 @@ export default function LoginKedaiPage() {
   });
 
   async function onSubmit(data: LoginInput) {
-
     const res = await signIn("credentials", {
       username: data.username,
       password: data.password,
+      isGuest: false,
       redirect: false,
     });
 
@@ -73,7 +73,8 @@ export default function LoginKedaiPage() {
       } else {
         notificationDialog.error({
           title: "Gagal login",
-          message: "Silakan hubungi CS, akun mungkin belum diverifikasi dengan baik",
+          message:
+            "Silakan hubungi CS, akun mungkin belum diverifikasi dengan baik",
         });
       }
     }

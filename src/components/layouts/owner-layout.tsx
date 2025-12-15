@@ -37,8 +37,8 @@ export default function OwnerLayout({
     if (!user) return;
 
     const chatsRef = collection(db, "chats");
-    // Asumsikan owner adalah seller. 
-    // Kita filter chat dimana dia adalah sellerId ATAU participantIds contains uid. 
+    // Asumsikan owner adalah seller.
+    // Kita filter chat dimana dia adalah sellerId ATAU participantIds contains uid.
     // Tapi karena ini OwnerLayout (Dashboard Kedai), asumsi dia Seller.
     const q = query(chatsRef, where("sellerId", "==", user.uid));
 
@@ -52,17 +52,17 @@ export default function OwnerLayout({
         if (change.type === "added" || change.type === "modified") {
           const data = change.doc.data();
           // Check if unread count for seller > 0
-          // For 'modified', ideally we check if it INCREASED, but simplified: 
+          // For 'modified', ideally we check if it INCREASED, but simplified:
           // if it's > 0 and it was a modification/addition, notify.
-          // Note: This might spam if other fields update. 
-          // Better: check if `lastMessageTimestamp` is recent? 
+          // Note: This might spam if other fields update.
+          // Better: check if `lastMessageTimestamp` is recent?
           // Or just show toast. Sonner dedupes usually? No.
 
           // Let's refine: Only if unreadCountSeller > 0
           // And ideally verify it's a message update.
           const unread = data.unreadCountSeller || 0;
           if (unread > 0) {
-            // Check if actually a new message? 
+            // Check if actually a new message?
             // We can rely on the fact that we ignore first load.
             // On 'modified', if unread > 0, likely a message or typing status?
             // Typing status updates doc too! We don't want toast on typing.
@@ -78,14 +78,14 @@ export default function OwnerLayout({
             // So, if we just check unread > 0, we might toast on typing.
 
             // CRITICAL: We need to check what CHANGED.
-            // But we can't easily. 
+            // But we can't easily.
 
             // Alternative: Track `lastMessageTimestamp` in a ref map? Too complex.
-            // Better: Check if `change.doc.data().lastMessage` is different? 
-            // Let's just try to be specific. 
+            // Better: Check if `change.doc.data().lastMessage` is different?
+            // Let's just try to be specific.
             // Only toast if `unreadCountSeller` INCREASED? We can't know if we don't track prev.
 
-            // Hacky but effective: 
+            // Hacky but effective:
             // Use `change.type === 'modified'`?
             // If typing updates, `unreadCount` doesn't change.
             // If message comes, `unreadCount` increments.
@@ -93,20 +93,20 @@ export default function OwnerLayout({
             // Let's assume typing events update `typing` field.
             // We can try to use `snapshot.metadata.hasPendingWrites`? No.
 
-            // Let's look at `data`. 
+            // Let's look at `data`.
             // We can just show toast. If it spams on typing, we fix.
             // Wait, typing status is frequent. This IS a risk.
 
-            // We can use a simpler heuristic: 
-            // Only toast if `unreadCountSeller` > 0. 
+            // We can use a simpler heuristic:
+            // Only toast if `unreadCountSeller` > 0.
             // AND `lastMessageTimestamp` is very recent (within 2 seconds of now?)
             // That handles the "newness".
 
             const now = new Date();
             const msgTime = data.lastMessageTimestamp?.toDate();
-            if (msgTime && (now.getTime() - msgTime.getTime() < 60000)) {
+            if (msgTime && now.getTime() - msgTime.getTime() < 60000) {
               // Only toast if message is very recent (5s).
-              // This filters out old unread messages on reconnect (maybe) 
+              // This filters out old unread messages on reconnect (maybe)
               // and avoids random updates (like typing) if typing doesn't update timestamp.
               // Does typing update timestamp? NO. `handleInputChange` only updates `typing`.
               // `handleSend` updates `lastMessageTimestamp`.
@@ -116,8 +116,9 @@ export default function OwnerLayout({
                 description: `${data.lastMessage || "Mengirim gambar..."}`,
                 action: {
                   label: "Lihat",
-                  onClick: () => window.location.href = `/dashboard-kedai/chat/${change.doc.id}`
-                }
+                  onClick: () =>
+                    (window.location.href = `/dashboard-kedai/chat/${change.doc.id}`),
+                },
               });
             }
           }
@@ -143,7 +144,7 @@ export default function OwnerLayout({
   }
 
   return (
-    <>
+    <div>
       <Toaster />
       {isExcluded() ? (
         <div className="">{children}</div>
@@ -154,9 +155,8 @@ export default function OwnerLayout({
           <div className="p-5 pt-24">{children}</div>
 
           <OwnerBottomBar />
-
         </div>
       )}
-    </>
+    </div>
   );
 }

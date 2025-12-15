@@ -1,4 +1,5 @@
-import { CreditCard, DollarSign, QrCode } from "lucide-react";
+import CashIcon from "@/components/icons/cash-icon";
+import { CreditCard, QrCode } from "lucide-react";
 
 export const paymentMethodMapping = {
   QRIS: "QRIS",
@@ -7,7 +8,7 @@ export const paymentMethodMapping = {
 };
 
 export const paymentMethodIconMapping = {
-  CASH: <DollarSign />,
+  CASH: <CashIcon />,
   QRIS: <QrCode />,
   BANK_TRANSFER: <CreditCard />,
 };

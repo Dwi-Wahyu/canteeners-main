@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import CanteenClient from "../../../features/canteen/ui/canteen-client";
 import { getCanteenBySlug } from "@/features/canteen/lib/canteen-queries";
+import { getCategories } from "@/features/category/lib/category-queries";
 
 export default async function CanteenDetailPage({
   params,
@@ -21,5 +22,7 @@ export default async function CanteenDetailPage({
     return notFound();
   }
 
-  return <CanteenClient data={canteen} />;
+  const categories = await getCategories();
+
+  return <CanteenClient canteen={canteen} categories={categories} />;
 }

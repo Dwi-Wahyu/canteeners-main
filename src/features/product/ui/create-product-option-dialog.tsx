@@ -36,10 +36,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProductOptionType } from "@/app/generated/prisma";
+import { ProductOptionType } from "@/generated/prisma/client";
 import { productOptionTypeMapping } from "@/constant/product-mapping";
 import { createProductOption } from "../lib/product-actions";
-import { CreateProductOptionSchema, CreateProductOptionInput } from "../types/product-schema";
+import {
+  CreateProductOptionSchema,
+  CreateProductOptionInput,
+} from "../types/product-schema";
 
 export default function CreateProductOptionDialog({
   product_id,

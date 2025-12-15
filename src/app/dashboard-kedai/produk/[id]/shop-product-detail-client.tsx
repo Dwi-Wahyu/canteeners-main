@@ -12,22 +12,21 @@ import {
 } from "@/components/ui/empty";
 
 import { List } from "lucide-react";
-import ProductOptionClient from "./product-option-client";
 import { Card, CardContent } from "@/components/ui/card";
-import DeleteProductDialog from "./delete-product-dialog";
-import { getProductById } from "@/features/product/lib/product-queries";
 import NavButton from "@/components/nav-button";
 import CreateProductOptionDialog from "@/features/product/ui/create-product-option-dialog";
 import { formatDateToYYYYMMDD } from "@/helper/date-helper";
 import ToggleProductAvailableButton from "@/features/product/ui/toggle-product-available-button";
 import { getImageUrl } from "@/helper/get-image-url";
+import { GetProductById } from "@/features/product/types/product-queries-types";
+import DeleteProductDialog from "@/features/product/ui/delete-product-dialog";
+import ProductOptionClient from "@/features/product/ui/product-option-client";
 
-export default function ProductDetailClient({
+export default function ShopProductDetail({
   data,
 }: {
-  data: NonNullable<Awaited<ReturnType<typeof getProductById>>>;
+  data: NonNullable<GetProductById>;
 }) {
-
   return (
     <div>
       <Card>
@@ -96,7 +95,7 @@ export default function ProductDetailClient({
       </Card>
 
       <div className="mt-5">
-        {/* {data.options.length === 0 && (
+        {data.options.length === 0 && (
           <Empty className="border">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -120,7 +119,7 @@ export default function ProductDetailClient({
           <div className="flex justify-center mt-4 mb-3">
             <CreateProductOptionDialog product_id={data.id} />
           </div>
-        )} */}
+        )}
       </div>
     </div>
   );

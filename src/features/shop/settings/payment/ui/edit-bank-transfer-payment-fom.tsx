@@ -14,9 +14,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Payment } from "@/app/generated/prisma";
+import { Payment } from "@/generated/prisma/client";
 import { updateBankTransferPayment } from "../lib/shop-payment-actions";
-import { PaymentSchema, PaymentSchemaInput } from "../types/shop-payment-schema";
+import {
+  PaymentSchema,
+  PaymentSchemaInput,
+} from "../types/shop-payment-schema";
 
 export default function EditBankTransferPaymentForm({
   shop_id,

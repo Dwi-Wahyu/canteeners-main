@@ -1,8 +1,7 @@
-"use server"
+"use server";
 
-import { prisma } from "@/lib/prisma";
+import { prismaAccelerate } from "@/lib/prisma";
 
 export async function getCategories() {
-    const categories = await prisma.category.findMany();
-    return categories;
-};
+  return await prismaAccelerate.category.findMany();
+}

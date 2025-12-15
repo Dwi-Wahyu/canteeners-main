@@ -37,9 +37,7 @@ export async function getProductIncludeCategory(id: string) {
 
 export async function getProductById(id: string) {
   return await prisma.product.findUnique({
-    where: {
-      id,
-    },
+    where: { id },
     include: {
       _count: {
         select: {
@@ -53,12 +51,8 @@ export async function getProductById(id: string) {
         },
       },
       options: {
-        orderBy: {
-          is_required: "desc",
-        },
-        include: {
-          values: true,
-        },
+        orderBy: { is_required: "desc" },
+        include: { values: true },
       },
     },
   });

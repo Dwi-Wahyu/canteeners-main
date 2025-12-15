@@ -8,10 +8,14 @@ declare module "next-auth" {
       name: string;
       avatar: string;
       role: string;
+      firebaseToken?: string;
+      // Owner payload
       ownerId?: string;
       shopName?: string;
       shopId?: string;
-      firebaseToken?: string;
+      // Customer payload
+      customerId?: string;
+      cartId?: string;
     };
   }
 
@@ -21,9 +25,13 @@ declare module "next-auth" {
     name: string;
     avatar: string;
     role: string;
+    firebaseToken?: string;
+    // Owner payload
     ownerId?: string;
     shopName?: string;
     shopId?: string;
-    firebaseToken?: string;
+    // Customer payload
+    customerId?: string;
+    cartId?: string;
   }
 }

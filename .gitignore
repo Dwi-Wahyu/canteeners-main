@@ -13,7 +13,7 @@
 firebase-document-structure.md
 firebase-debug.log
 
-src/app/generated/prisma
+src/generated/prisma
 
 # testing
 /coverage

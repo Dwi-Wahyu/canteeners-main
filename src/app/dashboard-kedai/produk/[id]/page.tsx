@@ -1,7 +1,7 @@
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
-import ProductDetailClient from "../../../../features/product/ui/product-detail-client";
-import NotFoundResource from "@/components/pages/not-found-resource";
+import CustomerProductDetail from "./shop-product-detail-client";
 import { getProductById } from "@/features/product/lib/product-queries";
+import { notFound } from "next/navigation";
 
 export default async function ProductDetailPage({
   params,
@@ -13,7 +13,7 @@ export default async function ProductDetailPage({
   const data = await getProductById(id);
 
   if (!data) {
-    return <NotFoundResource />;
+    return notFound();
   }
 
   return (
@@ -24,7 +24,7 @@ export default async function ProductDetailPage({
       />
 
       <div className="p-5 pt-24">
-        <ProductDetailClient data={data} />
+        <CustomerProductDetail data={data} />
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Edit, Loader } from "lucide-react";
 import { useState } from "react";
-import { ProductOptionValue } from "@/app/generated/prisma";
+import { ProductOptionValue } from "@/generated/prisma/client";
 import { editProductOptionValue } from "../lib/product-actions";
 
 export default function EditProductOptionValueDialog({

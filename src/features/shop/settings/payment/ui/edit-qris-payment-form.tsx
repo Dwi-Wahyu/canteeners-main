@@ -16,8 +16,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Payment } from "@/app/generated/prisma";
-import { PaymentSchema, PaymentSchemaInput } from "../types/shop-payment-schema";
+import { Payment } from "@/generated/prisma/client";
+import {
+  PaymentSchema,
+  PaymentSchemaInput,
+} from "../types/shop-payment-schema";
 import { updateQrisPayment } from "../lib/shop-payment-actions";
 import { FileUploadImage } from "@/components/file-upload-image";
 
@@ -66,7 +69,6 @@ export default function EditQrisPaymentForm({
 
   const onSubmit = async (values: PaymentSchemaInput) => {
     if (files.length > 0) {
-
     }
 
     if (values.qr_url === "") {

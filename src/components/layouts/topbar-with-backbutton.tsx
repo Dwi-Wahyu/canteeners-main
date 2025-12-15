@@ -13,8 +13,8 @@ export default function TopbarWithBackButton({
 }) {
   return (
     <div className="px-5 py-4 bg-background z-20 fixed top-0 left-0 shadow w-full justify-between flex items-center">
-      <div className="flex items-center">
-        <Link className="w-5 h-5 mb-0.5" href={backUrl ?? "/"}>
+      <div className="flex items-center gap-2">
+        <Link className="w-5 h-5 mb-1" href={backUrl ?? "/"}>
           <ChevronLeft />
         </Link>
 

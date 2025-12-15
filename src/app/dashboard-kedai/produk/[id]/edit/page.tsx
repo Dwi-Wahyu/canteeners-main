@@ -1,5 +1,5 @@
 import NotFoundResource from "@/components/pages/not-found-resource";
-import EditProductForm from "@/features/product/ui/edit-product-form";
+import EditProductForm from "@/app/dashboard-kedai/produk/[id]/edit/form";
 import { Card, CardContent } from "@/components/ui/card";
 import { getCategories } from "@/features/category/lib/category-queries";
 import { getProductIncludeCategory } from "@/features/product/lib/product-queries";

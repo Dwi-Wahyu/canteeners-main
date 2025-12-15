@@ -23,17 +23,18 @@ enum CartStatus {
 model ShopCart {
   id String @id @default(uuid())
 
-  cart            Cart           @relation(fields: [cart_id], references: [id], onDelete: Cascade)
+  cart            Cart          @relation(fields: [cart_id], references: [id], onDelete: Cascade)
   cart_id         String
-  status          ShopCartStatus @default(PENDING)
-  shop            Shop           @relation(fields: [shop_id], references: [id])
+  shop            Shop          @relation(fields: [shop_id], references: [id])
   shop_id         String
-  payment_method  PaymentMethod  @default(CASH)
-  post_order_type PostOrderType  @default(DELIVERY_TO_TABLE)
+  payment_method  PaymentMethod @default(CASH)
+  post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
 
-  total_price Float    @default(0)
+  total_price Float   @default(0)
   notes       String?
-  created_at  DateTime @default(now())
+
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
 
   items    CartItem[]
   order_id String?
@@ -41,12 +42,6 @@ model ShopCart {
   @@index([cart_id])
   @@index([shop_id])
   @@map("shop_carts")
-}
-
-enum ShopCartStatus {
-  PENDING // Masih di keranjang, bisa diedit
-  ORDERED // Sudah jadi Order
-  REMOVED // Dihapus dari keranjang (tapi bisa restore)
 }
 
 model CartItem {

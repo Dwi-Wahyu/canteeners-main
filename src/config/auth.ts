@@ -10,6 +10,9 @@ export const authConfig: NextAuthConfig = {
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
+        isGuest: { label: "Is Guest" },
+        name: { label: "Name" },
+        firebaseUid: { label: "Firebase UID" },
       },
       authorize: async (credentials) => {
         if (!credentials) return null;
@@ -17,11 +20,64 @@ export const authConfig: NextAuthConfig = {
         const parsed = LoginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const { username, password } = parsed.data;
+        const { username, password, isGuest, name, firebaseUid } = parsed.data;
+
+        if (isGuest) {
+          if (!firebaseUid) {
+            return null;
+          }
+
+          const guestCustomer = await prisma.user.findUnique({
+            where: {
+              id: firebaseUid,
+              role: "CUSTOMER",
+            },
+            select: {
+              name: true,
+              customer: {
+                select: {
+                  id: true,
+                  cart: {
+                    select: {
+                      id: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          if (!guestCustomer) {
+            return null;
+          }
+
+          return {
+            id: firebaseUid,
+            username: "",
+            name,
+            role: "CUSTOMER",
+            avatar: "avatars/default-avatar.jpeg",
+            cartId: guestCustomer.customer?.cart?.id,
+            customerId: guestCustomer.customer?.id,
+            shopId: undefined,
+            shopName: undefined,
+            ownerId: undefined,
+          };
+        }
 
         const user = await prisma.user.findFirst({
           where: { username },
           include: {
+            customer: {
+              select: {
+                id: true,
+                cart: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
             owner: {
               select: {
                 id: true,
@@ -63,9 +119,13 @@ export const authConfig: NextAuthConfig = {
           name: user.name,
           role: user.role,
           avatar: user.avatar,
+          // Owner payload
+          ownerId: user.owner?.id,
           shopId: user.owner?.shop?.id,
           shopName: user.owner?.shop?.name,
-          ownerId: user.owner?.id,
+          // Customer payload
+          customerId: user.customer?.id,
+          cartId: user.customer?.id,
         };
       },
     }),
@@ -99,6 +159,8 @@ export const authConfig: NextAuthConfig = {
         token.shopName = user.shopName;
         token.shopId = user.shopId;
         token.ownerId = user.ownerId;
+        token.customerId = user.customerId;
+        token.cartId = user.cartId;
       }
 
       if (trigger === "update" && session?.firebaseToken) {

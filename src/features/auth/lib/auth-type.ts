@@ -11,6 +11,9 @@ export const LoginSchema = z.object({
     .min(1, { message: "Kata sandi wajib diisi." })
     .max(100, { message: "Kata sandi tidak lebih dari 100 karakter." })
     .nonempty({ error: "Kata sandi wajib diisi" }),
+  isGuest: z.boolean(),
+  name: z.string(),
+  firebaseUid: z.string(),
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;

@@ -1,9 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prismaAccelerate } from "@/lib/prisma";
 
 export async function getCanteenBySlug(slug: string) {
-  return await prisma.canteen.findUnique({
+  return await prismaAccelerate.canteen.findUnique({
     where: { slug },
     include: {
       shops: {
@@ -15,6 +15,7 @@ export async function getCanteenBySlug(slug: string) {
           maximum_price: true,
           average_rating: true,
           total_ratings: true,
+          status: true,
           owner: {
             select: {
               user_id: true,

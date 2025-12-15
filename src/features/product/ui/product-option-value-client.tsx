@@ -1,6 +1,6 @@
 "use client";
 
-import { ProductOptionValue } from "@/app/generated/prisma";
+import { ProductOptionValue } from "@/generated/prisma/client";
 import {
   Item,
   ItemActions,

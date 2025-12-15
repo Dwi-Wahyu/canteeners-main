@@ -1,1 +1,7 @@
 fix penamaan file attachments yang disimpan di vercel blob jangan sampai menyebabkan ini (allowOverwrite)
+
+pertimbangkan menggunakan next auth untuk mencatat guest jangan pakai zustand
+
+ganti isi "shop-cart-client.tsx" dengan posisi customer yang sebenarnya
+
+gunakan cart-item-detail-client dari repo canteeners lama

@@ -11,13 +11,17 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 
-import ProductCard from "./product-card";
+import ProductCard from "../../../features/product/ui/product-card";
 import { Trash } from "lucide-react";
-import { getShopProducts } from "../lib/product-queries";
+import { getShopProducts } from "../../../features/product/lib/product-queries";
 import NavButton from "@/components/nav-button";
 import { useQueryState } from "nuqs";
 
-export default function ProductClientPage({ data }: { data: Awaited<ReturnType<typeof getShopProducts>> }) {
+export default function ProductClientPage({
+  data,
+}: {
+  data: Awaited<ReturnType<typeof getShopProducts>>;
+}) {
   const [filterName, setFilterName] = useQueryState("name", {
     shallow: false,
     clearOnDefault: true,
@@ -25,14 +29,14 @@ export default function ProductClientPage({ data }: { data: Awaited<ReturnType<t
   });
 
   return (
-    <div>
+    <div className="min-h-screen">
       <div className="flex justify-between mb-4 items-center">
         <h1 className="font-semibold text-lg">Daftar Produk</h1>
 
         {data && data.length > 0 && (
           <NavButton
             size={"sm"}
-            href="/dashboard-kedai/produk/input"
+            href="/dashboard-kedai/produk/create"
             variant="default"
           >
             Input Produk
