@@ -14,7 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Payment } from "@/generated/prisma/client";
+import { Payment } from "@/generated/prisma";
 import { updateBankTransferPayment } from "../lib/shop-payment-actions";
 import {
   PaymentSchema,

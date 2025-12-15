@@ -1,6 +1,5 @@
 "use server";
 
-import { PaymentMethod, PostOrderType } from "@/generated/prisma/enums";
 import {
   errorResponse,
   ServerActionReturn,
@@ -9,6 +8,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { AddCartItemNotesInput } from "../types/cart-schema";
+import { PaymentMethod, PostOrderType } from "@/generated/prisma";
 
 export async function processShopCart({
   shopCartId,

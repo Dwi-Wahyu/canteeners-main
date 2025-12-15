@@ -34,7 +34,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { Edit, Loader } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ProductOption, ProductOptionType } from "@/generated/prisma/client";
+import { ProductOption, ProductOptionType } from "@/generated/prisma";
 import { productOptionTypeMapping } from "@/constant/product-mapping";
 import {
   EditProductOptionInput,

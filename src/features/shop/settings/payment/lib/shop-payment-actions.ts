@@ -1,6 +1,6 @@
 "use server";
 
-import { PaymentMethod } from "@/generated/prisma/client";
+import { PaymentMethod } from "@/generated/prisma";
 import {
   errorResponse,
   ServerActionReturn,

@@ -25,7 +25,7 @@ import MultipleSelector from "@/components/multiple-select";
 import { FileUploadImage } from "@/components/file-upload-image";
 import { updateProduct } from "../../../../../features/product/lib/product-actions";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
-import { Category, Product, ProductCategory } from "@/generated/prisma/client";
+import { Category, Product, ProductCategory } from "@/generated/prisma";
 import { getImageUrl } from "@/helper/get-image-url";
 
 type ProductWithCategories = Product & {

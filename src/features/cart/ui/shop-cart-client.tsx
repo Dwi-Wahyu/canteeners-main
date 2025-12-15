@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
-import { PaymentMethod, PostOrderType } from "@/generated/prisma/client";
+import { PaymentMethod, PostOrderType } from "@/generated/prisma";
 import { useMutation } from "@tanstack/react-query";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
