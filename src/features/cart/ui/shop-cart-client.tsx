@@ -212,15 +212,22 @@ export default function ShopCartClient({
       </div>
 
       {shopCart.order_id !== null && (
-        <Button
-          className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary py-6"
-          size={"lg"}
-          asChild
-        >
-          <Link href={"/dashboard-pelanggan/order/" + shopCart.order_id}>
-            Lihat Detail Order
-          </Link>
-        </Button>
+        <div className="grid grid-cols-2 gap-4">
+          <Button className="py-6" size={"lg"} asChild>
+            <Link href={"/order/" + shopCart.order_id}>Lihat Detail Order</Link>
+          </Button>
+
+          <Button className="py-6" size={"lg"} asChild>
+            <Link
+              href={
+                "/chat/" +
+                `${customerProfile.user_id}_${shopCart.shop.owner_id}`
+              }
+            >
+              Hubungi Pemilik Kedai
+            </Link>
+          </Button>
+        </div>
       )}
 
       {shopCart.order_id === null && (

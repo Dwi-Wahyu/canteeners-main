@@ -9,15 +9,8 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { AddCartItemNotesInput } from "../types/cart-schema";
 import { PaymentMethod, PostOrderType } from "@/generated/prisma";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
+import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
 
 export async function processShopCart({
   shopCartId,
@@ -56,6 +49,7 @@ export async function processShopCart({
                   user: {
                     select: {
                       name: true,
+                      avatar: true,
                     },
                   },
                   user_id: true,
@@ -76,6 +70,12 @@ export async function processShopCart({
               owner: {
                 select: {
                   user_id: true,
+                  user: {
+                    select: {
+                      name: true,
+                      avatar: true,
+                    },
+                  },
                 },
               },
             },
@@ -107,15 +107,14 @@ export async function processShopCart({
       const owner_user_id = shopCart.shop.owner.user_id;
 
       // Handle Conversation (Chat)
-
       const chatId = `${customer_user_id}_${owner_user_id}`;
 
-      const chatRef = doc(db, "chats", chatId);
-      const chatSnap = await getDoc(chatRef);
+      const chatRef = adminDb.collection("chats").doc(chatId);
+      const chatSnap = await chatRef.get();
 
-      // buat percakapan jika tidak ada
-      if (!chatSnap.exists()) {
-        await setDoc(chatRef, {
+      // Buat percakapan jika belum ada
+      if (!chatSnap.exists) {
+        await chatRef.set({
           id: chatId,
           buyerId: customer_user_id,
           sellerId: owner_user_id,
@@ -123,10 +122,12 @@ export async function processShopCart({
           participantIds: [customer_user_id, owner_user_id],
 
           shopName: shopCart.shop.name,
+
+          buyerAvatar: shopCart.cart.customer.user.avatar,
           buyerName: shopCart.cart.customer.user.name,
 
-          lastMessageTimestamp: serverTimestamp(),
-          lastMessage: "",
+          lastMessageTimestamp: FieldValue.serverTimestamp(),
+          lastMessage: "Order masuk. Mohon konfirmasi apakah pesanan tersedia",
 
           unreadCountBuyer: 0,
           unreadCountSeller: 0,
@@ -190,26 +191,19 @@ export async function processShopCart({
       });
 
       // Kirim pesan otomatis
-      // await tx.message.create({
-      //   data: {
-      //     conversation_id,
-      //     sender_id: customer_user_id,
-      //     order_id: order.id,
-      //     type: "ORDER",
-      //     text: `Order masuk. Mohon konfirmasi apakah pesanan tersedia`,
-      //   },
-      // });
-
       const messageData = {
         senderId: customer_user_id,
         text: "Order masuk. Mohon konfirmasi apakah pesanan tersedia",
         type: "order",
+        order_id,
         attachments: [],
         readBy: [customer_user_id],
-        createdAt: serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
       };
 
-      await addDoc(collection(db, "chats", chatId, "messages"), messageData);
+      revalidatePath("/keranjang/" + shopCart.id);
+
+      await chatRef.collection("messages").add(messageData);
     });
 
     return successResponse(

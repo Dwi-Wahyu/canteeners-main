@@ -7,6 +7,9 @@
   --font-poppins: "Poppins", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
+  --success: oklch(0.673 0.162 144.23);
+  --success-foreground: oklch(1 0 0);
+
   --background: oklch(0.9711 0.0074 80.7211);
   --foreground: oklch(0.3 0.0358 30.2042);
   --card: oklch(0.9711 0.0074 80.7211);
@@ -66,6 +69,9 @@
 }
 
 .dark {
+  --success: oklch(0.673 0.162 144.23);
+  --success-foreground: oklch(1 0 0);
+
   --background: oklch(0.2683 0.0279 150.7681);
   --foreground: oklch(0.9423 0.0097 72.6595);
   --card: oklch(0.3327 0.0271 146.9867);

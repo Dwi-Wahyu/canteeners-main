@@ -10,7 +10,8 @@ export type MediaItem = {
 export type Message = {
   id: string;
   senderId: string;
-  type: "text" | "image";
+  type: "text" | "image" | "order";
+  order_id?: string;
   text?: string;
   imageUrl?: string | null; // Backward compatibility jika ada
   attachments?: MediaItem[];

@@ -21,6 +21,7 @@ type ChatListItem = {
   sellerId: string;
   buyerId: string;
   lastMessage: string;
+  shopName: string;
   lastMessageTimestamp: Timestamp;
   unreadCountBuyer: number;
   unreadCountSeller: number; // Biasanya di kode Anda unreadCountOwner
@@ -91,7 +92,7 @@ export default function GuestChatListPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <div className="p-4 bg-white shadow-sm sticky top-0 z-10">
         <h1 className="text-xl font-bold text-gray-800">Pesan Masuk</h1>
       </div>
@@ -110,8 +111,8 @@ export default function GuestChatListPage() {
               // Format waktu (Fallback jika timestamp null saat pembuatan awal)
               const timeDisplay = chat.lastMessageTimestamp
                 ? format(chat.lastMessageTimestamp.toDate(), "dd MMM HH:mm", {
-                  locale: idLocale,
-                })
+                    locale: idLocale,
+                  })
                 : "Baru saja";
 
               return (
@@ -127,10 +128,8 @@ export default function GuestChatListPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
-                      {/* Nama Toko / Seller ID */}
                       <h3 className="font-semibold text-gray-900 truncate">
-                        Kedai {chat.sellerId.slice(0, 5)}...
-                        {/* Idealnya Anda fetch nama toko berdasarkan sellerId atau simpan shopName di dokumen chat */}
+                        {chat.shopName}
                       </h3>
                       <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
                         {timeDisplay}
@@ -139,10 +138,11 @@ export default function GuestChatListPage() {
 
                     <div className="flex justify-between items-center">
                       <p
-                        className={`text-sm truncate ${unreadCount > 0
-                          ? "font-semibold text-gray-900"
-                          : "text-gray-500"
-                          }`}
+                        className={`text-sm truncate ${
+                          unreadCount > 0
+                            ? "font-semibold text-gray-900"
+                            : "text-gray-500"
+                        }`}
                       >
                         {chat.lastMessage || "Mulai percakapan..."}
                       </p>

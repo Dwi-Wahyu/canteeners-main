@@ -8,9 +8,7 @@ model User {
     password String?
     avatar   String  @default("avatars/default-avatar.jpg")
 
-    messages      Message[]
     quick_chats   QuickChat[]
-    conversations ConversationParticipant[]
 
     admin    Admin?
     customer Customer?

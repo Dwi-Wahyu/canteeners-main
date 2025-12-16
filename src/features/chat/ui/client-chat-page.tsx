@@ -7,6 +7,7 @@ import { getAuth } from "firebase/auth";
 import { doc, getDoc, Timestamp } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import ChatTopbar from "./chat-topbar";
+import LoadingDetailChatPage from "./loading-detail-chat-page";
 
 type ChatData = {
   id: string;
@@ -14,7 +15,11 @@ type ChatData = {
   participantIds: string[];
 
   buyerId: string;
+  buyerName: string;
+  buyerAvatar: string;
+
   sellerId: string;
+  shopName: string;
 
   lastMessage: string;
   lastMessageTimestamp: Timestamp;
@@ -46,15 +51,23 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
     }
   }, [currentUser]);
 
-  if (!currentUser || !chatData) return <div>Loading...</div>;
+  if (!currentUser || !chatData) return <LoadingDetailChatPage />;
 
   const isOwner = currentUser.uid === chatData.sellerId;
 
   return (
     <div className="flex flex-col h-screen max-h-svh">
-      <ChatTopbar isOwner={isOwner} />
+      <ChatTopbar
+        isOwner={isOwner}
+        avatar={isOwner ? chatData.buyerAvatar : "avatar/default-avatar.jpg"}
+        name={isOwner ? chatData.buyerName : chatData.shopName}
+      />
 
-      <MessageList chatId={chatId} currentUserId={currentUser.uid} isOwner={isOwner} />
+      <MessageList
+        chatId={chatId}
+        currentUserId={currentUser.uid}
+        isOwner={isOwner}
+      />
 
       <ChatInput
         chatId={chatId}

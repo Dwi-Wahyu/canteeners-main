@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { EllipsisVertical, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { removeCartItemOption } from "../lib/cart-actions";
-import { GetCustomerShopCartCartItemType } from "../types/cart-queries-types";
+import { GetShopCartItemType } from "../types/cart-queries-types";
 
 export default function CartItemDialog({
   handleDialogOpenChange,
@@ -31,7 +31,7 @@ export default function CartItemDialog({
   setNotes: (notes: string) => void;
   isDialogOpen: boolean;
   isPending: boolean;
-  cartItem: GetCustomerShopCartCartItemType;
+  cartItem: GetShopCartItemType;
   onOptionRemoved: () => void; // refresh data setelah hapus
 }) {
   // Fungsi hapus satu variant

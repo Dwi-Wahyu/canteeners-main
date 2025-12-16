@@ -35,3 +35,15 @@ export async function getCustomerProfile(id: string) {
     },
   });
 }
+
+export async function getUserShortDetail(id: string) {
+  return await prisma.user.findUnique({
+    where: {
+      id,
+    },
+    select: {
+      name: true,
+      avatar: true,
+    },
+  });
+}

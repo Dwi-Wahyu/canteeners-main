@@ -6,9 +6,10 @@ import { formatDateToYYYYMMDD } from "@/helper/date-helper";
 import { formatToHour } from "@/helper/hour-helper";
 import NavButton from "@/components/nav-button";
 import { ChevronLeft } from "lucide-react";
-import { getCustomerCart } from "@/features/cart/lib/cart-queries";
 import { auth } from "@/config/auth";
 import { redirect } from "next/navigation";
+import { getCart } from "@/features/cart/lib/cart-queries";
+import { getImageUrl } from "@/helper/get-image-url";
 
 export default async function GuestCartPage() {
   const session = await auth();
@@ -22,10 +23,10 @@ export default async function GuestCartPage() {
     redirect("/kantin/kantin-kudapan");
   }
 
-  const data = await getCustomerCart(session.user.cartId);
+  const data = await getCart(session.user.cartId);
 
   if (!data || (data && data.shop_carts.length === 0)) {
-    return <EmptyCart shopping_url={"/kantin/1"} />;
+    return <EmptyCart shopping_url={"/kantin/kantin-kudapan"} />;
   }
 
   return (
@@ -46,7 +47,7 @@ export default async function GuestCartPage() {
             <Card className="relative">
               <CardContent className="flex gap-4">
                 <Image
-                  src={"/uploads/shop/" + shopCart.shop.image_url}
+                  src={getImageUrl(shopCart.shop.image_url)}
                   alt="shop image"
                   className="rounded-lg"
                   width={100}

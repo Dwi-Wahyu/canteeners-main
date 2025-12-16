@@ -5,7 +5,7 @@ import {
 } from "@/constant/payment-method";
 import { toast } from "sonner";
 import { PaymentMethod } from "@/generated/prisma";
-import { GetCustomerShopCartAvaillablePaymentsType } from "../types/cart-queries-types";
+import { GetShopCartAvaillablePaymentsType } from "../types/cart-queries-types";
 
 export default function ShopCartPaymentMethod({
   shopPayments,
@@ -13,7 +13,7 @@ export default function ShopCartPaymentMethod({
   setPaymentMethod,
   disabled,
 }: {
-  shopPayments: GetCustomerShopCartAvaillablePaymentsType;
+  shopPayments: GetShopCartAvaillablePaymentsType;
   paymentMethod: PaymentMethod;
   setPaymentMethod: (method: PaymentMethod) => void;
   disabled: boolean;
