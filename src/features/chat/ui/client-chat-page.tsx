@@ -56,10 +56,10 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
   const isOwner = currentUser.uid === chatData.sellerId;
 
   return (
-    <div className="flex flex-col h-screen max-h-svh">
+    <div className="flex flex-col pt-6 h-screen max-h-svh">
       <ChatTopbar
         isOwner={isOwner}
-        avatar={isOwner ? chatData.buyerAvatar : "avatar/default-avatar.jpg"}
+        avatar={isOwner ? chatData.buyerAvatar : "avatars/default-avatar.jpg"}
         name={isOwner ? chatData.buyerName : chatData.shopName}
       />
 

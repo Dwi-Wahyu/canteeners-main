@@ -15,7 +15,8 @@ import { format } from "date-fns"; // install date-fns untuk format jam
 import { Message, MediaItem } from "../lib/chat-types";
 import { MediaGallery } from "./media-gallery";
 import { PlayCircle, Check, CheckCheck } from "lucide-react";
-import OrderChatBubble from "./order-chat-bubble";
+import CustomerOrderChatBubble from "./customer-order-chat-bubble";
+import ShopOrderChatBubble from "./shop-order-chat-bubble";
 
 export function MessageList({
   chatId,
@@ -140,17 +141,16 @@ export function MessageList({
     <div className="container p-5 pt-20 mb-96 max-w-7xl mx-auto flex flex-col gap-4">
       {messages.map((msg) => {
         const isSender = msg.senderId === currentUserId;
-        const msgAttachments = msg.attachments || msg.media || []; // Handle backward compatibility
+        const msgAttachments = msg.attachments || msg.media || [];
 
         if (msg.type === "order" && msg.order_id) {
-          return (
-            <OrderChatBubble
-              isSender={isSender}
-              order_id={msg.order_id}
-              role={isOwner ? "SHOP_OWNER" : "CUSTOMER"}
-              key={msg.id}
-            />
-          );
+          if (isSender) {
+            return (
+              <CustomerOrderChatBubble order_id={msg.order_id} key={msg.id} />
+            );
+          } else {
+            return <ShopOrderChatBubble order_id={msg.order_id} key={msg.id} />;
+          }
         }
 
         return (

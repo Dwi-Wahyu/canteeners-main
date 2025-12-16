@@ -128,6 +128,7 @@ export async function getExistingPendingShopCart({
     where: {
       cart_id,
       shop_id,
+      order_id: null,
     },
     include: {
       _count: {

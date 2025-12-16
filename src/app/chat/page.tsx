@@ -15,6 +15,11 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns"; // Opsional: untuk format tanggal
 import { id as idLocale } from "date-fns/locale"; // Opsional: bahasa indonesia
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getImageUrl } from "@/helper/get-image-url";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+
 // Definisi Tipe Data Chat untuk List
 type ChatListItem = {
   id: string;
@@ -86,15 +91,17 @@ export default function GuestChatListPage() {
     return (
       <div className="p-4 text-center">
         <p>Anda belum memulai percakapan apapun.</p>
-        {/* Bisa tambahkan tombol redirect ke home */}
       </div>
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="p-4 bg-white shadow-sm sticky top-0 z-10">
-        <h1 className="text-xl font-bold text-gray-800">Pesan Masuk</h1>
+      <div className="p-4 flex items-center gap-2 bg-primary sticky top-0 z-10 text-primary-foreground">
+        <Link href={"/kantin/kantin-kudapan"}>
+          <ChevronLeft />
+        </Link>
+        <h1 className="text-xl font-semibold">Chat Dan Pesanan</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -121,10 +128,12 @@ export default function GuestChatListPage() {
                   onClick={() => router.push(`/chat/${chat.id}`)}
                   className="flex items-center gap-4 p-4 hover:bg-gray-50 cursor-pointer transition-colors"
                 >
-                  {/* Avatar Placeholder */}
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shrink-0">
-                    K
-                  </div>
+                  <Avatar className="size-11 shadow">
+                    <AvatarImage
+                      src={getImageUrl("avatars/default-avatar.jpg")}
+                    />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">

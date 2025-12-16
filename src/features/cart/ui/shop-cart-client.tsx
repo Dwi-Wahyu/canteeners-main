@@ -93,11 +93,7 @@ export default function ShopCartClient({
                 onClick={notificationDialog.hide}
                 asChild
               >
-                <Link
-                  href={
-                    "/dashboard-pelanggan/chat/" + data.data?.conversation_id
-                  }
-                >
+                <Link href={"/chat/" + data.data?.conversation_id}>
                   Hubungi Pemilik Kedai
                 </Link>
               </Button>

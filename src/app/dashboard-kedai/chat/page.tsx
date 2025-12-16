@@ -14,12 +14,17 @@ import { db } from "@/lib/firebase/client";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-import OwnerLayout from "@/components/layouts/owner-layout";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getImageUrl } from "@/helper/get-image-url";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
 type ChatListItem = {
   id: string;
   sellerId: string;
   buyerId: string;
+  buyerName: string;
+  buyerAvatar: string;
   lastMessage: string;
   lastMessageTimestamp: Timestamp;
   unreadCountBuyer: number;
@@ -81,7 +86,19 @@ export default function OwnerChatListPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Pesan Masuk</h1>
+      <h1 className="text-xl mb-4">Chat & Orderan</h1>
+
+      <div className="relative bg-card mb-6">
+        <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
+          <Search className="size-4" />
+          <span className="sr-only">User</span>
+        </div>
+        <Input
+          type="text"
+          placeholder="Cari Pelanggan atau Nomor Meja"
+          className="peer pl-9 bg-card"
+        />
+      </div>
 
       <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
         {chats.length === 0 ? (
@@ -101,26 +118,29 @@ export default function OwnerChatListPage() {
 
               const timeDisplay = chat.lastMessageTimestamp
                 ? format(chat.lastMessageTimestamp.toDate(), "dd MMM HH:mm", {
-                  locale: idLocale,
-                })
+                    locale: idLocale,
+                  })
                 : "";
 
               return (
                 <div
                   key={chat.id}
-                  onClick={() => router.push(`/dashboard-kedai/chat/${chat.id}`)}
-                  className={`p-4 hover:bg-gray-50 cursor-pointer flex gap-4 items-center ${unreadCount > 0 ? "bg-blue-50/50" : ""
-                    }`}
+                  onClick={() =>
+                    router.push(`/dashboard-kedai/chat/${chat.id}`)
+                  }
+                  className={`p-4 hover:bg-gray-50 cursor-pointer flex gap-4 items-center ${
+                    unreadCount > 0 ? "bg-blue-50/50" : ""
+                  }`}
                 >
-                  {/* Buyer Avatar Placeholder */}
-                  <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold">
-                    P
-                  </div>
+                  <Avatar className="size-11 shadow">
+                    <AvatarImage src={getImageUrl(chat.buyerAvatar)} />
+                    <AvatarFallback>CN</AvatarFallback>
+                  </Avatar>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
                       <h3 className="font-semibold text-gray-900">
-                        Pelanggan {chat.buyerId.slice(0, 5)}...
+                        {chat.buyerName}
                       </h3>
                       <span className="text-xs text-gray-500">
                         {timeDisplay}
@@ -128,8 +148,18 @@ export default function OwnerChatListPage() {
                     </div>
 
                     <div className="flex justify-between items-center mt-1">
-                      <p className={`text-sm truncate ${isTyping ? "text-green-600 font-medium italic animate-pulse" : (unreadCount > 0 ? "text-gray-900 font-medium" : "text-gray-500")}`}>
-                        {isTyping ? "Sedang mengetik..." : (chat.lastMessage || "Lampiran gambar")}
+                      <p
+                        className={`text-sm truncate ${
+                          isTyping
+                            ? "text-green-600 font-medium italic animate-pulse"
+                            : unreadCount > 0
+                            ? "text-gray-900 font-medium"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        {isTyping
+                          ? "Sedang mengetik..."
+                          : chat.lastMessage || "Lampiran gambar"}
                       </p>
 
                       {unreadCount > 0 && (
