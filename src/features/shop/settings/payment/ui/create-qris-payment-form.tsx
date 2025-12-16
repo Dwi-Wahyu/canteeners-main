@@ -17,8 +17,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createQrisPayment } from "../lib/shop-payment-actions";
-import { PaymentSchema, PaymentSchemaInput } from "../types/shop-payment-schema";
+import {
+  PaymentSchema,
+  PaymentSchemaInput,
+} from "../types/shop-payment-schema";
 import { FileUploadImage } from "@/components/file-upload-image";
+import { uuidv4 } from "zod";
 
 export default function InputQrisPaymentForm({
   shop_id,
@@ -60,39 +64,32 @@ export default function InputQrisPaymentForm({
 
   const onSubmit = async (values: PaymentSchemaInput) => {
     if (files.length > 0) {
-      const file = files[0];
       try {
-        const filename = `qrcodes/qris/${file.name}`;
-        const response = await fetch("/api/upload", {
+        const file = files[0];
+        const filename = `qrcodes/qris/${uuidv4()}${file.name}`;
+        const formData = new FormData();
+
+        formData.append("file", file);
+        formData.append("filename", filename);
+
+        const uploadResponse = await fetch("/api/upload", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ filename: filename, contentType: file.type }),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to get upload URL");
-        }
-
-        const { url: uploadUrl } = await response.json();
-
-        const uploadResponse = await fetch(uploadUrl, {
-          method: "PUT",
-          headers: {
-            "x-ms-blob-type": "BlockBlob",
-          },
-          body: file,
+          body: formData,
         });
 
         if (!uploadResponse.ok) {
-          throw new Error("Failed to upload file to Vercel Blob");
+          form.setError("qr_url", {
+            message: "Gagal mengunggah file melalui API.",
+          });
+          return;
         }
 
         values.qr_url = filename;
       } catch (error: any) {
         toast.error(error.message || "Gagal mengunggah gambar");
-        form.setError("qr_url", { message: error.message || "Gagal mengunggah gambar" });
+        form.setError("qr_url", {
+          message: error.message || "Gagal mengunggah gambar",
+        });
         return;
       }
     }

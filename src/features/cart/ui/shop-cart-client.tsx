@@ -8,25 +8,26 @@ import { useMutation } from "@tanstack/react-query";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
-import { Card, CardContent } from "@/components/ui/card";
 import { formatRupiah } from "@/helper/format-rupiah";
 import SnkCheckoutDialog from "@/features/cart/ui/snk-checkout-dialog";
 import CartItemCard from "@/features/cart/ui/cart-item-card";
 import PostOrderTypeTab from "@/features/cart/ui/post-order-type-tab";
-import { formatToHour } from "@/helper/hour-helper";
 import { processShopCart } from "@/features/cart/lib/cart-actions";
 import ShopCartPaymentMethod from "@/features/cart/ui/shop-cart-payment-method";
 import NavButton from "@/components/nav-button";
 import { GetShopCartType } from "../types/cart-queries-types";
 import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
+import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
 
 export default function ShopCartClient({
+  userId,
   shopCart,
   customerProfile,
   ableToCheckout,
   open_time,
   close_time,
 }: {
+  userId: string;
   shopCart: GetShopCartType;
   customerProfile: GetCustomerProfileType;
   ableToCheckout: boolean;
@@ -41,12 +42,18 @@ export default function ShopCartClient({
   const [guestName, setGuestName] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [checkouted, setCheckouted] = useState(false);
+  const [showGuestDetailsFormDialog, setShowGuestDetailsFormDialog] =
+    useState(false);
 
   const [postOrderType, setPostOrderType] = useState<PostOrderType>(
     shopCart.post_order_type
   );
 
   function handleClickCheckout() {
+    setShowGuestDetailsFormDialog(true);
+  }
+
+  function saveGuestDetails() {
     setShowSnk(true);
   }
 
@@ -57,9 +64,8 @@ export default function ShopCartClient({
         shopCartId: shopCart.id,
         paymentMethod,
         postOrderType,
-        // Ganti dengan actual customer position
-        floor: 1,
-        table_number: 1,
+        floor: customerProfile.floor,
+        table_number: customerProfile.table_number,
       });
     },
     onSuccess(data) {
@@ -115,7 +121,7 @@ export default function ShopCartClient({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card>
+      {/* <Card>
         <CardContent>
           <div className="flex  gap-1 items-center justify-between">
             <h1 className="font-semibold text-lg">{shopCart.shop.name}</h1>
@@ -131,7 +137,7 @@ export default function ShopCartClient({
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       <div className="">
         <h1 className="font-semibold mb-2">Daftar Pesanan</h1>
@@ -235,6 +241,15 @@ export default function ShopCartClient({
           </div>
         </Button>
       )}
+
+      <GuestDetailsFormDialog
+        userId={userId}
+        guestName={guestName}
+        setGuestName={setGuestName}
+        setShowGuestDetailsFormDialog={setShowGuestDetailsFormDialog}
+        showGuestDetailsFormDialog={showGuestDetailsFormDialog}
+        saveGuestDetails={saveGuestDetails}
+      />
 
       <SnkCheckoutDialog
         showSnk={showSnk}

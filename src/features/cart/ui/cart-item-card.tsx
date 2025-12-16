@@ -27,22 +27,14 @@ export default function CartItemCard({
   disabledDeleteButton: boolean;
   cartItemDetailUrl: string;
 }) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [qty, setQty] = useState(cartItem.quantity);
-  const [notes, setNotes] = useState(cartItem.notes || "");
 
   const mutation = useMutation({
-    mutationFn: async ({
-      quantity,
-      notes,
-    }: {
-      quantity: number;
-      notes: string;
-    }) => {
+    mutationFn: async ({ quantity }: { quantity: number }) => {
       return await changeCartItemDetails({
         id: cartItem.id,
         quantity,
-        notes,
+        notes: null,
       });
     },
     onSuccess: () => {
@@ -65,33 +57,15 @@ export default function CartItemCard({
     },
   });
 
-  const handleDialogOpenChange = useCallback(
-    (open: boolean) => {
-      if (open) {
-        setQty(cartItem.quantity);
-        setNotes(cartItem.notes || "");
-      }
-      setIsDialogOpen(open);
-    },
-    [cartItem.quantity, cartItem.notes]
-  );
-
   const changeQuantity = useCallback(
     (newQty: number) => {
       if (newQty >= 1) {
         setQty(newQty);
-        mutation.mutate({ quantity: newQty, notes });
+        mutation.mutate({ quantity: newQty });
       }
     },
-    [mutation, notes]
+    [mutation]
   );
-
-  const handleSave = useCallback(() => {
-    if (qty !== cartItem.quantity || notes.trim() !== (cartItem.notes || "")) {
-      mutation.mutate({ quantity: qty, notes });
-    }
-    setIsDialogOpen(false);
-  }, [qty, notes, cartItem.quantity, cartItem.notes, mutation]);
 
   return (
     <Card>
@@ -110,25 +84,13 @@ export default function CartItemCard({
               <h1 className="font-semibold text-start">
                 {cartItem.product.name}
               </h1>
-
-              {/* <CartItemDialog
-                cartItem={cartItem}
-                handleDialogOpenChange={handleDialogOpenChange}
-                handleSave={handleSave}
-                isDialogOpen={isDialogOpen}
-                isPending={mutation.isPending}
-                notes={notes}
-                setNotes={setNotes}
-                onOptionRemoved={() => {}}
-              /> */}
-
               <Link href={cartItemDetailUrl}>
                 <EllipsisVertical className="w-5 h-5 text-muted-foreground" />
               </Link>
             </div>
 
             <h1 className="text-sm text-muted-foreground">
-              {formatRupiah(cartItem.price_at_add * qty)}
+              {formatRupiah(cartItem.subtotal)}
             </h1>
 
             <div className="flex gap-4 mt-4 items-center">

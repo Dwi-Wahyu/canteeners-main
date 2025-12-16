@@ -78,6 +78,7 @@ export default async function GuestShopCartPage({
 
       <div className="p-5">
         <ShopCartClient
+          userId={session.user.id}
           customerProfile={customerProfile}
           shopCart={shopCart}
           ableToCheckout={ableToCheckout}

@@ -16,6 +16,7 @@ import EditQrisPaymentForm from "./edit-qris-payment-form";
 import { Edit } from "lucide-react";
 import { getShopPaymentByMethod } from "../lib/shop-payment-queries";
 import { toggleShopPaymentActive } from "../lib/shop-payment-actions";
+import { getImageUrl } from "@/helper/get-image-url";
 
 export default function QrisShopPayment({ shop_id }: { shop_id: string }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -63,10 +64,10 @@ export default function QrisShopPayment({ shop_id }: { shop_id: string }) {
         )}
 
         {/* Sudah ada QRIS */}
-        {payment && !isEditing && (
+        {payment && !isEditing && payment.qr_url && (
           <div className="space-y-2">
             <img
-              src={"/uploads/shop-qrcode/" + payment.qr_url}
+              src={getImageUrl(payment.qr_url)}
               alt="QRIS Code"
               className="rounded-lg mb-2 shadow"
             />

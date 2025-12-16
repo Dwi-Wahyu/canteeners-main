@@ -9,6 +9,15 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { AddCartItemNotesInput } from "../types/cart-schema";
 import { PaymentMethod, PostOrderType } from "@/generated/prisma";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+} from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
 
 export async function processShopCart({
   shopCartId,
@@ -44,6 +53,11 @@ export async function processShopCart({
               customer_id: true,
               customer: {
                 select: {
+                  user: {
+                    select: {
+                      name: true,
+                    },
+                  },
                   user_id: true,
                 },
               },
@@ -66,18 +80,17 @@ export async function processShopCart({
               },
             },
           },
-          // Ambil detail items termasuk SUBTOTAL dan SELECTED OPTIONS
           items: {
             select: {
               id: true,
-              product_id: true, // Ambil ID produk langsung
+              product_id: true,
               notes: true,
               price_at_add: true,
               quantity: true,
-              subtotal: true, // <--- Field Baru (Hasil Kalkulasi di Cart)
+              subtotal: true,
               selected_options: {
                 select: {
-                  id: true, // Kita butuh ID untuk menghubungkan ke OrderItem nanti
+                  id: true,
                 },
               },
             },
@@ -93,39 +106,32 @@ export async function processShopCart({
       const customer_user_id = shopCart.cart.customer.user_id;
       const owner_user_id = shopCart.shop.owner.user_id;
 
-      // Update nama
-      await tx.user.update({
-        where: { id: customer_user_id },
-        data: { name: guest_name },
-      });
-
       // Handle Conversation (Chat)
-      const existingConversation = await tx.conversation.findFirst({
-        where: {
-          participants: {
-            every: {
-              user_id: { in: [customer_user_id, owner_user_id] },
-            },
-          },
-        },
-      });
 
-      conversation_id =
-        existingConversation?.id ??
-        (
-          await tx.conversation.create({
-            data: {
-              participants: {
-                createMany: {
-                  data: [
-                    { user_id: customer_user_id },
-                    { user_id: owner_user_id },
-                  ],
-                },
-              },
-            },
-          })
-        ).id;
+      const chatId = `${customer_user_id}_${owner_user_id}`;
+
+      const chatRef = doc(db, "chats", chatId);
+      const chatSnap = await getDoc(chatRef);
+
+      // buat percakapan jika tidak ada
+      if (!chatSnap.exists()) {
+        await setDoc(chatRef, {
+          id: chatId,
+          buyerId: customer_user_id,
+          sellerId: owner_user_id,
+
+          participantIds: [customer_user_id, owner_user_id],
+
+          shopName: shopCart.shop.name,
+          buyerName: shopCart.cart.customer.user.name,
+
+          lastMessageTimestamp: serverTimestamp(),
+          lastMessage: "",
+
+          unreadCountBuyer: 0,
+          unreadCountSeller: 0,
+        });
+      }
 
       // Buat Order Utama
       const order = await tx.order.create({
@@ -139,8 +145,7 @@ export async function processShopCart({
           floor: postOrderType === "DELIVERY_TO_TABLE" ? floor : null,
           table_number:
             postOrderType === "DELIVERY_TO_TABLE" ? table_number : null,
-          conversation_id,
-          // Note: tidak pakai createMany di sini agar bisa connect options
+          conversation_id: chatId,
         },
       });
 
@@ -185,15 +190,26 @@ export async function processShopCart({
       });
 
       // Kirim pesan otomatis
-      await tx.message.create({
-        data: {
-          conversation_id,
-          sender_id: customer_user_id,
-          order_id: order.id,
-          type: "ORDER",
-          text: `Order masuk. Mohon konfirmasi apakah pesanan tersedia`,
-        },
-      });
+      // await tx.message.create({
+      //   data: {
+      //     conversation_id,
+      //     sender_id: customer_user_id,
+      //     order_id: order.id,
+      //     type: "ORDER",
+      //     text: `Order masuk. Mohon konfirmasi apakah pesanan tersedia`,
+      //   },
+      // });
+
+      const messageData = {
+        senderId: customer_user_id,
+        text: "Order masuk. Mohon konfirmasi apakah pesanan tersedia",
+        type: "order",
+        attachments: [],
+        readBy: [customer_user_id],
+        createdAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, "chats", chatId, "messages"), messageData);
     });
 
     return successResponse(
@@ -386,10 +402,12 @@ export async function changeCartItemDetails({
   id,
   quantity,
   notes,
+  selected_option_value_ids,
 }: {
   id: string;
   quantity: number;
   notes: string | null;
+  selected_option_value_ids?: string[];
 }): Promise<ServerActionReturn<void>> {
   try {
     if (quantity < 1) {
@@ -397,7 +415,22 @@ export async function changeCartItemDetails({
     }
 
     const shopCartId = await prisma.$transaction(async (tx) => {
-      // Ambil Data Item beserta Opsi yang dipilih (untuk kalkulasi harga)
+      // Jika ada perubahan opsi, update relasinya dulu
+      if (selected_option_value_ids) {
+        await tx.cartItem.update({
+          where: { id },
+          data: {
+            selected_options: {
+              set: [], // Lepas semua opsi lama
+              connect: selected_option_value_ids.map((optId) => ({
+                id: optId,
+              })), // Pasang opsi baru
+            },
+          },
+        });
+      }
+
+      // Ambil Data Item Terbaru (termasuk opsi yang baru diupdate)
       const cartItem = await tx.cartItem.findUnique({
         where: { id },
         include: {
@@ -432,7 +465,6 @@ export async function changeCartItemDetails({
         },
       });
 
-      // Update Total ShopCart dengan Aggregate
       const aggregate = await tx.cartItem.aggregate({
         where: { shop_cart_id: cartItem.shop_cart_id },
         _sum: { subtotal: true },
@@ -448,10 +480,10 @@ export async function changeCartItemDetails({
 
     revalidatePath("/dashboard-pelanggan/keranjang/" + shopCartId);
 
-    return successResponse(undefined, "Sukses mengubah detail dan total harga");
+    return successResponse(undefined, "Sukses menyimpan perubahan");
   } catch (error) {
     console.error("Error in changeCartItemDetails:", error);
-    return errorResponse("Gagal mengubah detail dan total harga");
+    return errorResponse("Gagal menyimpan perubahan");
   }
 }
 

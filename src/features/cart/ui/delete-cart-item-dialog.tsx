@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { deleteCartItem } from "../lib/cart-actions";
+import { Trash } from "lucide-react";
 
 export default function DeleteCartItemDialog({
   cart_item_id,
@@ -49,8 +50,8 @@ export default function DeleteCartItemDialog({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant={"destructive"} className={className}>
-          Hapus Item
+        <Button variant={"ghost"} className={className}>
+          <Trash />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

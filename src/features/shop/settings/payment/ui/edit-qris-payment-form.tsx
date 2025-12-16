@@ -23,6 +23,7 @@ import {
 } from "../types/shop-payment-schema";
 import { updateQrisPayment } from "../lib/shop-payment-actions";
 import { FileUploadImage } from "@/components/file-upload-image";
+import { uuidv4 } from "zod";
 
 export default function EditQrisPaymentForm({
   payment,
@@ -69,6 +70,26 @@ export default function EditQrisPaymentForm({
 
   const onSubmit = async (values: PaymentSchemaInput) => {
     if (files.length > 0) {
+      const file = files[0];
+      const filename = `qrcodes/qris/${uuidv4()}${file.name}`;
+      const formData = new FormData();
+
+      formData.append("file", file);
+      formData.append("filename", filename);
+
+      const uploadResponse = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        form.setError("qr_url", {
+          message: "Gagal mengunggah file melalui API.",
+        });
+        return;
+      }
+
+      values.qr_url = filename;
     }
 
     if (values.qr_url === "") {

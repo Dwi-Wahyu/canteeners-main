@@ -81,3 +81,26 @@ export async function createGuestCustomer({
     return errorResponse("Terjadi kesalahan");
   }
 }
+
+export async function changeGuestName({
+  id,
+  name,
+}: {
+  id: string;
+  name: string;
+}): Promise<ServerActionReturn<void>> {
+  try {
+    await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        name,
+      },
+    });
+
+    return successResponse(undefined, "Berhasil menyimpan nama");
+  } catch (error) {
+    return errorResponse("Terjadi kesalahan saat menyimpan nama");
+  }
+}

@@ -110,6 +110,7 @@ export async function getShopCart({
           notes: true,
           price_at_add: true,
           quantity: true,
+          subtotal: true,
         },
       },
     },
@@ -173,6 +174,7 @@ export async function getCartItem(id: string) {
       notes: true,
       price_at_add: true,
       quantity: true,
+      subtotal: true,
     },
   });
 }

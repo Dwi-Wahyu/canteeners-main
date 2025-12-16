@@ -3,28 +3,29 @@ import { auth } from "@/config/auth";
 import { redirect } from "next/navigation";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign } from "lucide-react";
+import { CreditCard, DollarSign, QrCode } from "lucide-react";
 import NotFoundResource from "@/components/pages/not-found-resource";
 import BankTransferPayment from "@/features/shop/settings/payment/ui/bank-transfer-payment";
 import PaymentMethodExplanationDialog from "@/features/shop/settings/payment/ui/payment-method-explanation-dialog";
 import QrisShopPayment from "@/features/shop/settings/payment/ui/qris-shop-payment";
 import CashShopPayment from "@/features/shop/settings/payment/ui/cash-shop-payment";
+import CashIcon from "@/components/icons/cash-icon";
 
 const tabs = [
   {
     name: "Tunai",
     value: "CASH",
-    icon: DollarSign,
+    icon: CashIcon,
   },
   {
     name: "QRIS",
     value: "QRIS",
-    icon: DollarSign,
+    icon: QrCode,
   },
   {
     name: "Transfer Bank",
     value: "BANK_TRANSFER",
-    icon: DollarSign,
+    icon: CreditCard,
   },
 ];
 
@@ -40,14 +41,14 @@ export default async function ShopPaymentMethodPage() {
   }
 
   return (
-    <div className="">
+    <div className="pt-16">
       <TopbarWithBackButton
         title="Metode Pembayaran"
         backUrl="/dashboard-kedai/pengaturan"
         actionButton={<PaymentMethodExplanationDialog />}
       />
 
-      <Tabs defaultValue="CASH" className="gap-4">
+      <Tabs defaultValue="CASH" className="gap-4 m-5">
         <TabsList className="w-full">
           {tabs.map(({ icon: Icon, name, value }) => (
             <TabsTrigger

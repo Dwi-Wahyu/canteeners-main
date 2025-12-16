@@ -57,8 +57,8 @@ export function MessageList({
         const data = snapshot.data();
         const typingData = data.typing || {};
         // Check if anyone else is typing
-        const othersTyping = Object.entries(typingData).some(([userId, typing]) =>
-          userId !== currentUserId && typing === true
+        const othersTyping = Object.entries(typingData).some(
+          ([userId, typing]) => userId !== currentUserId && typing === true
         );
         setIsTyping(othersTyping);
       }
@@ -119,7 +119,8 @@ export function MessageList({
     messages.forEach((msg) => {
       if (msg.attachments && msg.attachments.length > 0) {
         items.push(...msg.attachments);
-      } else if (msg.media && msg.media.length > 0) { // Backward compatibility
+      } else if (msg.media && msg.media.length > 0) {
+        // Backward compatibility
         items.push(...msg.media);
       }
     });
@@ -127,7 +128,7 @@ export function MessageList({
   }, [messages]);
 
   const handleMediaClick = (clickedUrl: string) => {
-    const index = allMediaItems.findIndex(item => item.url === clickedUrl);
+    const index = allMediaItems.findIndex((item) => item.url === clickedUrl);
     if (index !== -1) {
       setInitialMediaIndex(index);
       setGalleryOpen(true);
@@ -138,28 +139,39 @@ export function MessageList({
     <div className="container p-5 pt-20 mb-96 max-w-7xl mx-auto flex flex-col gap-4">
       {messages.map((msg) => {
         const isSender = msg.senderId === currentUserId;
-        const msgAttachments = msg.attachments || msg.media || []; // Handle backward compat
+        const msgAttachments = msg.attachments || msg.media || []; // Handle backward compatibility
 
         return (
           <div
             key={msg.id}
-            className={`flex flex-col ${isSender ? "items-end" : "items-start"}`}
+            className={`flex flex-col ${
+              isSender ? "items-end" : "items-start"
+            }`}
           >
             <div
-              className={`px-4 py-3 mt-1 rounded-xl shadow max-w-[80%] ${isSender
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-secondary-foreground"
-                }`}
+              className={`px-4 py-3 mt-1 rounded-xl shadow max-w-[80%] ${
+                isSender
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground"
+              }`}
             >
               {/* Render Attachments */}
               {msgAttachments.length > 0 && (
-                <div className={`mb-2 gap-1 grid ${msgAttachments.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                <div
+                  className={`mb-2 gap-1 grid ${
+                    msgAttachments.length > 1 ? "grid-cols-2" : "grid-cols-1"
+                  }`}
+                >
                   {msgAttachments.map((item, idx) => {
                     const isVideo = item.contentType?.startsWith("video/");
                     return (
                       <div
                         key={idx}
-                        className={`relative cursor-pointer overflow-hidden rounded-md w-full h-full ${msgAttachments.length > 2 ? 'aspect-square' : 'max-h-64'}`}
+                        className={`relative cursor-pointer overflow-hidden rounded-md w-full h-full ${
+                          msgAttachments.length > 2
+                            ? "aspect-square"
+                            : "max-h-64"
+                        }`}
                         onClick={() => handleMediaClick(item.url)}
                       >
                         {isVideo ? (
@@ -168,7 +180,11 @@ export function MessageList({
                                         Since we don't have a thumbnail service, we can try to use a <video> tag
                                         with #t=0.1 to show the first frame, but controls disabled.
                                      */}
-                            <video src={`${item.url}#t=0.5`} className="w-full h-full object-cover" preload="metadata" />
+                            <video
+                              src={`${item.url}#t=0.5`}
+                              className="w-full h-full object-cover"
+                              preload="metadata"
+                            />
                             <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                               <PlayCircle className="w-10 h-10 text-white opacity-80" />
                             </div>
@@ -191,7 +207,11 @@ export function MessageList({
             </div>
 
             {/* Timestamp & Status */}
-            <div className={`flex items-center gap-1 mt-1 px-1 text-[10px] text-gray-400 ${isSender ? "justify-end" : "justify-start"}`}>
+            <div
+              className={`flex items-center gap-1 mt-1 px-1 text-[10px] text-gray-400 ${
+                isSender ? "justify-end" : "justify-start"
+              }`}
+            >
               <span>
                 {msg.createdAt
                   ? format(msg.createdAt.toDate(), "HH:mm")

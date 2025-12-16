@@ -1,7 +1,17 @@
 import { auth } from "@/config/auth";
 import { redirect } from "next/navigation";
 
-import { AlertCircle, ChevronRight, CreditCard, FileText, MessageCircleQuestionMark, MessageSquareDot, MessagesSquare, Store, User } from "lucide-react";
+import {
+  AlertCircle,
+  ChevronRight,
+  CreditCard,
+  FileText,
+  MessageCircleQuestionMark,
+  MessageSquareDot,
+  MessagesSquare,
+  Store,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -86,7 +96,7 @@ export default async function OwnerSettingsPage() {
       </Item>
 
       <Item variant="outline" size="sm" className="mb-4" asChild>
-        <Link href="/dashboard-kedai/metode-pembayaran">
+        <Link href="/dashboard-kedai/pengaturan/metode-pembayaran">
           <ItemMedia>
             <CreditCard className="size-5" />
           </ItemMedia>
