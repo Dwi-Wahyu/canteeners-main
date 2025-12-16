@@ -13,22 +13,22 @@ import { formatRupiah } from "@/helper/format-rupiah";
 import SnkCheckoutDialog from "@/features/cart/ui/snk-checkout-dialog";
 import CartItemCard from "@/features/cart/ui/cart-item-card";
 import PostOrderTypeTab from "@/features/cart/ui/post-order-type-tab";
-import DeleteShopCartDialog from "@/features/cart/ui/delete-shop-cart-dialog";
 import { formatToHour } from "@/helper/hour-helper";
 import { processShopCart } from "@/features/cart/lib/cart-actions";
 import ShopCartPaymentMethod from "@/features/cart/ui/shop-cart-payment-method";
 import NavButton from "@/components/nav-button";
-import { GetCustomerShopCartType } from "../types/cart-queries-types";
+import { GetShopCartType } from "../types/cart-queries-types";
+import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 
 export default function ShopCartClient({
   shopCart,
-  // customerProfile,
+  customerProfile,
   ableToCheckout,
   open_time,
   close_time,
 }: {
-  shopCart: GetCustomerShopCartType;
-  // customerProfile: GetCustomerProfileType;
+  shopCart: GetShopCartType;
+  customerProfile: GetCustomerProfileType;
   ableToCheckout: boolean;
   open_time: Date | null;
   close_time: Date | null;
@@ -149,7 +149,7 @@ export default function ShopCartClient({
         </div>
       </div>
 
-      {shopCart.order_id !== null && (
+      {shopCart.order_id === null && (
         <div className="flex justify-between ">
           <div>
             <h1 className="font-semibold">Ada lagi yang mau dibeli?</h1>
@@ -158,10 +158,7 @@ export default function ShopCartClient({
             </h1>
           </div>
 
-          <NavButton
-            href={`/dashboard-pelanggan/kantin/${shopCart.shop.canteen_id}/${shopCart.shop.id}?shop_cart_id=${shopCart.id}`}
-            variant={"outline"}
-          >
+          <NavButton href={`/kedai/${shopCart.shop.id}`} variant={"outline"}>
             Tambah
           </NavButton>
         </div>
@@ -176,7 +173,7 @@ export default function ShopCartClient({
 
       <PostOrderTypeTab
         canteen_name={shopCart.shop.canteen.name}
-        // customerProfile={customerProfile}
+        customerProfile={customerProfile}
         postOrderType={postOrderType}
         setPostOrderType={setPostOrderType}
         selectTablePageUrl={`/kantin/${shopCart.shop.canteen_id}/pilih-meja`}
@@ -220,13 +217,12 @@ export default function ShopCartClient({
         </Button>
       )}
 
-      {shopCart.order_id !== null && (
+      {shopCart.order_id === null && (
         <Button
           className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
           size={"lg"}
           onClick={handleClickCheckout}
-          // disabled={customerProfile.suspend_until !== null || !ableToCheckout}
-          disabled={!ableToCheckout}
+          disabled={customerProfile.suspend_until !== null || !ableToCheckout}
         >
           <h1>{shopCart.items.length} Item</h1>
 
@@ -245,11 +241,6 @@ export default function ShopCartClient({
         setShowSnk={setShowSnk}
         setCheckouted={setCheckouted}
         isCheckoutPending={mutations.isPending}
-      />
-
-      <DeleteShopCartDialog
-        shop_cart_id={shopCart.id}
-        backUrl="/dashboard-pelanggan/keranjang"
       />
     </div>
   );

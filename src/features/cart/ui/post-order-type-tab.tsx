@@ -6,20 +6,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import CustomerPositionBreadcrumb from "./customer-position-breadcrumb";
 import NavButton from "@/components/nav-button";
-// import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
+import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 import RunIcon from "@/components/icons/run-icon";
 import { PostOrderType } from "@/generated/prisma";
 
 export default function PostOrderTypeTab({
   postOrderType,
   setPostOrderType,
-  // customerProfile,
+  customerProfile,
   canteen_name,
   selectTablePageUrl,
 }: {
   postOrderType: PostOrderType;
   setPostOrderType: (type: PostOrderType) => void;
-  // customerProfile: GetCustomerProfileType;
+  customerProfile: GetCustomerProfileType;
   canteen_name: string;
   selectTablePageUrl: string;
 }) {
@@ -50,7 +50,7 @@ export default function PostOrderTypeTab({
         <TabsContent value="DELIVERY_TO_TABLE">
           <Card>
             <CardContent>
-              {/* {customerProfile.floor && customerProfile.table_number ? (
+              {customerProfile.floor && customerProfile.table_number ? (
                 <div className="flex flex-col w-full items-center gap-4">
                   <CustomerPositionBreadcrumb
                     canteen_name={canteen_name}
@@ -77,22 +77,7 @@ export default function PostOrderTypeTab({
                     </Link>
                   </h1>
                 </>
-              )} */}
-
-              <>
-                <h1 className="font-semibold mb-2">
-                  Pesanan diantarkan ke meja kamu
-                </h1>
-                <h1 className="text-sm text-muted-foreground">
-                  Belum memilih nomor meja, scan QR Code di meja anda atau{" "}
-                  <Link
-                    href={selectTablePageUrl}
-                    className="underline text-blue-600"
-                  >
-                    Klik disini untuk pilih meja
-                  </Link>
-                </h1>
-              </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

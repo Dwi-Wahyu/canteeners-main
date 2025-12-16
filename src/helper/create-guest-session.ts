@@ -35,7 +35,7 @@ export async function createGuestSession({
     username: "",
     password: "",
     name,
-    isGuest: true,
+    isGuest: "true",
     firebaseUid: createGuest.data.user_id,
     redirect: false,
   });

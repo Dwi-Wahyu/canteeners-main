@@ -39,7 +39,9 @@ export default function LoginKedaiPage() {
     const res = await signIn("credentials", {
       username: data.username,
       password: data.password,
-      isGuest: false,
+      isGuest: "false",
+      name: "",
+      firebaseUid: null,
       redirect: false,
     });
 
@@ -53,30 +55,32 @@ export default function LoginKedaiPage() {
         message: "Username atau Password salah",
       });
     } else {
-      const user = await getUserByUsername(data.username);
+      router.push("/dashboard-kedai");
 
-      if (!user) return;
+      // const user = await getUserByUsername(data.username);
 
-      const response = await fetch("/api/auth/firebase-token?uid=" + user.id);
-      const responseData = await response.json();
-      const firebaseToken = responseData.token;
+      // if (!user) return;
 
-      console.log(responseData);
+      // const response = await fetch("/api/auth/firebase-token?uid=" + user.id);
+      // const responseData = await response.json();
+      // const firebaseToken = responseData.token;
 
-      session.update({
-        ...session.data,
-        firebaseToken: firebaseToken,
-      });
+      // console.log(responseData);
 
-      if (firebaseToken) {
-        router.push("/dashboard-kedai");
-      } else {
-        notificationDialog.error({
-          title: "Gagal login",
-          message:
-            "Silakan hubungi CS, akun mungkin belum diverifikasi dengan baik",
-        });
-      }
+      // session.update({
+      //   ...session.data,
+      //   firebaseToken: firebaseToken,
+      // });
+
+      // if (firebaseToken) {
+      //   router.push("/dashboard-kedai");
+      // } else {
+      //   notificationDialog.error({
+      //     title: "Gagal login",
+      //     message:
+      //       "Silakan hubungi CS, akun mungkin belum diverifikasi dengan baik",
+      //   });
+      // }
     }
   }
 

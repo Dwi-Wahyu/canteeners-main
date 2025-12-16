@@ -85,9 +85,12 @@ model OrderItem {
 
   selected_options ProductOptionValue[]
 
-  quantity Int
-  price    Float
-  note     String?
+  quantity     Int
+  // Harga Satuan Dasar (Snapshot saat checkout)
+  price_at_add Float
+  // Quantity * (price_at_add + 1000 + total_options_price)
+  subtotal     Float
+  note         String?
 
   @@index([order_id])
   @@map("order_items")

@@ -45,18 +45,21 @@ model ShopCart {
 }
 
 model CartItem {
-  id                String   @id @default(nanoid())
-  shop_cart         ShopCart @relation(fields: [shop_cart_id], references: [id], onDelete: Cascade)
-  shop_cart_id      String
-  product           Product  @relation(fields: [product_id], references: [id])
-  product_id        String
-  product_option_id String? // Foreign key ke product option
+  id           String   @id @default(nanoid())
+  shop_cart    ShopCart @relation(fields: [shop_cart_id], references: [id], onDelete: Cascade)
+  shop_cart_id String
+  product      Product  @relation(fields: [product_id], references: [id])
+  product_id   String
 
   selected_options ProductOptionValue[]
 
   quantity     Int
+  // Harga Satuan Dasar (Snapshot saat ditambahkan)
   price_at_add Float
-  notes        String?
+  // Quantity * (price_at_add + 1000 + total_options_price)
+  subtotal     Float
+
+  notes String?
 
   @@index([shop_cart_id])
   @@index([product_id])

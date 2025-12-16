@@ -58,38 +58,36 @@ export default function DeleteShopCartDialog({
   }
 
   return (
-    <div>
-      <AlertDialog open={open} onOpenChange={setOpen}>
-        <AlertDialogTrigger asChild disabled={isLoading}>
-          <Trash className="w-5 h-5 cursor-pointer hover:text-destructive transition-colors" />
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-start">
-              Yakin Menghapus Keranjang?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-start">
-              Anda harus menambahkan ulang produk ke keranjang jika ingin
-              membelinya nanti.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row justify-end gap-3">
-            <AlertDialogCancel asChild>
-              <Button size={"lg"} variant={"outline"} disabled={isLoading}>
-                Batal
-              </Button>
-            </AlertDialogCancel>
-            <Button
-              size={"lg"}
-              onClick={handleConfirm}
-              variant={"destructive"}
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader className="animate-spin" /> : "Yakin"}
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild disabled={isLoading}>
+        <Trash className="w-5 h-5 cursor-pointer hover:text-destructive transition-colors" />
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-start">
+            Yakin Menghapus Keranjang?
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-start">
+            Anda harus menambahkan ulang produk ke keranjang jika ingin
+            membelinya nanti.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-row justify-end gap-3">
+          <AlertDialogCancel asChild>
+            <Button size={"lg"} variant={"outline"} disabled={isLoading}>
+              Batal
             </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+          </AlertDialogCancel>
+          <Button
+            size={"lg"}
+            onClick={handleConfirm}
+            variant={"destructive"}
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader className="animate-spin" /> : "Yakin"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

@@ -1,10 +1,12 @@
 import NavButton from "@/components/nav-button";
-import { getCategories } from "@/features/category/lib/category-queries";
+import { auth } from "@/config/auth";
+import { getExistingPendingShopCart } from "@/features/cart/lib/cart-queries";
 import { getShopAndProducts } from "@/features/shop/lib/shop-queries";
 import { ShopProductsSearchParams } from "@/features/shop/types/shop-search-params";
 import ShopProductList from "@/features/shop/ui/shop-product-list";
+import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
-import { ChevronLeft, MessageCircle, Star } from "lucide-react";
+import { ChevronLeft, MessageCircle, ShoppingCart, Star } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SearchParams } from "nuqs";
@@ -23,11 +25,17 @@ export default async function ShopDetail({
   const search = await ShopProductsSearchParams.parse(searchParams);
 
   const shop = await getShopAndProducts(id, search);
-  const categories = await getCategories();
 
   if (!shop) {
     return notFound();
   }
+
+  const session = await auth();
+
+  const pendingShopCart = await getExistingPendingShopCart({
+    cart_id: session?.user.cartId ?? "",
+    shop_id: id,
+  });
 
   return (
     <div className="relative w-full min-h-screen bg-background">
@@ -67,6 +75,22 @@ export default async function ShopDetail({
       <div className="relative z-30 mt-[20vh] w-full bg-background min-h-screen shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
         <div className="p-5">
           <ShopProductList shop={shop} />
+
+          {pendingShopCart && (
+            <div className="fixed w-full p-4 bottom-0 left-0">
+              <Link
+                href={"/keranjang/" + pendingShopCart.id}
+                className="w-full flex justify-between  items-center bg-primary text-primary-foreground px-4 py-3 rounded-lg shadow"
+              >
+                <div className="flex gap-1 items-center">
+                  <ShoppingCart className="w-4 h-4" />
+                  Lihat keranjang {pendingShopCart._count.items} item
+                </div>
+
+                <h1>{formatRupiah(pendingShopCart.total_price)}</h1>
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,11 +1,10 @@
-import { getCustomerShopCart } from "../lib/cart-queries";
+import { getShopCart } from "../lib/cart-queries";
 
-export type GetCustomerShopCartType = NonNullable<
-  Awaited<ReturnType<typeof getCustomerShopCart>>
+export type GetShopCartType = NonNullable<
+  Awaited<ReturnType<typeof getShopCart>>
 >;
 
-export type GetCustomerShopCartAvaillablePaymentsType =
-  GetCustomerShopCartType["shop"]["payments"];
+export type GetShopCartAvaillablePaymentsType =
+  GetShopCartType["shop"]["payments"];
 
-export type GetCustomerShopCartCartItemType =
-  GetCustomerShopCartType["items"][number];
+export type GetShopCartItemType = GetShopCartType["items"][number];

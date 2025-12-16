@@ -5,7 +5,6 @@ import {
   ServerActionReturn,
   successResponse,
 } from "@/helper/action-helper";
-import { adminAuth } from "@/lib/firebase/admin";
 import { prisma } from "@/lib/prisma";
 
 export async function createGuestCustomer({
@@ -22,18 +21,11 @@ export async function createGuestCustomer({
   }>
 > {
   try {
-    const user = await prisma.user.create({
+    const createdUser = await prisma.user.create({
       data: {
         id: firebaseUserUid,
         name: guestName,
         role: "CUSTOMER",
-        customer: {
-          create: {
-            cart: {
-              create: { status: "ACTIVE" },
-            },
-          },
-        },
       },
       select: {
         id: true,
@@ -50,12 +42,36 @@ export async function createGuestCustomer({
       },
     });
 
-    // todo: cari cara yang lebih elegan untuk memastikan customer dan cart id pasti ada
+    if (!createdUser) {
+      return errorResponse("Terjadi kesalahan saat membuat user");
+    }
+
+    const createdCustomer = await prisma.customer.create({
+      data: {
+        user_id: createdUser.id,
+      },
+    });
+
+    if (!createdCustomer) {
+      return errorResponse("Terjadi kesalahan saat membuat customer");
+    }
+
+    const createdCart = await prisma.cart.create({
+      data: {
+        customer_id: createdCustomer.id,
+        status: "ACTIVE",
+      },
+    });
+
+    if (!createdCart) {
+      return errorResponse("Terjadi kesalahan saat membuat keranjang");
+    }
+
     return successResponse(
       {
-        user_id: user.id,
-        customer_id: user.customer?.id ?? "",
-        cart_id: user.customer?.cart?.id ?? "",
+        user_id: createdUser.id,
+        customer_id: createdCustomer.id,
+        cart_id: createdCart.id,
       },
       "Sukses membuat guest customer"
     );

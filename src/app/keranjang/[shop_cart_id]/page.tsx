@@ -1,18 +1,38 @@
 import NavButton from "@/components/nav-button";
-import { getCustomerShopCart } from "@/features/cart/lib/cart-queries";
+import { auth } from "@/config/auth";
+import { getShopCart } from "@/features/cart/lib/cart-queries";
 import DeleteShopCartDialog from "@/features/cart/ui/delete-shop-cart-dialog";
 import ShopCartClient from "@/features/cart/ui/shop-cart-client";
+import { getCustomerProfile } from "@/features/user/lib/user-queries";
 import { ChevronLeft } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function GuestShopCartPage({
   params,
 }: {
   params: Promise<{ shop_cart_id: string }>;
 }) {
+  const session = await auth();
+
+  // fix agar menampilkan text sesi tidak terbaca
+  if (!session) {
+    redirect("/kantin/kantin-kudapan");
+  }
+
+  if (!session.user.cartId) {
+    redirect("/kantin/kantin-kudapan");
+  }
+
+  if (!session.user.customerId) {
+    redirect("/kantin/kantin-kudapan");
+  }
+
   const { shop_cart_id } = await params;
 
-  const shopCart = await getCustomerShopCart(shop_cart_id);
+  const shopCart = await getShopCart({
+    shop_cart_id,
+    cart_id: session.user.cartId,
+  });
 
   if (!shopCart) {
     return notFound();
@@ -29,6 +49,12 @@ export default async function GuestShopCartPage({
       close_time !== null &&
       now >= open_time &&
       now <= close_time);
+
+  const customerProfile = await getCustomerProfile(session.user.customerId);
+
+  if (!customerProfile) {
+    return notFound();
+  }
 
   return (
     <div>
@@ -50,13 +76,15 @@ export default async function GuestShopCartPage({
         <DeleteShopCartDialog backUrl="/keranjang" shop_cart_id={shopCart.id} />
       </div>
 
-      <ShopCartClient
-        // customerProfile={}
-        shopCart={shopCart}
-        ableToCheckout={ableToCheckout}
-        open_time={open_time}
-        close_time={close_time}
-      />
+      <div className="p-5">
+        <ShopCartClient
+          customerProfile={customerProfile}
+          shopCart={shopCart}
+          ableToCheckout={ableToCheckout}
+          open_time={open_time}
+          close_time={close_time}
+        />
+      </div>
     </div>
   );
 }

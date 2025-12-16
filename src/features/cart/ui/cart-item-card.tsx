@@ -12,7 +12,9 @@ import Link from "next/link";
 import { EllipsisVertical, StickyNote, Trash } from "lucide-react";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { changeCartItemDetails, deleteCartItem } from "../lib/cart-actions";
-import { GetCustomerShopCartCartItemType } from "../types/cart-queries-types";
+import { GetShopCartItemType } from "../types/cart-queries-types";
+import CartItemDialog from "./cart-item-dialog";
+import { getImageUrl } from "@/helper/get-image-url";
 
 export default function CartItemCard({
   cartItem,
@@ -20,7 +22,7 @@ export default function CartItemCard({
   disabledDeleteButton,
   cartItemDetailUrl,
 }: {
-  cartItem: GetCustomerShopCartCartItemType;
+  cartItem: GetShopCartItemType;
   disabled: boolean;
   disabledDeleteButton: boolean;
   cartItemDetailUrl: string;
@@ -96,11 +98,7 @@ export default function CartItemCard({
       <CardContent>
         <div className="flex gap-4">
           <Image
-            src={
-              cartItem.product.image_url
-                ? `/uploads/product/${cartItem.product.image_url}`
-                : "/placeholder-image.jpg"
-            }
+            src={getImageUrl(cartItem.product.image_url)}
             alt={cartItem.product.name}
             width={100}
             height={100}

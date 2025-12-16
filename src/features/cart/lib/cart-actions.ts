@@ -32,6 +32,7 @@ export async function processShopCart({
 
   try {
     await prisma.$transaction(async (tx) => {
+      // Ambil Data ShopCart
       const shopCart = await prisma.shopCart.findFirst({
         where: {
           id: shopCartId,
@@ -57,38 +58,28 @@ export async function processShopCart({
             select: {
               id: true,
               name: true,
-              canteen_id: true,
-              canteen: {
-                select: {
-                  name: true,
-                },
-              },
               owner_id: true,
               owner: {
                 select: {
                   user_id: true,
                 },
               },
-              payments: {
-                select: {
-                  method: true,
-                },
-              },
             },
           },
+          // Ambil detail items termasuk SUBTOTAL dan SELECTED OPTIONS
           items: {
             select: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  image_url: true,
-                },
-              },
               id: true,
+              product_id: true, // Ambil ID produk langsung
               notes: true,
               price_at_add: true,
               quantity: true,
+              subtotal: true, // <--- Field Baru (Hasil Kalkulasi di Cart)
+              selected_options: {
+                select: {
+                  id: true, // Kita butuh ID untuk menghubungkan ke OrderItem nanti
+                },
+              },
             },
           },
         },
@@ -102,15 +93,13 @@ export async function processShopCart({
       const customer_user_id = shopCart.cart.customer.user_id;
       const owner_user_id = shopCart.shop.owner.user_id;
 
-      await prisma.user.update({
-        where: {
-          id: customer_user_id,
-        },
-        data: {
-          name: guest_name,
-        },
+      // Update nama
+      await tx.user.update({
+        where: { id: customer_user_id },
+        data: { name: guest_name },
       });
 
+      // Handle Conversation (Chat)
       const existingConversation = await tx.conversation.findFirst({
         where: {
           participants: {
@@ -138,33 +127,54 @@ export async function processShopCart({
           })
         ).id;
 
+      // Buat Order Utama
       const order = await tx.order.create({
         data: {
           shop_id: shopCart.shop.id,
           customer_id,
           payment_method: paymentMethod,
           status: "PENDING_CONFIRMATION",
-          total_price: shopCart.total_price,
+          total_price: shopCart.total_price, // total_price ShopCart yang sudah dihitung
           post_order_type: postOrderType,
           floor: postOrderType === "DELIVERY_TO_TABLE" ? floor : null,
           table_number:
             postOrderType === "DELIVERY_TO_TABLE" ? table_number : null,
           conversation_id,
-          order_items: {
-            createMany: {
-              data: shopCart.items.map((item) => ({
-                product_id: item.product.id,
-                quantity: item.quantity,
-                price: item.price_at_add * item.quantity,
-                note: item.notes,
-              })),
-            },
-          },
+          // Note: tidak pakai createMany di sini agar bisa connect options
         },
       });
 
       order_id = order.id;
 
+      // Buat Order Items satu per satu (Looping)
+      // looping menghubungkan 'selected_options' (Relation)
+      // createMany tidak mendukung 'connect' relation.
+      await Promise.all(
+        shopCart.items.map((item) =>
+          tx.orderItem.create({
+            data: {
+              order_id: order.id,
+              product_id: item.product_id,
+              quantity: item.quantity,
+
+              // HARGA SNAPSHOT
+              price_at_add: item.price_at_add, // Harga Satuan Dasar
+              subtotal: item.subtotal, // Total Kalkulasi (Qty * (Base + 1000 + Options))
+
+              note: item.notes,
+
+              // Hubungkan Opsi yang dipilih
+              selected_options: {
+                connect: item.selected_options.map((opt) => ({
+                  id: opt.id,
+                })),
+              },
+            },
+          })
+        )
+      );
+
+      // Link Order ke ShopCart (untuk menandai cart ini sudah jadi order)
       await tx.shopCart.update({
         where: {
           id: shopCart.id,
@@ -174,6 +184,7 @@ export async function processShopCart({
         },
       });
 
+      // Kirim pesan otomatis
       await tx.message.create({
         data: {
           conversation_id,
@@ -190,8 +201,7 @@ export async function processShopCart({
       "Berhasil memproses pesanan"
     );
   } catch (error) {
-    console.log(error);
-
+    console.error("Error processing shop cart:", error);
     return errorResponse("Gagal memproses pesanan");
   }
 }
@@ -210,9 +220,7 @@ export async function addToCart({
   selected_option_value_ids: string[];
 }): Promise<ServerActionReturn<{ shopCartId: string }>> {
   try {
-    let shopCartId;
-
-    await prisma.$transaction(async (tx) => {
+    const { shopCartId } = await prisma.$transaction(async (tx) => {
       const product = await tx.product.findUnique({
         where: { id: productId },
       });
@@ -221,7 +229,27 @@ export async function addToCart({
         throw new Error("Product tidak ditemukan");
       }
 
-      // Cari shop cart belum checkout
+      // Hitung Harga Opsi Tambahan (Additional Options)
+      const selectedOptionsData = await tx.productOptionValue.findMany({
+        where: {
+          id: { in: selected_option_value_ids },
+        },
+        select: {
+          additional_price: true,
+        },
+      });
+
+      const totalOptionsPrice = selectedOptionsData.reduce(
+        (sum, opt) => sum + (opt.additional_price || 0),
+        0
+      );
+
+      // Hitung Subtotal Item
+      // Qty * (Harga Produk + 1000 Komisi + Harga Opsi)
+      const itemSubtotal =
+        quantity * (product.price + 1000 + totalOptionsPrice);
+
+      // Cari shop cart
       let shopCart = await tx.shopCart.findFirst({
         where: {
           cart_id: cartId,
@@ -235,70 +263,52 @@ export async function addToCart({
           data: {
             cart_id: cartId,
             shop_id: shopId,
+            total_price: 0,
           },
         });
       }
 
-      // Masukkan ke variabel luar transaksi
-      shopCartId = shopCart.id;
-
-      // Tambah item
+      // Buat CartItem dengan field 'subtotal'
       await tx.cartItem.create({
         data: {
           product_id: productId,
           shop_cart_id: shopCart.id,
           quantity,
           price_at_add: product.price,
+          subtotal: itemSubtotal,
           selected_options: {
             connect: selected_option_value_ids.map((id) => ({ id })),
           },
         },
       });
 
-      // Hitung ulang total harga shop cart
-      const cartItems = await tx.cartItem.findMany({
+      // Update Total Harga ShopCart
+      const aggregate = await tx.cartItem.aggregate({
         where: {
           shop_cart_id: shopCart.id,
         },
-        include: {
-          selected_options: {
-            select: {
-              additional_price: true,
-            },
-          },
+        _sum: {
+          subtotal: true,
         },
       });
 
-      const totals = cartItems.reduce((acc, item) => {
-        const additionalOptionsTotal = item.selected_options.reduce(
-          (sum, opt) => sum + (opt.additional_price || 0),
-          0
-        );
-
-        const baseTotal =
-          (item.price_at_add + additionalOptionsTotal) * item.quantity;
-
-        const quantityFee = item.quantity * 1000;
-
-        return acc + baseTotal + quantityFee;
-      }, 0);
-
       await tx.shopCart.update({
         where: { id: shopCart.id },
-        data: { total_price: totals },
+        data: {
+          total_price: aggregate._sum.subtotal || 0,
+        },
       });
-      // Selesai hitung ulang total harga shop cart
+
+      return { shopCartId: shopCart.id };
     });
 
     if (!shopCartId) {
       return errorResponse("Gagal tambah ke keranjang");
     }
 
-    console.log(shopCartId);
-
     return successResponse({ shopCartId }, "Berhasil tambah ke keranjang");
   } catch (error) {
-    console.error(error);
+    console.error("Error addToCart:", error);
     return errorResponse("Gagal tambah ke keranjang");
   }
 }
@@ -346,39 +356,21 @@ export async function deleteCartItem(
         where: { id: cart_item_id },
       });
 
-      // Hitung ulang total harga shop cart
-      const cartItems = await tx.cartItem.findMany({
+      // Hitung ulang total harga ShopCart menggunakan AGGREGATE
+      const aggregate = await tx.cartItem.aggregate({
         where: {
           shop_cart_id: cartItem.shop_cart_id,
         },
-        include: {
-          selected_options: {
-            select: {
-              additional_price: true,
-            },
-          },
+        _sum: {
+          subtotal: true, // Jumlahkan field subtotal
         },
       });
 
-      const totals = cartItems.reduce((acc, item) => {
-        const additionalOptionsTotal = item.selected_options.reduce(
-          (sum, opt) => sum + (opt.additional_price || 0),
-          0
-        );
-
-        const baseTotal =
-          (item.price_at_add + additionalOptionsTotal) * item.quantity;
-
-        const quantityFee = item.quantity * 1000;
-
-        return acc + baseTotal + quantityFee;
-      }, 0);
-
+      // Update Total Harga Shop Cart
       await tx.shopCart.update({
         where: { id: cartItem.shop_cart_id },
-        data: { total_price: totals },
+        data: { total_price: aggregate._sum.subtotal || 0 },
       });
-      // Selesai hitung ulang total harga shop cart
 
       revalidatePath("/dashboard-pelanggan/keranjang/" + cartItem.shop_cart_id);
     });
@@ -404,51 +396,59 @@ export async function changeCartItemDetails({
       return errorResponse("Jumlah harus lebih besar dari 0");
     }
 
-    // Ambil cartItem untuk mendapatkan shop_cart_id dan price_at_add
-    const cartItem = await prisma.cartItem.findUnique({
-      where: { id },
-      select: { shop_cart_id: true, price_at_add: true },
-    });
+    const shopCartId = await prisma.$transaction(async (tx) => {
+      // Ambil Data Item beserta Opsi yang dipilih (untuk kalkulasi harga)
+      const cartItem = await tx.cartItem.findUnique({
+        where: { id },
+        include: {
+          selected_options: {
+            select: {
+              additional_price: true,
+            },
+          },
+        },
+      });
 
-    if (!cartItem) {
-      throw new Error("Item keranjang tidak ditemukan");
-    }
+      if (!cartItem) {
+        throw new Error("Item keranjang tidak ditemukan");
+      }
 
-    // Lakukan transaksi untuk memastikan konsistensi data
-    const result = await prisma.$transaction(async (tx) => {
-      // Perbarui cartItem
+      // Hitung Total Harga Opsi (Per Unit)
+      const totalOptionsPrice = cartItem.selected_options.reduce(
+        (sum, opt) => sum + (opt.additional_price || 0),
+        0
+      );
+
+      // Qty * (Base Price + 1000 + Options Price)
+      const newSubtotal =
+        quantity * (cartItem.price_at_add + 1000 + totalOptionsPrice);
+
       await tx.cartItem.update({
         where: { id },
         data: {
           quantity,
           notes,
+          subtotal: newSubtotal,
         },
       });
 
-      // Ambil semua item di shop_cart yang sama
-      const cartItems = await tx.cartItem.findMany({
+      // Update Total ShopCart dengan Aggregate
+      const aggregate = await tx.cartItem.aggregate({
         where: { shop_cart_id: cartItem.shop_cart_id },
-        select: { quantity: true, price_at_add: true },
+        _sum: { subtotal: true },
       });
-
-      // Hitung total harga dengan biaya tambahan 1000 per kuantitas produk
-      const totalPrice = cartItems.reduce(
-        (sum, item) => sum + (item.price_at_add + 1000) * item.quantity,
-        0
-      );
 
       await tx.shopCart.update({
         where: { id: cartItem.shop_cart_id },
-        data: { total_price: totalPrice },
+        data: { total_price: aggregate._sum.subtotal || 0 },
       });
 
-      return undefined;
+      return cartItem.shop_cart_id;
     });
 
-    // Revalidasi path untuk memperbarui cache
-    revalidatePath("/dashboard-pelanggan/keranjang/" + cartItem.shop_cart_id);
+    revalidatePath("/dashboard-pelanggan/keranjang/" + shopCartId);
 
-    return successResponse(result, "Sukses mengubah detail dan total harga");
+    return successResponse(undefined, "Sukses mengubah detail dan total harga");
   } catch (error) {
     console.error("Error in changeCartItemDetails:", error);
     return errorResponse("Gagal mengubah detail dan total harga");
@@ -458,16 +458,74 @@ export async function changeCartItemDetails({
 export async function removeCartItemOption(
   cart_item_id: string,
   option_value_id: string
-) {
-  return await prisma.cartItem.update({
-    where: { id: cart_item_id },
-    data: {
-      selected_options: {
-        disconnect: [{ id: option_value_id }],
-      },
-    },
-    select: { id: true },
-  });
+): Promise<ServerActionReturn<void>> {
+  try {
+    const shopCartId = await prisma.$transaction(async (tx) => {
+      // Lepaskan hubungan opsi dari item
+      await tx.cartItem.update({
+        where: { id: cart_item_id },
+        data: {
+          selected_options: {
+            disconnect: [{ id: option_value_id }],
+          },
+        },
+      });
+
+      // Ambil data item terbaru beserta sisa opsi yang masih ada
+      const cartItem = await tx.cartItem.findUnique({
+        where: { id: cart_item_id },
+        include: {
+          selected_options: {
+            select: {
+              additional_price: true,
+            },
+          },
+        },
+      });
+
+      if (!cartItem) {
+        throw new Error("Item keranjang tidak ditemukan");
+      }
+
+      // Hitung ulang subtotal berdasarkan total harga opsi yang tersisa
+      const totalOptionsPrice = cartItem.selected_options.reduce(
+        (sum, opt) => sum + (opt.additional_price || 0),
+        0
+      );
+
+      // Qty * (Base Price + 1000 + Sisa Options Price)
+      const newSubtotal =
+        cartItem.quantity * (cartItem.price_at_add + 1000 + totalOptionsPrice);
+
+      // Update subtotal di database
+      await tx.cartItem.update({
+        where: { id: cart_item_id },
+        data: {
+          subtotal: newSubtotal,
+        },
+      });
+
+      // Update Total Harga ShopCart (Agregasi dari semua subtotal item)
+      const aggregate = await tx.cartItem.aggregate({
+        where: { shop_cart_id: cartItem.shop_cart_id },
+        _sum: { subtotal: true },
+      });
+
+      await tx.shopCart.update({
+        where: { id: cartItem.shop_cart_id },
+        data: { total_price: aggregate._sum.subtotal || 0 },
+      });
+
+      return cartItem.shop_cart_id;
+    });
+
+    revalidatePath("/keranjang/" + shopCartId);
+
+    return successResponse(undefined, "Berhasil menghapus opsi");
+  } catch (error) {
+    console.error("Error removing cart item option:", error);
+    return errorResponse("Gagal menghapus opsi");
+  }
 }
 
 export async function addCartItemNotes(
