@@ -40,8 +40,6 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
       const chatSnap = await getDoc(chatRef);
 
       if (chatSnap.exists()) {
-        console.log(chatSnap.data());
-
         setChatData(chatSnap.data() as ChatData);
       }
     }

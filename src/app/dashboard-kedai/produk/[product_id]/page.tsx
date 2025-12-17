@@ -6,11 +6,11 @@ import { notFound } from "next/navigation";
 export default async function ProductDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ product_id: string }>;
 }) {
-  const { id } = await params;
+  const { product_id } = await params;
 
-  const data = await getProductById(id);
+  const data = await getProductById(product_id);
 
   if (!data) {
     return notFound();

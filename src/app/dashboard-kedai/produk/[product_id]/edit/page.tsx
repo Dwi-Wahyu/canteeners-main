@@ -1,6 +1,5 @@
 import NotFoundResource from "@/components/pages/not-found-resource";
-import EditProductForm from "@/app/dashboard-kedai/produk/[id]/edit/form";
-import { Card, CardContent } from "@/components/ui/card";
+import EditProductForm from "@/app/dashboard-kedai/produk/[product_id]/edit/form";
 import { getCategories } from "@/features/category/lib/category-queries";
 import { getProductIncludeCategory } from "@/features/product/lib/product-queries";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
@@ -8,11 +7,11 @@ import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 export default async function EditProductPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ product_id: string }>;
 }) {
-  const { id } = await params;
+  const { product_id } = await params;
 
-  const product = await getProductIncludeCategory(id);
+  const product = await getProductIncludeCategory(product_id);
 
   if (!product) {
     return <NotFoundResource />;

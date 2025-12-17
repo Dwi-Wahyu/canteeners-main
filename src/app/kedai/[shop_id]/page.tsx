@@ -12,7 +12,7 @@ import { notFound } from "next/navigation";
 import { SearchParams } from "nuqs";
 
 interface IndexPageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ shop_id: string }>;
   searchParams: Promise<SearchParams>;
 }
 
@@ -20,11 +20,11 @@ export default async function ShopDetail({
   params,
   searchParams,
 }: IndexPageProps) {
-  const { id } = await params;
+  const { shop_id } = await params;
 
   const search = await ShopProductsSearchParams.parse(searchParams);
 
-  const shop = await getShopAndProducts(id, search);
+  const shop = await getShopAndProducts(shop_id, search);
 
   if (!shop) {
     return notFound();
@@ -34,7 +34,7 @@ export default async function ShopDetail({
 
   const pendingShopCart = await getExistingPendingShopCart({
     cart_id: session?.user.cartId ?? "",
-    shop_id: id,
+    shop_id,
   });
 
   return (

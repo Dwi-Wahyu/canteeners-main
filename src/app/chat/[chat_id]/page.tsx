@@ -3,9 +3,9 @@ import ClientChatPage from "../../../features/chat/ui/client-chat-page";
 export default async function ChatDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ chat_id: string }>;
 }) {
-  const { id } = await params;
+  const { chat_id } = await params;
 
-  return <ClientChatPage chatId={id} />;
+  return <ClientChatPage chatId={chat_id} />;
 }

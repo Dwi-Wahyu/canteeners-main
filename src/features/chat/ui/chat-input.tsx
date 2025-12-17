@@ -54,7 +54,7 @@ export function ChatInput({
     try {
       const chatRef = doc(db, "chats", chatId);
       await updateDoc(chatRef, {
-        [`typing.${currentUserId}`]: isTyping
+        [`typing.${currentUserId}`]: isTyping,
       });
     } catch (error) {
       console.error("Error updating typing status:", error);
@@ -91,13 +91,13 @@ export function ChatInput({
               await new Promise((resolve) => setTimeout(resolve, 100));
             }
 
-            // The actual upload will happen when sending the message or we can do it here. 
+            // The actual upload will happen when sending the message or we can do it here.
             // However, standard FileUpload component typically handles visual state.
             // If we want to upload IMMEDIATELY upon selection (like example), we do it now.
             // But to match the requirement of "users can send more 1 - 4 media", usually we upload first then send.
-            // Let's stick to the example pattern: upload immediately to get the URL? 
-            // Wait, the example just mimics upload progress but doesn't show the API call in the `onUpload` function of existing example? 
-            // Ah, the existing example chat-input-example.tsx lines 69-103 ONLY SIMULATES progress. 
+            // Let's stick to the example pattern: upload immediately to get the URL?
+            // Wait, the example just mimics upload progress but doesn't show the API call in the `onUpload` function of existing example?
+            // Ah, the existing example chat-input-example.tsx lines 69-103 ONLY SIMULATES progress.
             // I need to actually upload to /api/upload.
 
             const formData = new FormData();
@@ -118,11 +118,11 @@ export function ChatInput({
 
             const blob = await res.json();
             // We need to attach the blob url/details to the file object so we can access it later on submit.
-            // Since File object is read-only, we might need a separate state or augment it if possible, 
-            // but better: `setAttachments` tracks the Files. 
+            // Since File object is read-only, we might need a separate state or augment it if possible,
+            // but better: `setAttachments` tracks the Files.
             // The `FileUpload` component manages the UI state based on these file objects.
             // We need to store the upload result.
-            // Let's attach it to the file instance directly as a custom property if we can, 
+            // Let's attach it to the file instance directly as a custom property if we can,
             // or maintain a map of File -> BlobResult.
 
             // Javascript allows adding properties to objects.
@@ -154,27 +154,30 @@ export function ChatInput({
 
   async function handleSend(e?: React.FormEvent) {
     if (e) e.preventDefault();
-    if ((!text.trim() && attachments.length === 0) || loading || isUploading) return;
+    if ((!text.trim() && attachments.length === 0) || loading || isUploading)
+      return;
 
     setLoading(true);
     try {
       // Prepare attachments data
-      const mediaData = attachments.map((file: any) => {
-        const blob = file.blobResult;
-        return {
-          url: blob?.url,
-          path: blob?.pathname, // Vercel blob returns pathname
-          contentType: blob?.contentType || file.type,
-          size: blob?.size || file.size
-        };
-      }).filter(m => m.url); // Ensure we only send successfully uploaded ones
+      const mediaData = attachments
+        .map((file: any) => {
+          const blob = file.blobResult;
+          return {
+            url: blob?.url,
+            path: blob?.pathname, // Vercel blob returns pathname
+            contentType: blob?.contentType || file.type,
+            size: blob?.size || file.size,
+          };
+        })
+        .filter((m) => m.url); // Ensure we only send successfully uploaded ones
 
       // Tambahkan ke Subcollection Messages
       const messageData = {
         senderId: currentUserId,
         text: text,
         type: mediaData.length > 0 ? "image" : "text", // Or keep 'text' and just add media? Standard chat apps often switch type or allow mixed. Let's assume mixed is fine or 'text' with attachments. User req: "add additional attributes... media: [...]"
-        // Let's keep existing logic but add media field. 
+        // Let's keep existing logic but add media field.
         // Note: User request says "users can send more 1 - 4 media in single message"
         // And "no need to store the messages media to postgresql prisma", implying we just store in the message doc.
         attachments: mediaData,
@@ -207,8 +210,13 @@ export function ChatInput({
   }
 
   // Calculate grid columns for preview
-  const gridCols = attachments.length === 1 ? 'grid-cols-1' : attachments.length === 2 ? 'grid-cols-2' : 'grid-cols-2';
-  // User asked for "grid column" based on media sum. 1-4. 
+  const gridCols =
+    attachments.length === 1
+      ? "grid-cols-1"
+      : attachments.length === 2
+      ? "grid-cols-2"
+      : "grid-cols-2";
+  // User asked for "grid column" based on media sum. 1-4.
   // 3 could be 2 cols (1 occupies full width? or just 3 grid). Let's use simple grid.
 
   return (
@@ -224,9 +232,7 @@ export function ChatInput({
         multiple
         disabled={loading || isUploading}
       >
-        <FileUploadDropzone
-          className="fixed inset-0 z-50 opacity-0 hidden data-[dragging]:flex data-[dragging]:opacity-100 bg-background/80 backdrop-blur-sm transition-all items-center justify-center"
-        >
+        <FileUploadDropzone className="fixed inset-0 z-50 opacity-0 hidden data-dragging:flex data-dragging:opacity-100 bg-background/80 backdrop-blur-sm transition-all items-center justify-center">
           <div className="text-center font-medium">
             <Upload className="mx-auto h-12 w-12 mb-4 text-muted-foreground" />
             <p>Drop files here to upload</p>
@@ -236,9 +242,16 @@ export function ChatInput({
         <div className="relative flex w-full flex-col gap-2 rounded-md border border-input bg-transparent px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-ring">
           {/* Preview Grid */}
           {attachments.length > 0 && (
-            <FileUploadList orientation="vertical" className={`grid ${gridCols} gap-2 mb-2 w-full`}>
+            <FileUploadList
+              orientation="vertical"
+              className={`grid ${gridCols} gap-2 mb-2 w-full`}
+            >
               {attachments.map((file, index) => (
-                <FileUploadItem key={index} value={file} className="w-full p-2 bg-secondary/50 rounded-md">
+                <FileUploadItem
+                  key={index}
+                  value={file}
+                  className="w-full p-2 bg-secondary/50 rounded-md"
+                >
                   <div className="flex items-center gap-2 overflow-hidden">
                     <FileUploadItemPreview className="size-16 shrink-0 rounded-md object-cover" />
                     <div className="flex-1 min-w-0">
@@ -246,7 +259,11 @@ export function ChatInput({
                       <FileUploadItemProgress />
                     </div>
                     <FileUploadItemDelete asChild>
-                      <Button variant="ghost" size="icon" className="shrink-0 size-8 text-destructive hover:text-destructive">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0 size-8 text-destructive hover:text-destructive"
+                      >
                         <X className="size-4" />
                       </Button>
                     </FileUploadItemDelete>
@@ -260,7 +277,7 @@ export function ChatInput({
             value={text}
             onChange={handleInputChange} // Use the new handleInputChange function
             placeholder="Tulis pesan..."
-            className="min-h-[40px] w-full resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:outline-none"
+            className="min-h-10 w-full resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:outline-none"
             disabled={loading || isUploading}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -273,7 +290,11 @@ export function ChatInput({
           <div className="flex items-center justify-end gap-1.5 pt-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-8 text-muted-foreground shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-muted-foreground shrink-0"
+                >
                   <Paperclip className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -293,7 +314,11 @@ export function ChatInput({
               onClick={() => handleSend()}
               size="icon"
               className="size-8"
-              disabled={loading || isUploading || (!text.trim() && attachments.length === 0)}
+              disabled={
+                loading ||
+                isUploading ||
+                (!text.trim() && attachments.length === 0)
+              }
             >
               <SendIcon className="size-4" />
             </Button>
