@@ -7,19 +7,24 @@ import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { getOrderSummaryForChatBubble } from "@/features/order/lib/order-queries";
 import ConfirmOrderDialog from "@/features/order/ui/confirm-order-dialog";
+import RejectOrderDialog from "@/features/order/ui/reject-order-dialog";
 import { OrderStatus } from "@/generated/prisma";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ChevronRight,
-  FileText,
-  MapPin,
-  MessageCircle,
-  ShoppingBag,
-} from "lucide-react";
+import { ChevronRight, FileText, MapPin, MessageCircle } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
+
+const ShopOrderDetailDialog = dynamic(
+  () => import("@/features/order/ui/shop-order-detail-dialog"),
+  {
+    // TODO: fix loading komponen
+    loading: () => <div>Loading detail . . .</div>,
+    ssr: false,
+  }
+);
 
 export default function ShopOrderChatBubble({
   order_id,
@@ -99,18 +104,20 @@ export default function ShopOrderChatBubble({
               <h1>Pembayaran: {paymentMethodMapping[data.payment_method]}</h1>
             </div>
 
-            <Link
-              href={"/dashboard-kedai/order/" + data.id}
-              className="p-2 my-4 bg-secondary items-center border border-accent-foreground rounded flex justify-between text-accent-foreground"
-            >
-              <div className="flex gap-2">
-                <FileText className="w-5 h-5" />
+            <ShopOrderDetailDialog
+              order_id={order_id}
+              trigger={
+                <Button className="p-2 my-4 bg-secondary items-center border border-accent-foreground rounded flex justify-between text-accent-foreground">
+                  <div className="flex gap-2">
+                    <FileText className="w-5 h-5" />
 
-                <h1>Lihat Detail Pesanan</h1>
-              </div>
+                    <h1>Lihat Detail Pesanan</h1>
+                  </div>
 
-              <ChevronRight className="w-5 h-5" />
-            </Link>
+                  <ChevronRight className="w-5 h-5" />
+                </Button>
+              }
+            />
 
             <div className="flex flex-col gap-2">
               <ConfirmOrderDialog
@@ -120,7 +127,8 @@ export default function ShopOrderChatBubble({
                 payment_method={data.payment_method}
                 shop_id={data.shop.id}
               />
-              <Button variant={"outline"}>Tolak Pesanan</Button>
+
+              <RejectOrderDialog order_id={data.id} />
             </div>
           </div>
         </div>

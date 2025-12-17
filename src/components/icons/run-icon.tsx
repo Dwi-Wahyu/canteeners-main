@@ -1,4 +1,4 @@
-export default function RunIcon() {
+export default function RunIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -10,7 +10,9 @@ export default function RunIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="icon icon-tabler icons-tabler-outline icon-tabler-run"
+      className={
+        "icon icon-tabler icons-tabler-outline icon-tabler-run " + className
+      }
     >
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M13 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />

@@ -49,10 +49,16 @@ export async function getOrderDetail(id: string) {
     include: {
       order_items: {
         select: {
+          id: true,
           quantity: true,
           price_at_add: true,
           subtotal: true,
           note: true,
+          selected_options: {
+            select: {
+              value: true,
+            },
+          },
           product: {
             select: {
               name: true,

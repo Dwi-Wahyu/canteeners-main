@@ -1,4 +1,4 @@
-export default function CashIcon() {
+export default function CashIcon({ className }: { className?: string }) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -10,7 +10,9 @@ export default function CashIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="icon icon-tabler icons-tabler-outline icon-tabler-cash"
+      className={
+        "icon icon-tabler icons-tabler-outline icon-tabler-cash" + className
+      }
     >
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3" />

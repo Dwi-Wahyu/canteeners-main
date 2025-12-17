@@ -69,13 +69,13 @@ export default function ConfirmOrderDialog({
         <AlertDialogTrigger asChild>
           <Button size={"lg"} className="w-full">
             <CheckCircle />
-            Konfirmasi
+            Konfirmasi Pesanan
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-start">
-              Anda Yakin Menerima Pesanan Ini?
+              Terima Pesanan Ini?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-start">
               Berikan estimasi waktu pesanan selesai
