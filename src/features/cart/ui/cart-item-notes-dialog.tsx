@@ -21,8 +21,8 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
-  AddCartItemNotesSchema,
-  AddCartItemNotesInput,
+  AddCartItemNoteSchema,
+  AddCartItemNoteInput,
 } from "../types/cart-schema";
 import { StickyNote } from "lucide-react";
 import { addCartItemNotes } from "../lib/cart-actions";
@@ -34,8 +34,8 @@ export function AddCartItemNotesDialog({
   defaultNotes: string | null;
   cart_item_id: string;
 }) {
-  const form = useForm<AddCartItemNotesInput>({
-    resolver: zodResolver(AddCartItemNotesSchema),
+  const form = useForm<AddCartItemNoteInput>({
+    resolver: zodResolver(AddCartItemNoteSchema),
     defaultValues: {
       notes: defaultNotes ?? "",
       cart_item_id,
@@ -45,12 +45,12 @@ export function AddCartItemNotesDialog({
   const [open, setOpen] = useState(false);
 
   const mutations = useMutation({
-    mutationFn: async (payload: AddCartItemNotesInput) => {
+    mutationFn: async (payload: AddCartItemNoteInput) => {
       return await addCartItemNotes(payload);
     },
   });
 
-  async function onSubmit(payload: AddCartItemNotesInput) {
+  async function onSubmit(payload: AddCartItemNoteInput) {
     const result = await mutations.mutateAsync(payload);
     if (result.success) {
       setOpen(false);

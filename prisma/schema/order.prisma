@@ -21,6 +21,7 @@ model Order {
   conversation_id String
 
   status OrderStatus
+  note   String?
 
   type OrderType @default(READY)
 
@@ -28,7 +29,7 @@ model Order {
   complaint ShopComplaint?
   refund    Refund?
 
-  payment_method  PaymentMethod
+  payment_method PaymentMethod
 
   payment_proofs PaymentProof[]
 

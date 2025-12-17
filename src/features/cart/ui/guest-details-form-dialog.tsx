@@ -21,17 +21,15 @@ export function GuestDetailsFormDialog({
   userId,
   showGuestDetailsFormDialog,
   setShowGuestDetailsFormDialog,
-  guestName,
-  setGuestName,
   saveGuestDetails,
 }: {
   userId: string;
   showGuestDetailsFormDialog: boolean;
   setShowGuestDetailsFormDialog: (open: boolean) => void;
-  guestName: string | null;
-  setGuestName: (guestName: string) => void;
   saveGuestDetails: () => void;
 }) {
+  const [guestName, setGuestName] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSave() {

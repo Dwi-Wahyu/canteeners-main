@@ -7,7 +7,7 @@ import {
 } from "@/helper/action-helper";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { AddCartItemNotesInput } from "../types/cart-schema";
+import { AddCartItemNoteInput } from "../types/cart-schema";
 import { PaymentMethod, PostOrderType } from "@/generated/prisma";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
@@ -18,14 +18,14 @@ export async function processShopCart({
   postOrderType,
   floor,
   table_number,
-  guest_name,
+  note,
 }: {
   shopCartId: string;
   paymentMethod: PaymentMethod;
   postOrderType: PostOrderType;
   floor: number | null;
   table_number: number | null;
-  guest_name: string;
+  note?: string;
 }): Promise<
   ServerActionReturn<{ conversation_id?: string; order_id?: string }>
 > {
@@ -59,7 +59,7 @@ export async function processShopCart({
           },
           post_order_type: true,
           total_price: true,
-          notes: true,
+          note: true,
           payment_method: true,
           order_id: true,
           shop: {
@@ -84,7 +84,7 @@ export async function processShopCart({
             select: {
               id: true,
               product_id: true,
-              notes: true,
+              note: true,
               price_at_add: true,
               quantity: true,
               subtotal: true,
@@ -143,6 +143,7 @@ export async function processShopCart({
           status: "PENDING_CONFIRMATION",
           total_price: shopCart.total_price, // total_price ShopCart yang sudah dihitung
           post_order_type: postOrderType,
+          note,
           floor: postOrderType === "DELIVERY_TO_TABLE" ? floor : null,
           table_number:
             postOrderType === "DELIVERY_TO_TABLE" ? table_number : null,
@@ -167,7 +168,7 @@ export async function processShopCart({
               price_at_add: item.price_at_add, // Harga Satuan Dasar
               subtotal: item.subtotal, // Total Kalkulasi (Qty * (Base + 1000 + Options))
 
-              note: item.notes,
+              note: item.note,
 
               // Hubungkan Opsi yang dipilih
               selected_options: {
@@ -190,6 +191,8 @@ export async function processShopCart({
         },
       });
 
+      revalidatePath("/keranjang/" + shopCart.id);
+
       // Kirim pesan otomatis
       const messageData = {
         senderId: customer_user_id,
@@ -201,9 +204,15 @@ export async function processShopCart({
         createdAt: FieldValue.serverTimestamp(),
       };
 
-      revalidatePath("/keranjang/" + shopCart.id);
-
       await chatRef.collection("messages").add(messageData);
+
+      // Buat doc order untuk realtime trigger
+      const orderRef = adminDb.collection("orders").doc(order_id);
+
+      orderRef.set({
+        lastUpdatedTimestamp: FieldValue.serverTimestamp(),
+        authorizedIds: [customer_user_id, owner_user_id],
+      });
     });
 
     return successResponse(
@@ -395,12 +404,12 @@ export async function deleteCartItem(
 export async function changeCartItemDetails({
   id,
   quantity,
-  notes,
+  note,
   selected_option_value_ids,
 }: {
   id: string;
   quantity: number;
-  notes: string | null;
+  note: string | null;
   selected_option_value_ids?: string[];
 }): Promise<ServerActionReturn<void>> {
   try {
@@ -454,7 +463,7 @@ export async function changeCartItemDetails({
         where: { id },
         data: {
           quantity,
-          notes,
+          note,
           subtotal: newSubtotal,
         },
       });
@@ -555,7 +564,7 @@ export async function removeCartItemOption(
 }
 
 export async function addCartItemNotes(
-  payload: AddCartItemNotesInput
+  payload: AddCartItemNoteInput
 ): Promise<ServerActionReturn<void>> {
   try {
     await prisma.cartItem.update({
@@ -563,7 +572,7 @@ export async function addCartItemNotes(
         id: payload.cart_item_id,
       },
       data: {
-        notes: payload.notes,
+        note: payload.notes,
       },
     });
 

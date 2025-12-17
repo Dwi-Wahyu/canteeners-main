@@ -39,7 +39,6 @@ export default function ShopCartClient({
     shopCart.payment_method
   );
 
-  const [guestName, setGuestName] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [checkouted, setCheckouted] = useState(false);
   const [showGuestDetailsFormDialog, setShowGuestDetailsFormDialog] =
@@ -60,7 +59,6 @@ export default function ShopCartClient({
   const mutations = useMutation({
     mutationFn: async () => {
       return await processShopCart({
-        guest_name: guestName,
         shopCartId: shopCart.id,
         paymentMethod,
         postOrderType,
@@ -247,8 +245,6 @@ export default function ShopCartClient({
 
       <GuestDetailsFormDialog
         userId={userId}
-        guestName={guestName}
-        setGuestName={setGuestName}
         setShowGuestDetailsFormDialog={setShowGuestDetailsFormDialog}
         showGuestDetailsFormDialog={showGuestDetailsFormDialog}
         saveGuestDetails={saveGuestDetails}

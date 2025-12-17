@@ -31,7 +31,7 @@ model ShopCart {
   post_order_type PostOrderType @default(DELIVERY_TO_TABLE)
 
   total_price Float   @default(0)
-  notes       String?
+  note        String?
 
   updated_at DateTime @updatedAt
   created_at DateTime @default(now())
@@ -59,7 +59,7 @@ model CartItem {
   // Quantity * (price_at_add + 1000 + total_options_price)
   subtotal     Float
 
-  notes String?
+  note String?
 
   @@index([shop_cart_id])
   @@index([product_id])
