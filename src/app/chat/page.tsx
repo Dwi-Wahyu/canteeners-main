@@ -12,8 +12,8 @@ import {
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { db } from "@/lib/firebase/client";
 import { useRouter } from "next/navigation";
-import { format } from "date-fns"; // Opsional: untuk format tanggal
-import { id as idLocale } from "date-fns/locale"; // Opsional: bahasa indonesia
+import { format } from "date-fns";
+import { id as idLocale } from "date-fns/locale";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
@@ -29,7 +29,7 @@ type ChatListItem = {
   shopName: string;
   lastMessageTimestamp: Timestamp;
   unreadCountBuyer: number;
-  unreadCountSeller: number; // Biasanya di kode Anda unreadCountOwner
+  unreadCountSeller: number;
 };
 
 export default function GuestChatListPage() {
@@ -84,8 +84,9 @@ export default function GuestChatListPage() {
     return () => unsubscribe();
   }, [user]);
 
-  if (loading)
+  if (loading) {
     return <div className="p-4 text-center">Memuat percakapan...</div>;
+  }
 
   if (!user) {
     return (

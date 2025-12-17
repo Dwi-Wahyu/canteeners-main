@@ -13,3 +13,5 @@ tingkatkan transaction timeout
 lanjut coba input ganti metode pembayaran
 
 Pikir cara update status order, mungkin ubah saja payload chat di firestore
+
+Perbaiki semua loading state

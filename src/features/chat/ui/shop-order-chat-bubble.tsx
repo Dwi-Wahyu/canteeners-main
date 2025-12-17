@@ -99,7 +99,10 @@ export default function ShopOrderChatBubble({
               <h1>Pembayaran: {paymentMethodMapping[data.payment_method]}</h1>
             </div>
 
-            <div className="p-2 my-4 bg-secondary items-center border border-accent-foreground rounded flex justify-between text-accent-foreground">
+            <Link
+              href={"/dashboard-kedai/order/" + data.id}
+              className="p-2 my-4 bg-secondary items-center border border-accent-foreground rounded flex justify-between text-accent-foreground"
+            >
               <div className="flex gap-2">
                 <FileText className="w-5 h-5" />
 
@@ -107,7 +110,7 @@ export default function ShopOrderChatBubble({
               </div>
 
               <ChevronRight className="w-5 h-5" />
-            </div>
+            </Link>
 
             <div className="flex flex-col gap-2">
               <ConfirmOrderDialog

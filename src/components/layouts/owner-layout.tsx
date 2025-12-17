@@ -26,8 +26,8 @@ export default function OwnerLayout({
   // Auth Listener
   useEffect(() => {
     const auth = getAuth();
-    const unsubscribe = auth.onAuthStateChanged((u) => {
-      setUser(u);
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
     });
     return () => unsubscribe();
   }, []);
@@ -40,7 +40,10 @@ export default function OwnerLayout({
     // Asumsikan owner adalah seller.
     // Kita filter chat dimana dia adalah sellerId ATAU participantIds contains uid.
     // Tapi karena ini OwnerLayout (Dashboard Kedai), asumsi dia Seller.
-    const q = query(chatsRef, where("sellerId", "==", user.uid));
+    const q = query(
+      chatsRef,
+      where("participantIds", "array-contains", user.uid)
+    );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (isFirstLoad.current) {

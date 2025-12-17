@@ -40,3 +40,53 @@ export async function getOrderSummaryForChatBubble(id: string) {
     },
   });
 }
+
+export async function getOrderDetail(id: string) {
+  return await prisma.order.findFirst({
+    where: {
+      id,
+    },
+    include: {
+      order_items: {
+        select: {
+          quantity: true,
+          price_at_add: true,
+          subtotal: true,
+          note: true,
+          product: {
+            select: {
+              name: true,
+              image_url: true,
+            },
+          },
+        },
+      },
+      shop: {
+        select: {
+          canteen: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          name: true,
+          owner_id: true,
+        },
+      },
+      testimony: true,
+      customer: {
+        select: {
+          table_number: true,
+          floor: true,
+
+          user: {
+            select: {
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
