@@ -563,7 +563,7 @@ export async function removeCartItemOption(
   }
 }
 
-export async function addCartItemNotes(
+export async function addCartItemNote(
   payload: AddCartItemNoteInput
 ): Promise<ServerActionReturn<void>> {
   try {
@@ -572,7 +572,7 @@ export async function addCartItemNotes(
         id: payload.cart_item_id,
       },
       data: {
-        note: payload.notes,
+        note: payload.note,
       },
     });
 

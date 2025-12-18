@@ -19,16 +19,16 @@ export default function CartItemDialog({
   handleDialogOpenChange,
   handleSave,
   isDialogOpen,
-  notes,
-  setNotes,
+  note,
+  setNote,
   isPending,
   cartItem,
   onOptionRemoved,
 }: {
   handleDialogOpenChange: (open: boolean) => void;
   handleSave: () => void;
-  notes: string;
-  setNotes: (notes: string) => void;
+  note: string;
+  setNote: (note: string) => void;
   isDialogOpen: boolean;
   isPending: boolean;
   cartItem: GetShopCartItemType;
@@ -125,8 +125,8 @@ export default function CartItemDialog({
             <label className="text-sm font-medium">Catatan</label>
             <Textarea
               placeholder="Tanpa bawang, pedas banget, dll..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
               className="min-h-24 resize-none"
             />
           </div>

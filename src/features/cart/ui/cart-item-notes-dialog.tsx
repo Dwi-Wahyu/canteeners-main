@@ -25,19 +25,19 @@ import {
   AddCartItemNoteInput,
 } from "../types/cart-schema";
 import { StickyNote } from "lucide-react";
-import { addCartItemNotes } from "../lib/cart-actions";
+import { addCartItemNote } from "../lib/cart-actions";
 
 export function AddCartItemNotesDialog({
   cart_item_id,
-  defaultNotes,
+  defaultNote,
 }: {
-  defaultNotes: string | null;
+  defaultNote: string | null;
   cart_item_id: string;
 }) {
   const form = useForm<AddCartItemNoteInput>({
     resolver: zodResolver(AddCartItemNoteSchema),
     defaultValues: {
-      notes: defaultNotes ?? "",
+      note: defaultNote ?? "",
       cart_item_id,
     },
   });
@@ -46,7 +46,7 @@ export function AddCartItemNotesDialog({
 
   const mutations = useMutation({
     mutationFn: async (payload: AddCartItemNoteInput) => {
-      return await addCartItemNotes(payload);
+      return await addCartItemNote(payload);
     },
   });
 
@@ -76,11 +76,11 @@ export function AddCartItemNotesDialog({
 
           <form
             action=""
-            id="add-cart-item-notes-form"
+            id="add-cart-item-note-form"
             onSubmit={form.handleSubmit(onSubmit)}
           >
             <Controller
-              name="notes"
+              name="note"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
@@ -102,10 +102,7 @@ export function AddCartItemNotesDialog({
         </AlertDialogHeader>
         <AlertDialogFooter className="justify-end items-center flex-row">
           <AlertDialogCancel>Batal</AlertDialogCancel>
-          <Button
-            form="add-cart-item-notes-form"
-            disabled={mutations.isPending}
-          >
+          <Button form="add-cart-item-note-form" disabled={mutations.isPending}>
             Simpan
           </Button>
         </AlertDialogFooter>

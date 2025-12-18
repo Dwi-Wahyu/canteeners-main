@@ -34,7 +34,7 @@ export default function CartItemCard({
       return await changeCartItemDetails({
         id: cartItem.id,
         quantity,
-        notes: null,
+        note: null,
       });
     },
     onSuccess: () => {
@@ -132,10 +132,10 @@ export default function CartItemCard({
           </div>
         </div>
 
-        {cartItem.notes && (
+        {cartItem.note && (
           <div className="flex gap-1 items-center mt-3 text-muted-foreground">
             <StickyNote className="w-4 h-4" />
-            <h1>{cartItem.notes}</h1>
+            <h1>{cartItem.note}</h1>
           </div>
         )}
       </CardContent>

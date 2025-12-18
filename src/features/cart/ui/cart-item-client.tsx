@@ -58,7 +58,7 @@ export default function CartItemClient({
   const [isPending, startTransition] = useTransition();
 
   const [quantity, setQuantity] = useState(data.quantity);
-  const [notes, setNotes] = useState(data.notes || "");
+  const [note, setNote] = useState(data.note || "");
 
   // gunakan useMemo agar tidak dihitung ulang setiap render jika data tidak berubah
   const currentSubtotal = useMemo(() => {
@@ -142,7 +142,7 @@ export default function CartItemClient({
       const result = await changeCartItemDetails({
         id: data.id,
         quantity: quantity,
-        notes: notes,
+        note: note,
       });
 
       if (result.success) {
@@ -159,7 +159,7 @@ export default function CartItemClient({
       const result = await changeCartItemDetails({
         id: data.id,
         quantity: quantity,
-        notes: notes,
+        note: note,
       });
 
       if (result.success) {
@@ -188,7 +188,7 @@ export default function CartItemClient({
       const result = await changeCartItemDetails({
         id: data.id,
         quantity: quantity,
-        notes: notes,
+        note: note,
         selected_option_value_ids: allSelectedValueIds,
       });
 
@@ -263,8 +263,8 @@ export default function CartItemClient({
             onClick={() => setIsNoteDialogOpen(true)}
           >
             <Pencil className="w-3 h-3" />
-            {data.notes ? (
-              <span className="italic">"{data.notes}"</span>
+            {data.note ? (
+              <span className="italic">"{data.note}"</span>
             ) : (
               <span>Tambah catatan pesanan...</span>
             )}
@@ -319,8 +319,8 @@ export default function CartItemClient({
           </DialogHeader>
           <div className="pb-4">
             <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
               className="min-h-25"
             />
           </div>
