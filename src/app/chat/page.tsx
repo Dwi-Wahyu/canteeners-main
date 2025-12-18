@@ -19,6 +19,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
+import EmptyConversationList from "@/features/chat/ui/empty-conversation-list";
 
 // Definisi Tipe Data Chat untuk List
 type ChatListItem = {
@@ -90,8 +92,10 @@ export default function GuestChatListPage() {
 
   if (!user) {
     return (
-      <div className="p-4 text-center">
-        <p>Anda belum memulai percakapan apapun.</p>
+      <div className="p-5 pt-20 text-center">
+        <TopbarWithBackButton title="Chat" backUrl={"/kantin/kantin-kudapan"} />
+
+        <EmptyConversationList />
       </div>
     );
   }
@@ -119,8 +123,8 @@ export default function GuestChatListPage() {
               // Format waktu (Fallback jika timestamp null saat pembuatan awal)
               const timeDisplay = chat.lastMessageTimestamp
                 ? format(chat.lastMessageTimestamp.toDate(), "dd MMM HH:mm", {
-                    locale: idLocale,
-                  })
+                  locale: idLocale,
+                })
                 : "Baru saja";
 
               return (
@@ -148,11 +152,10 @@ export default function GuestChatListPage() {
 
                     <div className="flex justify-between items-center">
                       <p
-                        className={`text-sm truncate ${
-                          unreadCount > 0
-                            ? "font-semibold text-gray-900"
-                            : "text-gray-500"
-                        }`}
+                        className={`text-sm truncate ${unreadCount > 0
+                          ? "font-semibold text-gray-900"
+                          : "text-gray-500"
+                          }`}
                       >
                         {chat.lastMessage || "Mulai percakapan..."}
                       </p>

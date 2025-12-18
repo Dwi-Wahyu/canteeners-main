@@ -54,3 +54,29 @@ export async function getShopAndProducts(
 
   return shop;
 }
+
+export async function getShopTestimonies(shop_id: string) {
+  return await prisma.shopTestimony.findMany({
+    where: {
+      order: {
+        shop_id,
+      },
+    },
+    include: {
+      order: {
+        select: {
+          customer: {
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  avatar: true,
+                }
+              }
+            },
+          },
+        },
+      },
+    },
+  });
+}

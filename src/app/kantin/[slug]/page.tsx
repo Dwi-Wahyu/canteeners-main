@@ -2,13 +2,18 @@ import { notFound } from "next/navigation";
 import CanteenClient from "../../../features/canteen/ui/canteen-client";
 import { getCanteenBySlug } from "@/features/canteen/lib/canteen-queries";
 import { getCategories } from "@/features/category/lib/category-queries";
+import { SearchParams } from "nuqs";
+import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
 
 export default async function CanteenDetailPage({
   params,
+  searchParams
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<SearchParams>;
 }) {
   const { slug } = await params;
+  const search = await ShopSearchParams.parse(searchParams);
 
   const validSlug = ["kantin-kudapan", "kantin-sosiologi", "kantin-sastra"];
 
@@ -16,7 +21,7 @@ export default async function CanteenDetailPage({
     return notFound();
   }
 
-  const canteen = await getCanteenBySlug(slug);
+  const canteen = await getCanteenBySlug(slug, search);
 
   if (!canteen) {
     return notFound();

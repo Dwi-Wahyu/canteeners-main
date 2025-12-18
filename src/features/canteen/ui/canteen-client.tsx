@@ -11,6 +11,7 @@ import Link from "next/link";
 import { GetCanteenBySlug } from "../types/canteen-queries-types";
 import CategoryScroller from "@/features/category/ui/category-scroller";
 import { GetCategories } from "@/features/category/types/category-queries-types";
+import PriceRangeFilter from "./price-range-filter";
 
 export default function CanteenClient({
   canteen,
@@ -23,7 +24,9 @@ export default function CanteenClient({
     <div>
       <CanteenTopbar shopCount={canteen.shops.length} />
 
-      <div className="flex flex-col gap-5 pt-24 p-5">
+      <div className="flex flex-col gap-5 pt-28 p-5">
+        <PriceRangeFilter />
+
         <CategoryScroller categories={categories} />
 
         {canteen.shops.map((shop, idx) => (
