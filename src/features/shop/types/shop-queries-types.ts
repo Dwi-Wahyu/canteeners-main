@@ -1,5 +1,10 @@
-import { getShopAndProducts } from "../lib/shop-queries";
+import { getShopAndProducts, getShopTestimonies } from "../lib/shop-queries";
 
 export type GetShopAndProducts = NonNullable<
   Awaited<ReturnType<typeof getShopAndProducts>>
 >;
+
+export type GetShopTestimonies = NonNullable<
+  Awaited<ReturnType<typeof getShopTestimonies>>
+>;
+

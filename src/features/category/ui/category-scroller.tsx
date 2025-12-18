@@ -12,7 +12,7 @@ export default function CategoryScroller({
   const itemWidthClass =
     "min-w-[calc(100%/3)] sm:min-w-[160px] md:min-w-[200px]";
 
-  const [categorySlug, setCategorySlug] = useQueryState("nama", {
+  const [categorySlug, setCategorySlug] = useQueryState("categories", {
     shallow: false,
     clearOnDefault: true,
     defaultValue: "",
@@ -50,10 +50,9 @@ export default function CategoryScroller({
               className={`
                 p-1 shadow-md rounded-full border-4
                 transition-all duration-300 ease-in-out
-                ${
-                  category.slug === categorySlug
-                    ? "border-primary/50 shadow-lg "
-                    : "border-transparent hover:shadow-xl "
+                ${category.slug === categorySlug
+                  ? "border-primary/50 shadow-lg "
+                  : "border-transparent hover:shadow-xl "
                 }
               `}
             >
@@ -68,10 +67,9 @@ export default function CategoryScroller({
             <h1
               className={`
                 text-sm font-semibold whitespace-normal leading-tight max-w-[90%]
-                ${
-                  category.slug === categorySlug
-                    ? "text-primary"
-                    : "text-gray-700 dark:text-gray-300"
+                ${category.slug === categorySlug
+                  ? "text-primary"
+                  : "text-gray-700 dark:text-gray-300"
                 }
               `}
             >

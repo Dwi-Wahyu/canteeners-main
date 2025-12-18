@@ -59,7 +59,7 @@ export default async function ShopDetail({
                 <MessageCircle />
               </NavButton>
 
-              <NavButton href={"/"} variant="ghost">
+              <NavButton href={"/kedai/" + shop_id + "/testimoni"} variant="ghost">
                 <Star />
               </NavButton>
             </div>
