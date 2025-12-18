@@ -49,13 +49,13 @@ export default function LogoutButtonDialog() {
       </Item>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Anda yakin logout ?</AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogTitle className="text-start">Anda yakin logout ?</AlertDialogTitle>
+          <AlertDialogDescription className="text-start">
             Anda akan keluar dari sesi saat ini. Anda dapat masuk kembali kapan
             saja.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="flex-row justify-end">
           <AlertDialogCancel>Batal</AlertDialogCancel>
           <Button variant={"destructive"} onClick={handleLogout}>
             Yakin
