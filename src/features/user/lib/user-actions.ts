@@ -104,3 +104,34 @@ export async function changeGuestName({
     return errorResponse("Terjadi kesalahan saat menyimpan nama");
   }
 }
+
+export async function chooseCustomerTable({
+  customer_id,
+  canteen_id,
+  floor,
+  table_number,
+}: {
+  customer_id: string;
+  floor: number;
+  table_number: number;
+  canteen_id: number;
+}): Promise<ServerActionReturn<void>> {
+  try {
+    await prisma.customer.update({
+      where: {
+        id: customer_id,
+      },
+      data: {
+        canteen_id,
+        floor,
+        table_number,
+      },
+    });
+
+    return successResponse(undefined, "Sukses mencatat meja");
+  } catch (error) {
+    console.log(error);
+
+    return errorResponse("Terjadi kesalahan");
+  }
+}

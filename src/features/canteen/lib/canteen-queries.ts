@@ -26,3 +26,20 @@ export async function getCanteenBySlug(slug: string) {
     },
   });
 }
+
+export async function getCanteenIncludeMaps(slug: string) {
+  return await prismaAccelerate.canteen.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+      name: true,
+      maps: {
+        select: {
+          floor: true,
+          image_url: true,
+          table_count: true,
+        },
+      },
+    },
+  });
+}

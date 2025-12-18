@@ -17,3 +17,6 @@ Pikir cara update status order, mungkin ubah saja payload chat di firestore
 Perbaiki semua loading state
 
 Simpan notes untuk order item
+
+Fix ketika scan nomor meja masuk ke url dengan query search langsung buat sesi tamu, panggil create guest session
+src\app\kantin\[slug]\pilih-meja\page.tsx

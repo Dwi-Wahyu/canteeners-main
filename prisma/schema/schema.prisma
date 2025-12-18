@@ -23,11 +23,12 @@ model Canteen {
 model CanteenMap {
   id Int @id @default(autoincrement())
 
-  image_url  String
-  floor      Int
-  canteen    Canteen       @relation(references: [id], fields: [canteen_id])
-  canteen_id Int
-  qrcodes    TableQRCode[]
+  image_url   String
+  floor       Int
+  canteen     Canteen       @relation(references: [id], fields: [canteen_id])
+  canteen_id  Int
+  qrcodes     TableQRCode[]
+  table_count Int           @default(0)
 
   @@map("canteen_maps")
 }
