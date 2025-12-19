@@ -20,3 +20,9 @@ Simpan notes untuk order item
 
 Fix ketika scan nomor meja masuk ke url dengan query search langsung buat sesi tamu, panggil create guest session
 src\app\kantin\[slug]\pilih-meja\page.tsx
+
+Update fungsi untuk handle docs structure collection chats
+
+Buat fungsionalitas notifikasi
+
+Pelajari Firebase Cloud Messaging FCM untuk notifikasi tidak perlu pakai firestore

@@ -29,7 +29,7 @@ type ChatListItem = {
   buyerId: string;
   lastMessage: string;
   shopName: string;
-  lastMessageTimestamp: Timestamp;
+  lastMessageAt: Timestamp;
   unreadCountBuyer: number;
   unreadCountSeller: number;
 };
@@ -61,7 +61,7 @@ export default function GuestChatListPage() {
     const q = query(
       chatsRef,
       where("participantIds", "array-contains", user.uid),
-      orderBy("lastMessageTimestamp", "desc")
+      orderBy("lastMessageAt", "desc")
     );
 
     const unsubscribe = onSnapshot(
@@ -121,10 +121,10 @@ export default function GuestChatListPage() {
               const unreadCount = chat.unreadCountBuyer || 0;
 
               // Format waktu (Fallback jika timestamp null saat pembuatan awal)
-              const timeDisplay = chat.lastMessageTimestamp
-                ? format(chat.lastMessageTimestamp.toDate(), "dd MMM HH:mm", {
-                  locale: idLocale,
-                })
+              const timeDisplay = chat.lastMessageAt
+                ? format(chat.lastMessageAt.toDate(), "dd MMM HH:mm", {
+                    locale: idLocale,
+                  })
                 : "Baru saja";
 
               return (
@@ -152,10 +152,11 @@ export default function GuestChatListPage() {
 
                     <div className="flex justify-between items-center">
                       <p
-                        className={`text-sm truncate ${unreadCount > 0
-                          ? "font-semibold text-gray-900"
-                          : "text-gray-500"
-                          }`}
+                        className={`text-sm truncate ${
+                          unreadCount > 0
+                            ? "font-semibold text-gray-900"
+                            : "text-gray-500"
+                        }`}
                       >
                         {chat.lastMessage || "Mulai percakapan..."}
                       </p>

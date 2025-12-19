@@ -22,7 +22,7 @@ type ChatData = {
   shopName: string;
 
   lastMessage: string;
-  lastMessageTimestamp: Timestamp;
+  lastMessageAt: Timestamp;
 
   unreadCountBuyer: number;
   unreadCountSeller: number;

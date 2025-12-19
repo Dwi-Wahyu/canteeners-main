@@ -196,7 +196,7 @@ export function ChatInput({
 
       await updateDoc(chatRef, {
         lastMessage: text || (mediaData.length > 0 ? "Sent an image" : ""),
-        lastMessageTimestamp: serverTimestamp(),
+        lastMessageAt: serverTimestamp(),
         ...unreadUpdate,
       });
 

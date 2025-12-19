@@ -19,7 +19,7 @@ export async function getOrCreateChat({
       buyerId,
       sellerId,
       lastMessage: "",
-      lastMessageTimestamp: null,
+      lastMessageAt: null,
       unreadCountBuyer: 0,
       unreadCountSeller: 0,
       createdAt: serverTimestamp(),

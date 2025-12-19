@@ -58,7 +58,7 @@ export default function OwnerLayout({
           // For 'modified', ideally we check if it INCREASED, but simplified:
           // if it's > 0 and it was a modification/addition, notify.
           // Note: This might spam if other fields update.
-          // Better: check if `lastMessageTimestamp` is recent?
+          // Better: check if `lastMessageAt` is recent?
           // Or just show toast. Sonner dedupes usually? No.
 
           // Let's refine: Only if unreadCountSeller > 0
@@ -83,7 +83,7 @@ export default function OwnerLayout({
             // CRITICAL: We need to check what CHANGED.
             // But we can't easily.
 
-            // Alternative: Track `lastMessageTimestamp` in a ref map? Too complex.
+            // Alternative: Track `lastMessageAt` in a ref map? Too complex.
             // Better: Check if `change.doc.data().lastMessage` is different?
             // Let's just try to be specific.
             // Only toast if `unreadCountSeller` INCREASED? We can't know if we don't track prev.
@@ -102,17 +102,17 @@ export default function OwnerLayout({
 
             // We can use a simpler heuristic:
             // Only toast if `unreadCountSeller` > 0.
-            // AND `lastMessageTimestamp` is very recent (within 2 seconds of now?)
+            // AND `lastMessageAt` is very recent (within 2 seconds of now?)
             // That handles the "newness".
 
             const now = new Date();
-            const msgTime = data.lastMessageTimestamp?.toDate();
+            const msgTime = data.lastMessageAt?.toDate();
             if (msgTime && now.getTime() - msgTime.getTime() < 60000) {
               // Only toast if message is very recent (5s).
               // This filters out old unread messages on reconnect (maybe)
               // and avoids random updates (like typing) if typing doesn't update timestamp.
               // Does typing update timestamp? NO. `handleInputChange` only updates `typing`.
-              // `handleSend` updates `lastMessageTimestamp`.
+              // `handleSend` updates `lastMessageAt`.
               // SUCCESS! This is the filter.
 
               toast("Pesan Baru", {

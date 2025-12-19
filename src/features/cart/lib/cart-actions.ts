@@ -11,6 +11,8 @@ import { AddCartItemNoteInput } from "../types/cart-schema";
 import { PaymentMethod, PostOrderType } from "@/generated/prisma";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
+import { formatRupiah } from "@/helper/format-rupiah";
+import {} from "firebase/messaging";
 
 export async function processShopCart({
   shopCartId,
@@ -126,7 +128,7 @@ export async function processShopCart({
           buyerAvatar: shopCart.cart.customer.user.avatar,
           buyerName: shopCart.cart.customer.user.name,
 
-          lastMessageTimestamp: FieldValue.serverTimestamp(),
+          lastMessageAt: FieldValue.serverTimestamp(),
           lastMessage: "Order masuk. Mohon konfirmasi apakah pesanan tersedia",
 
           unreadCountBuyer: 0,
@@ -212,6 +214,23 @@ export async function processShopCart({
       orderRef.set({
         lastUpdatedTimestamp: FieldValue.serverTimestamp(),
         authorizedIds: [customer_user_id, owner_user_id],
+      });
+
+      // Buat doc notification untuk notifikasi realtime pemilik kedai
+      const notificationRef = adminDb.collection("notifications").doc(order_id);
+
+      notificationRef.set({
+        recipientId: owner_user_id,
+        title: "Pesanan Baru Masuk",
+        body: `Pesanan ${shopCart.items.length} item oleh ${
+          shopCart.cart.customer.user.name
+        } dengan total ${formatRupiah(
+          order.total_price
+        )}, tolong segera ditinjau`,
+        isRead: false,
+        resourcePath: "/order/" + order.id,
+        type: "NEW_ORDER",
+        createdAtTimestamp: FieldValue.serverTimestamp(),
       });
     });
 

@@ -76,7 +76,7 @@ export default function CreateShopConversation({
 
         shopName,
 
-        lastMessageTimestamp: serverTimestamp(),
+        lastMessageAt: serverTimestamp(),
         lastMessage: "",
 
         unreadCountBuyer: 0,

@@ -26,7 +26,7 @@ type ChatListItem = {
   buyerName: string;
   buyerAvatar: string;
   lastMessage: string;
-  lastMessageTimestamp: Timestamp;
+  lastMessageAt: Timestamp;
   unreadCountBuyer: number;
   unreadCountSeller: number;
   typing?: Record<string, boolean>;
@@ -56,7 +56,7 @@ export default function OwnerChatListPage() {
     const q = query(
       chatsRef,
       where("participantIds", "array-contains", user.uid),
-      orderBy("lastMessageTimestamp", "desc")
+      orderBy("lastMessageAt", "desc")
     );
 
     const unsubscribe = onSnapshot(
@@ -116,8 +116,8 @@ export default function OwnerChatListPage() {
               // We want to know if 'buyerId' is typing.
               const isTyping = typingData[chat.buyerId] === true;
 
-              const timeDisplay = chat.lastMessageTimestamp
-                ? format(chat.lastMessageTimestamp.toDate(), "dd MMM HH:mm", {
+              const timeDisplay = chat.lastMessageAt
+                ? format(chat.lastMessageAt.toDate(), "dd MMM HH:mm", {
                     locale: idLocale,
                   })
                 : "";

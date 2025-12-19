@@ -8,7 +8,7 @@ model User {
     password String?
     avatar   String  @default("avatars/default-avatar.jpg")
 
-    quick_chats   QuickChat[]
+    quick_chats QuickChat[]
 
     admin    Admin?
     customer Customer?
@@ -18,9 +18,37 @@ model User {
     updated_at DateTime  @updatedAt
     last_login DateTime?
 
+    fcm_tokens UserFcmToken[]
+
     @@index([last_login])
     @@index([role])
     @@map("users")
+}
+
+model UserFcmToken {
+    id      String @id @default(uuid())
+    user_id String
+    token   String @unique
+
+    platform FcmPlatform // WEB, ANDROID, IOS
+    browser  String? // chrome, firefox, safari
+
+    is_active    Boolean   @default(true)
+    last_used_at DateTime?
+    created_at   DateTime  @default(now())
+    updated_at   DateTime  @updatedAt
+
+    user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+    @@index([user_id])
+    @@index([platform])
+    @@map("user_fcm_tokens")
+}
+
+enum FcmPlatform {
+    WEB
+    ANDROID
+    IOS
 }
 
 enum Role {
