@@ -27,6 +27,28 @@ export default function LoginKedaiPage() {
     },
   });
 
+  async function fastLogin() {
+    const res = await signIn("credentials", {
+      username: "ahmad_subarjo@gmail.com",
+      password: "ahmad_subarjo123",
+      isGuest: "false",
+      redirect: false,
+    });
+
+    if (res?.error) {
+      form.setError("username", {
+        type: "manual",
+        message: "Username atau Password salah",
+      });
+      form.setError("password", {
+        type: "manual",
+        message: "Username atau Password salah",
+      });
+    } else {
+      router.push("/dashboard-kedai");
+    }
+  }
+
   async function onSubmit(data: LoginInput) {
     const res = await signIn("credentials", {
       username: data.username,
@@ -58,22 +80,24 @@ export default function LoginKedaiPage() {
   }, [session, session.status]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
+    <div className="min-h-svh flex flex-col items-center">
       {/* Mobile-first centered container for desktop */}
-      <div className="w-full max-w-[480px] bg-white min-h-screen flex flex-col shadow-xl">
+      <div className="w-full max-w-[480px] min-h-svh flex flex-col shadow-xl">
         {/* Header Section */}
         <div className="relative bg-primary h-[300px] w-full rounded-b-[60px] flex flex-col items-center justify-center text-white overflow-hidden shrink-0">
           {/* Background decoration circles could go here if needed, but keeping it simple first */}
 
           <div className="flex flex-col items-center z-10 gap-2 mt-[-20px]">
-            <div className="relative w-24 h-24 mb-2">
-              <Image
-                src="/app-logo.svg"
-                alt="Canteeners Logo"
-                fill
-                className="object-contain brightness-0 invert"
-              />
-            </div>
+            <Link href={"/"}>
+              <div className="relative w-24 h-24 mb-2">
+                <Image
+                  src="/app-logo.svg"
+                  alt="Canteeners Logo"
+                  fill
+                  className="object-contain brightness-0 invert"
+                />
+              </div>
+            </Link>
             <h1 className="text-3xl font-bold tracking-wide">CANTEENERS</h1>
             <p className="text-sm font-medium opacity-90">Kantin Naik Level</p>
           </div>
@@ -101,7 +125,7 @@ export default function LoginKedaiPage() {
               <Input
                 id="username"
                 {...form.register("username")}
-                className="h-12 border-gray-300 bg-gray-50 px-4 focus:ring-primary focus:border-primary"
+                className="h-12 px-4 focus:ring-primary focus:border-primary"
                 placeholder="Masukkan username"
                 autoComplete="off"
               />
@@ -122,14 +146,14 @@ export default function LoginKedaiPage() {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   {...form.register("password")}
-                  className="h-12 border-gray-300 bg-gray-50 pl-4 pr-12 focus:ring-primary focus:border-primary"
+                  className="h-12 pl-4 pr-12 focus:ring-primary focus:border-primary"
                   placeholder="*********"
                   autoComplete="off"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -150,11 +174,11 @@ export default function LoginKedaiPage() {
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="remember"
-                  className="h-5 w-5 rounded-md border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:text-white"
+                  className="h-5 w-5 rounded-md data-[state=checked]:bg-primary data-[state=checked]:text-white"
                 />
                 <Label
                   htmlFor="remember"
-                  className="text-sm text-gray-400 font-normal cursor-pointer"
+                  className="text-sm font-normal cursor-pointer"
                 >
                   Remember me?
                 </Label>
@@ -170,7 +194,7 @@ export default function LoginKedaiPage() {
             {/* Login Button */}
             <Button
               type="submit"
-              className="mt-4 h-12 w-full bg-primary text-base font-semibold text-white hover:bg-primary/90 shadow-lg shadow-primary/30"
+              className="mt-4 h-12 w-full text-base font-semibold"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? (
@@ -182,6 +206,14 @@ export default function LoginKedaiPage() {
               )}
             </Button>
           </form>
+
+          <Button
+            onClick={fastLogin}
+            type="button"
+            className="mt-4 h-12 w-full text-base font-semibold"
+          >
+            Fast Login
+          </Button>
         </div>
       </div>
     </div>

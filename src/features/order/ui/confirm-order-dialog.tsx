@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PaymentMethod } from "@/generated/prisma";
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle, Loader } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { confirmOrder } from "../lib/order-actions";
 
@@ -74,7 +74,7 @@ export default function ConfirmOrderDialog({
               </Button>
             </AlertDialogCancel>
             <Button size={"lg"} onClick={handleConfirm} disabled={isPending}>
-              {isPending ? <Loader className="animate-spin" /> : "Terima"}
+              Terima
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

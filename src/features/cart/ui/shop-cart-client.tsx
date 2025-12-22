@@ -79,30 +79,6 @@ export default function ShopCartClient({
         notificationDialog.success({
           title: "Sukses checkout keranjang",
           message: "Order berhasil dicatat",
-          actionButtons: (
-            <div className="flex flex-col gap-4">
-              <Button
-                onClick={notificationDialog.hide}
-                variant={"outline"}
-                className="cursor-pointer w-full"
-                asChild
-              >
-                <Link href={"/order/" + data.data?.order_id}>
-                  Lihat Detail Order
-                </Link>
-              </Button>
-              <Button
-                variant="default"
-                onClick={notificationDialog.hide}
-                className="cursor-pointer w-full"
-                asChild
-              >
-                <Link href={"/chat/" + data.data?.conversation_id}>
-                  Hubungi Pemilik Kedai
-                </Link>
-              </Button>
-            </div>
-          ),
         });
       } else {
         notificationDialog.error({

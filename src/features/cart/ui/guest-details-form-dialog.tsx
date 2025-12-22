@@ -41,7 +41,6 @@ export function GuestDetailsFormDialog({
     const result = await changeGuestName({ id: userId, name: guestName! });
 
     if (result.success) {
-      // Ubah nama di session lokal
       if (session) {
         update({
           ...session,

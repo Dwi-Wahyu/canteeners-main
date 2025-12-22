@@ -119,12 +119,12 @@ export async function processShopCart({
           id: chatId,
 
           participantsInfo: {
-            customer_user_id: {
+            [customer_user_id]: {
               name: shopCart.cart.customer.user.name,
               avatar: shopCart.cart.customer.user.avatar,
               role: "CUSTOMER",
             },
-            owner_user_id: {
+            [owner_user_id]: {
               name: shopCart.shop.owner.user.name,
               avatar: shopCart.shop.owner.user.avatar,
               role: "SHOP_OWNER",

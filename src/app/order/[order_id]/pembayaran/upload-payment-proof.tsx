@@ -177,11 +177,11 @@ export default function UploadPaymentProof({
                     .filter((p) => p.method === "BANK_TRANSFER")
                     .map((payment, idx) => {
                       if (!payment.account_number) {
-                        return <div>Belum ada nomor rekening</div>;
+                        return <div key={idx}>Belum ada nomor rekening</div>;
                       }
 
                       return (
-                        <div>
+                        <div key={idx}>
                           <h1>{payment.note}</h1>
                           <h1>{payment.account_number}</h1>
                         </div>

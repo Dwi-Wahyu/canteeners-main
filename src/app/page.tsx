@@ -19,6 +19,7 @@ import NavButton from "@/components/nav-button";
 import { FeatureCard } from "@/components/feature-card";
 import LandingFooter from "@/components/layouts/landing-footer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AppTestimonyList from "@/features/testimony/ui/app-testimony-list";
 
 export default async function LandingPage() {
   return (
@@ -259,46 +260,7 @@ export default async function LandingPage() {
         </Alert>
       </div>
 
-      <div className="w-full px-5 bg-accent/20 py-20 flex flex-col gap-6">
-        <div className="text-center">
-          <h1 className="text-4xl mb-2">Apa Kata Mereka?</h1>
-          <h1 className="text-muted-foreground text-lg">
-            Mudah dan cepat, ikuti langkah-langkahnya!
-          </h1>
-        </div>
-
-        <Card>
-          <CardContent className="flex flex-col gap-5">
-            <div className="flex gap-2">
-              <Star />
-              <Star />
-              <Star />
-              <Star />
-              <Star />
-            </div>
-
-            <h1>
-              "Canteeners bikin pesan makanan jadi super gampang! Gak perlu
-              antri lama lagi. Tinggal klik, bayar, ambil!"
-            </h1>
-
-            <div className="flex gap-3 items-center">
-              <Avatar className="size-14">
-                <AvatarImage
-                  src="https://cdn.shadcnstudio.com/ss-assets/avatar/avatar-5.png"
-                  alt="Hallie Richards"
-                />
-                <AvatarFallback className="text-xs">HR</AvatarFallback>
-              </Avatar>
-
-              <div>
-                <h1 className="font-medium">Andi Rahmat</h1>
-                <h1 className="text-muted-foreground">Pemilik Kedai</h1>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AppTestimonyList />
 
       <div className="w-full flex flex-col gap-6 px-5 py-20 bg-primary text-primary-foreground">
         <div className="text-center">

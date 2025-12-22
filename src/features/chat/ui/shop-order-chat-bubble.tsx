@@ -1,6 +1,7 @@
 "use client";
 
 import CustomBadge from "@/components/custom-badge";
+import NavButton from "@/components/nav-button";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -111,6 +112,14 @@ export default function ShopOrderChatBubble({
                 </Button>
               }
             />
+
+            {data.status === "COMPLETED" && (
+              <div className="w-full">
+                <NavButton className="w-full" href={"/testimoni"}>
+                  Beri Testimoni Untuk Canteeners
+                </NavButton>
+              </div>
+            )}
 
             {data.status === "PENDING_CONFIRMATION" && (
               <div className="flex flex-col gap-3">

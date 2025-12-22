@@ -232,3 +232,37 @@ export async function getOrderAndPaymentMethod(order_id: string) {
     },
   });
 }
+
+export async function getRecentOrdersByShop(shopId: string, limit: number = 5) {
+  return await prisma.order.findMany({
+    where: {
+      shop_id: shopId,
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+    take: limit,
+    include: {
+      customer: {
+        select: {
+          user: {
+            select: {
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+      },
+      order_items: {
+        select: {
+          quantity: true,
+          product: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}

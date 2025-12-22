@@ -73,7 +73,7 @@ export const useChatNotification = (options?: {
 
               // Logic: Timestamp check. If created < 5 seconds ago.
               const now = Date.now();
-              const createdAt = new Date(data.createdAt).getTime();
+              const createdAt = new Date(data.createdAt.toDate()).getTime();
               // If it's somewhat fresh (e.g. within last 30 seconds to account for clock skew/latency)
               if (now - createdAt < 30000) {
                 contentRef.current?.({ ...data, id: change.doc.id });

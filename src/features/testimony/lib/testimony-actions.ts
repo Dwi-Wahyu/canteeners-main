@@ -79,3 +79,31 @@ export async function createShopTestimony({
     return errorResponse("Terjadi kesalahan saat menambahkan ulasan");
   }
 }
+
+export async function createAppTestimony({
+  message,
+  from,
+  role,
+  rating,
+}: {
+  message: string;
+  from: string;
+  role?: string;
+  rating: number;
+}): Promise<ServerActionReturn<any>> {
+  try {
+    const testimony = await prisma.appTestimony.create({
+      data: {
+        message,
+        from,
+        role,
+        rating,
+      },
+    });
+
+    return successResponse(testimony, "Terima kasih atas ulasan Anda!");
+  } catch (error) {
+    console.error(error);
+    return errorResponse("Gagal menambahkan ulasan");
+  }
+}

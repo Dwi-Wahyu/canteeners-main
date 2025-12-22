@@ -4,8 +4,6 @@ import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import { useWatchChatNotification } from "@/features/notification/hooks/use-watch-chat-notification";
 import { useChatList } from "@/features/chat/hooks/use-chat-list";
 import Link from "next/link";
@@ -19,6 +17,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "nextjs-toploader/app";
 import LandingTopbar from "@/components/layouts/landing-topbar";
+import NavButton from "@/components/nav-button";
 
 export default function CustomerChatListPage() {
   const { chats, isLoading, user } = useChatList();
@@ -74,8 +73,10 @@ export default function CustomerChatListPage() {
 
       <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
         {chats.length === 0 ? (
-          <div className="p-10 text-center text-gray-500">
-            Belum ada percakapan dari pelanggan.
+          <div className="p-10 flex flex-col items-center gap-4 justify-center">
+            <h1 className="text-center text-gray-500">Belum ada percakapan</h1>
+
+            <NavButton href="/kantin/kantin-kudapan">Buat Order</NavButton>
           </div>
         ) : (
           <div className="divide-y">

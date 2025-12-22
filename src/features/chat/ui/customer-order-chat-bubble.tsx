@@ -110,7 +110,7 @@ export default function CustomerOrderChatBubble({
 
               {data.status === "COMPLETED" && (
                 <div className="w-full">
-                  <NavButton className="w-full" href={"/order/" + data.id}>
+                  <NavButton className="w-full" href={"/testimoni"}>
                     Beri Testimoni Untuk Canteeners
                   </NavButton>
                 </div>

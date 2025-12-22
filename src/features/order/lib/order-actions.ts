@@ -445,6 +445,11 @@ export async function savePaymentProof({
       },
       select: {
         payment_proof_url: true,
+        shop: {
+          select: {
+            owner_id: true,
+          },
+        },
         customer: {
           select: {
             user_id: true,
@@ -481,7 +486,7 @@ export async function savePaymentProof({
 
     // Send notification
     const notificationData = {
-      recipientId: order.customer.user_id,
+      recipientId: order.shop.owner_id,
       type: "ORDER",
       subType: "PAYMENT_PROOF_SUBMITTED",
       title: `Pelanggan Mengirim Bukti Pembayaran`,

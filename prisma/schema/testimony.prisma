@@ -16,6 +16,7 @@ model AppTestimony {
     message String  @db.Text
     from    String
     role    String?
+    rating  Int     @default(5)
 
     created_at DateTime @default(now())
 

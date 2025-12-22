@@ -30,3 +30,5 @@ Pelajari Firebase Cloud Messaging FCM untuk notifikasi tidak perlu pakai firesto
 Enable billing untuk bisa bikin ttl policy
 
 Pelajari cara auto purge notification selain buat rule ttl dan harus enable billing
+
+fix nama tidak diubah ketika checkout dan tidak terdeteksi ketika isi testimoni untuk aplikasi

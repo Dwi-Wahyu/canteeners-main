@@ -201,6 +201,10 @@ export const authConfig: NextAuthConfig = {
         token.cartId = user.cartId;
       }
 
+      if (trigger === "update" && session) {
+        token.name = session.user.name;
+      }
+
       return token;
     },
   },
