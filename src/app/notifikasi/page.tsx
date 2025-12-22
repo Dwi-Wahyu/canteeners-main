@@ -1,16 +1,8 @@
-import { auth } from "@/config/auth";
 import NotificationList from "@/features/notification/ui/notification-list";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 export default async function NotificationPage() {
-  const session = await auth();
-
-  if (!session) {
-    redirect("/kantin/kantin-kudapan");
-  }
-
   return (
     <div>
       <div className="p-4 flex items-center gap-2 justify-between bg-primary sticky top-0 z-10 text-primary-foreground">
@@ -22,7 +14,9 @@ export default async function NotificationPage() {
         </div>
       </div>
 
-      <NotificationList uid={session.user.id} />
+      <div className="p-4">
+        <NotificationList />
+      </div>
     </div>
   );
 }

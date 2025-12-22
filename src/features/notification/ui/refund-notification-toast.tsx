@@ -48,7 +48,7 @@ export function RefundNotificationToast({
               {notification.title}
             </p>
             <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(notification.createdAt), {
+              {formatDistanceToNow(new Date(notification.createdAt.toDate()), {
                 addSuffix: true,
                 locale: id,
               })}
@@ -57,9 +57,10 @@ export function RefundNotificationToast({
           <p className="text-sm text-muted-foreground line-clamp-2">
             {notification.body}
           </p>
-           {notification.metadata && notification.metadata.amount && (
+          {notification.metadata && notification.metadata.amount && (
             <div className="mt-2 text-xs font-mono bg-muted p-1 rounded inline-block">
-              Refund: Rp{Number(notification.metadata.amount).toLocaleString('id-ID')}
+              Refund: Rp
+              {Number(notification.metadata.amount).toLocaleString("id-ID")}
             </div>
           )}
         </div>

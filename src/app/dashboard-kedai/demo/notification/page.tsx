@@ -9,7 +9,6 @@ import { ComplaintNotificationToast } from "@/features/notification/ui/complaint
 import { toast } from "sonner";
 import { useState } from "react";
 import {
-  ChatNotification,
   ComplaintNotification,
   OrderNotification,
   RefundNotification,

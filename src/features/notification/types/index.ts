@@ -7,7 +7,7 @@ export type NotificationIntent =
   | "WARNING"
   | "ERROR";
 
-export type NotificationType = "CHAT" | "ORDER" | "REFUND" | "COMPLAINT";
+export type NotificationType = "ORDER" | "REFUND" | "COMPLAINT";
 
 export type NotificationBase = {
   id: string; // Firestore Document ID
@@ -23,13 +23,6 @@ export type NotificationBase = {
   intent?: NotificationIntent;
   metadata?: Record<string, any>;
 };
-
-// --- CHAT ---
-export interface ChatNotification extends NotificationBase {
-  type: "CHAT";
-  avatar: string;
-  subType: "TEXT" | "ATTACHMENT";
-}
 
 // --- ORDER ---
 export type OrderNotificationSubType =
@@ -75,7 +68,6 @@ export interface ComplaintNotification extends NotificationBase {
 }
 
 export type AppNotification =
-  | ChatNotification
   | OrderNotification
   | RefundNotification
   | ComplaintNotification;

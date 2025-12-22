@@ -15,7 +15,7 @@ export const useChatList = () => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Cek Status Login (Anonymous)
+  // Cek Status Login
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {

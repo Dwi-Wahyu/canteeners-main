@@ -28,9 +28,7 @@ export default function DashboardStats({ stats }: DashboardStatsProps) {
     <div className="grid w-full grid-cols-2 gap-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Pendapatan Hari Ini
-          </CardTitle>
+          <CardTitle className="text-sm font-medium">Pendapatan</CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -44,9 +42,7 @@ export default function DashboardStats({ stats }: DashboardStatsProps) {
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
-            Pesanan Hari Ini
-          </CardTitle>
+          <CardTitle className="text-sm font-medium">Pesanan</CardTitle>
           <ShoppingBag className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>

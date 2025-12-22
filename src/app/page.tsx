@@ -60,7 +60,7 @@ export default async function LandingPage() {
             size={"lg"}
           >
             <Store />
-            Daftar Mitra
+            Cek Pesanan Saya
           </Button>
         </div>
 

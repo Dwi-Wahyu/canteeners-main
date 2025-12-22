@@ -10,6 +10,7 @@ export async function getShopOrderDetail(id: string) {
     include: {
       order_items: {
         select: {
+          id: true,
           quantity: true,
           price_at_add: true,
           subtotal: true,
@@ -32,9 +33,12 @@ export async function getShopOrderDetail(id: string) {
           },
           name: true,
           owner_id: true,
+          refund_disbursement_mode: true,
         },
       },
       testimony: true,
+      complaint: true,
+      refund: true,
       customer: {
         select: {
           table_number: true,
@@ -60,6 +64,7 @@ export async function getCustomerOrderDetail(id: string) {
     include: {
       order_items: {
         select: {
+          id: true,
           quantity: true,
           subtotal: true,
           price_at_add: true,
@@ -90,10 +95,12 @@ export async function getCustomerOrderDetail(id: string) {
             },
           },
           owner_id: true,
+          refund_disbursement_mode: true,
         },
       },
       complaint: true,
       testimony: true,
+      refund: true,
       customer: {
         select: {
           user: {

@@ -48,6 +48,15 @@ export default async function DashboardKedai() {
 
       <RecentOrdersList orders={recentOrders} />
 
+      <Link href="/dashboard-kedai/tagihan" className="mb-4">
+        <Card className="mb-4">
+          <CardContent>
+            <CardTitle>Tagihan</CardTitle>
+            <CardDescription>Tagihan yang perlu dibayar</CardDescription>
+          </CardContent>
+        </Card>
+      </Link>
+
       <div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="col-span-4 lg:col-span-1">
@@ -58,16 +67,16 @@ export default async function DashboardKedai() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <Link href="/dashboard-kedai/order/complaint" passHref>
+              <Link href="/dashboard-kedai/komplain" passHref>
                 <Button className="w-full justify-start" variant="outline">
                   <MessageSquareWarning className="mr-2 h-4 w-4" />
                   Komplain Pelanggan
                 </Button>
               </Link>
-              <Link href="/dashboard-kedai/order/refund" passHref>
+              <Link href="/dashboard-kedai/refund" passHref>
                 <Button className="w-full justify-start" variant="outline">
                   <RefreshCcw className="mr-2 h-4 w-4" />
-                  Permintaan Refund
+                  Pengajuan Refund
                 </Button>
               </Link>
             </CardContent>

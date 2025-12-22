@@ -12,6 +12,7 @@ import { formatRupiah } from "@/helper/format-rupiah";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { getImageUrl } from "@/helper/get-image-url";
 import NavButton from "@/components/nav-button";
+import Link from "next/link";
 
 type RecentOrdersListProps = {
   orders: Awaited<ReturnType<typeof getRecentOrdersByShop>>;
@@ -27,6 +28,8 @@ export default function RecentOrdersList({ orders }: RecentOrdersListProps) {
             ? `Daftar ${orders.length} pesanan terakhir yang masuk.`
             : "Belum ada pesanan terbaru."}
         </CardDescription>
+
+        <Link href={"/dashboard-kedai/order"}>Lihat Selengkapnya</Link>
       </CardHeader>
       <CardContent>
         <div className="space-y-8">

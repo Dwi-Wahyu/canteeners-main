@@ -11,13 +11,13 @@ import { db } from "@/lib/firebase/client";
 import { OrderNotification } from "../types";
 
 export const useOrderNotification = (options?: {
-    onNewNotification?: (notification: OrderNotification) => void;
-  }) => {
+  onNewNotification?: (notification: OrderNotification) => void;
+}) => {
   const [notifications, setNotifications] = useState<OrderNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any | null>(null);
   const contentRef = useRef(options?.onNewNotification);
-  
+
   useEffect(() => {
     contentRef.current = options?.onNewNotification;
   }, [options?.onNewNotification]);
@@ -46,18 +46,18 @@ export const useOrderNotification = (options?: {
       q,
       (snapshot) => {
         if (contentRef.current) {
-            snapshot.docChanges().forEach((change) => {
-              if (change.type === "added") {
-                const data = change.doc.data() as OrderNotification;
-                const now = Date.now();
-                const createdAt = new Date(data.createdAt).getTime();
-                // 30 seconds threshold for "new"
-                if (now - createdAt < 30000) {
-                    contentRef.current?.({ ...data, id: change.doc.id });
-                }
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const data = change.doc.data() as OrderNotification;
+              const now = Date.now();
+              const createdAt = new Date(data.createdAt.toDate()).getTime();
+              // 30 seconds threshold for "new"
+              if (now - createdAt < 30000) {
+                contentRef.current?.({ ...data, id: change.doc.id });
               }
-            });
-          }
+            }
+          });
+        }
 
         const results = snapshot.docs.map((doc) => ({
           id: doc.id,

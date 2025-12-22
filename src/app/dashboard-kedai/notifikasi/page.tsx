@@ -1,11 +1,11 @@
-import { auth } from "@/config/auth";
+import NotificationList from "@/features/notification/ui/notification-list";
 
 export default async function NotifikasiPage() {
-  const session = await auth();
   return (
-    <div className="space-y-4">
-      <h2 className="text-3xl font-bold tracking-tight">Notifikasi</h2>
-      <p className="text-muted-foreground">Belum ada notifikasi.</p>
+    <div>
+      <h2 className="mb-5 text-3xl font-medium tracking-tight">Notifikasi</h2>
+
+      <NotificationList />
     </div>
   );
 }

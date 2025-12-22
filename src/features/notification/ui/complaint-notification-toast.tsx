@@ -48,7 +48,7 @@ export function ComplaintNotificationToast({
               {notification.title}
             </p>
             <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(notification.createdAt), {
+              {formatDistanceToNow(new Date(notification.createdAt.toDate()), {
                 addSuffix: true,
                 locale: id,
               })}

@@ -23,7 +23,6 @@ import CancelOrderDialog from "./cancel-order-dialog";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatToHour } from "@/helper/hour-helper";
-import { useRouter } from "nextjs-toploader/app";
 import { useState } from "react";
 import { GetCustomerOrderDetail } from "../types/order-queries-types";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
@@ -37,8 +36,6 @@ export default function CustomerOrderDetailClient({
 }: {
   order: GetCustomerOrderDetail;
 }) {
-  const router = useRouter();
-
   const [copied, setCopied] = useState(false);
 
   return (

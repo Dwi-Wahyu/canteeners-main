@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Bell, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import NavButton from "../nav-button";
 
 export default function LandingTopbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,14 +51,20 @@ export default function LandingTopbar() {
           ))}
         </nav>
 
-        {/* Tombol menu mobile */}
-        <Button
-          className="md:hidden"
-          variant="ghost"
-          onClick={() => setMenuOpen((prev) => !prev)}
-        >
-          {menuOpen ? <X /> : <Menu />}
-        </Button>
+        <div>
+          <NavButton href="/notifikasi" variant="ghost">
+            <Bell />
+          </NavButton>
+
+          {/* Tombol menu mobile */}
+          <Button
+            className="md:hidden ml-1"
+            variant="ghost"
+            onClick={() => setMenuOpen((prev) => !prev)}
+          >
+            {menuOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
       </div>
 
       {/* Daftar link mobile */}

@@ -11,13 +11,13 @@ import { db } from "@/lib/firebase/client";
 import { RefundNotification } from "../types";
 
 export const useRefundNotification = (options?: {
-    onNewNotification?: (notification: RefundNotification) => void;
-  }) => {
+  onNewNotification?: (notification: RefundNotification) => void;
+}) => {
   const [notifications, setNotifications] = useState<RefundNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any | null>(null);
   const contentRef = useRef(options?.onNewNotification);
-  
+
   useEffect(() => {
     contentRef.current = options?.onNewNotification;
   }, [options?.onNewNotification]);
@@ -46,17 +46,17 @@ export const useRefundNotification = (options?: {
       q,
       (snapshot) => {
         if (contentRef.current) {
-            snapshot.docChanges().forEach((change) => {
-              if (change.type === "added") {
-                const data = change.doc.data() as RefundNotification;
-                const now = Date.now();
-                const createdAt = new Date(data.createdAt).getTime();
-                if (now - createdAt < 30000) {
-                    contentRef.current?.({ ...data, id: change.doc.id });
-                }
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const data = change.doc.data() as RefundNotification;
+              const now = Date.now();
+              const createdAt = new Date(data.createdAt.toDate()).getTime();
+              if (now - createdAt < 30000) {
+                contentRef.current?.({ ...data, id: change.doc.id });
               }
-            });
-          }
+            }
+          });
+        }
 
         const results = snapshot.docs.map((doc) => ({
           id: doc.id,

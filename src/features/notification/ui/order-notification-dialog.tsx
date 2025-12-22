@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { OrderNotification } from "../types";
 import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { formatRupiah } from "@/helper/format-rupiah";
 
 interface OrderNotificationDialogProps {
   open: boolean;
@@ -68,9 +69,7 @@ export function OrderNotificationDialog({
 
               <div className="text-muted-foreground">Total Harga</div>
               <div className="font-medium text-right">
-                {metadata?.totalPrice
-                  ? `Rp${Number(metadata.totalPrice).toLocaleString("id-ID")}`
-                  : "-"}
+                {metadata?.totalPrice ? formatRupiah(metadata.totalPrice) : "-"}
               </div>
             </div>
           </div>

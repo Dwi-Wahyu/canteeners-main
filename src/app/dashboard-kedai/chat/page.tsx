@@ -74,7 +74,9 @@ export default function OwnerChatListPage() {
 
   return (
     <div>
-      <h1 className="text-xl mb-4">Chat & Orderan</h1>
+      <h2 className="text-3xl font-medium tracking-tight mb-4">
+        Chat & Orderan
+      </h2>
 
       <div className="relative bg-card mb-6">
         <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">

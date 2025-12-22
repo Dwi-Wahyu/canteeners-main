@@ -155,11 +155,7 @@ export default function ShopOrderDetailClient({
                 user_id={order.shop.owner_id}
               />
 
-              <ConfirmPaymentDialog
-                conversation_id={order.conversation_id}
-                order_id={order.id}
-                owner_id={order.shop.owner_id}
-              />
+              <ConfirmPaymentDialog order_id={order.id} />
             </div>
           </div>
         )}
@@ -175,7 +171,7 @@ export default function ShopOrderDetailClient({
           ) : (
             <div>
               <img
-                src={"/uploads/payment-proof/" + order.payment_proof_url}
+                src={getImageUrl(order.payment_proof_url)}
                 width={400}
                 height={300}
                 alt="payment proof"
@@ -184,11 +180,7 @@ export default function ShopOrderDetailClient({
               {order.status === "WAITING_SHOP_CONFIRMATION" && (
                 <div className="grid grid-cols-2 gap-4 mt-2">
                   <RejectPaymentDialog order_id={order.id} />
-                  <ConfirmPaymentDialog
-                    conversation_id={order.conversation_id}
-                    order_id={order.id}
-                    owner_id={order.shop.owner_id}
-                  />
+                  <ConfirmPaymentDialog order_id={order.id} />
                 </div>
               )}
             </div>

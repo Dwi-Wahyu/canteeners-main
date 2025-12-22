@@ -23,13 +23,26 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
-export default function NotificationList({ uid }: { uid: string }) {
+export default function NotificationList() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (!uid) {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (!currentUser) setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
       setIsLoading(false);
       return;
     }
@@ -37,31 +50,48 @@ export default function NotificationList({ uid }: { uid: string }) {
     const notificationsRef = collection(db, "notifications");
     const q = query(
       notificationsRef,
-      where("recipientId", "==", uid),
-      // where("type", "!=", "CHAT"), // You can uncomment this if you want to hide chat notifications
+      where("recipientId", "==", user.uid),
       orderBy("createdAt", "desc"),
       limit(20)
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const docs = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as AppNotification[];
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const docs = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as AppNotification[];
 
-      setNotifications(docs);
-      setIsLoading(false);
-    });
+        console.log("📬 Notifications loaded:", docs.length);
+        setNotifications(docs);
+        setIsLoading(false);
+        setError(null);
+      },
+      (err) => {
+        console.error("❌ Firestore notification error:", err);
+        console.error("Error code:", err.code);
+        console.error("Error message:", err.message);
+
+        if (err.message.includes("index")) {
+          setError(
+            "Firestore index required. Check console for the index creation link."
+          );
+        } else {
+          setError(`Error loading notifications: ${err.message}`);
+        }
+
+        setIsLoading(false);
+      }
+    );
 
     return () => unsubscribe();
-  }, [uid]);
+  }, [user]);
 
   const getIcon = (type: string) => {
     switch (type) {
       case "ORDER":
         return <ShoppingCart className="h-5 w-5 text-blue-500" />;
-      case "CHAT":
-        return <MessageSquare className="h-5 w-5 text-green-500" />;
       case "REFUND":
         return <RefreshCcw className="h-5 w-5 text-orange-500" />;
       case "COMPLAINT":
@@ -73,7 +103,7 @@ export default function NotificationList({ uid }: { uid: string }) {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 p-4">
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
         ))}
@@ -81,9 +111,32 @@ export default function NotificationList({ uid }: { uid: string }) {
     );
   }
 
+  if (error) {
+    return (
+      <div>
+        <Card className="border-destructive">
+          <CardContent>
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+              <div className="space-y-2">
+                <p className="font-semibold text-destructive">
+                  Error Loading Notifications
+                </p>
+                <p className="text-sm text-muted-foreground">{error}</p>
+                <p className="text-xs text-muted-foreground">
+                  Check the browser console for more details.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (notifications.length === 0) {
     return (
-      <div className="text-center py-10 text-muted-foreground">
+      <div className="text-center text-muted-foreground">
         Belum ada notifikasi.
       </div>
     );
@@ -117,21 +170,17 @@ export default function NotificationList({ uid }: { uid: string }) {
                     <p className="font-semibold text-sm">
                       {notification.title}
                     </p>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(date, {
-                        addSuffix: true,
-                        locale: id,
-                      })}
-                    </span>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2">
                     {notification.body}
                   </p>
                   <div className="flex gap-2 pt-1">
-                    <Badge variant="outline" className="text-[10px] h-5 px-1.5">
-                      {notification.type}
+                    <Badge variant="outline" className=" h-5 px-1.5">
+                      {formatDistanceToNow(date, {
+                        addSuffix: true,
+                        locale: id,
+                      })}
                     </Badge>
-                    {/* Optional: Add subtype badge if needed */}
                   </div>
                 </div>
               </CardContent>

@@ -12,6 +12,7 @@ export const refundStatusMapping = {
   REJECTED: "Ditolak",
   PROCESSED: "Selesai Diproses",
   CANCELLED: "Dibatalkan Pengguna",
+  ESCALATED: "Dieskalasi ke Admin",
 };
 
 export const refundDisbursementModeMapping = {

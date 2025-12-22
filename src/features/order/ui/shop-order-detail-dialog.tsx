@@ -189,13 +189,13 @@ export default function ShopOrderDetailDialog({
               </div>
 
               <div className="flex flex-col gap-2">
-                {/* <NavButton
+                <NavButton
                   variant="default"
                   size="lg"
                   href={"/dashboard-kedai/order/" + orderData.id}
                 >
                   Lihat Detail Lengkap
-                </NavButton> */}
+                </NavButton>
 
                 {orderData.payment_proof_url &&
                   orderData.status === "WAITING_SHOP_CONFIRMATION" && (
