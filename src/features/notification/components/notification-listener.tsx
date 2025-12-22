@@ -11,17 +11,6 @@ import { RefundNotificationToast } from "../ui/refund-notification-toast";
 import { ComplaintNotificationToast } from "../ui/complaint-notification-toast";
 
 export default function NotificationListener() {
-  useChatNotification({
-    onNewNotification: (notification) => {
-      toast.custom((id) => (
-        <ChatNotificationToast
-          notification={notification}
-          onDismiss={() => toast.dismiss(id)}
-        />
-      ));
-    },
-  });
-
   useOrderNotification({
     onNewNotification: (notification) => {
       toast.custom((id) => (
