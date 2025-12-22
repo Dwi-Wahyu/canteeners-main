@@ -14,6 +14,8 @@ import {
   OrderNotification,
   RefundNotification,
 } from "@/features/notification/types";
+import { Timestamp } from "firebase/firestore";
+import { Chat } from "@/features/chat/types";
 
 export default function DemoNotificationPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -26,7 +28,7 @@ export default function DemoNotificationPage() {
     id: "order-1",
     type: "ORDER",
     subType: "CREATED",
-    createdAt: new Date().toISOString(),
+    createdAt: Timestamp.now(),
     isRead: false,
     recipientId: "owner-1",
     resourcePath: "/dashboard-kedai/order/123",
@@ -43,24 +45,38 @@ export default function DemoNotificationPage() {
     },
   };
 
-  const dummyChat: ChatNotification = {
+  const dummyChat: Chat = {
     id: "chat-1",
-    type: "CHAT",
-    subType: "TEXT",
-    createdAt: new Date().toISOString(),
-    recipientId: "owner-1",
-    resourcePath: "/dashboard-kedai/chat/chat-123",
-    avatar: "avatars/default-avatar.jpg",
-    title: "Budi Santoso",
-    body: "Halo, apakah menu nasi goreng masih ada?",
-    intent: "DEFAULT",
+    lastMessage: "",
+    lastMessageAt: Timestamp.now(),
+    lastMessageSenderId: "customer-1",
+    lastMessageType: "TEXT",
+    lastSeenAt: {
+      "customer-1": Timestamp.now(),
+    },
+    unreadCounts: {
+      "customer-1": 1,
+      "owner-1": 0,
+    },
+    participantsInfo: {
+      "customer-1": {
+        name: "Budi Santoso",
+        avatar: "avatars/default-avatar.jpg",
+        role: "CUSTOMER",
+      },
+      "owner-1": {
+        name: "Budi Santoso",
+        avatar: "avatars/default-avatar.jpg",
+        role: "SHOP_OWNER",
+      },
+    },
   };
 
   const dummyRefund: RefundNotification = {
     id: "refund-1",
     type: "REFUND",
     subType: "REQUESTED",
-    createdAt: new Date().toISOString(),
+    createdAt: Timestamp.now(),
     recipientId: "owner-1",
     resourcePath: "/dashboard-kedai/order/123/refund",
     title: "Permintaan Refund Baru",
@@ -76,7 +92,7 @@ export default function DemoNotificationPage() {
     id: "complaint-1",
     type: "COMPLAINT",
     subType: "SUBMITTED",
-    createdAt: new Date().toISOString(),
+    createdAt: Timestamp.now(),
     recipientId: "owner-1",
     resourcePath: "/dashboard-kedai/order/123/complaint",
     title: "Komplain Baru dari Customer",
@@ -99,7 +115,9 @@ export default function DemoNotificationPage() {
   }
 
   function triggerChat() {
-    toast.custom((id) => <ChatNotificationToast notification={dummyChat} />);
+    toast.custom((id) => (
+      <ChatNotificationToast notification={dummyChat} currentUid="owner-1" />
+    ));
   }
 
   function triggerRefund(intentOverride?: any) {
