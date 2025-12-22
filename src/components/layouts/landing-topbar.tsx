@@ -9,6 +9,25 @@ import { useState } from "react";
 export default function LandingTopbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const menu = [
+    {
+      label: "Home",
+      href: "/",
+    },
+    {
+      label: "Belanja",
+      href: "/kantin/kantin-kudapan",
+    },
+    {
+      label: "Keranjang",
+      href: "/keranjang",
+    },
+    {
+      label: "Login",
+      href: "/login-kedai",
+    },
+  ];
+
   return (
     <header className="py-4 px-4 sm:px-8 bg-secondary shadow-sm fixed w-full top-0 left-0 z-50">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -20,18 +39,15 @@ export default function LandingTopbar() {
 
         {/* Menu desktop */}
         <nav className="hidden md:flex space-x-6 text-foreground">
-          <a href="/#hero" className="hover:text-primary transition">
-            Beranda
-          </a>
-          <a href="/#about" className="hover:text-primary transition">
-            Tentang Kami
-          </a>
-          <a href="/#testimonials" className="hover:text-primary transition">
-            Testimoni
-          </a>
-          <a href="/login-kedai" className="hover:text-primary transition">
-            Login
-          </a>
+          {menu.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className="hover:text-primary transition"
+            >
+              {item.label}
+            </a>
+          ))}
         </nav>
 
         {/* Tombol menu mobile */}
@@ -51,35 +67,16 @@ export default function LandingTopbar() {
         }`}
       >
         <nav className="flex flex-col mt-4 space-y-4 items-center px-4 pb-4 text-foreground bg-secondary/80 backdrop-blur-sm rounded-b-xl">
-          <Link
-            href="/#hero"
-            onClick={() => setMenuOpen(false)}
-            className="hover:text-primary transition"
-          >
-            Beranda
-          </Link>
-          <Link
-            href="/#about"
-            onClick={() => setMenuOpen(false)}
-            className="hover:text-primary transition"
-          >
-            Tentang Kami
-          </Link>
-          <Link
-            href="/#testimonials"
-            onClick={() => setMenuOpen(false)}
-            className="hover:text-primary transition"
-          >
-            Testimoni
-          </Link>
-          <Link
-            href="/login-kedai"
-            onClick={() => setMenuOpen(false)}
-            className="hover:text-primary transition"
-            passHref
-          >
-            <Button>Login</Button>
-          </Link>
+          {menu.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="hover:text-primary transition"
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
       </div>
     </header>

@@ -4,35 +4,22 @@ import { ChatInput } from "@/features/chat/ui/chat-input";
 import { MessageList } from "@/features/chat/ui/message-list";
 import { db } from "@/lib/firebase/client";
 import { getAuth } from "firebase/auth";
-import { doc, getDoc, Timestamp } from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import ChatTopbar from "./chat-topbar";
 import LoadingDetailChatPage from "./loading-detail-chat-page";
+import { Chat } from "../types";
+import { getOpponentId, getOpponentInfo } from "../lib/chat-helper";
 
-type ChatData = {
-  id: string;
-
-  participantIds: string[];
-
-  buyerId: string;
-  buyerName: string;
-  buyerAvatar: string;
-
-  sellerId: string;
-  shopName: string;
-
-  lastMessage: string;
-  lastMessageAt: Timestamp;
-
-  unreadCountBuyer: number;
-  unreadCountSeller: number;
-
-  createdAt?: Date;
-};
-
-export default function ClientChatPage({ chatId }: { chatId: string }) {
+export default function ClientChatPage({
+  chatId,
+  role,
+}: {
+  chatId: string;
+  role: "SHOP_OWNER" | "CUSTOMER";
+}) {
   const { currentUser } = getAuth();
-  const [chatData, setChatData] = useState<ChatData | null>(null);
+  const [chatData, setChatData] = useState<Chat | null>(null);
 
   useEffect(() => {
     async function getChat() {
@@ -40,7 +27,11 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
       const chatSnap = await getDoc(chatRef);
 
       if (chatSnap.exists()) {
-        setChatData(chatSnap.data() as ChatData);
+        setChatData(chatSnap.data() as Chat);
+
+        updateDoc(chatRef, {
+          [`lastSeenAt.${currentUser?.uid}`]: serverTimestamp(),
+        });
       }
     }
 
@@ -49,16 +40,36 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
     }
   }, [currentUser]);
 
-  if (!currentUser || !chatData) return <LoadingDetailChatPage />;
+  if (!currentUser || !chatData) {
+    return <LoadingDetailChatPage />;
+  }
 
-  const isOwner = currentUser.uid === chatData.sellerId;
+  const isOwner = role === "SHOP_OWNER";
+
+  const opponentId = getOpponentId(chatData, currentUser.uid);
+  const opponent = getOpponentInfo(chatData, currentUser.uid);
+
+  if (!opponentId) {
+    return (
+      <div>
+        <h1>Pesan tidak valid</h1>
+      </div>
+    );
+  }
+
+  if (!opponent) {
+    return (
+      <div>
+        <h1>Pesan tidak valid</h1>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col pt-6 h-screen max-h-svh">
+    <div className="flex flex-col pt-6 pb-32 min-h-screen">
       <ChatTopbar
-        isOwner={isOwner}
-        avatar={isOwner ? chatData.buyerAvatar : "avatars/default-avatar.jpg"}
-        name={isOwner ? chatData.buyerName : chatData.shopName}
+        opponent={opponent}
+        lastSeenAt={chatData.lastSeenAt?.[currentUser.uid]}
       />
 
       <MessageList
@@ -70,7 +81,7 @@ export default function ClientChatPage({ chatId }: { chatId: string }) {
       <ChatInput
         chatId={chatId}
         currentUserId={currentUser.uid}
-        isOwner={isOwner}
+        opponentId={opponentId}
       />
     </div>
   );

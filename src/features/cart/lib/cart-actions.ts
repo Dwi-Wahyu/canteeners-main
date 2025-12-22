@@ -12,7 +12,6 @@ import { PaymentMethod, PostOrderType } from "@/generated/prisma";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { formatRupiah } from "@/helper/format-rupiah";
-import {} from "firebase/messaging";
 
 export async function processShopCart({
   shopCartId,
@@ -118,21 +117,31 @@ export async function processShopCart({
       if (!chatSnap.exists) {
         await chatRef.set({
           id: chatId,
-          buyerId: customer_user_id,
-          sellerId: owner_user_id,
+
+          participantsInfo: {
+            customer_user_id: {
+              name: shopCart.cart.customer.user.name,
+              avatar: shopCart.cart.customer.user.avatar,
+              role: "CUSTOMER",
+            },
+            owner_user_id: {
+              name: shopCart.shop.owner.user.name,
+              avatar: shopCart.shop.owner.user.avatar,
+              role: "SHOP_OWNER",
+            },
+          },
 
           participantIds: [customer_user_id, owner_user_id],
 
-          shopName: shopCart.shop.name,
-
-          buyerAvatar: shopCart.cart.customer.user.avatar,
-          buyerName: shopCart.cart.customer.user.name,
-
+          lastMessage: "Order masuk, Mohon konfirmasi apakah pesanan tersedia",
           lastMessageAt: FieldValue.serverTimestamp(),
-          lastMessage: "Order masuk. Mohon konfirmasi apakah pesanan tersedia",
+          lastMessageType: "ORDER",
+          lastMessageSenderId: customer_user_id,
 
-          unreadCountBuyer: 0,
-          unreadCountSeller: 0,
+          unreadCounts: {
+            [customer_user_id]: 0,
+            [owner_user_id]: 1,
+          },
         });
       }
 
@@ -199,7 +208,7 @@ export async function processShopCart({
       const messageData = {
         senderId: customer_user_id,
         text: "Order masuk. Mohon konfirmasi apakah pesanan tersedia",
-        type: "order",
+        type: "ORDER",
         order_id,
         attachments: [],
         readBy: [customer_user_id],
@@ -221,16 +230,29 @@ export async function processShopCart({
 
       notificationRef.set({
         recipientId: owner_user_id,
+
+        type: "ORDER",
+        subType: "CREATED",
+        resourcePath: "/dashboard-kedai/chat/" + chatId,
+        createdAt: FieldValue.serverTimestamp(),
+        isRead: false,
+
         title: "Pesanan Baru Masuk",
         body: `Pesanan ${shopCart.items.length} item oleh ${
           shopCart.cart.customer.user.name
         } dengan total ${formatRupiah(
           order.total_price
         )}, tolong segera ditinjau`,
-        isRead: false,
-        resourcePath: "/order/" + order.id,
-        type: "NEW_ORDER",
-        createdAtTimestamp: FieldValue.serverTimestamp(),
+
+        senderInfo: {
+          name: shopCart.cart.customer.user.name,
+        },
+
+        metadata: {
+          orderId: order_id,
+          itemCount: shopCart.items.length,
+          totalPrice: order.total_price,
+        },
       });
     });
 

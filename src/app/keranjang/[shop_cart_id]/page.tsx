@@ -84,6 +84,7 @@ export default async function GuestShopCartPage({
           ableToCheckout={ableToCheckout}
           open_time={open_time}
           close_time={close_time}
+          nameAlreadySet={session.user.name !== ""}
         />
       </div>
     </div>

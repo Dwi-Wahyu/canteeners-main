@@ -3,6 +3,7 @@
 import CustomBadge from "@/components/custom-badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { getOrderSummaryForChatBubble } from "@/features/order/lib/order-queries";
@@ -15,13 +16,11 @@ import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, FileText, MapPin, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import Link from "next/link";
 
 const ShopOrderDetailDialog = dynamic(
   () => import("@/features/order/ui/shop-order-detail-dialog"),
   {
-    // TODO: fix loading komponen
-    loading: () => <div>Loading detail . . .</div>,
+    loading: () => <Skeleton className="w-52 h-9 my-4" />,
     ssr: false,
   }
 );
@@ -37,7 +36,7 @@ export default function ShopOrderChatBubble({
   });
 
   return (
-    <div className={`flex flex-col items-start`}>
+    <div className={`flex flex-col items-start mb-4`}>
       {isLoading && (
         <div
           className={`h-36 px-4 py-3 shadow rounded-xl bg-secondary animate-pulse w-[80%]`}
@@ -61,8 +60,9 @@ export default function ShopOrderChatBubble({
               {orderStatusMapping[data.status]}
             </CustomBadge>
           </div>
+
           <div>
-            <div className="mt-1">
+            <div className="mt-1 flex gap-2 flex-col">
               {data.order_items.map((items, idx) => (
                 <div
                   key={`${order_id}-${idx}`}
@@ -70,8 +70,8 @@ export default function ShopOrderChatBubble({
                 >
                   <Image
                     src={getImageUrl(items.product.image_url)}
-                    width={20}
-                    height={20}
+                    width={40}
+                    height={40}
                     alt="product image"
                     className="rounded shadow"
                   />
@@ -86,19 +86,12 @@ export default function ShopOrderChatBubble({
             </div>
 
             <div className="my-4">
-              <Separator />
-              <div className="my-2 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                Meja: {data.customer.table_number} Lantai: {data.customer.floor}
-              </div>
-              <Separator />
-            </div>
-
-            <div>
               <div className="flex justify-between">
                 <h1 className="">Total</h1>
 
-                <h1 className="text-primary">{data.total_price}</h1>
+                <h1 className="text-primary">
+                  {formatRupiah(data.total_price)}
+                </h1>
               </div>
 
               <h1>Pembayaran: {paymentMethodMapping[data.payment_method]}</h1>
@@ -119,17 +112,17 @@ export default function ShopOrderChatBubble({
               }
             />
 
-            <div className="flex flex-col gap-2">
-              <ConfirmOrderDialog
-                conversation_id={data.conversation_id}
-                order_id={data.id}
-                owner_id={data.shop.owner_id}
-                payment_method={data.payment_method}
-                shop_id={data.shop.id}
-              />
+            {data.status === "PENDING_CONFIRMATION" && (
+              <div className="flex flex-col gap-3">
+                <ConfirmOrderDialog
+                  order_id={data.id}
+                  payment_method={data.payment_method}
+                  shop_id={data.shop.id}
+                />
 
-              <RejectOrderDialog order_id={data.id} />
-            </div>
+                <RejectOrderDialog order_id={data.id} />
+              </div>
+            )}
           </div>
         </div>
       )}

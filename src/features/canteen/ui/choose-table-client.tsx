@@ -1,18 +1,10 @@
 "use client";
 
-import {
-  Save,
-  XCircle,
-  Table,
-  Loader,
-  ShoppingCart,
-  UtensilsCrossed,
-} from "lucide-react";
+import { Save, Loader, ShoppingCart, UtensilsCrossed } from "lucide-react";
 import { useState } from "react";
 
 import {
   Empty,
-  EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
@@ -33,6 +25,7 @@ import { useSearchParams } from "next/navigation";
 import { chooseCustomerTable } from "@/features/user/lib/user-actions";
 import NavButton from "@/components/nav-button";
 import { GetCanteenIncludeMaps } from "../types/canteen-queries-types";
+import { getImageUrl } from "@/helper/get-image-url";
 
 interface SelectedTable {
   floor: number;
@@ -93,13 +86,20 @@ export default function ChooseTableClient({
           title: "Berhasil pilih meja",
           message: "Silakan belanja sepuasmu",
           actionButtons: (
-            <div>
+            <div className="grid grid-cols-2 gap-3">
+              <Button size="lg" asChild variant={"outline"}>
+                <Link onClick={notificationDialog.hide} href={"/keranjang"}>
+                  <ShoppingCart />
+                  Lihat Keranjang
+                </Link>
+              </Button>
+
               <Button size="lg" asChild>
                 <Link
                   onClick={notificationDialog.hide}
-                  href={"/dashboard-pelanggan/kantin/" + canteen_id}
+                  href={"/kantin/" + canteen.slug}
                 >
-                  <ShoppingCart />
+                  <UtensilsCrossed />
                   Mulai Belanja
                 </Link>
               </Button>
@@ -148,7 +148,7 @@ export default function ChooseTableClient({
             return (
               <TabsContent key={i} value={floorKey} className="mt-2">
                 <img
-                  src={"/uploads/map/" + map.image_url}
+                  src={getImageUrl(map.image_url)}
                   className="mb-4 shadow rounded-lg"
                 />
                 <div className="grid grid-cols-2 gap-4">
@@ -169,8 +169,8 @@ export default function ChooseTableClient({
                           }}
                           className={`${
                             isChecked
-                              ? "bg-primary text-primary-foreground"
-                              : ""
+                              ? "bg-primary cursor-pointer text-primary-foreground"
+                              : "cursor-pointer"
                           }`}
                         >
                           <ItemContent>

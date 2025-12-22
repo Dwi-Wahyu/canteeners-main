@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Apple, Home, MessagesSquare, Settings } from "lucide-react";
+import { Home, MessageCircle, Package, Settings } from "lucide-react";
+import ActiveProductIcon from "../icons/active-product-icon";
 
 export default function OwnerBottomBar() {
   const currentPathname = usePathname();
@@ -17,17 +18,17 @@ export default function OwnerBottomBar() {
       exact: true,
     },
     {
-      href: "/dashboard-kedai/produk",
-      icon: Apple,
-      activeIcon: Apple,
-      label: "Produk",
+      href: "/dashboard-kedai/chat",
+      icon: MessageCircle,
+      activeIcon: MessageCircle,
+      label: "Chat",
       exact: false,
     },
     {
-      href: "/dashboard-kedai/chat",
-      icon: MessagesSquare,
-      activeIcon: MessagesSquare,
-      label: "Chat",
+      href: "/dashboard-kedai/produk",
+      icon: Package,
+      activeIcon: ActiveProductIcon,
+      label: "Produk",
       exact: false,
     },
     {

@@ -3,19 +3,22 @@ import { getShopTestimonies } from "@/features/shop/lib/shop-queries";
 import ShopTestimonyDisplayClient from "@/features/shop/ui/shop-testimony-display-client";
 
 export default async function ShopTestimonyDisplayPage({
-    params,
+  params,
 }: {
-    params: Promise<{ shop_id: string }>;
+  params: Promise<{ shop_id: string }>;
 }) {
-    const { shop_id } = await params;
+  const { shop_id } = await params;
 
-    const shopTestimony = await getShopTestimonies(shop_id);
+  const shopTestimony = await getShopTestimonies(shop_id);
 
-    return (
-        <div className="p-5 pt-20">
-            <TopbarWithBackButton title="Ulasan Kedai" backUrl={"/kedai/" + shop_id} />
+  return (
+    <div className="p-5 pt-20">
+      <TopbarWithBackButton
+        title="Ulasan Kedai"
+        backUrl={"/kedai/" + shop_id}
+      />
 
-            <ShopTestimonyDisplayClient data={shopTestimony} />
-        </div>
-    );
+      <ShopTestimonyDisplayClient data={shopTestimony} />
+    </div>
+  );
 }

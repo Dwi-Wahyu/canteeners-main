@@ -12,6 +12,7 @@ import { GetCanteenBySlug } from "../types/canteen-queries-types";
 import CategoryScroller from "@/features/category/ui/category-scroller";
 import { GetCategories } from "@/features/category/types/category-queries-types";
 import PriceRangeFilter from "./price-range-filter";
+import CashIcon from "@/components/icons/cash-icon";
 
 export default function CanteenClient({
   canteen,
@@ -55,7 +56,7 @@ export default function CanteenClient({
 
                     {shop.minimum_price && shop.maximum_price && (
                       <div className="flex gap-1 mt-2 items-center">
-                        <DollarSign className="w-4 h-4" />
+                        <CashIcon className="w-4 h-4" />
                         <h1 className="">
                           {formatRupiah(shop.minimum_price)} -{" "}
                           {formatRupiah(shop.maximum_price)}
@@ -70,9 +71,10 @@ export default function CanteenClient({
                       <h1 className="font-semibold">{shop.average_rating}</h1>
                     </div>
 
+                    {/* Jumlah testimoni */}
                     <div className="flex gap-1 items-center">
                       <MessageCircle />
-                      <h1 className="font-semibold">{shop.average_rating}</h1>
+                      <h1 className="font-semibold">{shop._count.orders}</h1>
                     </div>
                   </div>
                 </div>

@@ -7,12 +7,15 @@ import {
   ShoppingCart,
   MessageSquare,
   BookAlert,
+  MessageCircle,
 } from "lucide-react";
+import { NotificationIntent } from "@/features/notification/types";
 
 export const notificationTypeIconMapping = {
   ORDER: <ShoppingCart className="h-4 w-4" />,
   REFUND: <BookAlert className="h-4 w-4" />,
   COMPLAINT: <MessageSquare className="h-4 w-4" />,
+  CHAT: <MessageCircle className="h-4 w-4" />,
 };
 
 export const notificationIntentIconMapping = {

@@ -37,10 +37,11 @@ export default async function ChooseTablePage({
           <ChevronLeft />
         </NavButton>
 
-        <h1 className="text-xl leading-tight">Pilih meja {canteen.name}</h1>
+        <h1 className="text-xl leading-tight">Pilih Meja </h1>
       </div>
 
       <div className="p-5">
+        <h1 className="font-semibold text-lg">{canteen.name}</h1>
         <ChooseTableClient
           canteen={canteen}
           customer_id={session?.user.customerId!}

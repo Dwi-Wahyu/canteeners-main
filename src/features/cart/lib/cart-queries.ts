@@ -69,6 +69,7 @@ export async function getShopCart({
           canteen: {
             select: {
               name: true,
+              slug: true,
             },
           },
           owner_id: true,

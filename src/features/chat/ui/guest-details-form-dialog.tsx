@@ -40,9 +40,12 @@ export function GuestDetailsFormDialog({
       <form>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-start">Masukkan Nama</DialogTitle>
+            <DialogTitle className="text-start">
+              Sesi Tidak Terdeteksi
+            </DialogTitle>
             <DialogDescription className="text-start">
-              Agar anda mudah dikenali pemilik kedai
+              Sepertinya anda baru kali ini menggunakan Canteeners masukkan nama
+              untuk dapat memulai percakapan
             </DialogDescription>
           </DialogHeader>
 

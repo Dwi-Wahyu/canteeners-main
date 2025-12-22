@@ -7,7 +7,7 @@ export async function createGuestSession({
   name,
 }: {
   name: string;
-}): Promise<{ cartId: string | null }> {
+}): Promise<{ cartId: string | null; userId: string | null }> {
   const auth = getAuth();
 
   const result = await signInAnonymously(auth);
@@ -21,14 +21,14 @@ export async function createGuestSession({
     toast.error(
       "Terjadi kesalahan saat membuat sesi tamu, akun tidak berhasil dibuat"
     );
-    return { cartId: null };
+    return { cartId: null, userId: null };
   }
 
   if (!createGuest.data) {
     toast.error(
       "Terjadi kesalahan saat membuat sesi tamu, data akun tidak berhasil dimuat"
     );
-    return { cartId: null };
+    return { cartId: null, userId: null };
   }
 
   const res = await signIn("credentials", {
@@ -43,8 +43,11 @@ export async function createGuestSession({
   if (res?.error) {
     toast.error("Terjadi kesalahan saat membuat sesi tamu");
 
-    return { cartId: null };
+    return { cartId: null, userId: null };
   } else {
-    return { cartId: createGuest.data.cart_id };
+    return {
+      cartId: createGuest.data.cart_id,
+      userId: createGuest.data.user_id,
+    };
   }
 }

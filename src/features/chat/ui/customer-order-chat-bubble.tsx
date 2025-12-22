@@ -1,19 +1,17 @@
 "use client";
 
+import CustomBadge from "@/components/custom-badge";
+import NavButton from "@/components/nav-button";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { getOrderSummaryForChatBubble } from "@/features/order/lib/order-queries";
+import { OrderStatus } from "@/generated/prisma";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
 import { useQuery } from "@tanstack/react-query";
-import {
-  ChevronRight,
-  FileText,
-  MapPin,
-  MessageCircle,
-  ShoppingBag,
-} from "lucide-react";
+import { ChevronRight, FileText, MapPin, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -28,7 +26,7 @@ export default function CustomerOrderChatBubble({
   });
 
   return (
-    <div className={`flex flex-col items-end`}>
+    <div className={`flex flex-col items-end mb-4`}>
       {isLoading && (
         <div
           className={`h-36 animate-pulse w-[80%] px-4 py-3 shadow bg-secondary rounded-xl`}
@@ -36,16 +34,21 @@ export default function CustomerOrderChatBubble({
       )}
 
       {!isLoading && data && (
-        <div
-          className={`px-4 py-3 shadow rounded-xl w-[80%] bg-card border border-primary`}
-        >
-          <Link
-            href={`/order/${order_id}`}
-            className="w-full flex flex-col gap-2"
-          >
+        <div className={`px-4 py-3 shadow rounded-xl w-[80%] bg-card border`}>
+          <div className="w-full flex flex-col gap-2">
             <div className="flex text-primary gap-2 items-center">
               <ShoppingBag className="w-5 h-5" />
               <h1 className="text-lg font-semibold">Pesanan Anda</h1>
+            </div>
+
+            <div className="mb-4">
+              <CustomBadge
+                value={data.status}
+                outlineValues={[OrderStatus.PENDING_CONFIRMATION]}
+                warningValues={[OrderStatus.WAITING_PAYMENT]}
+              >
+                {orderStatusMapping[data.status]}
+              </CustomBadge>
             </div>
 
             <div>
@@ -57,8 +60,8 @@ export default function CustomerOrderChatBubble({
                   >
                     <Image
                       src={getImageUrl(items.product.image_url)}
-                      width={20}
-                      height={20}
+                      width={40}
+                      height={40}
                       alt="product image"
                       className="rounded shadow"
                     />
@@ -92,7 +95,10 @@ export default function CustomerOrderChatBubble({
                 <h1>Pembayaran: {paymentMethodMapping[data.payment_method]}</h1>
               </div>
 
-              <div className="p-2 my-4 bg-secondary items-center border border-accent-foreground rounded flex justify-between text-accent-foreground">
+              <Link
+                href={"/order/" + data.id}
+                className="p-2 my-4 bg-secondary items-center border border-accent-foreground rounded flex justify-between text-accent-foreground"
+              >
                 <div className="flex gap-2">
                   <FileText className="w-5 h-5" />
 
@@ -100,9 +106,28 @@ export default function CustomerOrderChatBubble({
                 </div>
 
                 <ChevronRight className="w-5 h-5" />
-              </div>
+              </Link>
+
+              {data.status === "COMPLETED" && (
+                <div className="w-full">
+                  <NavButton className="w-full" href={"/order/" + data.id}>
+                    Beri Testimoni Untuk Canteeners
+                  </NavButton>
+                </div>
+              )}
+
+              {data.status === "WAITING_PAYMENT" && (
+                <div className="w-full">
+                  <NavButton
+                    className="w-full"
+                    href={`/order/${data.id}/pembayaran`}
+                  >
+                    Bayar Sekarang
+                  </NavButton>
+                </div>
+              )}
             </div>
-          </Link>
+          </div>
         </div>
       )}
     </div>

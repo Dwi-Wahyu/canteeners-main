@@ -1,175 +1,145 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  Timestamp,
-} from "firebase/firestore";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import { db } from "@/lib/firebase/client";
-import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { useWatchChatNotification } from "@/features/notification/hooks/use-watch-chat-notification";
+import { useChatList } from "@/features/chat/hooks/use-chat-list";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
-import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
-import EmptyConversationList from "@/features/chat/ui/empty-conversation-list";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  getMyUnreadCount,
+  getOpponentInfo,
+  isOpponentTyping,
+} from "@/features/chat/lib/chat-helper";
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "nextjs-toploader/app";
+import LandingTopbar from "@/components/layouts/landing-topbar";
 
-// Definisi Tipe Data Chat untuk List
-type ChatListItem = {
-  id: string;
-  sellerId: string;
-  buyerId: string;
-  lastMessage: string;
-  shopName: string;
-  lastMessageAt: Timestamp;
-  unreadCountBuyer: number;
-  unreadCountSeller: number;
-};
-
-export default function GuestChatListPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [chats, setChats] = useState<ChatListItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function CustomerChatListPage() {
+  const { chats, isLoading, user } = useChatList();
   const router = useRouter();
+  const { data: session } = useSession();
 
-  // Cek Status Login (Anonymous)
+  // Watch global chat notification (toast saat ada pesan baru)
+  useWatchChatNotification(user?.uid ?? null);
+
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+    if (session?.user?.role === "SHOP_OWNER") {
+      router.push("/dashboard-kedai/chat");
+    }
+  }, [session, router]);
 
-  // Ambil Data Chat Realtime
-  useEffect(() => {
-    if (!user) return;
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="p-5 pt-20">
+        <LandingTopbar />
 
-    const chatsRef = collection(db, "chats");
+        <h1 className="text-xl mb-4">Chat & Orderan</h1>
 
-    // Cari chat dimana participantIds mengandung UID user saat ini
-    // Dan urutkan berdasarkan waktu pesan terakhir
-    const q = query(
-      chatsRef,
-      where("participantIds", "array-contains", user.uid),
-      orderBy("lastMessageAt", "desc")
+        <div className="space-y-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="w-full h-20 rounded-lg" />
+          ))}
+        </div>
+      </div>
     );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const results = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as ChatListItem[];
-
-        setChats(results);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching chats:", error);
-        // Jika muncul error "index required", cek console browser
-        // dan klik link yang diberikan Firebase untuk membuat index.
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user]);
-
-  if (loading) {
-    return <div className="p-4 text-center">Memuat percakapan...</div>;
   }
 
+  // User belum login atau data belum ready
   if (!user) {
     return (
-      <div className="p-5 pt-20 text-center">
-        <TopbarWithBackButton title="Chat" backUrl={"/kantin/kantin-kudapan"} />
+      <div className="p-5 pt-20">
+        <LandingTopbar />
 
-        <EmptyConversationList />
+        <h1 className="text-xl mb-4">Chat & Orderan</h1>
+
+        <div className="text-center text-muted-foreground py-10">
+          <p>Belum ada percakapan.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="p-4 flex items-center gap-2 bg-primary sticky top-0 z-10 text-primary-foreground">
-        <Link href={"/kantin/kantin-kudapan"}>
-          <ChevronLeft />
-        </Link>
-        <h1 className="text-xl font-semibold">Chat Dan Pesanan</h1>
-      </div>
+    <div className="p-5 pt-20">
+      <LandingTopbar />
 
-      <div className="flex-1 overflow-y-auto">
+      <h1 className="text-xl mb-4">Chat & Orderan</h1>
+
+      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
         {chats.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-            <p>Belum ada percakapan.</p>
+          <div className="p-10 text-center text-gray-500">
+            Belum ada percakapan dari pelanggan.
           </div>
         ) : (
-          <div className="divide-y divide-gray-200 bg-white">
+          <div className="divide-y">
             {chats.map((chat) => {
-              // Tentukan unread count untuk user ini (buyer)
-              const unreadCount = chat.unreadCountBuyer || 0;
+              const opponent = getOpponentInfo(chat, user.uid);
+              const unreadCount = getMyUnreadCount(chat, user.uid);
+              const typing = isOpponentTyping(chat, user.uid);
 
-              // Format waktu (Fallback jika timestamp null saat pembuatan awal)
               const timeDisplay = chat.lastMessageAt
                 ? format(chat.lastMessageAt.toDate(), "dd MMM HH:mm", {
                     locale: idLocale,
                   })
-                : "Baru saja";
+                : "";
+
+              if (!opponent) return null; // safety
 
               return (
-                <div
+                <Link
                   key={chat.id}
-                  onClick={() => router.push(`/chat/${chat.id}`)}
-                  className="flex items-center gap-4 p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                  href={`/chat/${chat.id}`}
+                  className={`p-4 hover:bg-gray-50 cursor-pointer flex gap-4 items-center transition-colors ${
+                    unreadCount > 0 ? "bg-blue-50/50" : ""
+                  }`}
                 >
-                  <Avatar className="size-11 shadow">
-                    <AvatarImage
-                      src={getImageUrl("avatars/default-avatar.jpg")}
-                    />
-                    <AvatarFallback>CN</AvatarFallback>
+                  <Avatar className="size-11 shadow shrink-0">
+                    <AvatarImage src={getImageUrl(opponent.avatar)} />
+                    <AvatarFallback>
+                      {opponent.name?.charAt(0).toUpperCase() || "C"}
+                    </AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start mb-1">
+                    <div className="flex justify-between items-start">
                       <h3 className="font-semibold text-gray-900 truncate">
-                        {chat.shopName}
+                        {opponent.name || "Pelanggan"}
                       </h3>
-                      <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                      <span className="text-xs text-gray-500 shrink-0 ml-2">
                         {timeDisplay}
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mt-1">
                       <p
                         className={`text-sm truncate ${
-                          unreadCount > 0
-                            ? "font-semibold text-gray-900"
+                          typing
+                            ? "text-green-600 font-medium italic animate-pulse"
+                            : unreadCount > 0
+                            ? "text-gray-900 font-medium"
                             : "text-gray-500"
                         }`}
                       >
-                        {chat.lastMessage || "Mulai percakapan..."}
+                        {typing
+                          ? "Sedang mengetik..."
+                          : chat.lastMessage || "Lampiran"}
                       </p>
 
-                      {/* Badge Unread */}
                       {unreadCount > 0 && (
-                        <span className="ml-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
+                        <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full shrink-0 ml-2">
                           {unreadCount}
                         </span>
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

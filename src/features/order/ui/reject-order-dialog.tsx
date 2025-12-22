@@ -70,7 +70,9 @@ export default function RejectOrderDialog({ order_id }: { order_id: string }) {
       <AlertDialogContent>
         <AlertDialogHeader className="text-start">
           <AlertDialogTitle>Yakin Menolak Order?</AlertDialogTitle>
-          <AlertDialogDescription>Beri alasan jelas</AlertDialogDescription>
+          <AlertDialogDescription className="mb-2">
+            Beri alasan jelas
+          </AlertDialogDescription>
 
           <Textarea
             disabled={isPending}

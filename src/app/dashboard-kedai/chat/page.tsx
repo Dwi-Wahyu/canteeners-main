@@ -1,88 +1,76 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  Timestamp,
-} from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { db } from "@/lib/firebase/client";
-import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-
-type ChatListItem = {
-  id: string;
-  sellerId: string;
-  buyerId: string;
-  buyerName: string;
-  buyerAvatar: string;
-  lastMessage: string;
-  lastMessageAt: Timestamp;
-  unreadCountBuyer: number;
-  unreadCountSeller: number;
-  typing?: Record<string, boolean>;
-};
+import { useWatchChatNotification } from "@/features/notification/hooks/use-watch-chat-notification";
+import { useChatList } from "@/features/chat/hooks/use-chat-list";
+import Link from "next/link";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  getMyUnreadCount,
+  getOpponentInfo,
+  isOpponentTyping,
+} from "@/features/chat/lib/chat-helper";
 
 export default function OwnerChatListPage() {
-  const [user, setUser] = useState<any | null>(null);
-  const [chats, setChats] = useState<ChatListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const { chats, isLoading, user } = useChatList();
 
-  useEffect(() => {
-    const auth = getAuth();
-    // Wait for auth to be ready. In dashboard-kedai, we expect user to be logged in via sync
-    // But it might take a moment for the firebase client sdk to sync.
-    const unsubscribe = auth.onAuthStateChanged((u) => {
-      setUser(u);
-      if (!u) setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+  useWatchChatNotification(user ? user.uid : null);
 
-  useEffect(() => {
-    if (!user) return;
+  if (isLoading) {
+    return (
+      <div>
+        <h1 className="text-xl mb-4">Chat & Orderan</h1>
 
-    const chatsRef = collection(db, "chats");
-    const q = query(
-      chatsRef,
-      where("participantIds", "array-contains", user.uid),
-      orderBy("lastMessageAt", "desc")
+        <div className="relative bg-card mb-6">
+          <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
+            <Search className="size-4" />
+            <span className="sr-only">User</span>
+          </div>
+          <Input
+            type="text"
+            placeholder="Cari Pelanggan atau Nomor Meja"
+            className="peer pl-9 bg-card"
+          />
+        </div>
+
+        <div className="space-y-4">
+          <Skeleton className="w-full h-32" />
+          <Skeleton className="w-full h-32" />
+          <Skeleton className="w-full h-32" />
+          <Skeleton className="w-full h-32" />
+        </div>
+      </div>
     );
+  }
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const results = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as ChatListItem[];
+  if (!user) {
+    return (
+      <div>
+        <h1 className="text-xl mb-4">Chat & Orderan</h1>
 
-        setChats(results);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching chats:", error);
-        setLoading(false);
-      }
+        <div className="relative bg-card mb-6">
+          <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
+            <Search className="size-4" />
+            <span className="sr-only">User</span>
+          </div>
+          <Input
+            type="text"
+            placeholder="Cari Pelanggan atau Nomor Meja"
+            className="peer pl-9 bg-card"
+          />
+        </div>
+
+        <div className="text-center text-muted-foreground py-4">
+          <h1>Belum Ada Percakapan oleh pelanggan</h1>
+        </div>
+      </div>
     );
-
-    return () => unsubscribe();
-  }, [user]);
-
-  if (loading) return <div className="p-10 text-center">Memuat pesan...</div>;
-
-  if (!user)
-    return <div className="p-10 text-center">Silakan login kembali.</div>;
+  }
 
   return (
     <div>
@@ -108,13 +96,11 @@ export default function OwnerChatListPage() {
         ) : (
           <div className="divide-y">
             {chats.map((chat) => {
-              const unreadCount = chat.unreadCountSeller || 0;
+              const unreadCount = getMyUnreadCount(chat, user.uid);
 
-              // Check Typing Status
-              const typingData = chat.typing || {};
-              // Buyer is the one NOT the seller. Since this is OwnerChatListPage, user is seller.
-              // We want to know if 'buyerId' is typing.
-              const isTyping = typingData[chat.buyerId] === true;
+              const isTyping = isOpponentTyping(chat, user.uid);
+
+              const opponentInfo = getOpponentInfo(chat, user.uid);
 
               const timeDisplay = chat.lastMessageAt
                 ? format(chat.lastMessageAt.toDate(), "dd MMM HH:mm", {
@@ -122,25 +108,31 @@ export default function OwnerChatListPage() {
                   })
                 : "";
 
+              if (!opponentInfo) {
+                return (
+                  <div>
+                    <h1>Pesan tidak valid</h1>
+                  </div>
+                );
+              }
+
               return (
-                <div
+                <Link
                   key={chat.id}
-                  onClick={() =>
-                    router.push(`/dashboard-kedai/chat/${chat.id}`)
-                  }
+                  href={`/dashboard-kedai/chat/${chat.id}`}
                   className={`p-4 hover:bg-gray-50 cursor-pointer flex gap-4 items-center ${
                     unreadCount > 0 ? "bg-blue-50/50" : ""
                   }`}
                 >
                   <Avatar className="size-11 shadow">
-                    <AvatarImage src={getImageUrl(chat.buyerAvatar)} />
+                    <AvatarImage src={getImageUrl(opponentInfo.avatar)} />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
                       <h3 className="font-semibold text-gray-900">
-                        {chat.buyerName}
+                        {opponentInfo.name}
                       </h3>
                       <span className="text-xs text-gray-500">
                         {timeDisplay}
@@ -169,7 +161,7 @@ export default function OwnerChatListPage() {
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

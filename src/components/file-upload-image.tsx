@@ -19,10 +19,14 @@ export function FileUploadImage({
   onFilesChange,
   multiple = true,
   initialPreviewUrl,
+  maxSize = 5 * 1024 * 1024,
+  placeholder = "Or click to browse (only 1 file, up to 5MB)",
 }: {
   onFilesChange?: (files: File[]) => void;
   multiple?: boolean;
   initialPreviewUrl?: string | null;
+  maxSize?: number;
+  placeholder?: string;
 }) {
   const [files, setFiles] = React.useState<File[]>([]);
 
@@ -75,7 +79,7 @@ export function FileUploadImage({
     <div>
       <FileUpload
         maxFiles={multiple ? 2 : 1}
-        maxSize={5 * 1024 * 1024}
+        maxSize={maxSize}
         className="w-full"
         value={files}
         onValueChange={handleFileUploadChange}
@@ -91,9 +95,15 @@ export function FileUploadImage({
               </div>
               <p className="font-medium text-sm">Drag & drop files here</p>
               <p className="text-muted-foreground text-xs">
-                {multiple
-                  ? "Or click to browse (max 2 files, up to 5MB each)"
-                  : "Or click to browse (only 1 file, up to 5MB)"}
+                {!placeholder ? (
+                  <>
+                    {multiple
+                      ? "Or click to browse (max 2 files, up to 5MB each)"
+                      : "Or click to browse (only 1 file, up to 5MB)"}
+                  </>
+                ) : (
+                  placeholder
+                )}
               </p>
             </div>
           ) : hasPreview ? (
@@ -115,9 +125,7 @@ export function FileUploadImage({
                 <Upload className="size-6 text-muted-foreground" />
               </div>
               <p className="font-medium text-sm">Drag & drop files here</p>
-              <p className="text-muted-foreground text-xs">
-                Or click to browse (only 1 file, up to 5MB)
-              </p>
+              <p className="text-muted-foreground text-xs">{placeholder}</p>
             </div>
           )}
           <FileUploadTrigger asChild></FileUploadTrigger>

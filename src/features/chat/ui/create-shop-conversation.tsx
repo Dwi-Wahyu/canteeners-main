@@ -1,35 +1,47 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useInitializeGuestProfile } from "@/hooks/use-guest-profile";
-import { useState } from "react";
-import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
-import { getAuth, signInAnonymously } from "firebase/auth";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
-import { createGuestCustomer } from "@/features/user/lib/user-actions";
 import { toast } from "sonner";
+import { createGuestSession } from "@/helper/create-guest-session";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Field, FieldError } from "@/components/ui/field";
+import { MessageCircle } from "lucide-react";
+import Link from "next/link";
 
 export default function CreateShopConversation({
-  ownerUserId,
-  shopName,
+  ownerAvatar,
+  ownerId,
+  ownerName,
+  userId: initialCartId,
 }: {
-  ownerUserId: string;
-  shopName: string;
+  ownerId: string;
+  ownerName: string;
+  ownerAvatar: string;
+  userId: string | undefined;
 }) {
-  const initGuestProfile = useInitializeGuestProfile();
+  const activeUserId = useRef(initialCartId);
+
   const router = useRouter();
 
   const [guestName, setGuestName] = useState("");
   const [showDialog, setShowDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const auth = getAuth();
-
-  function onClick() {
-    console.log(auth.currentUser);
-
-    if (!auth.currentUser) {
+  async function onClick() {
+    if (!activeUserId.current) {
       setShowDialog(true);
     } else {
       startChat();
@@ -37,30 +49,15 @@ export default function CreateShopConversation({
   }
 
   async function startChat() {
-    let user = auth.currentUser;
-
-    if (!user) {
-      const result = await signInAnonymously(auth);
-      user = result.user;
-
-      const guestUser = await createGuestCustomer({
-        firebaseUserUid: user.uid,
-        guestName,
-      });
-
-      if (guestUser.success && guestUser.data) {
-        await initGuestProfile({
-          cartId: guestUser.data.cart_id,
-          customerId: guestUser.data.customer_id,
-          userId: guestUser.data.user_id, // firebase uid
-        });
-        toast.success("Berhasil membuat guest user");
-      } else {
-        toast.error("Terjadi kesalahan");
-      }
+    if (!activeUserId.current) {
+      return;
     }
 
-    const chatId = `${user.uid}_${ownerUserId}`;
+    if (!guestName) {
+      return;
+    }
+
+    const chatId = `${activeUserId.current}_${ownerId}`;
 
     // create chat if not exists
     const chatRef = doc(db, "chats", chatId);
@@ -69,40 +66,109 @@ export default function CreateShopConversation({
     if (!chatSnap.exists()) {
       await setDoc(chatRef, {
         id: chatId,
-        buyerId: user.uid,
-        sellerId: ownerUserId,
 
-        participantIds: [user.uid, ownerUserId],
+        participantIds: [activeUserId.current, ownerId],
 
-        shopName,
+        participantsInfo: {
+          [ownerId]: {
+            name: ownerName,
+            avatar: ownerAvatar,
+            role: "SHOP_OWNER",
+          },
+          [activeUserId.current]: {
+            name: guestName,
+            avatar: "avatars/default-avatar.jpg",
+            role: "CUSTOMER",
+          },
+        },
 
+        lastMessage: "Memulai percakapan",
         lastMessageAt: serverTimestamp(),
-        lastMessage: "",
-
-        unreadCountBuyer: 0,
-        unreadCountSeller: 0,
+        lastMessageType: "TEXT",
+        lastMessageSenderId: activeUserId.current,
       });
     }
+
+    setIsLoading(false);
 
     router.push("/chat/" + chatId);
   }
 
-  async function onSaveGuestDetails() {
-    setShowDialog(false);
+  async function saveGuestDetails() {
+    setIsLoading(true);
+
+    if (!activeUserId.current) {
+      const { userId: createdUserId } = await createGuestSession({
+        name: guestName,
+      });
+
+      if (!createdUserId) {
+        toast.error("Gagal membuat sesi tamu, silakan coba lagi");
+        setIsLoading(false);
+        setShowDialog(false);
+        return;
+      }
+
+      // Simpan ke Ref agar klik berikutnya menggunakan ID ini
+      activeUserId.current = createdUserId;
+    }
+
     await startChat();
   }
 
   return (
-    <>
-      <Button onClick={onClick}>Hubungi Kedai</Button>
+    <div>
+      <Button onClick={onClick} variant={"ghost"}>
+        <MessageCircle />
+      </Button>
 
-      <GuestDetailsFormDialog
-        guestName={guestName}
-        setGuestName={setGuestName}
-        showGuestDetailsFormDialog={showDialog}
-        setShowGuestDetailsFormDialog={setShowDialog}
-        onSaveGuestDetails={onSaveGuestDetails}
-      />
-    </>
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <form>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-start">
+                Sesi Tidak Terdeteksi
+              </DialogTitle>
+              <DialogDescription className="text-start">
+                Sepertinya anda baru kali ini menggunakan{" "}
+                <span className="text-primary font-medium">Canteeners</span>{" "}
+                masukkan nama untuk dapat memulai percakapan
+              </DialogDescription>
+            </DialogHeader>
+
+            <Field>
+              <Input
+                autoComplete="off"
+                value={guestName ?? ""}
+                onChange={(event) => setGuestName(event.target.value)}
+                aria-invalid={!guestName}
+              />
+              {!guestName && <FieldError>Tolong isi nama.</FieldError>}
+            </Field>
+
+            <DialogFooter>
+              <Link
+                href={"/syarat-dan-ketentuan"}
+                className="text-sm underline text-blue-500 mt-2 text-center"
+              >
+                Pelajari Selengkapnya
+              </Link>
+              <div className="grid grid-cols-2 gap-4">
+                <DialogClose asChild>
+                  <Button variant="outline">Batal</Button>
+                </DialogClose>
+                <Button
+                  type="submit"
+                  disabled={!guestName || isLoading}
+                  onClick={saveGuestDetails}
+                >
+                  Simpan
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </form>
+      </Dialog>
+    </div>
   );
 }

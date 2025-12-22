@@ -4,7 +4,7 @@ import { compareSync } from "bcryptjs";
 import {
   CreateGuestSessionSchema,
   LoginSchema,
-} from "@/features/auth/lib/auth-type";
+} from "@/features/auth/types/auth-schemas";
 import { prisma } from "@/lib/prisma";
 import { adminAuth } from "@/lib/firebase/admin";
 

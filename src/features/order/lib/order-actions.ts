@@ -8,25 +8,72 @@ import {
 } from "@/helper/action-helper";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { adminDb } from "@/lib/firebase/admin"; // Import Firebase Admin
-import { FieldValue } from "firebase-admin/firestore"; // Import FieldValue
+import { adminDb } from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
+import { del } from "@vercel/blob";
+import { getImageUrl } from "@/helper/get-image-url";
 
 export async function confirmOrder({
   order_id,
-  conversation_id,
-  owner_id,
   shop_id,
   payment_method,
-  estimation,
 }: {
   order_id: string;
-  conversation_id: string;
   shop_id: string;
-  owner_id: string;
   payment_method: PaymentMethod;
-  estimation: number;
 }): Promise<ServerActionReturn<void>> {
   try {
+    const order = await prisma.order.findUnique({
+      where: {
+        id: order_id,
+      },
+      select: {
+        shop: {
+          select: {
+            owner: {
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        customer: {
+          select: {
+            user_id: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return errorResponse("Order tidak ditemukan");
+    }
+
+    const notificationRef = adminDb.collection("notifications");
+
+    // Send notification
+    const notificationData = {
+      recipientId: order.customer.user_id,
+      type: "ORDER",
+      subType: "ACCEPTED",
+      title: "Pesanan Diterima",
+      body:
+        payment_method === "CASH"
+          ? "Silakan bayar di kedai"
+          : "Silakan kirim bukti pembayaran",
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath: "/order/" + order_id,
+      createdAt: FieldValue.serverTimestamp(),
+      expiresAt: FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.add(notificationData);
+
     if (payment_method === "CASH") {
       await prisma.order.update({
         where: {
@@ -34,12 +81,12 @@ export async function confirmOrder({
         },
         data: {
           status: "WAITING_SHOP_CONFIRMATION",
-          estimation,
         },
       });
 
       revalidatePath("/dashboard-kedai/order/" + order_id);
       revalidatePath("/dashboard-pelanggan/order/" + order_id);
+      revalidatePath("/order/" + order_id);
 
       return successResponse(undefined, "Silakan lakukan pembayaran di kedai");
     }
@@ -50,15 +97,8 @@ export async function confirmOrder({
       },
       data: {
         status: "WAITING_PAYMENT",
-        estimation,
       },
     });
-
-    // Reference ke collection messages di Firestore
-    const messagesRef = adminDb
-      .collection("chats")
-      .doc(conversation_id)
-      .collection("messages");
 
     if (payment_method === "QRIS") {
       const shopQRISPayments = await prisma.payment.findFirst({
@@ -73,24 +113,9 @@ export async function confirmOrder({
         return errorResponse("kedai belum menerima pembayaran qris");
       }
 
-      // Kirim Pesan Firebase (Tipe Image dengan Attachment)
-      await messagesRef.add({
-        senderId: owner_id,
-        text: "Silakan kirim bukti pembayaran",
-        type: "image", // Tipe pesan image
-        order_id: order_id,
-        attachments: [
-          {
-            url: shopQRISPayments.qr_url!,
-            type: "image",
-          },
-        ],
-        readBy: [owner_id],
-        createdAt: FieldValue.serverTimestamp(),
-      });
-
       revalidatePath("/dashboard-kedai/order/" + order_id);
       revalidatePath("/dashboard-pelanggan/order/" + order_id);
+      revalidatePath("/order/" + order_id);
 
       return successResponse(undefined, "Silakan kirim bukti pembayaran");
     }
@@ -108,19 +133,9 @@ export async function confirmOrder({
         return errorResponse("kedai belum menerima pembayaran transfer bank");
       }
 
-      // Kirim Pesan Firebase (Tipe Text)
-      await messagesRef.add({
-        senderId: owner_id,
-        text: `Silakan transfer pada nomor rekening ${shopBankTransferPayments.account_number} ${shopBankTransferPayments.note}`,
-        type: "text",
-        order_id: order_id,
-        attachments: [],
-        readBy: [owner_id],
-        createdAt: FieldValue.serverTimestamp(),
-      });
-
       revalidatePath("/dashboard-kedai/order/" + order_id);
       revalidatePath("/dashboard-pelanggan/order/" + order_id);
+      revalidatePath("/order/" + order_id);
 
       return successResponse(undefined, "Silakan kirim bukti pembayaran");
     }
@@ -133,16 +148,12 @@ export async function confirmOrder({
 }
 
 export async function confirmPayment({
-  conversation_id,
   order_id,
-  owner_id,
 }: {
   order_id: string;
-  conversation_id: string;
-  owner_id: string;
 }): Promise<ServerActionReturn<void>> {
   try {
-    await prisma.order.update({
+    const order = await prisma.order.update({
       where: {
         id: order_id,
       },
@@ -150,22 +161,31 @@ export async function confirmPayment({
         status: "PROCESSING",
         processed_at: new Date(),
       },
+      select: {
+        customer: {
+          select: {
+            user_id: true,
+          },
+        },
+      },
     });
 
-    // Kirim Pesan Firebase (Konfirmasi Pembayaran)
-    await adminDb
-      .collection("chats")
-      .doc(conversation_id)
-      .collection("messages")
-      .add({
-        senderId: owner_id,
-        text: "Pesanan anda sedang diproses",
-        type: "system", // Gunakan 'system' atau 'text' sesuai kebutuhan UI
-        order_id: order_id,
-        attachments: [],
-        readBy: [owner_id],
-        createdAt: FieldValue.serverTimestamp(),
-      });
+    const notificationRef = adminDb.collection("notifications");
+
+    // Send notification
+    const notificationData = {
+      recipientId: order.customer.user_id,
+      type: "ORDER",
+      subType: "ACCEPTED",
+      title: "Pembayaran di Konfirmasi",
+      body: "Kedai sudah mulai menyiapkan pesanan anda",
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath: "/order/" + order_id,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.add(notificationData);
 
     revalidatePath(`/dashboard-kedai/order/${order_id}`);
     revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
@@ -206,41 +226,47 @@ export async function changeOrderEstimation({
 }
 
 export async function completeOrder({
-  conversation_id,
   order_id,
-  owner_id,
 }: {
   order_id: string;
-  conversation_id: string;
-  owner_id: string;
 }): Promise<ServerActionReturn<void>> {
   try {
-    await prisma.order.update({
+    const order = await prisma.order.update({
       where: {
         id: order_id,
       },
       data: {
         status: "COMPLETED",
       },
+      select: {
+        customer: {
+          select: {
+            user_id: true,
+          },
+        },
+      },
     });
 
-    // Kirim Pesan Firebase (Order Selesai)
-    await adminDb
-      .collection("chats")
-      .doc(conversation_id)
-      .collection("messages")
-      .add({
-        senderId: owner_id,
-        text: "Pesanan telah selesai silakan berikan ulasan atau rating untuk kami kak 🙏",
-        type: "system", // Gunakan 'system' atau 'text'
-        order_id: order_id,
-        attachments: [],
-        readBy: [owner_id],
-        createdAt: FieldValue.serverTimestamp(),
-      });
+    const notificationRef = adminDb.collection("notifications");
+
+    // Send notification
+    const notificationData = {
+      recipientId: order.customer.user_id,
+      type: "ORDER",
+      subType: "ACCEPTED",
+      title: "Order Selesai",
+      body: "Berikan testimoni untuk kedai atau untuk Canteeners 😊🙏",
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath: "/order/" + order_id,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.add(notificationData);
 
     revalidatePath(`/dashboard-kedai/order/${order_id}`);
     revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
+    revalidatePath(`/order/${order_id}`);
 
     return successResponse(undefined, "Berhasil mengubah status");
   } catch (error) {
@@ -257,7 +283,7 @@ export async function rejectOrder({
   rejected_reason: string;
 }) {
   try {
-    await prisma.order.update({
+    const order = await prisma.order.update({
       where: {
         id: order_id,
       },
@@ -265,10 +291,35 @@ export async function rejectOrder({
         status: "REJECTED",
         rejected_reason,
       },
+      select: {
+        customer: {
+          select: {
+            user_id: true,
+          },
+        },
+      },
     });
 
     revalidatePath(`/dashboard-kedai/order/${order_id}`);
     revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
+    revalidatePath(`/order/${order_id}`);
+
+    const notificationRef = adminDb.collection("notifications");
+
+    // Send notification
+    const notificationData = {
+      recipientId: order.customer.user_id,
+      type: "ORDER",
+      subType: "ACCEPTED",
+      title: "Pesanan Ditolak",
+      body: rejected_reason,
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath: "/order/" + order_id,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.add(notificationData);
 
     return successResponse(undefined, "Berhasil menolak order");
   } catch (error) {
@@ -277,7 +328,7 @@ export async function rejectOrder({
   }
 }
 
-export async function RejectPayment({
+export async function rejectPayment({
   order_id,
   reason,
 }: {
@@ -285,7 +336,7 @@ export async function RejectPayment({
   reason: string;
 }): Promise<ServerActionReturn<void>> {
   try {
-    await prisma.order.update({
+    const order = await prisma.order.update({
       where: {
         id: order_id,
       },
@@ -293,7 +344,31 @@ export async function RejectPayment({
         status: "PAYMENT_REJECTED",
         rejected_reason: reason.trim(),
       },
+      select: {
+        customer: {
+          select: {
+            user_id: true,
+          },
+        },
+      },
     });
+
+    const notificationRef = adminDb.collection("notifications");
+
+    // Send notification
+    const notificationData = {
+      recipientId: order.customer.user_id,
+      type: "ORDER",
+      subType: "ACCEPTED",
+      title: "Bukti Pembayaran Ditolak",
+      body: reason,
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath: "/order/" + order_id,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.add(notificationData);
 
     revalidatePath(`/dashboard-kedai/order/${order_id}`);
     revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
@@ -353,5 +428,80 @@ export async function cancelOrder({
     console.log(error);
 
     return errorResponse("Terjadi kesalahan");
+  }
+}
+
+export async function savePaymentProof({
+  proof_url,
+  order_id,
+}: {
+  proof_url: string;
+  order_id: string;
+}): Promise<ServerActionReturn<void>> {
+  try {
+    const order = await prisma.order.findFirst({
+      where: {
+        id: order_id,
+      },
+      select: {
+        payment_proof_url: true,
+        customer: {
+          select: {
+            user_id: true,
+            user: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      return errorResponse("Order tidak ditemukan");
+    }
+
+    // hapus nanti file yang lama, pastikan pake trycatch biar ga error
+    if (order.payment_proof_url) {
+      await del(getImageUrl(order.payment_proof_url));
+    }
+
+    await prisma.order.update({
+      where: {
+        id: order_id,
+      },
+      data: {
+        payment_proof_url: proof_url,
+        status: "WAITING_SHOP_CONFIRMATION",
+      },
+    });
+
+    const notificationRef = adminDb.collection("notifications");
+
+    // Send notification
+    const notificationData = {
+      recipientId: order.customer.user_id,
+      type: "ORDER",
+      subType: "PAYMENT_PROOF_SUBMITTED",
+      title: `Pelanggan Mengirim Bukti Pembayaran`,
+      body: `Tolong validasi bukti pembayaran ${order.customer.user.name}`,
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath: `/dashboard-kedai/order/${order_id}/pembayaran`,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.add(notificationData);
+
+    revalidatePath("/dashboard-kedai/order/" + order_id);
+    revalidatePath("/dashboard-pelanggan/order/" + order_id);
+    revalidatePath("/order/" + order_id);
+
+    return successResponse(undefined, "Sukses mengirim bukti pembayaran");
+  } catch (error) {
+    console.log(error);
+
+    return errorResponse("Silakan Hubungi CS, Atau coba lagi nanti");
   }
 }

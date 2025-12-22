@@ -37,11 +37,11 @@ import { uuidv4 } from "zod";
 export function ChatInput({
   chatId,
   currentUserId,
-  isOwner,
+  opponentId,
 }: {
   chatId: string;
   currentUserId: string;
-  isOwner: boolean;
+  opponentId: string;
 }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -75,7 +75,7 @@ export function ChatInput({
     // Set typing to false after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       updateTypingStatus(false);
-    }, 3000);
+    }, 2000);
   };
 
   const onUpload: NonNullable<FileUploadProps["onUpload"]> = useCallback(
@@ -176,7 +176,7 @@ export function ChatInput({
       const messageData = {
         senderId: currentUserId,
         text: text,
-        type: mediaData.length > 0 ? "image" : "text", // Or keep 'text' and just add media? Standard chat apps often switch type or allow mixed. Let's assume mixed is fine or 'text' with attachments. User req: "add additional attributes... media: [...]"
+        type: mediaData.length > 0 ? "ATTACHMENT" : "TEXT",
         // Let's keep existing logic but add media field.
         // Note: User request says "users can send more 1 - 4 media in single message"
         // And "no need to store the messages media to postgresql prisma", implying we just store in the message doc.
@@ -190,14 +190,17 @@ export function ChatInput({
       // Update Parent Chat Document (Metadata)
       const chatRef = doc(db, "chats", chatId);
 
-      const unreadUpdate = isOwner
-        ? { unreadCountBuyer: increment(1) }
-        : { unreadCountSeller: increment(1) };
-
       await updateDoc(chatRef, {
-        lastMessage: text || (mediaData.length > 0 ? "Sent an image" : ""),
+        lastMessage: text
+          ? text
+          : mediaData.length > 0
+          ? "Mengirim lampiran"
+          : "",
         lastMessageAt: serverTimestamp(),
-        ...unreadUpdate,
+        lastMessageType: text ? "TEXT" : "ATTACHMENT",
+        lastMessageSenderId: currentUserId,
+
+        [`unreadCounts.${opponentId}`]: increment(1),
       });
 
       setText("");
@@ -239,7 +242,7 @@ export function ChatInput({
           </div>
         </FileUploadDropzone>
 
-        <div className="relative flex w-full flex-col gap-2 rounded-md border border-input bg-transparent px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-ring">
+        <div className="relative flex w-full flex-col gap-2 rounded-md border border-input bg-card px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-ring">
           {/* Preview Grid */}
           {attachments.length > 0 && (
             <FileUploadList

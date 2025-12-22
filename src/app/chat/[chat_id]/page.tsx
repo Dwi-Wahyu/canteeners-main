@@ -7,5 +7,5 @@ export default async function ChatDetailPage({
 }) {
   const { chat_id } = await params;
 
-  return <ClientChatPage chatId={chat_id} />;
+  return <ClientChatPage chatId={chat_id} role="CUSTOMER" />;
 }

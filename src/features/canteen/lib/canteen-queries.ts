@@ -2,53 +2,68 @@
 
 import { ShopSearchParamsInput } from "@/features/shop/types/shop-search-params";
 import { Prisma } from "@/generated/prisma";
-import { prismaAccelerate } from "@/lib/prisma";
+import { prisma, prismaAccelerate } from "@/lib/prisma";
 
-export async function getCanteenBySlug(slug: string, search: ShopSearchParamsInput) {
+export async function getCanteenBySlug(
+  slug: string,
+  search: ShopSearchParamsInput
+) {
   const { name, categories, minimumPrice, maximumPrice } = search;
 
-  type WhereClause = Prisma.ShopWhereInput
+  type WhereClause = Prisma.ShopWhereInput;
 
-  let whereClause: WhereClause = {}
+  let whereClause: WhereClause = {};
 
   if (name) {
-    whereClause['name'] = {
+    whereClause["name"] = {
       contains: name,
-    }
+    };
   }
 
   if (minimumPrice) {
-    whereClause['minimum_price'] = {
+    whereClause["minimum_price"] = {
       gte: minimumPrice,
-    }
+    };
   }
 
   if (maximumPrice) {
-    whereClause['maximum_price'] = {
+    whereClause["maximum_price"] = {
       lte: maximumPrice,
-    }
+    };
   }
 
   if (categories.length > 0) {
-    whereClause['products'] = {
+    whereClause["products"] = {
       some: {
         categories: {
           every: {
             category_id: {
-              in: categories
-            }
-          }
-        }
-      }
-    }
+              in: categories,
+            },
+          },
+        },
+      },
+    };
   }
 
-  return await prismaAccelerate.canteen.findUnique({
+  return await prisma.canteen.findUnique({
     where: { slug },
     include: {
       shops: {
         where: whereClause,
         select: {
+          _count: {
+            select: {
+              orders: {
+                where: {
+                  status: "COMPLETED",
+                  testimony: {
+                    isNot: null,
+                  },
+                },
+              },
+            },
+          },
           id: true,
           image_url: true,
           name: true,
@@ -74,6 +89,7 @@ export async function getCanteenIncludeMaps(slug: string) {
     select: {
       id: true,
       name: true,
+      slug: true,
       maps: {
         select: {
           floor: true,

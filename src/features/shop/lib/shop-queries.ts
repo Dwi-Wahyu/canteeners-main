@@ -35,6 +35,17 @@ export async function getShopAndProducts(
           slug: true,
         },
       },
+      owner: {
+        select: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+      },
       description: true,
       image_url: true,
       average_rating: true,
@@ -71,8 +82,8 @@ export async function getShopTestimonies(shop_id: string) {
                 select: {
                   name: true,
                   avatar: true,
-                }
-              }
+                },
+              },
             },
           },
         },

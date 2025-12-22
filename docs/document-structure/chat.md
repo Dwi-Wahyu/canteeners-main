@@ -9,18 +9,36 @@
     "{sellerId}"
   ],
 
-  "buyerId": "{buyerId}",
-  "sellerId": "{sellerId}",
-
   "lastMessage": "Pesannya masih tersedia?",
-  "lastMessageType": "text",
+  "lastMessageType": "TEXT" | "ORDER" | "ATTACHMENT",
   "lastMessageAt": "2025-03-22T10:15:09Z",
   "lastMessageSenderId": "{buyerId}"
 
-  "unreadCountGuest": 0,
-  "unreadCountOwner": 2,
+  "participantsInfo": {
+    "{buyerId}": {
+      "name": "Budi",
+      "avatar": "avatars/buyer-avatar.jpg",
+      "role": "CUSTOMER",
+      "lastSeenAt": "2025-12-21T10:15:09Z"
+    },
+    "{sellerId}": {
+      "name": "Toko ABC",
+      "avatar": "avatars/seller-avatar.jpg",
+      "role": "SHOP_OWNER",
+      "lastSeenAt": "2025-12-21T10:15:09Z"
+    }
+  },
 
-  "typing": ['{ownerId}', '{buyerId}'],
+  unreadCounts: Record<string, number>;
+
+  lastSeenAt: {
+    "{buyerId}": "2025-12-21T10:15:09Z",
+    "{sellerId}": "2025-12-21T10:15:09Z"
+  },
+
+  "typing": {
+    '{ownerId}': true,
+  },
 
   "createdAt": "2025-03-22T10:00:00Z",
   "updatedAt": "2025-03-22T10:15:09Z"
@@ -34,7 +52,7 @@
   "id": "{messageId}",
   "senderId": "{buyerId}",
 
-  "type": "text",
+  "type": "TEXT" | "ORDER" | "ATTACHMENT",
   "text": "Pesannya masih tersedia?",
   "imageUrl": null,
 

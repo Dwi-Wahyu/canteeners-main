@@ -10,6 +10,7 @@ import { auth } from "@/config/auth";
 import { redirect } from "next/navigation";
 import { getCart } from "@/features/cart/lib/cart-queries";
 import { getImageUrl } from "@/helper/get-image-url";
+import LandingTopbar from "@/components/layouts/landing-topbar";
 
 export default async function GuestCartPage() {
   const session = await auth();
@@ -30,18 +31,12 @@ export default async function GuestCartPage() {
   }
 
   return (
-    <div>
-      <div className="w-full p-4 flex items-center text-primary-foreground justify-between bg-linear-to-r from-primary to-primary/90">
-        <div className="flex gap-2 items-center ">
-          <NavButton size="icon" variant="ghost" href="/chat">
-            <ChevronLeft />
-          </NavButton>
+    <div className="p-5 pt-24">
+      <LandingTopbar />
 
-          <h1 className="text-xl">Keranjang</h1>
-        </div>
-      </div>
+      <h1 className="text-lg font-semibold mb-4">Keranjang</h1>
 
-      <div className="p-5 flex flex-col gap-7">
+      <div className="flex flex-col gap-7">
         {data.shop_carts.map((shopCart, idx) => (
           <Link href={"/keranjang/" + shopCart.id} key={idx}>
             <Card className="relative">

@@ -16,6 +16,7 @@ import { Field, FieldError } from "@/components/ui/field";
 import { changeGuestName } from "@/features/user/lib/user-actions";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export function GuestDetailsFormDialog({
   userId,
@@ -28,6 +29,8 @@ export function GuestDetailsFormDialog({
   setShowGuestDetailsFormDialog: (open: boolean) => void;
   saveGuestDetails: () => void;
 }) {
+  const { update, data: session } = useSession();
+
   const [guestName, setGuestName] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +41,17 @@ export function GuestDetailsFormDialog({
     const result = await changeGuestName({ id: userId, name: guestName! });
 
     if (result.success) {
+      // Ubah nama di session lokal
+      if (session) {
+        update({
+          ...session,
+          user: {
+            ...session.user,
+            name: guestName,
+          },
+        });
+      }
+
       setShowGuestDetailsFormDialog(false);
       saveGuestDetails();
       setIsLoading(false);

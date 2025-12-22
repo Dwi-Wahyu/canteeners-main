@@ -2,6 +2,114 @@
 
 import { prisma } from "@/lib/prisma";
 
+export async function getShopOrderDetail(id: string) {
+  return await prisma.order.findFirst({
+    where: {
+      id,
+    },
+    include: {
+      order_items: {
+        select: {
+          quantity: true,
+          price_at_add: true,
+          subtotal: true,
+          note: true,
+          product: {
+            select: {
+              name: true,
+              image_url: true,
+            },
+          },
+        },
+      },
+      shop: {
+        select: {
+          canteen: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          name: true,
+          owner_id: true,
+        },
+      },
+      testimony: true,
+      customer: {
+        select: {
+          table_number: true,
+          floor: true,
+
+          user: {
+            select: {
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getCustomerOrderDetail(id: string) {
+  return prisma.order.findFirst({
+    where: {
+      id,
+    },
+    include: {
+      order_items: {
+        select: {
+          quantity: true,
+          subtotal: true,
+          price_at_add: true,
+          note: true,
+          product: {
+            select: {
+              name: true,
+              image_url: true,
+            },
+          },
+        },
+      },
+      shop: {
+        select: {
+          canteen: {
+            select: {
+              slug: true,
+              name: true,
+            },
+          },
+          payments: {
+            select: {
+              method: true,
+              qr_url: true,
+              additional_price: true,
+              note: true,
+              account_number: true,
+            },
+          },
+          owner_id: true,
+        },
+      },
+      complaint: true,
+      testimony: true,
+      customer: {
+        select: {
+          user: {
+            select: {
+              name: true,
+              avatar: true,
+            },
+          },
+          table_number: true,
+          floor: true,
+        },
+      },
+    },
+  });
+}
+
 export async function getOrderSummaryForChatBubble(id: string) {
   return await prisma.order.findFirst({
     where: {
@@ -89,6 +197,34 @@ export async function getOrderDetail(id: string) {
             select: {
               name: true,
               avatar: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getOrderAndPaymentMethod(order_id: string) {
+  return await prisma.order.findUnique({
+    where: {
+      id: order_id,
+    },
+    select: {
+      conversation_id: true,
+      status: true,
+      payment_method: true,
+      payment_proof_url: true,
+      total_price: true,
+      shop: {
+        select: {
+          payments: {
+            select: {
+              method: true,
+              qr_url: true,
+              additional_price: true,
+              note: true,
+              account_number: true,
             },
           },
         },

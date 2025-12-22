@@ -26,3 +26,7 @@ Update fungsi untuk handle docs structure collection chats
 Buat fungsionalitas notifikasi
 
 Pelajari Firebase Cloud Messaging FCM untuk notifikasi tidak perlu pakai firestore
+
+Enable billing untuk bisa bikin ttl policy
+
+Pelajari cara auto purge notification selain buat rule ttl dan harus enable billing

@@ -5,10 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import CustomerProductCard from "@/features/product/ui/customer-product-card";
 import NoProductFound from "./no-product-found";
-import { getShopAndProducts } from "../lib/shop-queries";
 import { GetShopAndProducts } from "../types/shop-queries-types";
-import CategoryScroller from "@/features/category/ui/category-scroller";
-import { GetCategories } from "@/features/category/types/category-queries-types";
 
 export default function ShopProductList({
   shop,

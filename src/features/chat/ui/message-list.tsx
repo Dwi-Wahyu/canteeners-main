@@ -8,15 +8,15 @@ import {
   doc,
   writeBatch,
   arrayUnion,
-  updateDoc,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase/client"; // Sesuaikan path import
-import { format } from "date-fns"; // install date-fns untuk format jam
-import { Message, MediaItem } from "../lib/chat-types";
+import { db } from "@/lib/firebase/client";
+import { format } from "date-fns";
+import { Message, Attachment } from "../types";
 import { MediaGallery } from "./media-gallery";
 import { PlayCircle, Check, CheckCheck } from "lucide-react";
 import CustomerOrderChatBubble from "./customer-order-chat-bubble";
 import ShopOrderChatBubble from "./shop-order-chat-bubble";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function MessageList({
   chatId,
@@ -86,7 +86,7 @@ export function MessageList({
 
       const batch = writeBatch(db);
 
-      // 1. Update each message's readBy
+      // Update each message's readBy
       unreadMessages.forEach((msg) => {
         const msgRef = doc(db, "chats", chatId, "messages", msg.id);
         batch.update(msgRef, {
@@ -94,12 +94,11 @@ export function MessageList({
         });
       });
 
-      // 2. Reset unread count on parent chat document
+      // Reset unread count on parent chat document
       const chatRef = doc(db, "chats", chatId);
-      const unreadField = isOwner ? "unreadCountSeller" : "unreadCountBuyer";
 
       batch.update(chatRef, {
-        [unreadField]: 0,
+        [`unreadCounts.${currentUserId}`]: 0,
       });
 
       try {
@@ -116,21 +115,20 @@ export function MessageList({
 
   // Flatten all attachments from all messages into a single array for the gallery
   // We also need to map them back to find the index when a user clicks a specific image
-  const allMediaItems = useMemo(() => {
-    const items: MediaItem[] = [];
+  const attachments = useMemo(() => {
+    const items: Attachment[] = [];
     messages.forEach((msg) => {
       if (msg.attachments && msg.attachments.length > 0) {
         items.push(...msg.attachments);
-      } else if (msg.media && msg.media.length > 0) {
-        // Backward compatibility
-        items.push(...msg.media);
+      } else if (msg.attachments && msg.attachments.length > 0) {
+        items.push(...msg.attachments);
       }
     });
     return items;
   }, [messages]);
 
   const handleMediaClick = (clickedUrl: string) => {
-    const index = allMediaItems.findIndex((item) => item.url === clickedUrl);
+    const index = attachments.findIndex((item) => item.url === clickedUrl);
     if (index !== -1) {
       setInitialMediaIndex(index);
       setGalleryOpen(true);
@@ -138,12 +136,12 @@ export function MessageList({
   };
 
   return (
-    <div className="container p-5 pt-20 mb-96 max-w-7xl mx-auto flex flex-col gap-4">
+    <ScrollArea className="container p-5 pt-20 max-w-7xl mx-auto flex flex-col gap-4">
       {messages.map((msg) => {
         const isSender = msg.senderId === currentUserId;
-        const msgAttachments = msg.attachments || msg.media || [];
+        const msgAttachments = msg.attachments || msg.attachments || [];
 
-        if (msg.type === "order" && msg.order_id) {
+        if (msg.type === "ORDER" && msg.order_id) {
           if (isSender) {
             return (
               <CustomerOrderChatBubble order_id={msg.order_id} key={msg.id} />
@@ -156,7 +154,7 @@ export function MessageList({
         return (
           <div
             key={msg.id}
-            className={`flex flex-col ${
+            className={`flex flex-col mb-4 ${
               isSender ? "items-end" : "items-start"
             }`}
           >
@@ -262,8 +260,8 @@ export function MessageList({
         isOpen={galleryOpen}
         onOpenChange={setGalleryOpen}
         initialIndex={initialMediaIndex}
-        mediaItems={allMediaItems}
+        attachments={attachments}
       />
-    </div>
+    </ScrollArea>
   );
 }

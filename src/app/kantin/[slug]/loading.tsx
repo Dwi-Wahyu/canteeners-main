@@ -6,9 +6,7 @@ export default function LoadingCanteenPage() {
     <div>
       <CanteenTopbar shopCount={0} />
 
-      <div className="p-5 flex-col pt-24 flex gap-5">
-        <Skeleton className="w-full h-10" />
-
+      <div className="p-5 flex-col pt-28 flex gap-5">
         <div className="grid grid-cols-2 gap-4">
           <Skeleton className="w-full h-10" />
           <Skeleton className="w-full h-10" />

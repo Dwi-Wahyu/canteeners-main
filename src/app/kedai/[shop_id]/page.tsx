@@ -1,12 +1,13 @@
 import NavButton from "@/components/nav-button";
 import { auth } from "@/config/auth";
 import { getExistingPendingShopCart } from "@/features/cart/lib/cart-queries";
+import CreateShopConversation from "@/features/chat/ui/create-shop-conversation";
 import { getShopAndProducts } from "@/features/shop/lib/shop-queries";
 import { ShopProductsSearchParams } from "@/features/shop/types/shop-search-params";
 import ShopProductList from "@/features/shop/ui/shop-product-list";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
-import { ChevronLeft, MessageCircle, ShoppingCart, Star } from "lucide-react";
+import { ChevronLeft, ShoppingCart, Star } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SearchParams } from "nuqs";
@@ -55,11 +56,17 @@ export default async function ShopDetail({
             </Link>
 
             <div className="flex gap-1 items-center">
-              <NavButton href={""} variant="ghost">
-                <MessageCircle />
-              </NavButton>
+              <CreateShopConversation
+                userId={session?.user.id}
+                ownerId={shop.owner.user.id}
+                ownerName={shop.owner.user.name}
+                ownerAvatar={shop.owner.user.avatar}
+              />
 
-              <NavButton href={"/kedai/" + shop_id + "/testimoni"} variant="ghost">
+              <NavButton
+                href={"/kedai/" + shop_id + "/testimoni"}
+                variant="ghost"
+              >
                 <Star />
               </NavButton>
             </div>

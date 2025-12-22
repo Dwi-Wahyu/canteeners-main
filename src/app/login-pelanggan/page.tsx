@@ -18,7 +18,7 @@ import {
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
-import { LoginSchema, LoginInput } from "@/features/auth/lib/auth-type";
+import { LoginSchema, LoginInput } from "@/features/auth/types/auth-schemas";
 import { useEffect } from "react";
 
 export default function LoginPelangganPage() {

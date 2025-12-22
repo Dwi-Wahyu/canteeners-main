@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Dot, Loader, Minus, Plus, Star } from "lucide-react";
+import { Check, Dot, Loader, Minus, Plus, Star } from "lucide-react";
 import { productOptionTypeMapping } from "@/constant/product-mapping";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import Link from "next/link";
@@ -27,6 +27,8 @@ export default function GuestProductDetail({
   // Gunakan State atau Ref untuk menyimpan cartId yang mungkin berubah dan butuh nilainya instan tanpa menunggu re-render untuk logika,
   // tapi useState juga oke jika ingin memicu UI update.
   const activeCartId = useRef(initialCartId);
+
+  const [added, setAdded] = useState(false);
 
   // Update ref jika prop berubah (misal setelah refresh halaman)
   useEffect(() => {
@@ -142,7 +144,11 @@ export default function GuestProductDetail({
             <Button onClick={notificationDialog.hide} variant={"outline"}>
               Lanjut Belanja
             </Button>
-            <Link href={"/keranjang/" + result.data?.shopCartId} passHref>
+            <Link
+              className="cursor-pointer"
+              href={"/keranjang/" + result.data?.shopCartId}
+              passHref
+            >
               <Button variant="default" onClick={notificationDialog.hide}>
                 Lihat Keranjang
               </Button>
@@ -150,6 +156,8 @@ export default function GuestProductDetail({
           </div>
         ),
       });
+
+      setAdded(true);
     } else {
       notificationDialog.error({
         title: "Gagal Tambahkan Ke Keranjang",
@@ -303,15 +311,24 @@ export default function GuestProductDetail({
       <Button
         className="mt-2 py-6 flex justify-between items-center"
         onClick={handleAddToCart}
-        disabled={isLoading}
+        disabled={isLoading || added}
         size={"lg"}
       >
-        {isLoading ? (
+        {isLoading && (
           <div className="flex items-center gap-2 w-full justify-center">
             <Loader className="animate-spin" />
             Menambahkan...
           </div>
-        ) : (
+        )}
+
+        {added && (
+          <div className="flex items-center gap-2 justify-center w-full">
+            <Check />
+            <h1>Ditambahkan ke keranjang</h1>
+          </div>
+        )}
+
+        {!added && !isLoading && (
           <>
             <h1>Tambah Ke Keranjang</h1>
             <h1>Rp{calculateTotalPrice()}</h1>

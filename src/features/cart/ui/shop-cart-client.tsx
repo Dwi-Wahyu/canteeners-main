@@ -26,6 +26,7 @@ export default function ShopCartClient({
   ableToCheckout,
   open_time,
   close_time,
+  nameAlreadySet,
 }: {
   userId: string;
   shopCart: GetShopCartType;
@@ -33,13 +34,13 @@ export default function ShopCartClient({
   ableToCheckout: boolean;
   open_time: Date | null;
   close_time: Date | null;
+  nameAlreadySet: boolean;
 }) {
   const [showSnk, setShowSnk] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     shopCart.payment_method
   );
 
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [checkouted, setCheckouted] = useState(false);
   const [showGuestDetailsFormDialog, setShowGuestDetailsFormDialog] =
     useState(false);
@@ -49,7 +50,12 @@ export default function ShopCartClient({
   );
 
   function handleClickCheckout() {
-    setShowGuestDetailsFormDialog(true);
+    // Jika belum set nama / masih default = ""
+    if (!nameAlreadySet) {
+      setShowGuestDetailsFormDialog(true);
+    } else {
+      setShowSnk(true);
+    }
   }
 
   function saveGuestDetails() {
@@ -74,28 +80,28 @@ export default function ShopCartClient({
           title: "Sukses checkout keranjang",
           message: "Order berhasil dicatat",
           actionButtons: (
-            <>
+            <div className="flex flex-col gap-4">
               <Button
                 onClick={notificationDialog.hide}
                 variant={"outline"}
+                className="cursor-pointer w-full"
                 asChild
               >
-                <Link
-                  href={"/dashboard-pelanggan/order/" + data.data?.order_id}
-                >
+                <Link href={"/order/" + data.data?.order_id}>
                   Lihat Detail Order
                 </Link>
               </Button>
               <Button
                 variant="default"
                 onClick={notificationDialog.hide}
+                className="cursor-pointer w-full"
                 asChild
               >
                 <Link href={"/chat/" + data.data?.conversation_id}>
                   Hubungi Pemilik Kedai
                 </Link>
               </Button>
-            </>
+            </div>
           ),
         });
       } else {
@@ -176,7 +182,7 @@ export default function ShopCartClient({
         customerProfile={customerProfile}
         postOrderType={postOrderType}
         setPostOrderType={setPostOrderType}
-        selectTablePageUrl={`/kantin/${shopCart.shop.canteen_id}/pilih-meja`}
+        selectTablePageUrl={`/kantin/${shopCart.shop.canteen.slug}/pilih-meja`}
       />
 
       <div className="flex flex-col gap-1">
@@ -206,7 +212,7 @@ export default function ShopCartClient({
       </div>
 
       {shopCart.order_id !== null && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-4">
           <Button className="py-6" size={"lg"} asChild>
             <Link href={"/order/" + shopCart.order_id}>Lihat Detail Order</Link>
           </Button>

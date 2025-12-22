@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "nextjs-toploader/app";
 import { Loader, Eye, EyeOff } from "lucide-react";
-import { LoginSchema, LoginInput } from "@/features/auth/lib/auth-type";
+import { LoginSchema, LoginInput } from "@/features/auth/types/auth-schemas";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -61,7 +61,6 @@ export default function LoginKedaiPage() {
     <div className="min-h-screen flex flex-col items-center">
       {/* Mobile-first centered container for desktop */}
       <div className="w-full max-w-[480px] bg-white min-h-screen flex flex-col shadow-xl">
-
         {/* Header Section */}
         <div className="relative bg-primary h-[300px] w-full rounded-b-[60px] flex flex-col items-center justify-center text-white overflow-hidden shrink-0">
           {/* Background decoration circles could go here if needed, but keeping it simple first */}
@@ -84,7 +83,9 @@ export default function LoginKedaiPage() {
         <div className="flex-1 px-8 pt-10 pb-6 flex flex-col">
           <div className="mb-8">
             <h2 className="text-2xl font-bold">Selamat Datang</h2>
-            <h2 className="text-lg text-muted-foreground">Masukkan Akun Kedai Anda</h2>
+            <h2 className="text-lg text-muted-foreground">
+              Masukkan Akun Kedai Anda
+            </h2>
           </div>
 
           <form
@@ -105,7 +106,9 @@ export default function LoginKedaiPage() {
                 autoComplete="off"
               />
               {form.formState.errors.username && (
-                <p className="text-sm text-red-500">{form.formState.errors.username.message}</p>
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.username.message}
+                </p>
               )}
             </div>
 
@@ -136,15 +139,23 @@ export default function LoginKedaiPage() {
                 </button>
               </div>
               {form.formState.errors.password && (
-                <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.password.message}
+                </p>
               )}
             </div>
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-2">
-                <Checkbox id="remember" className="h-5 w-5 rounded-md border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:text-white" />
-                <Label htmlFor="remember" className="text-sm text-gray-400 font-normal cursor-pointer">
+                <Checkbox
+                  id="remember"
+                  className="h-5 w-5 rounded-md border-gray-300 data-[state=checked]:bg-primary data-[state=checked]:text-white"
+                />
+                <Label
+                  htmlFor="remember"
+                  className="text-sm text-gray-400 font-normal cursor-pointer"
+                >
                   Remember me?
                 </Label>
               </div>
