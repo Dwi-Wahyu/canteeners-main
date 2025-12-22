@@ -20,15 +20,18 @@ export async function getCanteenBySlug(
     };
   }
 
+  // Price range overlap logic:
+  // - Shop's minimum_price should be <= user's maximumPrice (shop has items at/below max)
+  // - Shop's maximum_price should be >= user's minimumPrice (shop has items at/above min)
   if (minimumPrice) {
-    whereClause["minimum_price"] = {
-      gte: minimumPrice,
+    whereClause["maximum_price"] = {
+      gte: minimumPrice, // Shop's highest price is at least the user's minimum
     };
   }
 
   if (maximumPrice) {
-    whereClause["maximum_price"] = {
-      lte: maximumPrice,
+    whereClause["minimum_price"] = {
+      lte: maximumPrice, // Shop's lowest price is at most the user's maximum
     };
   }
 

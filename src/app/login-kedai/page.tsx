@@ -27,28 +27,6 @@ export default function LoginKedaiPage() {
     },
   });
 
-  async function fastLogin() {
-    const res = await signIn("credentials", {
-      username: "ahmad_subarjo@gmail.com",
-      password: "ahmad_subarjo123",
-      isGuest: "false",
-      redirect: false,
-    });
-
-    if (res?.error) {
-      form.setError("username", {
-        type: "manual",
-        message: "Username atau Password salah",
-      });
-      form.setError("password", {
-        type: "manual",
-        message: "Username atau Password salah",
-      });
-    } else {
-      router.push("/dashboard-kedai");
-    }
-  }
-
   async function onSubmit(data: LoginInput) {
     const res = await signIn("credentials", {
       username: data.username,
@@ -206,14 +184,6 @@ export default function LoginKedaiPage() {
               )}
             </Button>
           </form>
-
-          <Button
-            onClick={fastLogin}
-            type="button"
-            className="mt-4 h-12 w-full text-base font-semibold"
-          >
-            Fast Login
-          </Button>
         </div>
       </div>
     </div>
