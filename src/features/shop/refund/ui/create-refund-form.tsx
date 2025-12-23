@@ -37,7 +37,8 @@ import {
   refundDisbursementModeMapping,
 } from "@/constant/refund-mapping";
 import { RefundDisbursementMode, RefundReason } from "@/generated/prisma";
-import { getImageUrl } from "@/helper/get-image-url";
+import { getFileExtension } from "@/helper/file-helper";
+import { uuidv4 } from "zod";
 
 interface CreateRefundFormProps {
   order: {
@@ -136,10 +137,8 @@ export function CreateRefundForm({
 
     try {
       const formData = new FormData();
-      const ext = file.name.split(".").pop();
-      const randomName = `complaint-proofs/${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(7)}.${ext}`;
+      const ext = getFileExtension(file.name);
+      const randomName = `complaint-proofs/${uuidv4()}.${ext}`;
 
       formData.append("file", file);
       formData.append("filename", randomName);
@@ -350,7 +349,7 @@ export function CreateRefundForm({
               <FormControl>
                 <Textarea
                   placeholder="Jelaskan detail masalah Anda..."
-                  className="min-h-[100px] resize-none"
+                  className="min-h-25 resize-none"
                   {...field}
                   value={field.value || ""}
                 />

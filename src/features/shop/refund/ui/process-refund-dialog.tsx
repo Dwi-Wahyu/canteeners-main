@@ -17,21 +17,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormDescription, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CheckCircle, Loader2, Upload, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import { refundDisbursementModeMapping } from "@/constant/refund-mapping";
+import { getFileExtension } from "@/helper/file-helper";
+import { uuidv4 } from "zod";
 
 interface ProcessRefundDialogProps {
   open: boolean;
@@ -90,10 +84,8 @@ export function ProcessRefundDialog({
 
     try {
       const formData = new FormData();
-      const ext = file.name.split(".").pop();
-      const randomName = `disbursement-proofs/${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(7)}.${ext}`;
+      const ext = getFileExtension(file.name);
+      const randomName = `disbursement-proofs/${uuidv4()}.${ext}`;
 
       formData.append("file", file);
       formData.append("filename", randomName);
@@ -152,7 +144,7 @@ export function ProcessRefundDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>Proses Refund</DialogTitle>
           <DialogDescription>
