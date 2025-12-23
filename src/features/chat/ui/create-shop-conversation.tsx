@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
@@ -20,31 +20,47 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldError } from "@/components/ui/field";
 import { MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 
 export default function CreateShopConversation({
   ownerAvatar,
   ownerId,
   ownerName,
-  userId: initialCartId,
+  userId: initialUserId,
+  displayName,
 }: {
   ownerId: string;
   ownerName: string;
   ownerAvatar: string;
   userId: string | undefined;
+  displayName: string | undefined;
 }) {
-  const activeUserId = useRef(initialCartId);
+  const activeUserId = useRef(initialUserId);
 
   const router = useRouter();
 
-  const [guestName, setGuestName] = useState("");
+  const [guestName, setGuestName] = useState(displayName ?? "");
   const [showDialog, setShowDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [user, setUser] = useState<User | null>(null);
+
+  // Cek Status Login
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      console.log(currentUser);
+      if (!currentUser) setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   async function onClick() {
     if (!activeUserId.current) {
       setShowDialog(true);
     } else {
-      startChat();
+      await startChat();
     }
   }
 

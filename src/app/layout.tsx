@@ -3,7 +3,6 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import NextTopLoader from "nextjs-toploader";
-import NotificationDialog from "@/components/notification-dialog";
 
 const poppins = Poppins({
   variable: "--font-poppins",

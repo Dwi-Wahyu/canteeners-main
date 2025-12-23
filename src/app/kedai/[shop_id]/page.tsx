@@ -58,6 +58,7 @@ export default async function ShopDetail({
             <div className="flex gap-1 items-center">
               <CreateShopConversation
                 userId={session?.user.id}
+                displayName={session?.user.name}
                 ownerId={shop.owner.user.id}
                 ownerName={shop.owner.user.name}
                 ownerAvatar={shop.owner.user.avatar}

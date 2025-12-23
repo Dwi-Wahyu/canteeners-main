@@ -13,12 +13,10 @@ import {
 } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent } from "@/components/ui/card";
 import LandingTopbar from "@/components/layouts/landing-topbar";
 import NavButton from "@/components/nav-button";
 import { FeatureCard } from "@/components/feature-card";
 import LandingFooter from "@/components/layouts/landing-footer";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import AppTestimonyList from "@/features/testimony/ui/app-testimony-list";
 
 export default async function LandingPage() {

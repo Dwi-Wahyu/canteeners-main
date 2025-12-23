@@ -14,6 +14,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <FirebaseAuthSync />
+
       <QueryClientProvider client={queryClient}>
         <NuqsAdapter>
           <ThemeProvider
