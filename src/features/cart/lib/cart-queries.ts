@@ -27,6 +27,30 @@ export async function getCart(cart_id: string) {
               items: true,
             },
           },
+          items: {
+            select: {
+              id: true,
+              quantity: true,
+              subtotal: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  image_url: true,
+                },
+              },
+              selected_options: {
+                select: {
+                  value: true,
+                  product_option: {
+                    select: {
+                      option: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },

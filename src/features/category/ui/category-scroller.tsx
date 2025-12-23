@@ -10,7 +10,7 @@ export default function CategoryScroller({
   categories: GetCategories;
 }) {
   const itemWidthClass =
-    "min-w-[calc(100%/3)] sm:min-w-[160px] md:min-w-[200px]";
+    "min-w-[calc(100%/4)] sm:min-w-[160px] md:min-w-[200px]";
 
   const [categorySlug, setCategorySlug] = useQueryState("categories", {
     shallow: false,
@@ -20,7 +20,7 @@ export default function CategoryScroller({
 
   return (
     <div
-      className="w-full overflow-x-auto pt-3 pb-2"
+      className="w-full overflow-x-auto pt-3"
       style={{
         msOverflowStyle: "none",
         scrollbarWidth: "none",
@@ -48,7 +48,7 @@ export default function CategoryScroller({
           >
             <div
               className={`
-                p-1 shadow-md rounded-full border-4
+                p-1 rounded-lg border-4
                 transition-all duration-300 ease-in-out
                 ${category.slug === categorySlug
                   ? "border-primary/50 shadow-lg "
@@ -61,7 +61,7 @@ export default function CategoryScroller({
                 alt={category.name + " image"}
                 width="96"
                 height="96"
-                className="rounded-full object-cover w-24 h-24"
+                className="rounded-sm object-cover w-24 h-24"
               />
             </div>
             <h1

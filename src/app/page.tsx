@@ -3,10 +3,8 @@ import { Button } from "@/components/ui/button";
 import {
   CheckCircle,
   CircleAlertIcon,
-  ForkKnifeCrossed,
   MessagesSquare,
   ShoppingBag,
-  Star,
   Store,
   TabletSmartphone,
   Video,
@@ -26,7 +24,7 @@ export default async function LandingPage() {
 
       <div
         id="hero"
-        className="w-full p-5 bg-accent/20 pb-20 pt-32 flex justify-center items-start md:items-center  md:text-center flex-col gap-6"
+        className="w-full h-svh p-5 bg-accent/20 pb-20 pt-32 flex justify-center items-start md:items-center  md:text-center flex-col gap-6"
       >
         <Badge className="rounded-full bg-accent text-accent-foreground">
           🎉 Platform Pemesanan Makanan Kampus #1
@@ -60,28 +58,6 @@ export default async function LandingPage() {
             <Store />
             Cek Pesanan Saya
           </Button>
-        </div>
-
-        <div className="relative mt-4">
-          <img
-            className="w-full rounded-3xl shadow z-10"
-            src={"/visual/landing-burger.png"}
-          />
-
-          <div className="bottom-0 left-0 p-4  w-full absolute z-20">
-            <div className="bg-card p-4 flex gap-4 items-center rounded-2xl shadow">
-              <div className="p-4 rounded-full bg-accent shadow text-primary dark:text-card">
-                <ForkKnifeCrossed />
-              </div>
-
-              <div>
-                <h1 className="text-muted-foreground">
-                  Total Pesanan Hari Ini
-                </h1>
-                <h1 className="text-primary font-semibold text-lg">1234 +</h1>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

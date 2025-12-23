@@ -6,29 +6,36 @@ import { shopStatusMapping } from "@/constant/shop-status-mapping";
 import CanteenTopbar from "@/features/canteen/ui/canteen-topbar";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
-import { DollarSign, MessageCircle, Star } from "lucide-react";
+import { MessageCircle, Star } from "lucide-react";
 import Link from "next/link";
 import { GetCanteenBySlug } from "../types/canteen-queries-types";
 import CategoryScroller from "@/features/category/ui/category-scroller";
 import { GetCategories } from "@/features/category/types/category-queries-types";
-import PriceRangeFilter from "./price-range-filter";
 import CashIcon from "@/components/icons/cash-icon";
+import { BannerSlider } from "./banner-slider";
 
 export default function CanteenClient({
   canteen,
   categories,
+  cart_id
 }: {
   canteen: GetCanteenBySlug;
   categories: GetCategories;
+  cart_id?: string;
 }) {
   return (
     <div>
-      <CanteenTopbar shopCount={canteen.shops.length} />
+      <CanteenTopbar shopCount={canteen.shops.length} cart_id={cart_id} />
 
-      <div className="flex flex-col gap-5 pt-28 p-5">
-        <PriceRangeFilter />
+      <BannerSlider />
 
-        <CategoryScroller categories={categories} />
+      <div className="flex flex-col gap-5 p-5">
+
+        <div>
+          <h1 className="font-semibold text-xl">Kategori</h1>
+
+          <CategoryScroller categories={categories} />
+        </div>
 
         {canteen.shops.map((shop, idx) => (
           <Link className="group" href={`/kedai/${shop.id}`} key={idx}>
