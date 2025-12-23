@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ShoppingBasket, Store, CreditCard, Trash2 } from "lucide-react"
+import { ShoppingBasket, Store } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -15,8 +15,6 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getCart } from "../lib/cart-queries"
 import Link from "next/link"

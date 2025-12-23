@@ -21,9 +21,9 @@ export default function LoadingCanteenPage() {
             <Skeleton className="h-7 w-24" />
             <div className="flex gap-4 overflow-hidden">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div className="flex flex-col justify-center items-center">
+                <div key={i} className="flex flex-col justify-center items-center">
 
-                  <Skeleton key={i} className="h-24 w-24 rounded-lg shrink-0" />
+                  <Skeleton className="h-24 w-24 rounded-lg shrink-0" />
 
                   <Skeleton className="w-14 mt-2 h-6" />
                 </div>
