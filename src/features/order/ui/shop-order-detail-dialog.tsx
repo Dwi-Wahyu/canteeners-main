@@ -186,6 +186,8 @@ export default function ShopOrderDetailDialog({
                     />
                   </div>
                 )}
+
+                <h1>{orderData.payment_proof_url}</h1>
               </div>
 
               <div className="flex flex-col gap-2">

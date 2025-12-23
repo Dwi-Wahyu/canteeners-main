@@ -15,6 +15,7 @@ import {
   getOpponentInfo,
   isOpponentTyping,
 } from "@/features/chat/lib/chat-helper";
+import { Badge } from "@/components/ui/badge";
 
 export default function OwnerChatListPage() {
   const { chats, isLoading, user } = useChatList();
@@ -160,6 +161,10 @@ export default function OwnerChatListPage() {
                         <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
                           {unreadCount}
                         </span>
+                      )}
+
+                      {chat.lastMessageType === "ORDER" && (
+                        <Badge variant={"outline"}>ORDER</Badge>
                       )}
                     </div>
                   </div>

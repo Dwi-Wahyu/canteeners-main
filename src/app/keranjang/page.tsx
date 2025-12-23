@@ -4,8 +4,6 @@ import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDateToYYYYMMDD } from "@/helper/date-helper";
 import { formatToHour } from "@/helper/hour-helper";
-import NavButton from "@/components/nav-button";
-import { ChevronLeft } from "lucide-react";
 import { auth } from "@/config/auth";
 import { redirect } from "next/navigation";
 import { getCart } from "@/features/cart/lib/cart-queries";

@@ -32,7 +32,7 @@ export default async function ChooseTablePage({
 
   return (
     <div>
-      <div className="w-full p-4 flex items-center bg-linear-to-r text-primary-foreground from-primary to-primary/90">
+      <div className="w-full p-4 gap-2 flex items-center bg-linear-to-r text-primary-foreground from-primary to-primary/90">
         <NavButton size="icon" variant="ghost" href="/keranjang">
           <ChevronLeft />
         </NavButton>

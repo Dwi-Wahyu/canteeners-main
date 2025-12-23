@@ -97,7 +97,7 @@ export default function CustomerOrderChatBubble({
 
               <Link
                 href={"/order/" + data.id}
-                className="p-2 my-4 bg-secondary items-center border border-accent-foreground rounded flex justify-between text-accent-foreground"
+                className="p-2 my-4 bg-secondary items-center border cursor-pointer border-accent-foreground rounded flex justify-between text-accent-foreground hover:text-accent"
               >
                 <div className="flex gap-2">
                   <FileText className="w-5 h-5" />

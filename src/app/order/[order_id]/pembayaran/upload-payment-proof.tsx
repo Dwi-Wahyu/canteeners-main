@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
 import { savePaymentProof } from "@/features/order/lib/order-actions";
 import { GetOrderAndPaymentMethod } from "@/features/shop/settings/payment/types/shop-payment-queries-types";
+import { getFileExtension } from "@/helper/file-helper";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
@@ -61,7 +62,9 @@ export default function UploadPaymentProof({
     setIsLoading(true);
     if (files.length > 0) {
       const file = files[0];
-      const filename = `payment-proofs/${uuidv4()}.${file.name.split(".")[1]}`;
+      const filename = `payment-proofs/${uuidv4()}.${getFileExtension(
+        file.name
+      )}`;
       const formData = new FormData();
 
       formData.append("file", file);

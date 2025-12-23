@@ -84,6 +84,8 @@ export async function confirmOrder({
         },
       });
 
+      revalidatePath("/chat/" + order_id);
+      revalidatePath("/dashboard-kedai/chat/" + order_id);
       revalidatePath("/dashboard-kedai/order/" + order_id);
       revalidatePath("/dashboard-pelanggan/order/" + order_id);
       revalidatePath("/order/" + order_id);
@@ -113,6 +115,8 @@ export async function confirmOrder({
         return errorResponse("kedai belum menerima pembayaran qris");
       }
 
+      revalidatePath("/chat/" + order_id);
+      revalidatePath("/dashboard-kedai/chat/" + order_id);
       revalidatePath("/dashboard-kedai/order/" + order_id);
       revalidatePath("/dashboard-pelanggan/order/" + order_id);
       revalidatePath("/order/" + order_id);
@@ -133,6 +137,8 @@ export async function confirmOrder({
         return errorResponse("kedai belum menerima pembayaran transfer bank");
       }
 
+      revalidatePath("/chat/" + order_id);
+      revalidatePath("/dashboard-kedai/chat/" + order_id);
       revalidatePath("/dashboard-kedai/order/" + order_id);
       revalidatePath("/dashboard-pelanggan/order/" + order_id);
       revalidatePath("/order/" + order_id);
@@ -187,8 +193,11 @@ export async function confirmPayment({
 
     await notificationRef.add(notificationData);
 
-    revalidatePath(`/dashboard-kedai/order/${order_id}`);
-    revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
+    revalidatePath("/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/order/" + order_id);
+    revalidatePath("/dashboard-pelanggan/order/" + order_id);
+    revalidatePath("/order/" + order_id);
 
     return successResponse(undefined, "Berhasil konfirmasi pembayaran");
   } catch (error) {
@@ -216,8 +225,11 @@ export async function changeOrderEstimation({
       },
     });
 
-    revalidatePath(`/dashboard-kedai/order/${order_id}`);
-    revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
+    revalidatePath("/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/order/" + order_id);
+    revalidatePath("/dashboard-pelanggan/order/" + order_id);
+    revalidatePath("/order/" + order_id);
 
     return successResponse(undefined, "Berhasil mengubah estimasi");
   } catch (error) {
@@ -264,9 +276,11 @@ export async function completeOrder({
 
     await notificationRef.add(notificationData);
 
-    revalidatePath(`/dashboard-kedai/order/${order_id}`);
-    revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
-    revalidatePath(`/order/${order_id}`);
+    revalidatePath("/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/order/" + order_id);
+    revalidatePath("/dashboard-pelanggan/order/" + order_id);
+    revalidatePath("/order/" + order_id);
 
     return successResponse(undefined, "Berhasil mengubah status");
   } catch (error) {
@@ -300,9 +314,11 @@ export async function rejectOrder({
       },
     });
 
-    revalidatePath(`/dashboard-kedai/order/${order_id}`);
-    revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
-    revalidatePath(`/order/${order_id}`);
+    revalidatePath("/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/order/" + order_id);
+    revalidatePath("/dashboard-pelanggan/order/" + order_id);
+    revalidatePath("/order/" + order_id);
 
     const notificationRef = adminDb.collection("notifications");
 
@@ -370,8 +386,11 @@ export async function rejectPayment({
 
     await notificationRef.add(notificationData);
 
-    revalidatePath(`/dashboard-kedai/order/${order_id}`);
-    revalidatePath(`/dashboard-pelanggan/order/${order_id}`);
+    revalidatePath("/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/order/" + order_id);
+    revalidatePath("/dashboard-pelanggan/order/" + order_id);
+    revalidatePath("/order/" + order_id);
 
     return successResponse(undefined, "Berhasil menolak pembayaran");
   } catch (error) {
@@ -398,10 +417,20 @@ export async function cancelOrder({
       },
       data: { cancelled_by_id, status: "CANCELLED", cancelled_reason },
       select: {
+        customer: {
+          select: {
+            user_id: true,
+          },
+        },
         total_price: true,
         shop: {
           select: {
             refund_disbursement_mode: true,
+            owner: {
+              select: {
+                user_id: true,
+              },
+            },
           },
         },
       },
@@ -420,8 +449,44 @@ export async function cancelOrder({
       });
     }
 
+    const notificationRef = adminDb.collection("notifications");
+
+    // Send notification to shop owner
+    if (cancelled_by_id === updated.customer.user_id) {
+      const notificationData = {
+        recipientId: updated.shop.owner.user_id,
+        type: "ORDER",
+        subType: "CANCELLED",
+        title: `Pelanggan Membatalkan Order`,
+        body: `Lihat Detail Alasan Membatalkan Order`,
+        isRead: false,
+        intent: "ERROR",
+        resourcePath: `/dashboard-kedai/order/${order_id}`,
+        createdAt: FieldValue.serverTimestamp(),
+      };
+
+      await notificationRef.add(notificationData);
+    } else {
+      const notificationData = {
+        recipientId: updated.customer.user_id,
+        type: "ORDER",
+        subType: "CANCELLED",
+        title: `Kedai Membatalkan Order`,
+        body: `Lihat Detail Alasan Membatalkan Order`,
+        isRead: false,
+        intent: "ERROR",
+        resourcePath: `/order/${order_id}`,
+        createdAt: FieldValue.serverTimestamp(),
+      };
+
+      await notificationRef.add(notificationData);
+    }
+
+    revalidatePath("/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/chat/" + order_id);
     revalidatePath("/dashboard-kedai/order/" + order_id);
     revalidatePath("/dashboard-pelanggan/order/" + order_id);
+    revalidatePath("/order/" + order_id);
 
     return successResponse(undefined, "Sukses membatalkan order");
   } catch (error) {
@@ -447,7 +512,11 @@ export async function savePaymentProof({
         payment_proof_url: true,
         shop: {
           select: {
-            owner_id: true,
+            owner: {
+              select: {
+                user_id: true,
+              },
+            },
           },
         },
         customer: {
@@ -486,7 +555,7 @@ export async function savePaymentProof({
 
     // Send notification
     const notificationData = {
-      recipientId: order.shop.owner_id,
+      recipientId: order.shop.owner.user_id,
       type: "ORDER",
       subType: "PAYMENT_PROOF_SUBMITTED",
       title: `Pelanggan Mengirim Bukti Pembayaran`,
@@ -499,6 +568,8 @@ export async function savePaymentProof({
 
     await notificationRef.add(notificationData);
 
+    revalidatePath("/chat/" + order_id);
+    revalidatePath("/dashboard-kedai/chat/" + order_id);
     revalidatePath("/dashboard-kedai/order/" + order_id);
     revalidatePath("/dashboard-pelanggan/order/" + order_id);
     revalidatePath("/order/" + order_id);

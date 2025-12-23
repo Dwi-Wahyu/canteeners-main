@@ -18,6 +18,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "nextjs-toploader/app";
 import LandingTopbar from "@/components/layouts/landing-topbar";
 import NavButton from "@/components/nav-button";
+import useWatchNotification from "@/features/notification/hooks/use-watch-notification";
 
 export default function CustomerChatListPage() {
   const { chats, isLoading, user } = useChatList();
@@ -26,6 +27,7 @@ export default function CustomerChatListPage() {
 
   // Watch global chat notification (toast saat ada pesan baru)
   useWatchChatNotification(user?.uid ?? null);
+  useWatchNotification();
 
   useEffect(() => {
     if (session?.user?.role === "SHOP_OWNER") {

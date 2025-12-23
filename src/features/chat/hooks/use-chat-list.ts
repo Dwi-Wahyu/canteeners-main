@@ -20,7 +20,6 @@ export const useChatList = () => {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      console.log(currentUser);
 
       if (!currentUser) setIsLoading(false);
     });

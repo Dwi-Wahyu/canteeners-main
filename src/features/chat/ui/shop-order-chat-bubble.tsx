@@ -76,6 +76,7 @@ export default function ShopOrderChatBubble({
                     alt="product image"
                     className="rounded shadow"
                   />
+
                   <div className="leading-tight">
                     <h1 className="font-medium">
                       {items.quantity}x {items.product.name}
@@ -101,7 +102,7 @@ export default function ShopOrderChatBubble({
             <ShopOrderDetailDialog
               order_id={order_id}
               trigger={
-                <Button className="p-2 my-4 bg-secondary items-center border border-accent-foreground rounded flex justify-between text-accent-foreground">
+                <Button className="p-2 my-4 bg-secondary items-center cursor-pointer border border-accent-foreground rounded flex justify-between text-accent-foreground hover:text-accent">
                   <div className="flex gap-2">
                     <FileText className="w-5 h-5" />
 

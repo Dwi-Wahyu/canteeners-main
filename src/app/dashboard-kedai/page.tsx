@@ -14,6 +14,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MessageSquareWarning, RefreshCcw } from "lucide-react";
+import { prisma, prismaAccelerate } from "@/lib/prisma";
+import { formatRupiah } from "@/helper/format-rupiah";
+import CashIcon from "@/components/icons/cash-icon";
 
 export default async function DashboardKedai() {
   const session = await auth();
@@ -35,6 +38,16 @@ export default async function DashboardKedai() {
     getRecentOrdersByShop(session.user.shopId, 5),
   ]);
 
+  const getUnpaidBillingTotals = await prismaAccelerate.shopBilling.aggregate({
+    where: {
+      shop_id: session.user.shopId,
+      status: "UNPAID",
+    },
+    _sum: {
+      total: true,
+    },
+  });
+
   return (
     <div className="space-y-5">
       <div className="mb-5">
@@ -53,6 +66,14 @@ export default async function DashboardKedai() {
           <CardContent>
             <CardTitle>Tagihan</CardTitle>
             <CardDescription>Tagihan yang perlu dibayar</CardDescription>
+
+            <div className="flex items-center gap-1">
+              <CashIcon />
+
+              <h1 className="text-lg font-semibold">
+                {formatRupiah(getUnpaidBillingTotals._sum.total || 0)}
+              </h1>
+            </div>
           </CardContent>
         </Card>
       </Link>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BillingStatusBadge } from "./billing-status-badge";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { Calendar, Info, Store, Receipt, Minus } from "lucide-react";
+import { Calendar, Info, Store, Receipt, Minus, FileText } from "lucide-react";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import { GetBillingDetail } from "../types/billing-queries-types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,37 +31,15 @@ export function BillingDetail({ billing }: BillingDetailProps) {
       />
 
       <div className="space-y-4">
-        {/* Shop Info */}
+        {/* Billing Amount Details */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
-              <Store className="h-5 w-5" />
-              Informasi Toko
+              <Receipt className="h-5 w-5" />
+              Rincian Tagihan
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Nama Toko</span>
-              <span className="font-medium">{billing.shop.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Pemilik</span>
-              <span className="font-medium">
-                {billing.shop.owner.user.name}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Billing Period */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Calendar className="h-5 w-5" />
-              Periode Tagihan
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Tanggal Mulai</span>
               <span className="font-medium">
@@ -78,18 +56,7 @@ export function BillingDetail({ billing }: BillingDetailProps) {
                 })}
               </span>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Billing Amount Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Receipt className="h-5 w-5" />
-              Rincian Tagihan
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
             {/* Subtotal */}
             <div className="flex justify-between items-center py-2">
               <div className="space-y-1">
@@ -137,6 +104,85 @@ export function BillingDetail({ billing }: BillingDetailProps) {
               <span className="text-muted-foreground">Status Pembayaran</span>
               <BillingStatusBadge status={billing.status} />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <FileText className="h-5 w-5" />
+              Order Dalam Periode Waktu
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            {billing.shop.orders.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground italic">
+                Tidak ada order pada periode ini.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-muted/50 p-3 rounded-md text-sm flex justify-between">
+                  <span>
+                    Total Order: <strong>{billing.shop.orders.length}</strong>
+                  </span>
+                </div>
+
+                <div className="rounded-md border overflow-hidden">
+                  <div className="max-h-100 overflow-y-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted sticky top-0 shadow-sm">
+                        <tr className="text-left">
+                          <th className="p-3 font-medium">Order</th>
+                          <th className="p-3 font-medium text-center">Qty</th>
+                          <th className="p-3 font-medium text-right">Komisi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y">
+                        {billing.shop.orders.map((order) => {
+                          const totalQty = order.order_items.reduce(
+                            (acc, item) => acc + item.quantity,
+                            0
+                          );
+                          const commission = totalQty * 1000;
+
+                          return (
+                            <tr
+                              key={order.id}
+                              className="hover:bg-muted/30 transition-colors"
+                            >
+                              <td className="p-3">
+                                <p className="font-medium uppercase text-[10px] text-muted-foreground">
+                                  #{order.id.slice(-6)}
+                                </p>
+                                <p className="text-xs">
+                                  {format(
+                                    new Date(order.created_at),
+                                    "dd MMM, HH:mm",
+                                    { locale: localeId }
+                                  )}
+                                </p>
+                              </td>
+                              <td className="p-3 text-center font-medium">
+                                {totalQty}
+                              </td>
+                              <td className="p-3 text-right font-semibold text-primary">
+                                {formatRupiah(commission)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <p className="text-[10px] text-muted-foreground text-center">
+                  * Menampilkan maksimal order yang selesai dalam rentang waktu
+                  billing.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

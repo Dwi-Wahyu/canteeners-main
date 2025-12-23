@@ -2,25 +2,18 @@
 
 import {
   collection,
-  limit,
   onSnapshot,
   orderBy,
   query,
   where,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
-import { AppNotification, NotificationBase } from "../types";
+import { AppNotification } from "../types";
 import { db } from "@/lib/firebase/client";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Bell,
-  MessageSquare,
-  ShoppingCart,
-  RefreshCcw,
-  AlertCircle,
-} from "lucide-react";
+import { Bell, ShoppingCart, RefreshCcw, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
@@ -51,8 +44,7 @@ export default function NotificationList() {
     const q = query(
       notificationsRef,
       where("recipientId", "==", user.uid),
-      orderBy("createdAt", "desc"),
-      limit(20)
+      orderBy("createdAt", "desc")
     );
 
     const unsubscribe = onSnapshot(

@@ -84,67 +84,68 @@ export function BillingList({ billings }: BillingListProps) {
         ) : (
           <div className="space-y-3">
             {billings.map((billing) => (
-              <Card
+              <Link
                 key={billing.id}
-                className="hover:bg-muted/50 transition-colors"
+                className="mb-4 block"
+                href={`/dashboard-kedai/tagihan/${billing.id}`}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-3">
-                      {/* Billing Period */}
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <p className="font-medium">
-                          {format(new Date(billing.start_date), "dd MMM yyyy", {
-                            locale: localeId,
-                          })}{" "}
-                          -{" "}
-                          {format(new Date(billing.end_date), "dd MMM yyyy", {
-                            locale: localeId,
-                          })}
-                        </p>
-                      </div>
-
-                      {/* Amount Details */}
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Komisi</span>
-                          <span className="font-medium">
-                            Rp{billing.subtotal.toLocaleString("id-ID")}
-                          </span>
+                <Card className="hover:bg-muted/50 transition-colors">
+                  <CardContent>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-3">
+                        {/* Billing Period */}
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <p className="font-medium">
+                            {format(
+                              new Date(billing.start_date),
+                              "dd MMM yyyy",
+                              {
+                                locale: localeId,
+                              }
+                            )}{" "}
+                            -{" "}
+                            {format(new Date(billing.end_date), "dd MMM yyyy", {
+                              locale: localeId,
+                            })}
+                          </p>
                         </div>
-                        {billing.refund > 0 && (
+
+                        {/* Amount Details */}
+                        <div className="space-y-1">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">
-                              Refund
+                              Komisi
                             </span>
-                            <span className="text-red-500 font-medium">
-                              -Rp{billing.refund.toLocaleString("id-ID")}
+                            <span className="font-medium">
+                              Rp{billing.subtotal.toLocaleString("id-ID")}
                             </span>
                           </div>
-                        )}
-                        <div className="flex items-center justify-between text-lg pt-1 border-t">
-                          <span className="font-semibold">Total</span>
-                          <span className="font-bold text-primary">
-                            Rp{billing.total.toLocaleString("id-ID")}
-                          </span>
+                          {billing.refund > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">
+                                Refund
+                              </span>
+                              <span className="text-red-500 font-medium">
+                                -Rp{billing.refund.toLocaleString("id-ID")}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between text-lg pt-1 border-t">
+                            <span className="font-semibold">Total</span>
+                            <span className="font-bold text-primary">
+                              Rp{billing.total.toLocaleString("id-ID")}
+                            </span>
+                          </div>
                         </div>
+
+                        {/* Status Badge */}
+                        <BillingStatusBadge status={billing.status} />
                       </div>
-
-                      {/* Status Badge */}
-                      <BillingStatusBadge status={billing.status} />
                     </div>
-
-                    {/* Action Button */}
-                    <Link href={`/dashboard-kedai/tagihan/${billing.id}`}>
-                      <Button variant="outline" size="sm">
-                        Detail
-                        <ExternalLink className="ml-2 h-3 w-3" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

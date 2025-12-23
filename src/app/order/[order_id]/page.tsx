@@ -7,7 +7,6 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { OrderRefundSection } from "@/features/order/ui/order-refund-section";
-import { revalidatePath } from "next/cache";
 
 export default async function OrderDetailPage({
   params,
