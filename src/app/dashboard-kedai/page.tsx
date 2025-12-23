@@ -13,10 +13,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MessageSquareWarning, RefreshCcw } from "lucide-react";
-import { prisma, prismaAccelerate } from "@/lib/prisma";
+import {
+  MessageSquareWarning,
+  RefreshCcw,
+  SquareArrowOutUpRight,
+} from "lucide-react";
+import { prismaAccelerate } from "@/lib/prisma";
 import { formatRupiah } from "@/helper/format-rupiah";
 import CashIcon from "@/components/icons/cash-icon";
+import NavButton from "@/components/nav-button";
 
 export default async function DashboardKedai() {
   const session = await auth();
@@ -61,22 +66,24 @@ export default async function DashboardKedai() {
 
       <RecentOrdersList orders={recentOrders} />
 
-      <Link href="/dashboard-kedai/tagihan" className="mb-4">
-        <Card className="mb-4">
-          <CardContent>
-            <CardTitle>Tagihan</CardTitle>
-            <CardDescription>Tagihan yang perlu dibayar</CardDescription>
+      <Card className="mb-5">
+        <CardHeader>
+          <CardTitle>Tagihan</CardTitle>
+          <CardDescription>Tagihan yang perlu dibayar</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <CashIcon />
 
-            <div className="flex items-center gap-1">
-              <CashIcon />
-
-              <h1 className="text-lg font-semibold">
-                {formatRupiah(getUnpaidBillingTotals._sum.total || 0)}
-              </h1>
-            </div>
-          </CardContent>
-        </Card>
-      </Link>
+            <h1 className="text-lg font-semibold">
+              {formatRupiah(getUnpaidBillingTotals._sum.total || 0)}
+            </h1>
+          </div>
+          <NavButton variant="outline" href={"/dashboard-kedai/tagihan"}>
+            <SquareArrowOutUpRight /> Lihat Detail
+          </NavButton>
+        </CardContent>
+      </Card>
 
       <div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

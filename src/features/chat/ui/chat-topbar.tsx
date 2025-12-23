@@ -8,6 +8,7 @@ import { ParticipantInfo } from "../types";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Timestamp } from "firebase/firestore";
+import { usePathname } from "next/navigation";
 
 export default function ChatTopbar({
   opponent,
@@ -16,11 +17,17 @@ export default function ChatTopbar({
   opponent: ParticipantInfo;
   lastSeenAt: Timestamp;
 }) {
+  const pathname = usePathname();
+
   return (
     <div className="p-4 fixed top-0 left-0 w-full flex items-center gap-4 border-b bg-white shadow-sm z-10">
       <Link
         className="text-muted-foreground"
-        href={opponent.role === "CUSTOMER" ? "/dashboard-kedai/chat" : "/chat"}
+        href={
+          pathname.includes("/dashboard-kedai/")
+            ? "/dashboard-kedai/chat"
+            : "/chat"
+        }
       >
         <ChevronLeft className="w-6 h-6" />
       </Link>

@@ -10,7 +10,14 @@ import {
 import { db } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendIcon, Paperclip, X, Upload } from "lucide-react";
+import {
+  SendIcon,
+  Paperclip,
+  X,
+  Upload,
+  MessageCircle,
+  MessagesSquare,
+} from "lucide-react";
 import {
   FileUpload,
   FileUploadDropzone,
@@ -33,6 +40,8 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { uuidv4 } from "zod";
+import { useQuery } from "@tanstack/react-query";
+import { getUserQuickChats } from "../lib/chat-queries";
 
 export function ChatInput({
   chatId,
@@ -47,6 +56,13 @@ export function ChatInput({
   const [loading, setLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [showQuickChats, setShowQuickChats] = useState(false);
+
+  const { data: quickChats } = useQuery({
+    queryKey: ["user-quick-chat", currentUserId],
+    queryFn: () => getUserQuickChats(currentUserId),
+    enabled: !!currentUserId,
+  });
 
   const typingTimeoutRef = useRef<NodeJS.Timeout>(null);
 
@@ -276,6 +292,23 @@ export function ChatInput({
             </FileUploadList>
           )}
 
+          {showQuickChats && quickChats && quickChats.length > 0 && (
+            <div className="flex flex-row gap-4 mb-2 w-full">
+              {quickChats.map((chat, idx) => (
+                <button
+                  key={idx}
+                  className="w-fit flex gap-1 items-center px-3 py-2 bg-secondary/70 backdrop-blur-sm shadow-sm rounded-lg cursor-pointer"
+                  onClick={() => setText(chat.message)}
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <h1 className="text-sm text-muted-foreground">
+                    {chat.message}
+                  </h1>
+                </button>
+              ))}
+            </div>
+          )}
+
           <Textarea
             value={text}
             onChange={handleInputChange} // Use the new handleInputChange function
@@ -312,6 +345,17 @@ export function ChatInput({
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {quickChats && quickChats.length > 0 && (
+              <Button
+                size={"icon"}
+                onClick={() => setShowQuickChats(!showQuickChats)}
+                variant={showQuickChats ? "default" : "ghost"}
+                type="button"
+              >
+                <MessagesSquare />
+              </Button>
+            )}
 
             <Button
               onClick={() => handleSend()}

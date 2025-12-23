@@ -34,3 +34,7 @@ Pelajari cara auto purge notification selain buat rule ttl dan harus enable bill
 fix nama tidak diubah ketika checkout dan tidak terdeteksi ketika isi testimoni untuk aplikasi
 
 Tampilkan status bukti pembayaran di {order_id}/pembayaran
+
+fix refresh chat page ketika status order berubah
+
+fix notifikasi chat ketika lawan bicara buka chat notifikasi tertrigger karena berubah lastSeenAt nya

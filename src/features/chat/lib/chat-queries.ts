@@ -1,30 +1,11 @@
-import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+"use server";
 
-import { db } from "@/lib/firebase/client";
+import { prisma } from "@/lib/prisma";
 
-export async function getOrCreateChat({
-  buyerId,
-  sellerId,
-}: {
-  buyerId: string;
-  sellerId: string;
-}) {
-  const chatId = `${buyerId}_${sellerId}`;
-  const chatRef = doc(db, "chats", chatId);
-  const chatSnap = await getDoc(chatRef);
-
-  if (!chatSnap.exists()) {
-    await setDoc(chatRef, {
-      participantIds: [buyerId, sellerId],
-      buyerId,
-      sellerId,
-      lastMessage: "",
-      lastMessageAt: null,
-      unreadCountBuyer: 0,
-      unreadCountSeller: 0,
-      createdAt: serverTimestamp(),
-    });
-  }
-
-  return chatId;
+export async function getUserQuickChats(user_id: string) {
+  return await prisma.quickChat.findMany({
+    where: {
+      user_id,
+    },
+  });
 }
