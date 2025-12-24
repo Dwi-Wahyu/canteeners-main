@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import CustomBadge from "@/components/custom-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { shopStatusMapping } from "@/constant/shop-status-mapping";
@@ -17,7 +18,7 @@ import { BannerSlider } from "./banner-slider";
 export default function CanteenClient({
   canteen,
   categories,
-  cart_id
+  cart_id,
 }: {
   canteen: GetCanteenBySlug;
   categories: GetCategories;
@@ -25,16 +26,19 @@ export default function CanteenClient({
 }) {
   return (
     <div>
-      <CanteenTopbar shopCount={canteen.shops.length} cart_id={cart_id} />
+      <Suspense fallback={<div className="p-4 h-16" />}>
+        <CanteenTopbar shopCount={canteen.shops.length} cart_id={cart_id} />
+      </Suspense>
 
       <BannerSlider />
 
       <div className="flex flex-col gap-5 p-5">
-
         <div>
           <h1 className="font-semibold text-xl">Kategori</h1>
 
-          <CategoryScroller categories={categories} />
+          <Suspense fallback={<div className="h-32" />}>
+            <CategoryScroller categories={categories} />
+          </Suspense>
         </div>
 
         {canteen.shops.map((shop, idx) => (

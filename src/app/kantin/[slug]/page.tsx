@@ -7,9 +7,11 @@ import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
 import LandingTopbar from "@/components/layouts/landing-topbar";
 import { auth } from "@/config/auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function CanteenDetailPage({
   params,
-  searchParams
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
@@ -29,15 +31,21 @@ export default async function CanteenDetailPage({
     return notFound();
   }
 
-  const session = await auth()
+  const session = await auth();
 
   const categories = await getCategories();
 
-  return <div>
-    <LandingTopbar />
+  return (
+    <div>
+      <LandingTopbar />
 
-    <div className="mt-20">
-      <CanteenClient canteen={canteen} categories={categories} cart_id={session?.user?.cartId} />
+      <div className="mt-20">
+        <CanteenClient
+          canteen={canteen}
+          categories={categories}
+          cart_id={session?.user?.cartId}
+        />
+      </div>
     </div>
-  </div>
+  );
 }

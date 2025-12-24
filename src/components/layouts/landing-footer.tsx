@@ -40,17 +40,23 @@ export default function LandingFooter() {
             <h5 className="font-semibold mb-3">Dukungan</h5>
             <ul className="space-y-2 text-muted-foreground text-sm">
               <li>
-                <a href="#" className="hover:font-semibold transition">
+                <a href="/faq" className="hover:font-semibold transition">
                   FAQ
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:font-semibold transition">
+                <a
+                  href="/privasi-dan-kebijakan"
+                  className="hover:font-semibold transition"
+                >
                   Kebijakan Privasi
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:font-semibold transition">
+                <a
+                  href="/syarat-dan-ketentuan/pelanggan"
+                  className="hover:font-semibold transition"
+                >
                   Syarat & Ketentuan
                 </a>
               </li>
