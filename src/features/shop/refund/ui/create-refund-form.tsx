@@ -39,6 +39,7 @@ import {
 import { RefundDisbursementMode, RefundReason } from "@/generated/prisma";
 import { getFileExtension } from "@/helper/file-helper";
 import { uuidv4 } from "zod";
+import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 
 interface CreateRefundFormProps {
   order: {
@@ -174,6 +175,15 @@ export function CreateRefundForm({
 
   const onSubmit = async (data: RefundRequestInput) => {
     setIsSubmitting(true);
+
+    if (data.description) {
+      if (containsBadWords(data.description)) {
+        form.setError("description", {
+          message: "Mengandung ujaran kebencian",
+        });
+        return;
+      }
+    }
 
     try {
       const result = await createRefundRequest(data);

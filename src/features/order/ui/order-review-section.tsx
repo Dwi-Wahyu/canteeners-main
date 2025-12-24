@@ -16,10 +16,10 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { ShopTestimony } from "@/generated/prisma";
-import { Star } from "lucide-react";
 import StarIcon from "@/components/icons/star-icon";
 import StarFilledIcon from "@/components/icons/star-filled-icon";
 import { createShopTestimony } from "@/features/testimony/lib/testimony-actions";
+import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 
 type Customer = {
   name: string;
@@ -51,6 +51,11 @@ export default function OrderReviewSection({
   async function handleSend() {
     if (!message.trim()) {
       toast.info("Berikan ulasan sebelum mengirim");
+      return;
+    }
+
+    if (containsBadWords(message)) {
+      toast.info("Ulasan mengandung ujaran kebencian");
       return;
     }
 

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Star } from "lucide-react";
+import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 
 export const TESTIMONY_ROLES: Record<string, string> = {
   SHOP_OWNER: "Pemilik Kedai",
@@ -51,6 +52,10 @@ export default function AppTestimonyForm({
       if (!message || !from) {
         toast.error("Nama dan pesan harus diisi");
         return;
+      }
+
+      if (containsBadWords(message)) {
+        toast.error("Pesan terdeteksi sebagai ujaran kebencian");
       }
 
       const res = await createAppTestimony({ message, from, role, rating });

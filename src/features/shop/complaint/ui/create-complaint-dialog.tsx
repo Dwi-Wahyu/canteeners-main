@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
+import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 
 interface CreateComplaintDialogProps {
   orderId: string;
@@ -128,6 +129,11 @@ export default function CreateComplaintDialog({
 
   const onSubmit = async (data: ShopComplaintInput) => {
     setIsSubmitting(true);
+
+    if (containsBadWords(data.cause)) {
+      form.setError("cause", { message: "Mengandung ujaran kebencian" });
+      return;
+    }
 
     try {
       const result = await createShopComplaint(data);
