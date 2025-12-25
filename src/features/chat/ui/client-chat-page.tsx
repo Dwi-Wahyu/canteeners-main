@@ -3,7 +3,7 @@
 import { ChatInput } from "@/features/chat/ui/chat-input";
 import { MessageList } from "@/features/chat/ui/message-list";
 import { db } from "@/lib/firebase/client";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import ChatTopbar from "./chat-topbar";
@@ -18,8 +18,21 @@ export default function ClientChatPage({
   chatId: string;
   role: "SHOP_OWNER" | "CUSTOMER";
 }) {
-  const { currentUser } = getAuth();
   const [chatData, setChatData] = useState<Chat | null>(null);
+
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Cek Status Login
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+
+      if (!currentUser) setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     async function getChat() {
@@ -30,24 +43,42 @@ export default function ClientChatPage({
         setChatData(chatSnap.data() as Chat);
 
         updateDoc(chatRef, {
-          [`lastSeenAt.${currentUser?.uid}`]: serverTimestamp(),
+          [`lastSeenAt.${user?.uid}`]: serverTimestamp(),
         });
       }
+
+      setIsLoading(false);
     }
 
-    if (currentUser) {
+    if (user) {
       getChat();
     }
-  }, [currentUser]);
+  }, [user]);
 
-  if (!currentUser || !chatData) {
+  if (isLoading) {
     return <LoadingDetailChatPage />;
+  }
+
+  if (!user) {
+    return (
+      <div>
+        <h1>Sesi tidak ditemukan</h1>
+      </div>
+    );
+  }
+
+  if (!chatData) {
+    return (
+      <div>
+        <h1>Percakapan tidak ditemukan</h1>
+      </div>
+    );
   }
 
   const isOwner = role === "SHOP_OWNER";
 
-  const opponentId = getOpponentId(chatData, currentUser.uid);
-  const opponent = getOpponentInfo(chatData, currentUser.uid);
+  const opponentId = getOpponentId(chatData, user.uid);
+  const opponent = getOpponentInfo(chatData, user.uid);
 
   if (!opponentId) {
     return (
@@ -69,18 +100,16 @@ export default function ClientChatPage({
     <div className="flex flex-col pt-6 pb-32 min-h-screen">
       <ChatTopbar
         opponent={opponent}
-        lastSeenAt={chatData.lastSeenAt?.[currentUser.uid]}
+        lastSeenAt={chatData.lastSeenAt?.[user.uid]}
+        opponentId={opponentId}
+        chatId={chatId}
       />
 
-      <MessageList
-        chatId={chatId}
-        currentUserId={currentUser.uid}
-        isOwner={isOwner}
-      />
+      <MessageList chatId={chatId} currentUserId={user.uid} isOwner={isOwner} />
 
       <ChatInput
         chatId={chatId}
-        currentUserId={currentUser.uid}
+        currentUserId={user.uid}
         opponentId={opponentId}
       />
     </div>

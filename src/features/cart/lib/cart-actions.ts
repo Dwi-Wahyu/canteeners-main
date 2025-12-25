@@ -221,8 +221,10 @@ export async function processShopCart({
       const orderRef = adminDb.collection("orders").doc(order_id);
 
       orderRef.set({
-        lastUpdatedTimestamp: FieldValue.serverTimestamp(),
-        authorizedIds: [customer_user_id, owner_user_id],
+        // wajib ada di setiap lifecycle
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+        shopId: shopCart.shop.id,
+        status: order.status,
       });
 
       // Buat doc notification untuk notifikasi realtime pemilik kedai

@@ -6,6 +6,8 @@ import {
   successResponse,
 } from "@/helper/action-helper";
 import { prisma } from "@/lib/prisma";
+import { ReportUserInput } from "../types/user-schema";
+import { auth } from "@/config/auth";
 
 export async function createGuestCustomer({
   firebaseUserUid,
@@ -133,5 +135,30 @@ export async function chooseCustomerTable({
     console.log(error);
 
     return errorResponse("Terjadi kesalahan");
+  }
+}
+
+export async function reportUser(payload: ReportUserInput) {
+  const session = await auth();
+
+  if (!session) {
+    return errorResponse("Sesi tidak terdeteksi");
+  }
+
+  try {
+    await prisma.userReport.create({
+      data: {
+        reporter_id: session.user.id,
+        reported_id: payload.reported_id,
+        category: payload.reasons,
+        description: payload.description,
+      },
+    });
+
+    return successResponse(undefined, "Sukses membuat laporan");
+  } catch (error) {
+    console.log(error);
+
+    return errorResponse("Terjadi kesalahan membuat laporan");
   }
 }

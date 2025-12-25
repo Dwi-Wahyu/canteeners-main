@@ -8,15 +8,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { getOrderSummaryForChatBubble } from "@/features/order/lib/order-queries";
+import CompleteOrderDialog from "@/features/order/ui/complete-order-dialog";
 import ConfirmOrderDialog from "@/features/order/ui/confirm-order-dialog";
+import ConfirmPaymentDialog from "@/features/order/ui/confirm-payment-dialog";
 import RejectOrderDialog from "@/features/order/ui/reject-order-dialog";
+import RejectPaymentDialog from "@/features/order/ui/reject-payment-dialog";
 import { OrderStatus } from "@/generated/prisma";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
+import { db } from "@/lib/firebase/client";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, FileText, MapPin, MessageCircle } from "lucide-react";
+import { doc, onSnapshot, Timestamp } from "firebase/firestore";
+import { ChevronRight, FileText, MessageCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 const ShopOrderDetailDialog = dynamic(
   () => import("@/features/order/ui/shop-order-detail-dialog"),
@@ -31,23 +38,70 @@ export default function ShopOrderChatBubble({
 }: {
   order_id: string;
 }) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["chat-bubble-order-summary", order_id],
     queryFn: () => getOrderSummaryForChatBubble(order_id),
   });
+
+  const lastKnownUpdate = useRef<number>(
+    data?.updated_at.getMilliseconds() ?? 0
+  );
+  const isFirstRun = useRef(true);
+
+  // Listener ke Firestore untuk trigger timestamp
+  useEffect(() => {
+    if (!order_id) return;
+
+    const orderRef = doc(db, "orders", order_id);
+
+    const unsubscribe = onSnapshot(
+      orderRef,
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          toast.error("Order tidak ditemukan di Firestore");
+          return;
+        }
+
+        if (isFirstRun.current) {
+          isFirstRun.current = false;
+          return;
+        }
+
+        const data = snapshot.data();
+        const timestamp = data?.lastUpdatedAt as Timestamp | undefined;
+
+        if (!timestamp) return;
+
+        const updateMillis = timestamp.toMillis();
+
+        // Jika timestamp besar berarti ada perubahan
+        // Handle ketika pertama kali fetch tidak perlu update
+        if (updateMillis > lastKnownUpdate.current) {
+          lastKnownUpdate.current = updateMillis;
+          refetch();
+        }
+      },
+      (err) => {
+        console.error("Firestore onSnapshot error:", err);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+      isFirstRun.current = true;
+    };
+  }, [order_id, refetch]);
 
   return (
     <div className={`flex flex-col items-start mb-4`}>
       {isLoading && (
         <div
-          className={`h-36 px-4 py-3 shadow rounded-xl bg-secondary animate-pulse w-[80%]`}
+          className={`h-36 px-4 py-3 shadow rounded-xl bg-card animate-pulse w-[80%]`}
         ></div>
       )}
 
       {!isLoading && data && (
-        <div
-          className={`px-4 py-3 shadow rounded-xl w-[80%] bg-card border border-primary`}
-        >
+        <div className={`px-4 py-3 shadow rounded-xl w-[80%] bg-card border`}>
           <div className="w-full flex mb-2 text-primary gap-2 items-center">
             <MessageCircle className="w-5 h-5" />
             <h1 className="text-lg font-semibold">Pesanan Baru</h1>
@@ -88,37 +142,42 @@ export default function ShopOrderChatBubble({
             </div>
 
             <div className="my-4">
+              <h1 className="font-medium mb-1">Pembayaran</h1>
+
               <div className="flex justify-between">
                 <h1 className="">Total</h1>
 
-                <h1 className="text-primary">
+                <h1 className="font-semibold">
                   {formatRupiah(data.total_price)}
                 </h1>
               </div>
 
-              <h1>Pembayaran: {paymentMethodMapping[data.payment_method]}</h1>
+              <div className="flex justify-between">
+                <h1>Metode</h1>
+
+                <h1>{paymentMethodMapping[data.payment_method]}</h1>
+              </div>
+
+              <div className="pt-1">
+                {data.status === "WAITING_SHOP_CONFIRMATION" &&
+                  data.payment_method === "CASH" && (
+                    <ConfirmPaymentDialog order_id={order_id} />
+                  )}
+
+                {data.status === "WAITING_SHOP_CONFIRMATION" &&
+                  data.payment_method !== "CASH" && (
+                    <div className="grid grid-cols-2">
+                      <ConfirmPaymentDialog order_id={order_id} />
+
+                      <RejectPaymentDialog order_id={order_id} />
+                    </div>
+                  )}
+              </div>
             </div>
 
-            <ShopOrderDetailDialog
-              order_id={order_id}
-              trigger={
-                <Button className="p-2 my-4 bg-secondary items-center cursor-pointer border border-accent-foreground rounded flex justify-between text-accent-foreground hover:text-accent">
-                  <div className="flex gap-2">
-                    <FileText className="w-5 h-5" />
-
-                    <h1>Lihat Detail Pesanan</h1>
-                  </div>
-
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              }
-            />
-
-            {data.status === "COMPLETED" && (
-              <div className="w-full">
-                <NavButton className="w-full" href={"/testimoni"}>
-                  Beri Testimoni Untuk Canteeners
-                </NavButton>
+            {data.status === "PROCESSING" && (
+              <div className="my-4">
+                <CompleteOrderDialog order_id={order_id} />
               </div>
             )}
 
@@ -133,6 +192,16 @@ export default function ShopOrderChatBubble({
                 <RejectOrderDialog order_id={data.id} />
               </div>
             )}
+
+            <NavButton
+              className="flex justify-between mt-4 items-center"
+              href={"/dashboard-kedai/order/" + order_id}
+              size="lg"
+              variant="outline"
+            >
+              Lihat Detail Pesanan
+              <ChevronRight />
+            </NavButton>
           </div>
         </div>
       )}

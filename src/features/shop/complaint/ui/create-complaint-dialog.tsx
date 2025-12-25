@@ -41,6 +41,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
+import { generateFileName } from "@/helper/file-helper";
 
 interface CreateComplaintDialogProps {
   orderId: string;
@@ -90,10 +91,7 @@ export default function CreateComplaintDialog({
     try {
       const formData = new FormData();
       // Generate random filename with original extension
-      const ext = file.name.split(".").pop();
-      const randomName = `complaint-proofs/${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(7)}.${ext}`;
+      const randomName = generateFileName(file.name, "complaint-proofs");
 
       formData.append("file", file);
       formData.append("filename", randomName);
@@ -163,7 +161,7 @@ export default function CreateComplaintDialog({
           Ajukan Komplain
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>Ajukan Komplain</DialogTitle>
           <DialogDescription>
@@ -183,7 +181,7 @@ export default function CreateComplaintDialog({
                   <FormControl>
                     <Textarea
                       placeholder="Jelaskan masalah yang Anda alami dengan pesanan ini..."
-                      className="min-h-[120px] resize-none"
+                      className="min-h-30 resize-none"
                       {...field}
                     />
                   </FormControl>

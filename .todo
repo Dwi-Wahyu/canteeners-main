@@ -38,3 +38,5 @@ Tampilkan status bukti pembayaran di {order_id}/pembayaran
 fix refresh chat page ketika status order berubah
 
 fix notifikasi chat ketika lawan bicara buka chat notifikasi tertrigger karena berubah lastSeenAt nya
+
+detail order hanya read only, order tracking dan chat bubble yang ada aksi

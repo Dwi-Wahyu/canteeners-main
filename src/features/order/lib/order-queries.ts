@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma, prismaAccelerate } from "@/lib/prisma";
 
 export async function getShopOrderDetail(id: string) {
   return await prisma.order.findFirst({
@@ -128,12 +128,14 @@ export async function getOrderSummaryForChatBubble(id: string) {
       payment_method: true,
       conversation_id: true,
       status: true,
+      updated_at: true,
       shop: {
         select: {
           id: true,
           owner_id: true,
         },
       },
+      post_order_type: true,
       customer: {
         select: {
           floor: true,
@@ -264,6 +266,39 @@ export async function getRecentOrdersByShop(shopId: string, limit: number = 5) {
         select: {
           quantity: true,
           product: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getOrderTrackingData({ shopId }: { shopId: string }) {
+  return await prisma.order.findMany({
+    where: {
+      shop_id: shopId,
+      status: {
+        notIn: ["COMPLETED", "REJECTED"],
+      },
+    },
+    orderBy: {
+      updated_at: "desc",
+    },
+    select: {
+      id: true,
+      status: true,
+      post_order_type: true,
+      estimation: true,
+      payment_method: true,
+      payment_proof_url: true,
+      customer: {
+        select: {
+          floor: true,
+          table_number: true,
+          user: {
             select: {
               name: true,
             },

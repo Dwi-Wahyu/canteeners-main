@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, Loader, ShoppingCart, UtensilsCrossed } from "lucide-react";
+import { Save, ShoppingCart, UtensilsCrossed, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -227,7 +227,7 @@ export default function ChooseTableClient({
           disabled={isSaveDisabled || isLoading}
           size={"lg"}
         >
-          {isLoading ? <Loader className="animate-spin" /> : <Save />}
+          {isLoading ? <Loader2 className="animate-spin" /> : <Save />}
           Simpan Pilihan Meja
         </Button>
       </div>

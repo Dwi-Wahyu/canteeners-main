@@ -14,6 +14,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  BanknoteX,
+  ClipboardClock,
   MessageSquareWarning,
   RefreshCcw,
   SquareArrowOutUpRight,
@@ -56,10 +58,8 @@ export default async function DashboardKedai() {
   return (
     <div className="space-y-5">
       <div className="mb-5">
-        <h2 className="text-3xl font-medium tracking-tight">Dashboard</h2>
-        <div className="text-lg text-muted-foreground">
-          Ringkasan bisnis hari ini
-        </div>
+        <h2 className="text-2xl font-medium tracking-tight">Dashboard</h2>
+        <div className="text-muted-foreground">Ringkasan bisnis hari ini</div>
       </div>
 
       <DashboardStats stats={stats} />
@@ -95,18 +95,35 @@ export default async function DashboardKedai() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <Link href="/dashboard-kedai/komplain" passHref>
-                <Button className="w-full justify-start" variant="outline">
-                  <MessageSquareWarning className="mr-2 h-4 w-4" />
-                  Komplain Pelanggan
-                </Button>
-              </Link>
-              <Link href="/dashboard-kedai/refund" passHref>
-                <Button className="w-full justify-start" variant="outline">
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  Pengajuan Refund
-                </Button>
-              </Link>
+              <NavButton
+                href="/dashboard-kedai/order"
+                size="lg"
+                className="h-14 focus:scale-105"
+                variant="outline"
+              >
+                <ClipboardClock />
+                Order Tracking
+              </NavButton>
+
+              <NavButton
+                href="/dashboard-kedai/komplain"
+                size="lg"
+                className="h-14 focus:scale-105"
+                variant="outline"
+              >
+                <MessageSquareWarning />
+                Komplain Pelanggan
+              </NavButton>
+
+              <NavButton
+                href="/dashboard-kedai/refund"
+                size="lg"
+                className="h-14 focus:scale-105"
+                variant="outline"
+              >
+                <BanknoteX />
+                Pengajuan Refund
+              </NavButton>
             </CardContent>
           </Card>
         </div>

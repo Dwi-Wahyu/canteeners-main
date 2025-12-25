@@ -28,8 +28,10 @@ export default function OwnerTopbar({
 
   return (
     <div className="justify-between px-5 py-3 shadow flex items-center z-50 fixed top-0 left-0 bg-card w-full">
-      <div className="flex gap-2 items-center">
-        <Image src={"/app-logo.svg"} width={32} height={32} alt="logo" />
+      <div className="flex gap-3 items-center">
+        {/* <Image src={"/app-logo.svg"} width={32} height={32} alt="logo" /> */}
+
+        <Store className="w-fit" width={40} height={40} />
 
         <div>
           <h1 className="font-medium">{shopName}</h1>

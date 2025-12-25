@@ -23,7 +23,6 @@ export default function OwnerLayout({
   const excludedPath = [
     "pengajuan-refund",
     "/chat/",
-    "order",
     "/ulasan-pelanggan",
     "/pengaturan/",
     "/produk/",

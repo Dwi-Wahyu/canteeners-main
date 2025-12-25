@@ -8,13 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
 import { savePaymentProof } from "@/features/order/lib/order-actions";
 import { GetOrderAndPaymentMethod } from "@/features/shop/settings/payment/types/shop-payment-queries-types";
-import { getFileExtension } from "@/helper/file-helper";
+import { generateFileName, getFileExtension } from "@/helper/file-helper";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { Loader, Send } from "lucide-react";
+import { Loader, Loader2, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { uuidv4, z } from "zod";
@@ -62,9 +62,7 @@ export default function UploadPaymentProof({
     setIsLoading(true);
     if (files.length > 0) {
       const file = files[0];
-      const filename = `payment-proofs/${uuidv4()}.${getFileExtension(
-        file.name
-      )}`;
+      const filename = generateFileName(file.name, "payment-proofs");
       const formData = new FormData();
 
       formData.append("file", file);
@@ -226,12 +224,12 @@ export default function UploadPaymentProof({
                   form="payment-form"
                   type="submit"
                   disabled={isLoading}
-                  className="mt-2"
+                  className="mt-2 h-12"
                 >
                   {isLoading ? (
-                    <Loader className="h-4 w-4 animate-spin" />
+                    <Loader2 className="animate-spin" />
                   ) : (
-                    <Send className="h-4 w-4" />
+                    <Send className="" />
                   )}
                   Kirim
                 </Button>

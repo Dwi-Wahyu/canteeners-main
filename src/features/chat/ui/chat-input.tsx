@@ -324,7 +324,7 @@ export function ChatInput({
           />
 
           <div className="flex items-center justify-end gap-1.5 pt-2">
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
@@ -344,13 +344,19 @@ export function ChatInput({
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
+
+            <Button asChild size={"icon-lg"} variant={"ghost"}>
+              <FileUploadTrigger className="cursor-pointer">
+                <Paperclip />
+              </FileUploadTrigger>
+            </Button>
 
             {quickChats && quickChats.length > 0 && (
               <Button
-                size={"icon"}
                 onClick={() => setShowQuickChats(!showQuickChats)}
                 variant={showQuickChats ? "default" : "ghost"}
+                size={"icon-lg"}
                 type="button"
               >
                 <MessagesSquare />
@@ -359,15 +365,14 @@ export function ChatInput({
 
             <Button
               onClick={() => handleSend()}
-              size="icon"
-              className="size-8"
+              size={"icon-lg"}
               disabled={
                 loading ||
                 isUploading ||
                 (!text.trim() && attachments.length === 0)
               }
             >
-              <SendIcon className="size-4" />
+              <SendIcon />
             </Button>
           </div>
         </div>

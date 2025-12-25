@@ -16,6 +16,7 @@ import { useMutation } from "@tanstack/react-query";
 import { CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { confirmOrder } from "../lib/order-actions";
+import { useRouter } from "nextjs-toploader/app";
 
 export default function ConfirmOrderDialog({
   order_id,
@@ -27,6 +28,7 @@ export default function ConfirmOrderDialog({
   shop_id: string;
 }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const { isPending, mutateAsync } = useMutation({
     mutationFn: async () => {
@@ -43,6 +45,7 @@ export default function ConfirmOrderDialog({
 
     if (result.success) {
       setOpen(false);
+      router.refresh();
     } else {
       console.log(result.error);
     }

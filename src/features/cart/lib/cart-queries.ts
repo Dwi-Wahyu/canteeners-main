@@ -96,7 +96,11 @@ export async function getShopCart({
               slug: true,
             },
           },
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
           payments: {
             select: {
               method: true,

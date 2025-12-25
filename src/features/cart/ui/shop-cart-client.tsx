@@ -197,7 +197,7 @@ export default function ShopCartClient({
             <Link
               href={
                 "/chat/" +
-                `${customerProfile.user_id}_${shopCart.shop.owner_id}`
+                `${customerProfile.user_id}_${shopCart.shop.owner.user_id}`
               }
             >
               Hubungi Pemilik Kedai

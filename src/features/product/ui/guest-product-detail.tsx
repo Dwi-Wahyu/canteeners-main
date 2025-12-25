@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Check, Dot, Loader, Minus, Plus, Star } from "lucide-react";
+import { Check, Dot, Loader, Loader2, Minus, Plus, Star } from "lucide-react";
 import { productOptionTypeMapping } from "@/constant/product-mapping";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import Link from "next/link";
@@ -316,7 +316,7 @@ export default function GuestProductDetail({
       >
         {isLoading && (
           <div className="flex items-center gap-2 w-full justify-center">
-            <Loader className="animate-spin" />
+            <Loader2 className="animate-spin" />
             Menambahkan...
           </div>
         )}

@@ -43,10 +43,10 @@ export default async function ComplaintsPage() {
   return (
     <div className="space-y-5">
       <div className="mb-5">
-        <h2 className="text-3xl font-medium tracking-tight">
+        <h2 className="text-2xl font-medium tracking-tight">
           Komplain Pelanggan
         </h2>
-        <div className="text-lg text-muted-foreground">
+        <div className="text-muted-foreground">
           Kelola dan tanggapi komplain dari pelanggan Anda
         </div>
       </div>

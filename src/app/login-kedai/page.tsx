@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "nextjs-toploader/app";
-import { Loader, Eye, EyeOff } from "lucide-react";
+import { Loader, Eye, EyeOff, Loader2 } from "lucide-react";
 import { LoginSchema, LoginInput } from "@/features/auth/types/auth-schemas";
 import Image from "next/image";
 import Link from "next/link";
@@ -60,12 +60,12 @@ export default function LoginKedaiPage() {
   return (
     <div className="min-h-svh flex flex-col items-center">
       {/* Mobile-first centered container for desktop */}
-      <div className="w-full max-w-[480px] min-h-svh flex flex-col shadow-xl">
+      <div className="w-full max-w-120 min-h-svh flex flex-col shadow-xl">
         {/* Header Section */}
-        <div className="relative bg-primary h-[300px] w-full rounded-b-[60px] flex flex-col items-center justify-center text-white overflow-hidden shrink-0">
+        <div className="relative bg-primary h-75 w-full rounded-b-[60px] flex flex-col items-center justify-center text-white overflow-hidden shrink-0">
           {/* Background decoration circles could go here if needed, but keeping it simple first */}
 
-          <div className="flex flex-col items-center z-10 gap-2 mt-[-20px]">
+          <div className="flex flex-col items-center z-10 gap-2 -mt-5">
             <Link href={"/"}>
               <div className="relative w-24 h-24 mb-2">
                 <Image
@@ -177,7 +177,7 @@ export default function LoginKedaiPage() {
             >
               {form.formState.isSubmitting ? (
                 <>
-                  <Loader className="animate-spin h-5 w-5" /> Loading...
+                  <Loader2 className="animate-spin" /> Loading...
                 </>
               ) : (
                 "Login"

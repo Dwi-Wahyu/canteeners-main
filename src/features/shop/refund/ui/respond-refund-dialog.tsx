@@ -136,7 +136,7 @@ export function RespondRefundDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-137.5">
         <DialogHeader>
           <DialogTitle>Tinjau Permintaan Refund</DialogTitle>
           <DialogDescription>
@@ -233,7 +233,7 @@ export function RespondRefundDialog({
                       <FormControl>
                         <Textarea
                           placeholder="Jelaskan mengapa refund ditolak..."
-                          className="min-h-[100px] resize-none"
+                          className="min-h-25 resize-none"
                           {...field}
                           value={field.value || ""}
                         />

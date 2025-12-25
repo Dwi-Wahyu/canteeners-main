@@ -25,8 +25,8 @@ export default async function ShopRefundListPage({
   return (
     <div>
       <div className="mb-5">
-        <h2 className="text-3xl font-medium tracking-tight">Daftar Refund</h2>
-        <div className="text-lg text-muted-foreground">
+        <h2 className="text-2xl font-medium tracking-tight">Daftar Refund</h2>
+        <div className="text-muted-foreground">
           Kelola semua permintaan refund dari customer
         </div>
       </div>

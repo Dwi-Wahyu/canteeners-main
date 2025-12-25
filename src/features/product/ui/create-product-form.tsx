@@ -28,6 +28,7 @@ import MultipleSelector from "@/components/multiple-select";
 import { FileUploadImage } from "@/components/file-upload-image";
 import { createProduct } from "../lib/product-actions";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
+import { generateFileName } from "@/helper/file-helper";
 
 export default function CreateProductForm({
   shop_id,
@@ -56,7 +57,7 @@ export default function CreateProductForm({
   const onSubmit = async (payload: CreateProductInput) => {
     if (files.length > 0) {
       const file = files[0];
-      const filename = `products/${file.name}`;
+      const filename = generateFileName(file.name, "products");
       const formData = new FormData();
 
       formData.append("file", file);

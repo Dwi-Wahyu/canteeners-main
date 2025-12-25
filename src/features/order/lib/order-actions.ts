@@ -46,6 +46,7 @@ export async function confirmOrder({
             user_id: true,
           },
         },
+        shop_id: true,
       },
     });
 
@@ -73,6 +74,13 @@ export async function confirmOrder({
     };
 
     await notificationRef.add(notificationData);
+
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+    });
 
     if (payment_method === "CASH") {
       await prisma.order.update({
@@ -155,8 +163,10 @@ export async function confirmOrder({
 
 export async function confirmPayment({
   order_id,
+  estimation,
 }: {
   order_id: string;
+  estimation: number;
 }): Promise<ServerActionReturn<void>> {
   try {
     const order = await prisma.order.update({
@@ -166,6 +176,7 @@ export async function confirmPayment({
       data: {
         status: "PROCESSING",
         processed_at: new Date(),
+        estimation,
       },
       select: {
         customer: {
@@ -173,6 +184,7 @@ export async function confirmPayment({
             user_id: true,
           },
         },
+        shop_id: true,
       },
     });
 
@@ -192,6 +204,13 @@ export async function confirmPayment({
     };
 
     await notificationRef.add(notificationData);
+
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+    });
 
     revalidatePath("/chat/" + order_id);
     revalidatePath("/dashboard-kedai/chat/" + order_id);
@@ -216,13 +235,23 @@ export async function changeOrderEstimation({
   status: OrderStatus;
 }): Promise<ServerActionReturn<void>> {
   try {
-    await prisma.order.update({
+    const updated = await prisma.order.update({
       where: {
         id: order_id,
       },
       data: {
         estimation,
       },
+      select: {
+        shop_id: true,
+      },
+    });
+
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
     });
 
     revalidatePath("/chat/" + order_id);
@@ -256,6 +285,7 @@ export async function completeOrder({
             user_id: true,
           },
         },
+        shop_id: true,
       },
     });
 
@@ -275,6 +305,13 @@ export async function completeOrder({
     };
 
     await notificationRef.add(notificationData);
+
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+    });
 
     revalidatePath("/chat/" + order_id);
     revalidatePath("/dashboard-kedai/chat/" + order_id);
@@ -311,6 +348,7 @@ export async function rejectOrder({
             user_id: true,
           },
         },
+        shop_id: true,
       },
     });
 
@@ -336,6 +374,13 @@ export async function rejectOrder({
     };
 
     await notificationRef.add(notificationData);
+
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+    });
 
     return successResponse(undefined, "Berhasil menolak order");
   } catch (error) {
@@ -366,6 +411,7 @@ export async function rejectPayment({
             user_id: true,
           },
         },
+        shop_id: true,
       },
     });
 
@@ -385,6 +431,13 @@ export async function rejectPayment({
     };
 
     await notificationRef.add(notificationData);
+
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+    });
 
     revalidatePath("/chat/" + order_id);
     revalidatePath("/dashboard-kedai/chat/" + order_id);
@@ -422,6 +475,7 @@ export async function cancelOrder({
             user_id: true,
           },
         },
+        shop_id: true,
         total_price: true,
         shop: {
           select: {
@@ -482,6 +536,13 @@ export async function cancelOrder({
       await notificationRef.add(notificationData);
     }
 
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+    });
+
     revalidatePath("/chat/" + order_id);
     revalidatePath("/dashboard-kedai/chat/" + order_id);
     revalidatePath("/dashboard-kedai/order/" + order_id);
@@ -510,6 +571,7 @@ export async function savePaymentProof({
       },
       select: {
         payment_proof_url: true,
+        shop_id: true,
         shop: {
           select: {
             owner: {
@@ -552,6 +614,13 @@ export async function savePaymentProof({
     });
 
     const notificationRef = adminDb.collection("notifications");
+
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+    });
 
     // Send notification
     const notificationData = {

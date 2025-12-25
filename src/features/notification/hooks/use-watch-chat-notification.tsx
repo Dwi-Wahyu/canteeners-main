@@ -36,11 +36,16 @@ export const useWatchChatNotification = (uid: string | null) => {
       }
 
       snapshot.docChanges().forEach((change) => {
-        if (change.type === "added" || change.type === "modified") {
+        if (change.type === "added") {
           if (change.doc.metadata.hasPendingWrites) return;
 
           const data = change.doc.data() as Chat;
           const chatId = change.doc.id;
+
+          // Tidak perlu tampilkan notifikasi order
+          if (data.lastMessageType === "ORDER") {
+            return;
+          }
 
           const currentTime = data.lastMessageAt.toMillis();
           const prevTime = previousTimestamps.current.get(chatId) ?? 0;

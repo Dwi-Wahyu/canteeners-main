@@ -1,6 +1,7 @@
 import {
   getCustomerOrderDetail,
   getOrderDetail,
+  getOrderTrackingData,
   getShopOrderDetail,
 } from "../lib/order-queries";
 
@@ -14,4 +15,8 @@ export type GetShopOrderDetail = NonNullable<
 
 export type GetCustomerOrderDetail = NonNullable<
   Awaited<ReturnType<typeof getCustomerOrderDetail>>
+>;
+
+export type GetOrderTrackingData = Awaited<
+  ReturnType<typeof getOrderTrackingData>
 >;

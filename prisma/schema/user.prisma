@@ -18,6 +18,9 @@ model User {
     updated_at DateTime  @updatedAt
     last_login DateTime?
 
+    sent_reports     UserReport[] @relation("SentReports")
+    received_reports UserReport[] @relation("ReceivedReports")
+
     fcm_tokens UserFcmToken[]
 
     @@index([last_login])

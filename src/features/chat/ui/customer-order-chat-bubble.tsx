@@ -1,8 +1,9 @@
 "use client";
 
 import CustomBadge from "@/components/custom-badge";
+import CashIcon from "@/components/icons/cash-icon";
 import NavButton from "@/components/nav-button";
-import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { paymentMethodMapping } from "@/constant/payment-method";
@@ -10,20 +11,74 @@ import { getOrderSummaryForChatBubble } from "@/features/order/lib/order-queries
 import { OrderStatus } from "@/generated/prisma";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
+import { db } from "@/lib/firebase/client";
 import { useQuery } from "@tanstack/react-query";
+import { Timestamp } from "firebase-admin/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { ChevronRight, FileText, MapPin, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 export default function CustomerOrderChatBubble({
   order_id,
 }: {
   order_id: string;
 }) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["chat-bubble-order-summary", order_id],
     queryFn: () => getOrderSummaryForChatBubble(order_id),
   });
+
+  const lastKnownUpdate = useRef<number>(
+    data?.updated_at.getMilliseconds() ?? 0
+  );
+  const isFirstRun = useRef(true);
+
+  // Listener ke Firestore untuk trigger timestamp
+  useEffect(() => {
+    if (!order_id) return;
+
+    const orderRef = doc(db, "orders", order_id);
+
+    const unsubscribe = onSnapshot(
+      orderRef,
+      (snapshot) => {
+        if (!snapshot.exists()) {
+          toast.error("Order tidak ditemukan di Firestore");
+          return;
+        }
+
+        if (isFirstRun.current) {
+          isFirstRun.current = false;
+          return;
+        }
+
+        const data = snapshot.data();
+        const timestamp = data?.lastUpdatedAt as Timestamp | undefined;
+
+        if (!timestamp) return;
+
+        const updateMillis = timestamp.toMillis();
+
+        // Jika timestamp besar berarti ada perubahan
+        // Handle ketika pertama kali fetch tidak perlu update
+        if (updateMillis > lastKnownUpdate.current) {
+          lastKnownUpdate.current = updateMillis;
+          refetch();
+        }
+      },
+      (err) => {
+        console.error("Firestore onSnapshot error:", err);
+      }
+    );
+
+    return () => {
+      unsubscribe();
+      isFirstRun.current = true;
+    };
+  }, [order_id, refetch]);
 
   return (
     <div className={`flex flex-col items-end mb-4`}>
@@ -45,7 +100,6 @@ export default function CustomerOrderChatBubble({
               <CustomBadge
                 value={data.status}
                 outlineValues={[OrderStatus.PENDING_CONFIRMATION]}
-                warningValues={[OrderStatus.WAITING_PAYMENT]}
               >
                 {orderStatusMapping[data.status]}
               </CustomBadge>
@@ -75,46 +129,52 @@ export default function CustomerOrderChatBubble({
                 ))}
               </div>
 
-              <div className="my-4">
-                <Separator />
-                <div className="my-2 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                  Meja: {data.customer.table_number} Lantai:{" "}
-                  {data.customer.floor}
-                </div>
-                <Separator />
-              </div>
+              {data.post_order_type !== "TAKEAWAY" &&
+                data.customer.table_number && (
+                  <div className="my-4">
+                    <div className="my-2 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      Meja: {data.customer.table_number} Lantai:{" "}
+                      {data.customer.floor}
+                    </div>
+                  </div>
+                )}
 
-              <div>
+              <div className="my-4">
+                <h1 className="font-medium mb-1">Pembayaran</h1>
+
                 <div className="flex justify-between">
                   <h1 className="">Total</h1>
 
-                  <h1 className="font-semibold">{data.total_price}</h1>
+                  <h1 className="font-semibold">
+                    {formatRupiah(data.total_price)}
+                  </h1>
                 </div>
 
-                <h1>Pembayaran: {paymentMethodMapping[data.payment_method]}</h1>
+                <div className="flex justify-between">
+                  <h1>Metode</h1>
+
+                  <h1>{paymentMethodMapping[data.payment_method]}</h1>
+                </div>
               </div>
 
-              <Link
-                href={"/order/" + data.id}
-                className="p-2 my-4 bg-secondary items-center border cursor-pointer border-accent-foreground rounded flex justify-between text-accent-foreground hover:text-accent"
+              {data.payment_method === "CASH" &&
+                data.status === "WAITING_SHOP_CONFIRMATION" && (
+                  <Alert variant={"destructive"}>
+                    <CashIcon />
+                    <AlertDescription>Silakan bayar di kedai</AlertDescription>
+                  </Alert>
+                )}
+
+              <NavButton
+                className="flex mt-4 justify-between items-center"
+                href={"/order/" + order_id}
+                variant="outline"
+                size="lg"
               >
-                <div className="flex gap-2">
-                  <FileText className="w-5 h-5" />
-
-                  <h1>Lihat Detail Pesanan</h1>
-                </div>
-
-                <ChevronRight className="w-5 h-5" />
-              </Link>
-
-              {data.status === "COMPLETED" && (
-                <div className="w-full">
-                  <NavButton className="w-full" href={"/testimoni"}>
-                    Beri Testimoni Untuk Canteeners
-                  </NavButton>
-                </div>
-              )}
+                Lihat Detail Pesanan
+                <ChevronRight />
+              </NavButton>
 
               {data.status === "WAITING_PAYMENT" && (
                 <div className="w-full">

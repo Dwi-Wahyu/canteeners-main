@@ -2,7 +2,6 @@
 
 import {
   AlertDialog,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -16,10 +15,12 @@ import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { rejectOrder } from "../lib/order-actions";
-import { Loader, XCircle } from "lucide-react";
+import { Loader2, XCircle } from "lucide-react";
+import { useRouter } from "nextjs-toploader/app";
 
 export default function RejectOrderDialog({ order_id }: { order_id: string }) {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const [rejectedReason, setRejectedReason] = useState("");
 
@@ -40,15 +41,22 @@ export default function RejectOrderDialog({ order_id }: { order_id: string }) {
     const result = await mutateAsync();
 
     if (result.success) {
+      setIsOpen(false);
+      router.refresh();
       notificationDialog.success({
         title: "Berhasil menolak order",
         actionButtons: (
-          <Button size={"lg"} variant={"outline"}>
-            Hubungi Pelanggan
+          <Button
+            onClick={notificationDialog.hide}
+            size={"lg"}
+            variant={"outline"}
+          >
+            Tutup
           </Button>
         ),
       });
     } else {
+      setIsOpen(false);
       notificationDialog.error({
         title: "Terjadi Kesalahan",
         message: "Silakan hubungi CS",
@@ -57,7 +65,7 @@ export default function RejectOrderDialog({ order_id }: { order_id: string }) {
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
         <Button
           size={"lg"}
@@ -69,32 +77,34 @@ export default function RejectOrderDialog({ order_id }: { order_id: string }) {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader className="text-start">
-          <AlertDialogTitle>Yakin Menolak Order?</AlertDialogTitle>
+          <AlertDialogTitle>Yakin Menolak Pesanan?</AlertDialogTitle>
           <AlertDialogDescription className="mb-2">
             Beri alasan jelas
           </AlertDialogDescription>
 
           <Textarea
             disabled={isPending}
-            placeholder="Contoh : Bahan tidak tersedia"
+            placeholder="Bahan tidak tersedia"
             value={rejectedReason}
             onChange={(e) => setRejectedReason(e.target.value)}
             className="h-40"
           />
         </AlertDialogHeader>
         <AlertDialogFooter className="grid grid-cols-2 gap-4">
-          <AlertDialogCancel asChild>
-            <Button size={"lg"} variant={"outline"}>
-              Batal
-            </Button>
-          </AlertDialogCancel>
+          <Button
+            onClick={() => setIsOpen(false)}
+            size={"lg"}
+            variant={"outline"}
+          >
+            Batal
+          </Button>
           <Button
             size={"lg"}
             variant={"destructive"}
             onClick={handleConfirm}
             disabled={isPending}
           >
-            {isPending ? <Loader className="animate-spin" /> : "Yakin"}
+            {isPending ? <Loader2 className="animate-spin" /> : "Yakin"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

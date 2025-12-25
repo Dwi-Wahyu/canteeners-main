@@ -37,7 +37,7 @@ import {
   refundDisbursementModeMapping,
 } from "@/constant/refund-mapping";
 import { RefundDisbursementMode, RefundReason } from "@/generated/prisma";
-import { getFileExtension } from "@/helper/file-helper";
+import { generateFileName, getFileExtension } from "@/helper/file-helper";
 import { uuidv4 } from "zod";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 
@@ -138,8 +138,7 @@ export function CreateRefundForm({
 
     try {
       const formData = new FormData();
-      const ext = getFileExtension(file.name);
-      const randomName = `complaint-proofs/${uuidv4()}.${ext}`;
+      const randomName = generateFileName(file.name, "complaint-proofs");
 
       formData.append("file", file);
       formData.append("filename", randomName);
