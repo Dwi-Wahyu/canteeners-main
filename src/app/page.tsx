@@ -50,14 +50,14 @@ export default async function LandingPage() {
             Mulai Pesan
           </NavButton>
 
-          <Button
+          {/* <Button
             variant={"outline"}
             className="border border-primary text-primary"
             size={"lg"}
           >
             <Store />
             Cek Pesanan Saya
-          </Button>
+          </Button> */}
         </div>
       </div>
 

@@ -56,6 +56,7 @@ export default function AppTestimonyForm({
 
       if (containsBadWords(message)) {
         toast.error("Pesan terdeteksi sebagai ujaran kebencian");
+        return;
       }
 
       const res = await createAppTestimony({ message, from, role, rating });

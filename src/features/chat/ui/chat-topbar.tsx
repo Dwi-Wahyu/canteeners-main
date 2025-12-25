@@ -70,18 +70,10 @@ export default function ChatTopbar({
         <DropdownMenuTrigger>
           <EllipsisVertical />
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="mr-3 mt-2">
-          {opponentId && (
-            <DropdownMenuItem asChild>
-              <ReportUserDialog reportedUserId={opponentId} />
-            </DropdownMenuItem>
-          )}
+        <DropdownMenuContent className="mr-3 flex flex-col mt-2 w-fit">
+          {opponentId && <ReportUserDialog reportedUserId={opponentId} />}
 
-          {chatId && (
-            <DropdownMenuItem asChild>
-              <DeleteChatDialog chatId={chatId} />
-            </DropdownMenuItem>
-          )}
+          {chatId && <DeleteChatDialog chatId={chatId} />}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

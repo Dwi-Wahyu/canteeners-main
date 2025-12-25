@@ -87,19 +87,11 @@ export default function ChooseTableClient({
           message: "Silakan belanja sepuasmu",
           actionButtons: (
             <div className="grid grid-cols-2 gap-3">
-              <Button size="lg" asChild variant={"outline"}>
-                <Link onClick={notificationDialog.hide} href={"/keranjang"}>
-                  <ShoppingCart />
-                  Lihat Keranjang
-                </Link>
-              </Button>
-
               <Button size="lg" asChild>
                 <Link
                   onClick={notificationDialog.hide}
                   href={"/kantin/" + canteen.slug}
                 >
-                  <UtensilsCrossed />
                   Mulai Belanja
                 </Link>
               </Button>

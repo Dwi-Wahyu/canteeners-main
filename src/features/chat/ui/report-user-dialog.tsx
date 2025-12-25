@@ -79,7 +79,7 @@ export function ReportUserDialog({
   return (
     <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" className="w-full">
+        <Button variant="ghost" className="w-fit">
           <CircleAlert />
           Laporkan
         </Button>

@@ -80,15 +80,7 @@ export default function ShopOrderTrackingClient({
 
       if (!querySnapshot.empty) {
         querySnapshot.docChanges().forEach(async (change) => {
-          const hasChanges = querySnapshot
-            .docChanges()
-            .some(
-              (change) => change.type === "added" || change.type === "modified"
-            );
-
-          if (hasChanges) {
-            fetchData();
-          }
+          fetchData();
         });
       }
     });
@@ -172,19 +164,13 @@ export default function ShopOrderTrackingClient({
 
               {order.post_order_type === "DELIVERY_TO_TABLE" &&
                 order.customer.table_number && (
-                  <div>
-                    <div>
-                      <h1 className="font-medium">Meja</h1>
-                      <h1 className="text-muted-foreground">
-                        {order.customer.table_number}
-                      </h1>
-                    </div>
-                    <div>
-                      <h1 className="font-medium">Lantai</h1>
-                      <h1 className="text-muted-foreground">
-                        {order.customer.floor}
-                      </h1>
-                    </div>
+                  <div className="">
+                    <h1 className="font-medium">
+                      Meja: {order.customer.table_number}
+                    </h1>
+                    <h1 className="font-medium">
+                      Lantai: {order.customer.floor}
+                    </h1>
                   </div>
                 )}
 

@@ -1,3 +1,4 @@
+import HistoryBackButton from "@/components/layouts/history-back-button";
 import NavButton from "@/components/nav-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auth } from "@/config/auth";
@@ -35,9 +36,7 @@ export default async function ChooseTablePage({
   return (
     <div>
       <div className="w-full p-4 gap-2 flex items-center bg-linear-to-r text-primary-foreground from-primary to-primary/90">
-        <NavButton size="icon" variant="ghost" href="/keranjang">
-          <ChevronLeft />
-        </NavButton>
+        <HistoryBackButton />
 
         <h1 className="text-xl leading-tight">Pilih Meja </h1>
       </div>

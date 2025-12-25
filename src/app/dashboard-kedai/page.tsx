@@ -24,6 +24,8 @@ import { prismaAccelerate } from "@/lib/prisma";
 import { formatRupiah } from "@/helper/format-rupiah";
 import CashIcon from "@/components/icons/cash-icon";
 import NavButton from "@/components/nav-button";
+import { ShopBestSellingProduct } from "@/features/product/ui/shop-best-selling-product";
+import { getBestSellingProducts } from "@/features/product/lib/product-queries";
 
 export default async function DashboardKedai() {
   const session = await auth();
@@ -55,6 +57,11 @@ export default async function DashboardKedai() {
     },
   });
 
+  const bestSellerProducts = await getBestSellingProducts(
+    session.user.shopId,
+    5
+  );
+
   return (
     <div className="space-y-5">
       <div className="mb-5">
@@ -65,6 +72,8 @@ export default async function DashboardKedai() {
       <DashboardStats stats={stats} />
 
       <RecentOrdersList orders={recentOrders} />
+
+      <ShopBestSellingProduct products={bestSellerProducts} />
 
       <Card className="mb-5">
         <CardHeader>

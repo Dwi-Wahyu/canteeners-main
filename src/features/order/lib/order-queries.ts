@@ -2,6 +2,28 @@
 
 import { prisma, prismaAccelerate } from "@/lib/prisma";
 
+export async function getShopOrderHistory(shopId: string) {
+  return await prisma.order.findMany({
+    where: {
+      shop_id: shopId,
+      status: "COMPLETED",
+    },
+    select: {
+      created_at: true,
+      total_price: true,
+      customer: {
+        select: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
 export async function getShopOrderDetail(id: string) {
   return await prisma.order.findFirst({
     where: {
