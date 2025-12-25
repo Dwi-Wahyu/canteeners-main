@@ -3,8 +3,6 @@ import { getImageUrl } from "@/helper/get-image-url";
 import Image from "next/image";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
 export default async function CanteenPage() {
   const canteens = [
     {
@@ -15,7 +13,7 @@ export default async function CanteenPage() {
     {
       slug: "kantin-sastra",
       image_url: "canteens/kansas.jpeg",
-      name: "Kantin Kudapan",
+      name: "Kantin Sastra",
     },
     {
       slug: "kantin-sosiologi",
