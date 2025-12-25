@@ -46,8 +46,6 @@ export default function ShopOrderTrackingClient({
 
   const [isPending, startTransition] = useTransition();
 
-  const isFirstRun = useRef(true);
-
   const fetchData = useCallback(() => {
     startTransition(async () => {
       const data = await getOrderTrackingData({ shopId });
@@ -60,11 +58,6 @@ export default function ShopOrderTrackingClient({
       return;
     }
 
-    if (isFirstRun.current) {
-      isFirstRun.current = false;
-      return;
-    }
-
     const ordersRef = collection(db, "orders");
     const q = query(
       ordersRef,
@@ -72,15 +65,29 @@ export default function ShopOrderTrackingClient({
       orderBy("lastUpdatedAt", "desc")
     );
 
+    let isInitialSnapshot = true;
+
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       // Pastikan data bukan berasal dari cache lokal (Metadata check)
       // agar tidak double-toast saat offline-to-online
       if (querySnapshot.metadata.hasPendingWrites) return;
 
+      // Lewati snapshot pertama (data yang sudah ada saat listener baru nyala)
+      if (isInitialSnapshot) {
+        isInitialSnapshot = false;
+        return;
+      }
+
       if (!querySnapshot.empty) {
         querySnapshot.docChanges().forEach(async (change) => {
-          if (change.type === "added" || change.type === "modified") {
-            await fetchData();
+          const hasChanges = querySnapshot
+            .docChanges()
+            .some(
+              (change) => change.type === "added" || change.type === "modified"
+            );
+
+          if (hasChanges) {
+            fetchData();
           }
         });
       }
@@ -88,7 +95,6 @@ export default function ShopOrderTrackingClient({
 
     return () => {
       unsubscribe();
-      isFirstRun.current = true;
     };
   }, [shopId, fetchData]);
 
