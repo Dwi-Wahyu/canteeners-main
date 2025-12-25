@@ -6,13 +6,13 @@ export default function SyaratDanKetentuanPelanggan() {
           Syarat & Ketentuan Pengguna Layanan
         </h1>
 
-        <h2 className="text-2xl font-semibold text-blue-600">Kantiners</h2>
+        <h2 className="text-2xl font-semibold text-blue-600">Canteeners</h2>
       </header>
 
       <section className="mb-8">
         <p className="mb-4 italic">
-          Selamat datang di Kantiners. Dengan mendaftar dan menggunakan platform
-          kami, Anda ("Pengguna") dianggap telah membaca, memahami, dan
+          Selamat datang di Canteeners. Dengan mendaftar dan menggunakan
+          platform kami, Anda ("Pengguna") dianggap telah membaca, memahami, dan
           menyetujui seluruh isi Syarat dan Ketentuan ("S&K") ini.
         </p>
       </section>
@@ -22,7 +22,7 @@ export default function SyaratDanKetentuanPelanggan() {
         <h3 className="text-xl font-bold mb-3">1. Akun Pengguna</h3>
         <ul className="list-disc pl-6 space-y-2">
           <li>
-            <strong>Pendaftaran:</strong> Layanan Kantiners terbuka untuk umum.
+            <strong>Pendaftaran:</strong> Layanan Canteeners terbuka untuk umum.
             Pengguna wajib memberikan data yang benar dan akurat saat
             pendaftaran.
           </li>
@@ -35,7 +35,7 @@ export default function SyaratDanKetentuanPelanggan() {
 
           <li>
             <strong>Data Tidak Akurat:</strong> Jika ditemukan Pengguna
-            memberikan data yang tidak benar atau palsu, Tim Kantiners berhak
+            memberikan data yang tidak benar atau palsu, Tim Canteeners berhak
             melakukan evaluasi dan memberikan sanksi penangguhan (suspend) akun.
           </li>
 
@@ -122,7 +122,7 @@ export default function SyaratDanKetentuanPelanggan() {
           <li>
             <strong>Peran Advokasi CS:</strong> Jika terjadi perselisihan atau
             keterlambatan dalam proses refund dari Kedai, Pengguna dapat
-            menghubungi CS. Tim Kantiners akan bertindak sebagai mediator dan
+            menghubungi CS. Tim Canteeners akan bertindak sebagai mediator dan
             mengadvokasi Pengguna untuk memastikan pengembalian dana
             diselesaikan oleh Kedai.
           </li>
@@ -137,7 +137,7 @@ export default function SyaratDanKetentuanPelanggan() {
         <ul className="list-disc pl-6 space-y-2">
           <li>
             <strong>Sistem Error (Down):</strong> Jika terjadi gangguan pada
-            aplikasi Kantiners (server down, error massal), Pengguna diizinkan
+            aplikasi Canteeners (server down, error massal), Pengguna diizinkan
             melakukan pemesanan secara manual langsung ke Kedai.
           </li>
 
@@ -155,7 +155,7 @@ export default function SyaratDanKetentuanPelanggan() {
 
           <li>
             <strong>Sengketa Pembayaran:</strong> Untuk sengketa pembayaran, CS
-            Kantiners akan bertindak sebagai mediator aktif dan menghubungi
+            Canteeners akan bertindak sebagai mediator aktif dan menghubungi
             pihak Kedai secara langsung untuk menyelesaikan masalah.
           </li>
         </ul>
@@ -176,7 +176,7 @@ export default function SyaratDanKetentuanPelanggan() {
           <li>
             <strong>Sanksi Ulasan:</strong> Pengguna yang melanggar aturan
             konten ulasan akan mendapatkan peringatan. Jika pelanggaran
-            berlanjut, tim Kantiners berhak untuk mencabut fitur review dari
+            berlanjut, tim Canteeners berhak untuk mencabut fitur review dari
             akun atau banned Pengguna tersebut.
           </li>
         </ul>
@@ -191,14 +191,14 @@ export default function SyaratDanKetentuanPelanggan() {
           <li>
             <strong>Larangan Keras:</strong> Pengguna dilarang keras melakukan
             upaya peretasan (hacking), reverse engineering, atau tindakan teknis
-            lainnya yang bertujuan merusak sistem Kantiners. Sanksi untuk
+            lainnya yang bertujuan merusak sistem Canteeners. Sanksi untuk
             pelanggaran ini adalah pemblokiran (ban) permanen secara langsung
             atau penyelesaian melalui jalur hukum.
           </li>
 
           <li>
             <strong>Properti Intelektual:</strong> Pengguna dilarang menggunakan
-            nama, logo, poster, atau aset merek ("Kantiners") lainnya untuk
+            nama, logo, poster, atau aset merek ("Canteeners") lainnya untuk
             kepentingan komersial atau pribadi tanpa izin tertulis.
           </li>
         </ul>
@@ -214,7 +214,7 @@ export default function SyaratDanKetentuanPelanggan() {
             WhatsApp Bisnis.
           </li>
           <li>
-            <strong>Perubahan S&K:</strong> Kantiners berhak mengubah S&K ini
+            <strong>Perubahan S&K:</strong> Canteeners berhak mengubah S&K ini
             sewaktu-waktu. Perubahan akan dianggap berlaku efektif setelah
             diposting di platform kami.
           </li>
@@ -222,7 +222,7 @@ export default function SyaratDanKetentuanPelanggan() {
           <li>
             <strong>Kaitan dengan Kebijakan Privasi:</strong> Dengan menyetujui
             S&K ini, Pengguna juga menyatakan telah membaca dan menyetujui
-            Kebijakan Privasi Kantiners.
+            Kebijakan Privasi Canteeners.
           </li>
         </ul>
       </section>
