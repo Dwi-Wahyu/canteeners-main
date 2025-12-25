@@ -243,7 +243,7 @@ export default function CreateProductForm({
         <div className="flex justify-center gap-3">
           <Button
             disabled={form.formState.isSubmitting}
-            className="w-full"
+            className="w-full h-12"
             size={"lg"}
             type="submit"
           >

@@ -1,14 +1,14 @@
 export default function KebijakanPrivasi() {
   return (
-    <div className="max-w-4xl mx-auto p-8 text-gray-800 leading-relaxed text-justify">
+    <div className="max-w-4xl mx-auto p-8 text-gray-800 leading-relaxed">
       <header className="mb-8 border-b-2 border-blue-500 pb-4">
         <h1 className="text-3xl font-bold uppercase mb-2">
           Privacy Policy Canvas
         </h1>
-        <h2 className="text-2xl font-semibold text-blue-700">Kantiners</h2>
+        <h2 className="text-2xl font-semibold text-">Canteeners</h2>
         <p className="mt-4 text-gray-600 italic">
           Ringkasan visual untuk memahami pilar-pilar utama Kebijakan Privasi
-          Kantiners.
+          Canteeners.
         </p>
       </header>
 

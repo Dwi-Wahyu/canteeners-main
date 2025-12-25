@@ -46,7 +46,7 @@ export default function LandingFooter() {
               </li>
               <li>
                 <a
-                  href="/privasi-dan-kebijakan"
+                  href="/kebijakan-dan-privasi"
                   className="hover:font-semibold transition"
                 >
                   Kebijakan Privasi

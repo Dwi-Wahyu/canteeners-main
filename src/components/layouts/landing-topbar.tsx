@@ -20,10 +20,6 @@ export default function LandingTopbar() {
       href: "/kantin/kantin-kudapan",
     },
     {
-      label: "Keranjang",
-      href: "/keranjang",
-    },
-    {
       label: "Login",
       href: "/login-kedai",
     },

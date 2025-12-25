@@ -5,11 +5,9 @@ export default function SyaratDanKetentuanMitra() {
         <h1 className="text-3xl font-bold uppercase mb-2">
           Syarat & Ketentuan Kemitraan
         </h1>
-        <h2 className="text-2xl font-semibold text-green-700">
-          Kantiners (Canvas)
-        </h2>
+
         <p className="mt-4 text-gray-600 italic">
-          Ringkasan pilar-pilar utama perjanjian kemitraan antara Kantiners dan
+          Ringkasan pilar-pilar utama perjanjian kemitraan antara Canteeners dan
           Pemilik Kedai (Mitra).
         </p>
       </header>
@@ -23,13 +21,13 @@ export default function SyaratDanKetentuanMitra() {
           Pendaftaran & Manajemen Akun Mitra
         </h3>
         <ul className="list-disc pl-12 space-y-2">
-          <li>Pendaftaran akun dibantu sepenuhnya oleh tim Kantiners.</li>
+          <li>Pendaftaran akun dibantu sepenuhnya oleh tim Canteeners.</li>
           <li>
             Data yang wajib disediakan meliputi Nama Penanggung Jawab, Nama
             Kedai, dan Nomor WhatsApp aktif.
           </li>
           <li>
-            Tim Kantiners membantu input menu di awal, namun selanjutnya Mitra
+            Tim Canteeners membantu input menu di awal, namun selanjutnya Mitra
             diharapkan mengelola harga, stok, dan deskripsi secara mandiri.
           </li>
           <li>
@@ -85,7 +83,7 @@ export default function SyaratDanKetentuanMitra() {
             rupiah) per item menu yang berhasil terjual 66].
           </li>
           <li>
-            Kantiners tidak menampung dana; pelanggan membayar transaksi
+            Canteeners tidak menampung dana; pelanggan membayar transaksi
             langsung kepada Mitra.
           </li>
           <li>
@@ -93,7 +91,7 @@ export default function SyaratDanKetentuanMitra() {
             penuh pihak Mitra.
           </li>
           <li>
-            Mitra wajib menyetorkan akumulasi total komisi kepada Kantiners
+            Mitra wajib menyetorkan akumulasi total komisi kepada Canteeners
             setiap akhir pekan (weekend).
           </li>
         </ul>
@@ -137,7 +135,7 @@ export default function SyaratDanKetentuanMitra() {
             pelanggan setelah transaksi selesai 76].
           </li>
           <li>
-            Tim Kantiners melakukan evaluasi rutin mingguan terhadap data
+            Tim Canteeners melakukan evaluasi rutin mingguan terhadap data
             kinerja dan ulasan Mitra.
           </li>
           <li>
@@ -159,7 +157,7 @@ export default function SyaratDanKetentuanMitra() {
           mitra pengemudinya.
         </p>
         <p>
-          Kantiners adalah platform teknologi dan tidak bertanggung jawab atas
+          Canteeners adalah platform teknologi dan tidak bertanggung jawab atas
           kualitas produk, sengketa pembayaran langsung, atau layanan yang
           diberikan Mitra kepada pelanggan.
         </p>
@@ -176,8 +174,8 @@ export default function SyaratDanKetentuanMitra() {
             melayani pelanggan secara manual untuk sementara waktu.
           </li>
           <li>
-            Sebagai kompensasi, Kantiners akan membebaskan (menggratiskan) biaya
-            komisi untuk seluruh transaksi pada hari terjadinya gangguan
+            Sebagai kompensasi, Canteeners akan membebaskan (menggratiskan)
+            biaya komisi untuk seluruh transaksi pada hari terjadinya gangguan
             tersebut.
           </li>
           <li>
