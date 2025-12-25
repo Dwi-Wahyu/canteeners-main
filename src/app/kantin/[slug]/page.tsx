@@ -7,8 +7,6 @@ import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
 import LandingTopbar from "@/components/layouts/landing-topbar";
 import { auth } from "@/config/auth";
 
-export const dynamic = "force-dynamic";
-
 export default async function CanteenDetailPage({
   params,
   searchParams,
