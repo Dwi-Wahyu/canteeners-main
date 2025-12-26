@@ -3,8 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Home, MessageCircle, Package, Settings } from "lucide-react";
-import ActiveProductIcon from "../icons/active-product-icon";
+import { Home, MessageCircle, Settings, UtensilsCrossed } from "lucide-react";
 
 export default function OwnerBottomBar() {
   const currentPathname = usePathname();
@@ -26,8 +25,8 @@ export default function OwnerBottomBar() {
     },
     {
       href: "/dashboard-kedai/produk",
-      icon: Package,
-      activeIcon: ActiveProductIcon,
+      icon: UtensilsCrossed,
+      activeIcon: UtensilsCrossed,
       label: "Produk",
       exact: false,
     },
@@ -61,10 +60,9 @@ export default function OwnerBottomBar() {
             aria-label={item.label}
             className={`
               flex flex-col items-center justify-center p-2 transition-all duration-200
-              ${
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+              ${isActive
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
               }
             `}
           >

@@ -10,12 +10,13 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-
-import ProductCard from "../../../features/product/ui/product-card";
-import { Trash } from "lucide-react";
+import { Edit, Eye, Plus, SquareArrowOutUpRight, Trash } from "lucide-react";
 import { getShopProducts } from "../../../features/product/lib/product-queries";
 import NavButton from "@/components/nav-button";
 import { useQueryState } from "nuqs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { getImageUrl } from "@/helper/get-image-url";
+import { formatRupiah } from "@/helper/format-rupiah";
 
 export default function ProductClientPage({
   data,
@@ -39,6 +40,7 @@ export default function ProductClientPage({
             href="/dashboard-kedai/produk/create"
             variant="default"
           >
+            <Plus />
             Input Produk
           </NavButton>
         )}
@@ -50,10 +52,35 @@ export default function ProductClientPage({
         onChange={(ev) => setFilterName(ev.target.value)}
       />
 
+
+
       {data && (
         <div className="grid mt-4 grid-cols-1 gap-4 md:grid-cols-3">
           {data.map((product) => (
-            <ProductCard product={product} key={product.id} />
+            <Card className='max-w-md pt-0'>
+              <CardContent className='px-0'>
+                <img
+                  src={getImageUrl(product.image_url)}
+
+                  alt='Banner'
+                  className='aspect-video h-70 rounded-t-xl object-cover'
+                />
+              </CardContent>
+              <CardHeader>
+                <CardTitle>{product.name}</CardTitle>
+                <h1 className="font-semibold text-xl">{formatRupiah(product.price)}</h1>
+                <CardDescription>{product.description}</CardDescription>
+              </CardHeader>
+              <CardFooter className='gap-3 grid grid-cols-2'>
+                <NavButton variant="outline" href={`/dashboard-kedai/produk/${product.id}`}>
+                  <SquareArrowOutUpRight /> Detail
+                </NavButton>
+
+                <NavButton href={`/dashboard-kedai/produk/${product.id}/edit`}>
+                  <Edit /> Edit
+                </NavButton>
+              </CardFooter>
+            </Card>
           ))}
         </div>
       )}
