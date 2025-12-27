@@ -2,7 +2,6 @@
 
 import {
   AlertDialog,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -11,57 +10,67 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Loader2, Trash } from "lucide-react";
 import { deleteProduct } from "../lib/product-actions";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "nextjs-toploader/app";
 
 export default function DeleteProductDialog({
-  product_id,
+  id,
+  name,
 }: {
-  product_id: string;
+  id: string;
+  name: string;
 }) {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
 
-  const { isPending, mutateAsync } = useMutation({
-    mutationFn: async () => {
-      return deleteProduct(product_id);
-    },
-  });
+  const [productNameInput, setProductNameInput] = useState("");
 
-  async function handleConfirm() {
-    const result = await mutateAsync();
+  const [isPending, startTransition] = useTransition();
 
-    if (result.success) {
-      setOpen(false);
-      notificationDialog.success({
-        title: "Berhasil Hapus Produk",
-        message: "Data yang terhubung dengan produk akan terpengaruh",
-        actionButtons: (
-          <div className="flex justify-center">
-            <Button variant={"outline"}>Ya, Mengerti</Button>
-          </div>
-        ),
-      });
-      router.push("/dashboard-kedai/produk");
-    } else {
-      setOpen(false);
-      notificationDialog.error({
-        title: "Gagal Menghapus Varian",
-        message: "Silakan hubungi CS",
-      });
-      console.log(result.error);
-    }
+  function handleConfirm() {
+    startTransition(async () => {
+      const result = await deleteProduct(id);
+
+      if (result.success) {
+        setIsOpen(false);
+        notificationDialog.success({
+          title: "Berhasil Hapus Produk",
+          message: "Data yang terhubung dengan produk akan terpengaruh",
+          actionButtons: (
+            <div className="flex justify-center">
+              <Button variant={"outline"} onClick={notificationDialog.hide}>
+                Ya, Mengerti
+              </Button>
+            </div>
+          ),
+        });
+        router.push("/dashboard-kedai/produk");
+      } else {
+        setIsOpen(false);
+        notificationDialog.error({
+          title: "Gagal Menghapus Produk",
+          message: result.error.message || "Silakan hubungi CS",
+        });
+        console.error(result.error);
+      }
+    });
   }
 
   return (
     <div>
-      <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <AlertDialogTrigger asChild disabled={isPending}>
-          <Button variant={"destructive"}>Hapus</Button>
+          <Button
+            variant={"outline"}
+            className="w-full border-destructive text-destructive h-12"
+          >
+            <Trash />
+            Hapus Produk Ini
+          </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -73,19 +82,30 @@ export default function DeleteProductDialog({
               tidak dapat dibatalkan
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div>
+            <h1 className="font-medium text-sm mb-1">Ketik nama produk</h1>
+            <Input
+              placeholder={name}
+              value={productNameInput}
+              onChange={(e) => setProductNameInput(e.target.value)}
+            />
+          </div>
           <AlertDialogFooter className="justify-end items-center flex-row gap-4">
-            <AlertDialogCancel asChild>
-              <Button size={"lg"} variant={"outline"}>
-                Batal
-              </Button>
-            </AlertDialogCancel>
+            <Button
+              size={"lg"}
+              onClick={() => setIsOpen(false)}
+              variant={"outline"}
+              disabled={isPending}
+            >
+              Batal
+            </Button>
             <Button
               size={"lg"}
               onClick={handleConfirm}
               variant={"destructive"}
-              disabled={isPending}
+              disabled={isPending || productNameInput !== name}
             >
-              {isPending ? <Loader className="animate-spin" /> : "Yakin"}
+              {isPending ? <Loader2 className="animate-spin" /> : "Yakin"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

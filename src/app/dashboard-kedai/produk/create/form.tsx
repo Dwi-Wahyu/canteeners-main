@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import {
   Form,
@@ -20,13 +20,13 @@ import {
 } from "@/features/product/types/product-schema";
 import { useRouter } from "nextjs-toploader/app";
 import { Button } from "@/components/ui/button";
-import { Loader, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Category } from "@/generated/prisma";
 import MultipleSelector from "@/components/multiple-select";
 import { FileUploadImage } from "@/components/file-upload-image";
-import { createProduct } from "../lib/product-actions";
+import { createProduct } from "../../../../features/product/lib/product-actions";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { generateFileName } from "@/helper/file-helper";
 
@@ -38,6 +38,8 @@ export default function CreateProductForm({
   categories: Category[];
 }) {
   const [files, setFiles] = useState<File[]>([]);
+
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<CreateProductInput>({
     resolver: zodResolver(CreateProductSchema),
@@ -55,66 +57,68 @@ export default function CreateProductForm({
   const router = useRouter();
 
   const onSubmit = async (payload: CreateProductInput) => {
-    if (files.length > 0) {
-      const file = files[0];
-      const filename = generateFileName(file.name, "products");
-      const formData = new FormData();
+    startTransition(async () => {
+      if (files.length > 0) {
+        const file = files[0];
+        const filename = generateFileName(file.name, "products");
+        const formData = new FormData();
 
-      formData.append("file", file);
-      formData.append("filename", filename);
+        formData.append("file", file);
+        formData.append("filename", filename);
 
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        form.setError("image_url", {
-          message: "Gagal mengunggah file melalui API.",
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
         });
+
+        if (!uploadResponse.ok) {
+          form.setError("image_url", {
+            message: "Gagal mengunggah file melalui API.",
+          });
+          return;
+        }
+
+        payload.image_url = filename;
+      }
+
+      if (payload.image_url === "") {
+        form.setError("image_url", { message: "Tolong pilih gambar" });
         return;
       }
 
-      payload.image_url = filename;
-    }
+      const parsedPrice = parseInt(payload.price);
 
-    if (payload.image_url === "") {
-      form.setError("image_url", { message: "Tolong pilih gambar" });
-      return;
-    }
+      if (isNaN(parsedPrice)) {
+        form.setError("price", { message: "Harga tidak valid" });
+        return;
+      }
 
-    const parsedPrice = parseInt(payload.price);
+      if (payload.cost && isNaN(parseInt(payload.cost))) {
+        form.setError("cost", { message: "Harga modal tidak valid" });
+        return;
+      }
 
-    if (isNaN(parsedPrice)) {
-      form.setError("price", { message: "Harga tidak valid" });
-      return;
-    }
+      const result = await createProduct(payload);
 
-    if (payload.cost && isNaN(parseInt(payload.cost))) {
-      form.setError("cost", { message: "Harga modal tidak valid" });
-      return;
-    }
+      if (result.success) {
+        form.reset();
+        setFiles([]);
 
-    const result = await createProduct(payload);
+        notificationDialog.success({
+          title: "Sukses input produk",
+          message: "Produk akan tersedia di tampilan kedai anda",
+        });
 
-    if (result.success) {
-      form.reset();
-      setFiles([]);
-
-      notificationDialog.success({
-        title: "Sukses input produk",
-        message: "Produk akan tersedia di tampilan kedai anda",
-      });
-
-      setTimeout(() => {
-        router.push("/dashboard-kedai/produk");
-      }, 1000);
-    } else {
-      notificationDialog.success({
-        title: result.error.message,
-        message: "Silakan hubungi CS",
-      });
-    }
+        setTimeout(() => {
+          router.push("/dashboard-kedai/produk");
+        }, 1000);
+      } else {
+        notificationDialog.success({
+          title: result.error.message,
+          message: "Silakan hubungi CS",
+        });
+      }
+    });
   };
 
   const categoryOptions = categories.map((category) => ({
@@ -242,21 +246,13 @@ export default function CreateProductForm({
 
         <div className="flex justify-center gap-3">
           <Button
-            disabled={form.formState.isSubmitting}
+            disabled={isPending}
             className="w-full h-12"
             size={"lg"}
             type="submit"
           >
-            {form.formState.isSubmitting && !form.formState.errors ? (
-              <>
-                <Loader className="animate-spin" /> Loading
-              </>
-            ) : (
-              <>
-                <Save />
-                Simpan
-              </>
-            )}
+            {isPending ? <Loader2 className="animate-spin" /> : <Save />}
+            Simpan
           </Button>
         </div>
       </form>

@@ -38,18 +38,6 @@ export default async function GuestShopCartPage({
     return notFound();
   }
 
-  const now = new Date();
-
-  const open_time = shopCart.shop.open_time;
-  const close_time = shopCart.shop.close_time;
-
-  const ableToCheckout =
-    shopCart.shop.status === "ACTIVE" ||
-    (open_time !== null &&
-      close_time !== null &&
-      now >= open_time &&
-      now <= close_time);
-
   const customerProfile = await getCustomerProfile(session.user.customerId);
 
   if (!customerProfile) {
@@ -81,9 +69,6 @@ export default async function GuestShopCartPage({
           userId={session.user.id}
           customerProfile={customerProfile}
           shopCart={shopCart}
-          ableToCheckout={ableToCheckout}
-          open_time={open_time}
-          close_time={close_time}
           nameAlreadySet={session.user.name !== ""}
         />
       </div>

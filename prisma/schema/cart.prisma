@@ -48,7 +48,7 @@ model CartItem {
   id           String   @id @default(nanoid())
   shop_cart    ShopCart @relation(fields: [shop_cart_id], references: [id], onDelete: Cascade)
   shop_cart_id String
-  product      Product  @relation(fields: [product_id], references: [id])
+  product      Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
   product_id   String
 
   selected_options ProductOptionValue[]

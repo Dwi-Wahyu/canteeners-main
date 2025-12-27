@@ -10,7 +10,13 @@ import {
   EditProductOptionInput,
 } from "@/features/product/types/product-schema";
 import { revalidatePath } from "next/cache";
-import { errorResponse, ServerActionReturn, successResponse } from "@/helper/action-helper";
+import {
+  errorResponse,
+  ServerActionReturn,
+  successResponse,
+} from "@/helper/action-helper";
+import { del } from "@vercel/blob";
+import { getImageUrl } from "@/helper/get-image-url";
 
 async function updateMaximumShopPrice(shop_id: string, maximum_price: number) {
   await prisma.shop.update({
@@ -47,15 +53,15 @@ export async function createProduct(
         ...(cost ? { cost: parseInt(cost) } : {}),
         ...(categories.length > 0
           ? {
-            categories: {
-              createMany: {
-                data: categories.map((category) => ({
-                  category_id: parseInt(category.value),
-                })),
-                skipDuplicates: true,
+              categories: {
+                createMany: {
+                  data: categories.map((category) => ({
+                    category_id: parseInt(category.value),
+                  })),
+                  skipDuplicates: true,
+                },
               },
-            },
-          }
+            }
           : {}),
       },
     });
@@ -91,13 +97,20 @@ export async function createProduct(
 }
 
 export async function updateProduct(
-  payload: EditProductInput
+  payload: EditProductInput,
+  isUpdatingImage: boolean,
+  previousImageUrl: string
 ): Promise<ServerActionReturn<void>> {
   const { price, cost, categories, id, ...data } = payload;
   const productPrice = parseFloat(price);
 
   try {
-    const updated = await prisma.product.update({
+    if (isUpdatingImage) {
+      // Delete previous product image
+      await del(getImageUrl(previousImageUrl));
+    }
+
+    await prisma.product.update({
       where: { id },
       data: {
         ...data,
@@ -105,16 +118,16 @@ export async function updateProduct(
         ...(cost ? { cost: parseInt(cost) } : {}),
         ...(categories.length > 0
           ? {
-            categories: {
-              deleteMany: {},
-              createMany: {
-                data: categories.map((category) => ({
-                  category_id: parseInt(category.value),
-                })),
-                skipDuplicates: true,
+              categories: {
+                deleteMany: {},
+                createMany: {
+                  data: categories.map((category) => ({
+                    category_id: parseInt(category.value),
+                  })),
+                  skipDuplicates: true,
+                },
               },
-            },
-          }
+            }
           : {}),
       },
     });
@@ -301,13 +314,23 @@ export async function deleteProduct(
   id: string
 ): Promise<ServerActionReturn<void>> {
   try {
+    const product = await prisma.product.findFirst({
+      where: {
+        id,
+      },
+    });
+
+    if (!product) {
+      return errorResponse("Produk tidak ditemukan");
+    }
+
     await prisma.product.delete({
       where: {
         id,
       },
     });
 
-
+    await del(getImageUrl(product.image_url));
 
     return successResponse(undefined, "Sukses menghapus varian");
   } catch (error) {

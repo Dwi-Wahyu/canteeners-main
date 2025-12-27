@@ -2,7 +2,7 @@ import { auth } from "@/config/auth";
 import { getCategories } from "@/features/category/lib/category-queries";
 import UnauthorizedPage from "@/components/pages/unauthorized-page";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
-import CreateProductForm from "@/features/product/ui/create-product-form";
+import CreateProductForm from "@/app/dashboard-kedai/produk/create/form";
 
 export default async function CreateProductPage() {
   const session = await auth();
@@ -24,8 +24,11 @@ export default async function CreateProductPage() {
         backUrl="/dashboard-kedai/produk"
       />
 
-      <div className="p-5 pt-24">
-        <CreateProductForm shop_id={session.user.shopId} categories={categories} />
+      <div className="p-5 pt-20">
+        <CreateProductForm
+          shop_id={session.user.shopId}
+          categories={categories}
+        />
       </div>
     </div>
   );

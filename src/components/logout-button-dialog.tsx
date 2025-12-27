@@ -13,12 +13,7 @@ import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
 
-import {
-  Item,
-  ItemContent,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
+import { Item, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { LogOut } from "lucide-react";
 
 export default function LogoutButtonDialog() {
@@ -26,7 +21,7 @@ export default function LogoutButtonDialog() {
 
   function handleLogout() {
     signOut({
-      redirectTo: "/auth/signin",
+      redirectTo: "/login-kedai",
     });
   }
 
@@ -49,7 +44,9 @@ export default function LogoutButtonDialog() {
       </Item>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-start">Anda yakin logout ?</AlertDialogTitle>
+          <AlertDialogTitle className="text-start">
+            Anda yakin logout ?
+          </AlertDialogTitle>
           <AlertDialogDescription className="text-start">
             Anda akan keluar dari sesi saat ini. Anda dapat masuk kembali kapan
             saja.

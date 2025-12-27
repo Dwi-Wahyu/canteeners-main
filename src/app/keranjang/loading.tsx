@@ -1,15 +1,27 @@
-import LandingTopbar from "@/components/layouts/landing-topbar";
+import NavButton from "@/components/nav-button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft } from "lucide-react";
 
-export default function LoadingCartSkeleton() {
+export default function LoadingShopCart() {
   return (
-    <div className="p-5 pt-24">
-      <LandingTopbar />
+    <div>
+      <div className="w-full p-4 flex justify-between items-center bg-linear-to-r text-primary-foreground from-primary to-primary/90">
+        <div className="flex gap-2 items-center">
+          <NavButton size="icon" variant="ghost" href="/chat">
+            <ChevronLeft />
+          </NavButton>
 
-      <h1 className="text-xl">Keranjang</h1>
+          <div>
+            <h1 className="text-xl leading-tight">Keranjang</h1>
 
-      <div className="flex gap-4 flex-col">
-        <Skeleton className="w-full h-20" />
+            <h1 className="text-sm">0 item dari Kedai</h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 p-5">
+        <Skeleton className="w-20 h-7" />
+
         <Skeleton className="w-full h-20" />
         <Skeleton className="w-full h-20" />
         <Skeleton className="w-full h-20" />
@@ -17,3 +29,23 @@ export default function LoadingCartSkeleton() {
     </div>
   );
 }
+
+// import LandingTopbar from "@/components/layouts/landing-topbar";
+// import { Skeleton } from "@/components/ui/skeleton";
+
+// export default function LoadingCartSkeleton() {
+//   return (
+//     <div className="p-5 pt-24">
+//       <LandingTopbar />
+
+//       <h1 className="text-xl">Keranjang</h1>
+
+//       <div className="flex gap-4 flex-col">
+//         <Skeleton className="w-full h-20" />
+//         <Skeleton className="w-full h-20" />
+//         <Skeleton className="w-full h-20" />
+//         <Skeleton className="w-full h-20" />
+//       </div>
+//     </div>
+//   );
+// }

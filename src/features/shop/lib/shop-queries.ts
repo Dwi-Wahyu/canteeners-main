@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma, prismaAccelerate } from "@/lib/prisma";
 import {
   ShopProductsSearchParamsInput,
   ShopSearchParamsInput,
@@ -194,6 +194,31 @@ export async function getShopDashboardStats(shopId: string) {
     averageOrderValue,
     chartData,
   };
+}
+
+export async function getShopStatus(id: string) {
+  return prismaAccelerate.shop.findFirst({
+    where: {
+      id,
+    },
+    select: {
+      status: true,
+      open_time: true,
+      close_time: true,
+    },
+  });
+}
+
+export async function getShopRatings(id: string) {
+  return await prisma.shop.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      average_rating: true,
+      total_ratings: true,
+    },
+  });
+
 }
 
 export async function getShopByOwnerId(ownerId: string) {

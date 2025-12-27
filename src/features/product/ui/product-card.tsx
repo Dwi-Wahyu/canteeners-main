@@ -3,7 +3,7 @@ import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Edit, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import ToggleProductAvailableButton from "./toggle-product-available-button";
+import ToggleProductAvailableButton from "./toggle-product-available";
 import { getShopProducts } from "../lib/product-queries";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";

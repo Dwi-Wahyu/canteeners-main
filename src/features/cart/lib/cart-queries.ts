@@ -90,6 +90,7 @@ export async function getShopCart({
           open_time: true,
           close_time: true,
           canteen_id: true,
+          suspended_reason: true,
           canteen: {
             select: {
               name: true,

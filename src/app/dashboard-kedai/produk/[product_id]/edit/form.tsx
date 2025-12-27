@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import {
   Form,
   FormControl,
@@ -18,7 +18,7 @@ import {
 } from "@/features/product/types/product-schema";
 import { useRouter } from "nextjs-toploader/app";
 import { Button } from "@/components/ui/button";
-import { Loader, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import MultipleSelector from "@/components/multiple-select";
@@ -27,6 +27,8 @@ import { updateProduct } from "../../../../../features/product/lib/product-actio
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { Category, Product, ProductCategory } from "@/generated/prisma";
 import { getImageUrl } from "@/helper/get-image-url";
+import { generateFileName } from "@/helper/file-helper";
+import { del } from "@vercel/blob";
 
 type ProductWithCategories = Product & {
   categories: (ProductCategory & { category: Category })[];
@@ -58,75 +60,77 @@ export default function EditProductForm({
     },
   });
 
+  const [isPending, startTransition] = useTransition();
+
   const router = useRouter();
 
   const onSubmit = async (payload: EditProductInput) => {
-    // Handle Image Upload
-    if (files.length > 0) {
-      const file = files[0];
-      const filename = `products/${file.name}`;
-      const formData = new FormData();
+    startTransition(async () => {
+      // Handle Image Upload
+      if (files.length > 0) {
+        const file = files[0];
+        const filename = generateFileName(file.name, "products");
+        const formData = new FormData();
 
-      formData.append("file", file);
-      formData.append("filename", filename);
+        formData.append("file", file);
+        formData.append("filename", filename);
 
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        form.setError("image_url", {
-          message: "Gagal mengunggah file melalui API.",
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
         });
+
+        if (!uploadResponse.ok) {
+          form.setError("image_url", {
+            message: "Gagal mengunggah file melalui API.",
+          });
+          return;
+        }
+
+        payload.image_url = filename;
+      }
+
+      if (payload.image_url === "") {
+        form.setError("image_url", { message: "Tolong pilih gambar" });
         return;
       }
 
-      const uploadedBlob = await uploadResponse.json();
-      payload.image_url = uploadedBlob.url;
-    }
+      const parsedPrice = parseInt(payload.price);
 
-    // Since we are editing, if no new file is selected, payload.image_url
-    // retains the existing value from defaultValues (form state), which is correct.
+      if (isNaN(parsedPrice)) {
+        form.setError("price", { message: "Harga tidak valid" });
+        return;
+      }
 
-    if (payload.image_url === "") {
-      form.setError("image_url", { message: "Tolong pilih gambar" });
-      return;
-    }
+      if (payload.cost && isNaN(parseInt(payload.cost))) {
+        form.setError("cost", { message: "Harga modal tidak valid" });
+        return;
+      }
 
-    const parsedPrice = parseInt(payload.price);
+      const isUpdatingImage = payload.image_url !== product.image_url;
 
-    if (isNaN(parsedPrice)) {
-      form.setError("price", { message: "Harga tidak valid" });
-      return;
-    }
+      const result = await updateProduct(
+        payload,
+        isUpdatingImage,
+        product.image_url
+      );
 
-    if (payload.cost && isNaN(parseInt(payload.cost))) {
-      form.setError("cost", { message: "Harga modal tidak valid" });
-      return;
-    }
+      if (result.success) {
+        setFiles([]);
 
-    const result = await updateProduct(payload);
+        notificationDialog.success({
+          title: "Sukses update produk",
+          message: "Perubahan produk telah disimpan",
+        });
 
-    if (result.success) {
-      // Don't reset form fully on edit to keep values, or maybe redirect immediately
-      // form.reset();
-      setFiles([]);
-
-      notificationDialog.success({
-        title: "Sukses update produk",
-        message: "Perubahan produk telah disimpan",
-      });
-
-      setTimeout(() => {
         router.push("/dashboard-kedai/produk");
-      }, 1000);
-    } else {
-      notificationDialog.error({
-        title: result.error.message,
-        message: "Silakan hubungi CS jika masalah berlanjut",
-      });
-    }
+      } else {
+        notificationDialog.error({
+          title: result.error.message,
+          message: "Silakan hubungi CS jika masalah berlanjut",
+        });
+      }
+    });
   };
 
   const categoryOptions = categories.map((category) => ({
@@ -240,14 +244,6 @@ export default function EditProductForm({
         <div className="w-full">
           <FormLabel className="mb-2">Gambar</FormLabel>
 
-          {/* Show existing image preview if no new file is selected, or let FileUploadImage handle initial preview if it supports it.
-              The FileUploadImage likely handles new files. For existing image, we might want to show it.
-              However, FileUploadImage in this codebase might be simple. 
-              Let's check create-product-form usage: <FileUploadImage multiple={false} onFilesChange={...} />
-              It doesn't seem to take an initial URL.
-              So I'll add a preview of the current image if no new file is selected.
-          */}
-
           {files.length === 0 && product.image_url && (
             <div className="mb-4">
               <img
@@ -277,14 +273,14 @@ export default function EditProductForm({
 
         <div className="flex justify-center gap-3">
           <Button
-            disabled={form.formState.isSubmitting}
+            disabled={isPending}
             className="w-full"
             size={"lg"}
             type="submit"
           >
-            {form.formState.isSubmitting && !form.formState.errors ? (
+            {isPending ? (
               <>
-                <Loader className="animate-spin" /> Loading
+                <Loader2 className="animate-spin" /> Loading
               </>
             ) : (
               <>

@@ -1,7 +1,9 @@
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
-import CustomerProductDetail from "./shop-product-detail-client";
+import Client from "./client";
 import { getProductById } from "@/features/product/lib/product-queries";
 import { notFound } from "next/navigation";
+import NavButton from "@/components/nav-button";
+import { Edit } from "lucide-react";
 
 export default async function ProductDetailPage({
   params,
@@ -21,10 +23,21 @@ export default async function ProductDetailPage({
       <TopbarWithBackButton
         title="Detail Produk"
         backUrl="/dashboard-kedai/produk"
+        actionButton={
+          <div>
+            <NavButton
+              variant="ghost"
+              size="icon"
+              href={`/dashboard-kedai/produk/${data.id}/edit`}
+            >
+              <Edit />
+            </NavButton>
+          </div>
+        }
       />
 
       <div className="p-5 pt-24">
-        <CustomerProductDetail data={data} />
+        <Client data={data} />
       </div>
     </div>
   );

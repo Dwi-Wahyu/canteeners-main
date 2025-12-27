@@ -1,6 +1,11 @@
 "use client";
 
-import { CardDescription, CardTitle } from "@/components/ui/card";
+import {
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import {
   Empty,
@@ -13,33 +18,34 @@ import {
 
 import { List } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import NavButton from "@/components/nav-button";
 import CreateProductOptionDialog from "@/features/product/ui/create-product-option-dialog";
 import { formatDateToYYYYMMDD } from "@/helper/date-helper";
-import ToggleProductAvailableButton from "@/features/product/ui/toggle-product-available-button";
+import ToggleProductAvailableButton from "@/features/product/ui/toggle-product-available";
 import { getImageUrl } from "@/helper/get-image-url";
 import { GetProductById } from "@/features/product/types/product-queries-types";
 import DeleteProductDialog from "@/features/product/ui/delete-product-dialog";
 import ProductOptionClient from "@/features/product/ui/product-option-client";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
-export default function ShopProductDetail({
+export default function Client({
   data,
 }: {
   data: NonNullable<GetProductById>;
 }) {
   return (
-    <div>
+    <div className="flex flex-col gap-5">
       <Card>
         <CardContent className="flex flex-col gap-3">
-          <div>
-            <CardTitle className="text-lg mb-1">{data.name}</CardTitle>
-            <CardDescription>{data.description}</CardDescription>
-          </div>
-
           <img
             className="rounded-lg shadow"
             src={getImageUrl(data.image_url)}
           />
+
+          <div>
+            <CardTitle className="text-lg mb-1">{data.name}</CardTitle>
+            <CardDescription>{data.description}</CardDescription>
+          </div>
 
           <div className="flex flex-col">
             <div className="flex justify-between items-center">
@@ -78,23 +84,15 @@ export default function ShopProductDetail({
               </h1>
             </div>
           </div>
-
-          <div className="flex flex-wrap gap-2 mt-2 items-center justify-center">
-            <NavButton href={`/dashboard-kedai/produk/${data.id}/edit`}>
-              Edit Produk
-            </NavButton>
-
-            <DeleteProductDialog product_id={data.id} />
-
-            <ToggleProductAvailableButton
-              default_is_available={data.is_available}
-              product_id={data.id}
-            />
-          </div>
         </CardContent>
       </Card>
 
-      <div className="mt-5">
+      <ToggleProductAvailableButton
+        default_is_available={data.is_available}
+        product_id={data.id}
+      />
+
+      <div>
         {data.options.length === 0 && (
           <Empty className="border">
             <EmptyHeader>
@@ -121,6 +119,8 @@ export default function ShopProductDetail({
           </div>
         )}
       </div>
+
+      <DeleteProductDialog id={data.id} name={data.name} />
     </div>
   );
 }

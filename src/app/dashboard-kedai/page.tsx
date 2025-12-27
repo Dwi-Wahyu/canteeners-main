@@ -1,5 +1,8 @@
 import { auth } from "@/config/auth";
-import { getShopDashboardStats } from "@/features/shop/lib/shop-queries";
+import {
+  getShopDashboardStats,
+  getShopStatus,
+} from "@/features/shop/lib/shop-queries";
 import { getRecentOrdersByShop } from "@/features/order/lib/order-queries";
 import { redirect } from "next/navigation";
 import DashboardStats from "@/features/shop/ui/dashboard-stats";
@@ -26,6 +29,7 @@ import CashIcon from "@/components/icons/cash-icon";
 import NavButton from "@/components/nav-button";
 import { ShopBestSellingProduct } from "@/features/product/ui/shop-best-selling-product";
 import { getBestSellingProducts } from "@/features/product/lib/product-queries";
+import ToggleShopStatus from "@/features/shop/ui/toggle-shop-open";
 
 export default async function DashboardKedai() {
   const session = await auth();
@@ -40,6 +44,12 @@ export default async function DashboardKedai() {
         <h1>Anda belum memiliki kedai. Hubungi admin untuk pembuatan kedai.</h1>
       </div>
     );
+  }
+
+  const shopStatus = await getShopStatus(session.user.shopId);
+
+  if (!shopStatus) {
+    redirect("/login-kedai");
   }
 
   const [stats, recentOrders] = await Promise.all([
@@ -68,6 +78,13 @@ export default async function DashboardKedai() {
         <h2 className="text-2xl font-medium tracking-tight">Dashboard</h2>
         <div className="text-muted-foreground">Ringkasan bisnis hari ini</div>
       </div>
+
+      <ToggleShopStatus
+        id={session.user.shopId}
+        current_status={shopStatus.status}
+        open_time={shopStatus.open_time}
+        close_time={shopStatus.close_time}
+      />
 
       <DashboardStats stats={stats} />
 

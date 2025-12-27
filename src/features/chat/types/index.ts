@@ -4,7 +4,6 @@ export type ParticipantInfo = {
   name: string;
   avatar: string;
   role: "CUSTOMER" | "SHOP_OWNER";
-  lastSeenAt?: Timestamp;
 };
 
 export type Chat = {

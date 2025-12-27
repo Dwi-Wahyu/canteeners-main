@@ -18,22 +18,19 @@ import NavButton from "@/components/nav-button";
 import { GetShopCartType } from "../types/cart-queries-types";
 import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Store } from "lucide-react";
+import { formatToHour } from "@/helper/hour-helper";
 
 export default function ShopCartClient({
   userId,
   shopCart,
   customerProfile,
-  ableToCheckout,
-  open_time,
-  close_time,
   nameAlreadySet,
 }: {
   userId: string;
   shopCart: GetShopCartType;
   customerProfile: GetCustomerProfileType;
-  ableToCheckout: boolean;
-  open_time: Date | null;
-  close_time: Date | null;
   nameAlreadySet: boolean;
 }) {
   const [showSnk, setShowSnk] = useState(false);
@@ -95,26 +92,49 @@ export default function ShopCartClient({
     }
   }, [checkouted]);
 
+  const now = new Date();
+  const { status, open_time, close_time, suspended_reason } = shopCart.shop;
+
+  // Apakah di luar jam operasional
+  const isOutsideHours =
+    open_time && close_time && (now < open_time || now > close_time);
+
+  // Apakah status memang tidak aktif (Manual/Sistem)
+  const isNotActive = status !== "ACTIVE";
+
+  // Apakah kedai benar-benar bisa menerima order
+  const canOrder = !isNotActive && !isOutsideHours;
+
   return (
     <div className="flex flex-col gap-4">
-      {/* <Card>
-        <CardContent>
-          <div className="flex  gap-1 items-center justify-between">
-            <h1 className="font-semibold text-lg">{shopCart.shop.name}</h1>
-          </div>
-
-          {open_time && close_time && (
-            <div>
-              <h1 className="mt-2">Jam Operasional</h1>
-
-              <h1 className="text-muted-foreground">
-                {formatToHour(open_time)} - {formatToHour(close_time)}
-              </h1>
-            </div>
-          )}
-        </CardContent>
-      </Card> */}
-
+      {!canOrder && (
+        <Alert variant={status === "SUSPENDED" ? "destructive" : "default"}>
+          <Store />
+          <AlertTitle>
+            {status === "SUSPENDED"
+              ? "Kedai Ditangguhkan"
+              : "Kedai Sedang Tutup"}
+          </AlertTitle>
+          <AlertDescription>
+            {status === "SUSPENDED" ? (
+              <span>
+                {suspended_reason ||
+                  "Kedai ini sementara tidak dapat menerima pesanan."}
+              </span>
+            ) : status === "INACTIVE" ? (
+              <span>
+                Kedai sedang beristirahat sejenak. Silakan cek kembali nanti.
+              </span>
+            ) : isOutsideHours ? (
+              <span>
+                Buka kembali pukul <strong>{formatToHour(open_time)}</strong>.
+                (Jam operasional: {formatToHour(open_time)} -{" "}
+                {formatToHour(close_time)})
+              </span>
+            ) : null}
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="">
         <h1 className="font-semibold mb-2">Daftar Pesanan</h1>
 
@@ -211,7 +231,7 @@ export default function ShopCartClient({
           className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
           size={"lg"}
           onClick={handleClickCheckout}
-          disabled={customerProfile.suspend_until !== null || !ableToCheckout}
+          disabled={customerProfile.suspend_until !== null || !canOrder}
         >
           <h1>{shopCart.items.length} Item</h1>
 

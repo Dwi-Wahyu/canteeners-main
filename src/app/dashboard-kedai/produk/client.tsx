@@ -14,7 +14,14 @@ import { Edit, Eye, Plus, SquareArrowOutUpRight, Trash } from "lucide-react";
 import { getShopProducts } from "../../../features/product/lib/product-queries";
 import NavButton from "@/components/nav-button";
 import { useQueryState } from "nuqs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { getImageUrl } from "@/helper/get-image-url";
 import { formatRupiah } from "@/helper/format-rupiah";
 
@@ -52,27 +59,29 @@ export default function ProductClientPage({
         onChange={(ev) => setFilterName(ev.target.value)}
       />
 
-
-
       {data && (
         <div className="grid mt-4 grid-cols-1 gap-4 md:grid-cols-3">
-          {data.map((product) => (
-            <Card className='max-w-md pt-0'>
-              <CardContent className='px-0'>
+          {data.map((product, idx) => (
+            <Card key={idx} className="max-w-md pt-0">
+              <CardContent className="px-0">
                 <img
                   src={getImageUrl(product.image_url)}
-
-                  alt='Banner'
-                  className='aspect-video h-70 rounded-t-xl object-cover'
+                  alt="Banner"
+                  className="aspect-video h-70 rounded-t-xl object-cover"
                 />
               </CardContent>
               <CardHeader>
                 <CardTitle>{product.name}</CardTitle>
-                <h1 className="font-semibold text-xl">{formatRupiah(product.price)}</h1>
+                <h1 className="font-semibold text-xl">
+                  {formatRupiah(product.price)}
+                </h1>
                 <CardDescription>{product.description}</CardDescription>
               </CardHeader>
-              <CardFooter className='gap-3 grid grid-cols-2'>
-                <NavButton variant="outline" href={`/dashboard-kedai/produk/${product.id}`}>
+              <CardFooter className="gap-3 grid grid-cols-2">
+                <NavButton
+                  variant="outline"
+                  href={`/dashboard-kedai/produk/${product.id}`}
+                >
                   <SquareArrowOutUpRight /> Detail
                 </NavButton>
 
