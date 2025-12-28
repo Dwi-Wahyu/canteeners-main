@@ -21,6 +21,7 @@ import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Store } from "lucide-react";
 import { formatToHour } from "@/helper/hour-helper";
+import { toast } from "sonner";
 
 export default function ShopCartClient({
   userId,
@@ -48,6 +49,15 @@ export default function ShopCartClient({
 
   function handleClickCheckout() {
     // Jika belum set nama / masih default = ""
+    if (
+      (postOrderType === "DELIVERY_TO_TABLE" &&
+        !customerProfile.table_number) ||
+      !customerProfile.floor
+    ) {
+      toast.error("Tolong pilih nomor meja");
+      return;
+    }
+
     if (!nameAlreadySet) {
       setShowGuestDetailsFormDialog(true);
     } else {

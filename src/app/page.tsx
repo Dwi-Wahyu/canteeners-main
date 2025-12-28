@@ -142,72 +142,85 @@ export default async function LandingPage() {
           </h1>
         </div>
 
-        <div className="flex gap-4">
-          <div className="aspect-square size-10 rounded-full flex items-center justify-center bg-primary/50 text-primary-foreground">
-            1
+        <div className="space-y-4">
+          {/* Step 1 */}
+          <div className="flex gap-5 items-start">
+            <div className="shrink-0 aspect-square size-10 rounded-full flex items-center justify-center bg-primary/20 text-primary font-bold border border-primary/30">
+              1
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-medium leading-none">Pilih Kedai</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Pelanggan mencari dan memilih kedai Anda melalui daftar kantin
+                yang tersedia di Unhas.
+              </p>
+            </div>
           </div>
 
-          <div>
-            <h1 className="text-lg">Pilih Kedai</h1>
-            <h1 className="text-muted-foreground">
-              Cari dan pilih kedai favorit kamu dari daftar kedai yang tersedia
-            </h1>
+          {/* Step 2 */}
+          <div className="flex gap-5 items-start">
+            <div className="shrink-0 aspect-square size-10 rounded-full flex items-center justify-center bg-primary/40 text-primary-foreground font-bold">
+              2
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-medium leading-none">Pilih Menu</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Pelanggan memilih produk makanan atau minuman terbaik yang telah
+                Anda upload di dashboard.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="flex gap-5 items-start">
+            <div className="shrink-0 aspect-square size-10 rounded-full flex items-center justify-center bg-primary/60 text-primary-foreground font-bold">
+              3
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-medium leading-none">
+                Tambah ke Keranjang
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Pesanan dimasukkan ke keranjang digital lengkap dengan catatan
+                khusus dari pelanggan.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 4 */}
+          <div className="flex gap-5 items-start">
+            <div className="shrink-0 aspect-square size-10 rounded-full flex items-center justify-center bg-primary/80 text-primary-foreground font-bold">
+              4
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-medium leading-none">
+                Pilih Meja & Mode
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Pelanggan menentukan nomor meja untuk makan di tempat atau
+                memilih opsi bawa pulang.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 5 */}
+          <div className="flex gap-5 items-start">
+            <div className="shrink-0 aspect-square size-10 rounded-full flex items-center justify-center bg-primary text-primary-foreground font-bold shadow-md shadow-primary/20">
+              5
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-medium leading-none">
+                Bayar & Terima Pesanan
+              </h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Transaksi diselesaikan secara digital dan Anda mendapatkan
+                notifikasi pesanan masuk secara instan.
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="aspect-square size-10 rounded-full flex items-center justify-center bg-primary/60 text-primary-foreground">
-            2
-          </div>
-
-          <div>
-            <h1 className="text-lg">Pilih Kedai</h1>
-            <h1 className="text-muted-foreground">
-              Cari dan pilih kedai favorit kamu dari daftar kedai yang tersedia
-            </h1>
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <div className="aspect-square size-10 rounded-full flex items-center justify-center bg-primary/70 text-primary-foreground">
-            3
-          </div>
-
-          <div>
-            <h1 className="text-lg">Pilih Kedai</h1>
-            <h1 className="text-muted-foreground">
-              Cari dan pilih kedai favorit kamu dari daftar kedai yang tersedia
-            </h1>
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <div className="aspect-square size-10 rounded-full flex items-center justify-center bg-primary/90 text-primary-foreground">
-            4
-          </div>
-
-          <div>
-            <h1 className="text-lg">Pilih Kedai</h1>
-            <h1 className="text-muted-foreground">
-              Cari dan pilih kedai favorit kamu dari daftar kedai yang tersedia
-            </h1>
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <div className="aspect-square size-10 rounded-full flex items-center justify-center bg-primary text-primary-foreground">
-            5
-          </div>
-
-          <div>
-            <h1 className="text-lg">Pilih Kedai</h1>
-            <h1 className="text-muted-foreground">
-              Cari dan pilih kedai favorit kamu dari daftar kedai yang tersedia
-            </h1>
-          </div>
-        </div>
-
-        <div>
+        {/* <div>
           <h1 className="text-lg font-medium">Tutorial Lengkap Cara Pesan</h1>
 
           <h1 className="text-muted-foreground">
@@ -218,7 +231,7 @@ export default async function LandingPage() {
 
         <div className="h-48 w-full rounded-lg text-white bg-black flex justify-center items-center">
           <Video />
-        </div>
+        </div> */}
 
         <Alert className="border-accent-foreground/20 from-accent text-accent-foreground flex justify-between bg-linear-to-b to-transparent to-60%">
           <CircleAlertIcon />

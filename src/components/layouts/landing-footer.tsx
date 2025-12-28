@@ -19,17 +19,15 @@ export default function LandingFooter() {
                 </a>
               </li>
               <li>
-                <a href="#about" className="hover:font-semibold transition">
-                  Mekanisme
-                </a>
-              </li>
-              <li>
                 <a href="#" className="hover:font-semibold transition">
                   Daftar Kantin
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:font-semibold transition">
+                <a
+                  href="https://wa.me/6289643144013"
+                  className="hover:font-semibold transition"
+                >
                   Hubungi Kami
                 </a>
               </li>
