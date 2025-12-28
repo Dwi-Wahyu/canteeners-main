@@ -50,14 +50,10 @@ export default async function LandingPage() {
             Mulai Pesan
           </NavButton>
 
-          {/* <Button
-            variant={"outline"}
-            className="border border-primary text-primary"
-            size={"lg"}
-          >
+          <NavButton size={"lg"} href="/mitra" variant="outline">
             <Store />
-            Cek Pesanan Saya
-          </Button> */}
+            Daftar Mitra
+          </NavButton>
         </div>
       </div>
 
@@ -127,14 +123,15 @@ export default async function LandingPage() {
           </div>
         </div>
 
-        <Button
+        <NavButton
+          href="/mitra"
           className="w-fit text-primary dark:text-primary-foreground"
           size={"lg"}
           variant={"outline"}
         >
           <Store />
           Daftar Sekarang
-        </Button>
+        </NavButton>
       </div>
 
       <div className="w-full px-5 py-20 flex flex-col gap-6">
@@ -246,23 +243,25 @@ export default async function LandingPage() {
         </div>
 
         <div className="flex flex-col items-center gap-4">
-          <Button
-            className="border border-primary py-6 w-fit text-primary dark:text-background"
+          <NavButton
             size={"lg"}
-            variant={"outline"}
+            href="/kantin/kantin-kudapan"
+            variant="outline"
+            className="text-primary"
           >
             <ShoppingBag />
-            Mulai Pesan Sekarang
-          </Button>
+            Mulai Pesan
+          </NavButton>
 
-          <Button
-            variant={"outline"}
-            className="border border-primary py-6 w-fit text-primary dark:text-background"
+          <NavButton
             size={"lg"}
+            href="/mitra"
+            variant="outline"
+            className="text-primary"
           >
             <Store />
-            Daftar Sebagai Mitra
-          </Button>
+            Daftar Mitra
+          </NavButton>
         </div>
       </div>
 

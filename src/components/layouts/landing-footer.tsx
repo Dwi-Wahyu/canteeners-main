@@ -69,7 +69,7 @@ export default function LandingFooter() {
               Jl. Perintis Kemerdekaan 10
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              support@canteeners.id
+              support@canteeners.com
             </p>
           </div>
         </div>

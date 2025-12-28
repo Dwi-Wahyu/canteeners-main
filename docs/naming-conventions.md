@@ -19,8 +19,7 @@ Consistent naming conventions improve code readability, maintainability, and col
 | **Folders**          | kebab-case     | `shopping-cart/`, `user-profile/`                   |
 | **React Components** | PascalCase.tsx | `ShopDetailsClient.tsx`, `ProductCard.tsx`          |
 | **TypeScript Files** | kebab-case.ts  | `queries.ts`, `validations.ts`, `use-cart-query.ts` |
-| **Utility Files**    | kebab-case.ts  | `format-currency.ts`, `date-helpers.ts`             |
-| **Test Files**       | [name].test.ts | `cart.test.ts`, `ProductCard.test.tsx`              |
+| **Utility Files**    | kebab-case.ts  | `format-rupiah.ts`, `date-helpers.ts`               |
 | **Env Files**        | UPPERCASE      | `.env`, `.env.local`, `.env.production`             |
 
 ### Route Segments (Indonesian)
@@ -41,15 +40,14 @@ Consistent naming conventions improve code readability, maintainability, and col
 
 **Examples**:
 
-| English Concept    | Route (Indonesian)     | Component Name (English)    |
-| ------------------ | ---------------------- | --------------------------- |
-| Shop               | `/kedai/[shop_id]`     | `ShopDetailsPage.tsx`       |
-| Cart               | `/keranjang`           | `CartPage.tsx`              |
-| Canteen            | `/kantin`              | `CanteenListPage.tsx`       |
-| Notification       | `/notifikasi`          | `NotificationPage.tsx`      |
-| Order              | `/order/[order_id]`    | `OrderDetailPage.tsx`       |
-| Dashboard Shop     | `/dashboard-kedai`     | `ShopDashboardPage.tsx`     |
-| Dashboard Customer | `/dashboard-pelanggan` | `CustomerDashboardPage.tsx` |
+| English Concept | Route (Indonesian)  | Component Name (English) |
+| --------------- | ------------------- | ------------------------ |
+| Shop            | `/kedai/[shop_id]`  | `ShopDetailsPage.tsx`    |
+| Cart            | `/keranjang`        | `CartPage.tsx`           |
+| Canteen         | `/kantin`           | `CanteenListPage.tsx`    |
+| Notification    | `/notifikasi`       | `NotificationPage.tsx`   |
+| Order           | `/order/[order_id]` | `OrderDetailPage.tsx`    |
+| Dashboard Shop  | `/dashboard-kedai`  | `ShopDashboardPage.tsx`  |
 
 ---
 

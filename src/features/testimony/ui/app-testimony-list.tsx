@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import { AppTestimony } from "@/generated/prisma";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getAppTestimonies } from "../lib/testimony-queries";
 
@@ -19,7 +18,7 @@ export default async function AppTestimonyList() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto w-full">
         {testimonies.map((testimony, idx) => (
           <Card key={idx}>
-            <CardContent className="flex flex-col gap-5 pt-6">
+            <CardContent className="flex flex-col gap-5">
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
