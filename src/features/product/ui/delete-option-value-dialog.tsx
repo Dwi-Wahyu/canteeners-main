@@ -11,12 +11,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-import { useRouter } from "nextjs-toploader/app";
+import { useState, useTransition } from "react";
 import { deleteProductOptionValue } from "../lib/product-actions";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { Loader, Trash } from "lucide-react";
+import { useRouter } from "nextjs-toploader/app";
 
 export default function DeleteOptionValueDialog({
   value_id,
@@ -26,26 +25,24 @@ export default function DeleteOptionValueDialog({
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
-  const { isPending, mutateAsync } = useMutation({
-    mutationFn: async () => {
-      return deleteProductOptionValue(value_id);
-    },
-  });
+  const [isPending, startTransition] = useTransition();
 
   async function handleConfirm() {
-    const result = await mutateAsync();
+    startTransition(async () => {
+      const result = await deleteProductOptionValue(value_id);
 
-    if (result.success) {
-      setOpen(false);
-      router.refresh();
-    } else {
-      setOpen(false);
-      notificationDialog.error({
-        title: "Gagal Menghapus Opsi",
-        message: "Silakan hubungi CS",
-      });
-      console.log(result.error);
-    }
+      if (result.success) {
+        setOpen(false);
+        router.refresh();
+      } else {
+        setOpen(false);
+        notificationDialog.error({
+          title: "Gagal Menghapus Opsi",
+          message: "Silakan hubungi CS",
+        });
+        console.error(result.error);
+      }
+    });
   }
 
   return (

@@ -2,11 +2,16 @@ import { auth } from "@/config/auth";
 import { getShopRefunds } from "@/features/shop/refund/lib/refund-queries";
 import { redirect } from "next/navigation";
 import { RefundList } from "@/features/shop/refund/ui/refund-list";
+import { Suspense } from "react";
+import LoadingRefundList from "./loading";
+import { SearchParams } from "nuqs";
+import { RefundSearchParams } from "@/features/shop/refund/types/refund-search-params";
+import { cacheLife, cacheTag } from "next/cache";
 
 export default async function ShopRefundListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<SearchParams>;
 }) {
   const session = await auth();
 
@@ -14,13 +19,13 @@ export default async function ShopRefundListPage({
     redirect("/login-kedai");
   }
 
-  const { status } = await searchParams;
-
   if (!session.user.shopId) {
     redirect("/login-kedai");
   }
 
-  const refunds = await getShopRefunds(session.user.shopId, status as any);
+  const search = await RefundSearchParams.parse(searchParams);
+
+  const refunds = await getShopRefunds(session.user.shopId, search.status);
 
   return (
     <div>

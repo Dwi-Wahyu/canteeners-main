@@ -2,7 +2,6 @@
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -16,16 +15,16 @@ import { Field, FieldError } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   AddCartItemNoteSchema,
   AddCartItemNoteInput,
 } from "../types/cart-schema";
-import { StickyNote } from "lucide-react";
+import { StickyNote, Loader2 } from "lucide-react";
 import { addCartItemNote } from "../lib/cart-actions";
+import { useRouter } from "nextjs-toploader/app";
 
 export function AddCartItemNotesDialog({
   cart_item_id,
@@ -34,6 +33,10 @@ export function AddCartItemNotesDialog({
   defaultNote: string | null;
   cart_item_id: string;
 }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
   const form = useForm<AddCartItemNoteInput>({
     resolver: zodResolver(AddCartItemNoteSchema),
     defaultValues: {
@@ -42,22 +45,18 @@ export function AddCartItemNotesDialog({
     },
   });
 
-  const [open, setOpen] = useState(false);
-
-  const mutations = useMutation({
-    mutationFn: async (payload: AddCartItemNoteInput) => {
-      return await addCartItemNote(payload);
-    },
-  });
-
   async function onSubmit(payload: AddCartItemNoteInput) {
-    const result = await mutations.mutateAsync(payload);
-    if (result.success) {
-      setOpen(false);
-      toast.success(result.message);
-    } else {
-      toast.error(result.error.message);
-    }
+    startTransition(async () => {
+      const result = await addCartItemNote(payload);
+
+      if (result.success) {
+        setOpen(false);
+        toast.success(result.message);
+        router.refresh();
+      } else {
+        toast.error(result.error.message);
+      }
+    });
   }
 
   return (
@@ -75,7 +74,6 @@ export function AddCartItemNotesDialog({
           </AlertDialogDescription>
 
           <form
-            action=""
             id="add-cart-item-note-form"
             onSubmit={form.handleSubmit(onSubmit)}
           >
@@ -88,6 +86,7 @@ export function AddCartItemNotesDialog({
                     {...field}
                     placeholder="Tanpa bawang, pedas banget, dll..."
                     className="min-h-24 resize-none"
+                    disabled={isPending}
                   />
                   {fieldState.invalid && (
                     <FieldError
@@ -101,9 +100,15 @@ export function AddCartItemNotesDialog({
           </form>
         </AlertDialogHeader>
         <AlertDialogFooter className="justify-end items-center flex-row">
-          <AlertDialogCancel>Batal</AlertDialogCancel>
-          <Button form="add-cart-item-note-form" disabled={mutations.isPending}>
-            Simpan
+          <AlertDialogCancel disabled={isPending}>Batal</AlertDialogCancel>
+          <Button form="add-cart-item-note-form" disabled={isPending}>
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Simpan
+              </>
+            ) : (
+              "Simpan"
+            )}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

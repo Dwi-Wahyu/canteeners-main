@@ -12,6 +12,27 @@ import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { del } from "@vercel/blob";
 import { getImageUrl } from "@/helper/get-image-url";
+import { paymentMethodMapping } from "@/constant/payment-method";
+
+// --- Helper untuk Revalidasi (DRY Principle) ---
+function revalidateOrderPaths(orderId: string) {
+  const paths = [`/order/${orderId}`, `/dashboard-kedai/order/${orderId}`];
+  paths.forEach((path) => revalidatePath(path));
+}
+
+// --- Helper untuk Validasi Metode Pembayaran ---
+async function validateShopPaymentMethod(
+  shopId: string,
+  method: PaymentMethod
+) {
+  if (method === "CASH") return true; // CASH pembayaran default yang harus ada
+
+  const paymentMethod = await prisma.payment.findFirst({
+    where: { shop_id: shopId, method: method },
+  });
+
+  return !!paymentMethod;
+}
 
 export async function confirmOrder({
   order_id,
@@ -23,140 +44,78 @@ export async function confirmOrder({
   payment_method: PaymentMethod;
 }): Promise<ServerActionReturn<void>> {
   try {
+    // Validasi Ketersediaan Metode Pembayaran di Awal
+    // Supaya tidak update status order jika metode tidak tersedia
+    const isMethodAvailable = await validateShopPaymentMethod(
+      shop_id,
+      payment_method
+    );
+
+    if (!isMethodAvailable) {
+      return errorResponse(
+        `Kedai belum menerima pembayaran via ${paymentMethodMapping[payment_method]}`
+      );
+    }
+
+    // Ambil Data Order
     const order = await prisma.order.findUnique({
-      where: {
-        id: order_id,
-      },
+      where: { id: order_id },
       select: {
-        shop: {
-          select: {
-            owner: {
-              select: {
-                user: {
-                  select: {
-                    id: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        customer: {
-          select: {
-            user_id: true,
-          },
-        },
-        shop_id: true,
+        customer: { select: { user_id: true } },
       },
     });
 
-    if (!order) {
-      return errorResponse("Order tidak ditemukan");
+    if (!order) return errorResponse("Order tidak ditemukan");
+
+    // Tentukan Status & Pesan Berdasarkan Payment Method
+    let newStatus: OrderStatus;
+    let responseMessage: string;
+    let notificationBody: string;
+
+    if (payment_method === "CASH") {
+      newStatus = "WAITING_SHOP_CONFIRMATION";
+      responseMessage = "Silakan lakukan pembayaran di kedai";
+      notificationBody = "Silakan bayar di kedai";
+    } else {
+      newStatus = "WAITING_PAYMENT";
+      responseMessage = "Silakan kirim bukti pembayaran";
+      notificationBody = "Silakan kirim bukti pembayaran";
     }
 
-    const notificationRef = adminDb.collection("notifications");
+    await prisma.order.update({
+      where: { id: order_id },
+      data: { status: newStatus },
+    });
 
-    // Send notification
-    const notificationData = {
+    // Eksekusi Firebase (Notification & Trigger)
+    // jalankan paralel agar lebih cepat menggunakan Promise.all
+    const notificationRef = adminDb.collection("notifications");
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    const notificationPromise = notificationRef.add({
       recipientId: order.customer.user_id,
       type: "ORDER",
       subType: "ACCEPTED",
       title: "Pesanan Diterima",
-      body:
-        payment_method === "CASH"
-          ? "Silakan bayar di kedai"
-          : "Silakan kirim bukti pembayaran",
+      body: notificationBody,
       isRead: false,
       intent: "SUCCESS",
       resourcePath: "/order/" + order_id,
       createdAt: FieldValue.serverTimestamp(),
       expiresAt: FieldValue.serverTimestamp(),
-    };
+    });
 
-    await notificationRef.add(notificationData);
-
-    // Update doc order untuk realtime trigger
-    const orderRef = adminDb.collection("orders").doc(order_id);
-
-    orderRef.update({
+    const triggerPromise = orderRef.update({
       lastUpdatedAt: FieldValue.serverTimestamp(),
     });
 
-    if (payment_method === "CASH") {
-      await prisma.order.update({
-        where: {
-          id: order_id,
-        },
-        data: {
-          status: "WAITING_SHOP_CONFIRMATION",
-        },
-      });
+    await Promise.all([notificationPromise, triggerPromise]);
 
-      revalidatePath("/chat/" + order_id);
-      revalidatePath("/dashboard-kedai/chat/" + order_id);
-      revalidatePath("/dashboard-kedai/order/" + order_id);
-      revalidatePath("/dashboard-pelanggan/order/" + order_id);
-      revalidatePath("/order/" + order_id);
+    revalidateOrderPaths(order_id);
 
-      return successResponse(undefined, "Silakan lakukan pembayaran di kedai");
-    }
-
-    await prisma.order.update({
-      where: {
-        id: order_id,
-      },
-      data: {
-        status: "WAITING_PAYMENT",
-      },
-    });
-
-    if (payment_method === "QRIS") {
-      const shopQRISPayments = await prisma.payment.findFirst({
-        where: {
-          shop_id,
-          method: "QRIS",
-        },
-      });
-
-      if (!shopQRISPayments) {
-        console.error("kedai belum menerima pembayaran qris");
-        return errorResponse("kedai belum menerima pembayaran qris");
-      }
-
-      revalidatePath("/chat/" + order_id);
-      revalidatePath("/dashboard-kedai/chat/" + order_id);
-      revalidatePath("/dashboard-kedai/order/" + order_id);
-      revalidatePath("/dashboard-pelanggan/order/" + order_id);
-      revalidatePath("/order/" + order_id);
-
-      return successResponse(undefined, "Silakan kirim bukti pembayaran");
-    }
-
-    if (payment_method === "BANK_TRANSFER") {
-      const shopBankTransferPayments = await prisma.payment.findFirst({
-        where: {
-          shop_id,
-          method: "BANK_TRANSFER",
-        },
-      });
-
-      if (!shopBankTransferPayments) {
-        console.error("kedai belum menerima pembayaran transfer bank");
-        return errorResponse("kedai belum menerima pembayaran transfer bank");
-      }
-
-      revalidatePath("/chat/" + order_id);
-      revalidatePath("/dashboard-kedai/chat/" + order_id);
-      revalidatePath("/dashboard-kedai/order/" + order_id);
-      revalidatePath("/dashboard-pelanggan/order/" + order_id);
-      revalidatePath("/order/" + order_id);
-
-      return successResponse(undefined, "Silakan kirim bukti pembayaran");
-    }
-
-    return errorResponse("Metode pembayaran tidak valid");
+    return successResponse(undefined, responseMessage);
   } catch (error) {
-    console.error("confirmOrder Error:", error);
+    console.error("Confirm Order Error:", error);
     return errorResponse("Terjadi kesalahan saat mengonfirmasi order");
   }
 }
@@ -212,11 +171,7 @@ export async function confirmPayment({
       lastUpdatedAt: FieldValue.serverTimestamp(),
     });
 
-    revalidatePath("/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/order/" + order_id);
-    revalidatePath("/dashboard-pelanggan/order/" + order_id);
-    revalidatePath("/order/" + order_id);
+    revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Berhasil konfirmasi pembayaran");
   } catch (error) {
@@ -254,11 +209,7 @@ export async function changeOrderEstimation({
       lastUpdatedAt: FieldValue.serverTimestamp(),
     });
 
-    revalidatePath("/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/order/" + order_id);
-    revalidatePath("/dashboard-pelanggan/order/" + order_id);
-    revalidatePath("/order/" + order_id);
+    revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Berhasil mengubah estimasi");
   } catch (error) {
@@ -313,11 +264,7 @@ export async function completeOrder({
       lastUpdatedAt: FieldValue.serverTimestamp(),
     });
 
-    revalidatePath("/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/order/" + order_id);
-    revalidatePath("/dashboard-pelanggan/order/" + order_id);
-    revalidatePath("/order/" + order_id);
+    revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Berhasil mengubah status");
   } catch (error) {
@@ -352,12 +299,6 @@ export async function rejectOrder({
       },
     });
 
-    revalidatePath("/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/order/" + order_id);
-    revalidatePath("/dashboard-pelanggan/order/" + order_id);
-    revalidatePath("/order/" + order_id);
-
     const notificationRef = adminDb.collection("notifications");
 
     // Send notification
@@ -381,6 +322,8 @@ export async function rejectOrder({
     orderRef.update({
       lastUpdatedAt: FieldValue.serverTimestamp(),
     });
+
+    revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Berhasil menolak order");
   } catch (error) {
@@ -439,11 +382,7 @@ export async function rejectPayment({
       lastUpdatedAt: FieldValue.serverTimestamp(),
     });
 
-    revalidatePath("/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/order/" + order_id);
-    revalidatePath("/dashboard-pelanggan/order/" + order_id);
-    revalidatePath("/order/" + order_id);
+    revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Berhasil menolak pembayaran");
   } catch (error) {
@@ -543,11 +482,7 @@ export async function cancelOrder({
       lastUpdatedAt: FieldValue.serverTimestamp(),
     });
 
-    revalidatePath("/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/order/" + order_id);
-    revalidatePath("/dashboard-pelanggan/order/" + order_id);
-    revalidatePath("/order/" + order_id);
+    revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Sukses membatalkan order");
   } catch (error) {
@@ -637,11 +572,7 @@ export async function savePaymentProof({
 
     await notificationRef.add(notificationData);
 
-    revalidatePath("/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/chat/" + order_id);
-    revalidatePath("/dashboard-kedai/order/" + order_id);
-    revalidatePath("/dashboard-pelanggan/order/" + order_id);
-    revalidatePath("/order/" + order_id);
+    revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Sukses mengirim bukti pembayaran");
   } catch (error) {

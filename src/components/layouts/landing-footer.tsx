@@ -1,3 +1,5 @@
+"use client";
+
 import { Separator } from "@/components/ui/separator";
 
 export default function LandingFooter() {
@@ -76,7 +78,7 @@ export default function LandingFooter() {
 
         <div className="text-center">
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Canteeners. Hak Cipta Dilindungi.
+            &copy; 2025 Canteeners. Hak Cipta Dilindungi.
           </p>
         </div>
       </div>

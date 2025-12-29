@@ -7,6 +7,7 @@ import { ShopProductsSearchParams } from "@/features/shop/types/shop-search-para
 import ShopProductList from "@/features/shop/ui/shop-product-list";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
+import { formatToHour } from "@/helper/hour-helper";
 import { ChevronLeft, ShoppingCart, Star } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -76,6 +77,11 @@ export default async function ShopDetail({
           <div className="mb-10">
             <h1 className="text-3xl font-bold tracking-tight">{shop.name}</h1>
             <p className="text-muted text-sm mt-1">{shop.description}</p>
+            {shop.open_time && shop.close_time && (
+              <p className="text-muted text-sm mt-1">
+                {formatToHour(shop.open_time)} - {formatToHour(shop.close_time)}
+              </p>
+            )}
           </div>
         </div>
       </div>

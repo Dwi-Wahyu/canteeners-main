@@ -1,10 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import { PaymentMethod, PostOrderType } from "@/generated/prisma";
-import { useMutation } from "@tanstack/react-query";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
@@ -69,36 +68,33 @@ export default function ShopCartClient({
     setShowSnk(true);
   }
 
-  const mutations = useMutation({
-    mutationFn: async () => {
-      return await processShopCart({
-        shopCartId: shopCart.id,
-        paymentMethod,
-        postOrderType,
-        floor: customerProfile.floor,
-        table_number: customerProfile.table_number,
-      });
-    },
-    onSuccess(data) {
-      if (data.success) {
-        setShowSnk(false);
-
-        notificationDialog.success({
-          title: "Sukses checkout keranjang",
-          message: "Order berhasil dicatat",
-        });
-      } else {
-        notificationDialog.error({
-          title: "Gagal checkout keranjang",
-          message: data.error.message,
-        });
-      }
-    },
-  });
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     if (checkouted) {
-      mutations.mutateAsync();
+      startTransition(async () => {
+        const result = await processShopCart({
+          shopCartId: shopCart.id,
+          paymentMethod,
+          postOrderType,
+          floor: customerProfile.floor,
+          table_number: customerProfile.table_number,
+        });
+
+        if (result.success) {
+          setShowSnk(false);
+
+          notificationDialog.success({
+            title: "Sukses checkout keranjang",
+            message: "Order berhasil dicatat",
+          });
+        } else {
+          notificationDialog.error({
+            title: "Gagal checkout keranjang",
+            message: result.error.message,
+          });
+        }
+      });
     }
   }, [checkouted]);
 
@@ -266,7 +262,7 @@ export default function ShopCartClient({
         showSnk={showSnk}
         setShowSnk={setShowSnk}
         setCheckouted={setCheckouted}
-        isCheckoutPending={mutations.isPending}
+        isCheckoutPending={isPending}
       />
     </div>
   );

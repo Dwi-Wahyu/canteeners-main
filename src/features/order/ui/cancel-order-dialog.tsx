@@ -11,8 +11,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { OrderStatus } from "@/generated/prisma";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -31,37 +30,35 @@ export default function CancelOrderDialog({
   order_status: OrderStatus;
 }) {
   const [open, setOpen] = useState(false);
-
   const [reason, setReason] = useState("");
 
-  const { isPending, mutateAsync } = useMutation({
-    mutationFn: async () => {
-      return await cancelOrder({
+  const [isPending, startTransition] = useTransition();
+
+  const CUSTOMER_ALREADY_PAY = order_status === "PROCESSING";
+
+  async function handleConfirm() {
+    startTransition(async () => {
+      const result = await cancelOrder({
         order_id,
         cancelled_by_id: user_id,
         cancelled_reason: reason,
         order_status,
       });
-    },
-  });
 
-  async function handleConfirm() {
-    const result = await mutateAsync();
-
-    if (result.success) {
-      notificationDialog.success({
-        title: "Aksi Berhasil",
-        message: result.message,
-      });
-    } else {
-      notificationDialog.error({
-        title: "Terjadi Kesalahan",
-        message: result.error.message,
-      });
-    }
+      if (result.success) {
+        setOpen(false);
+        notificationDialog.success({
+          title: "Aksi Berhasil",
+          message: result.message,
+        });
+      } else {
+        notificationDialog.error({
+          title: "Terjadi Kesalahan",
+          message: result.error.message,
+        });
+      }
+    });
   }
-
-  const CUSTOMER_ALREADY_PAY = order_status === "PROCESSING";
 
   function CancelOrderDialogTitle() {
     if (CUSTOMER_ALREADY_PAY) {
@@ -113,7 +110,7 @@ export default function CancelOrderDialog({
         </AlertDialogHeader>
         <AlertDialogFooter className="grid grid-cols-2 gap-4">
           <AlertDialogCancel asChild>
-            <Button size={"lg"} variant={"outline"}>
+            <Button size={"lg"} variant={"outline"} disabled={isPending}>
               Ga Jadi Deh
             </Button>
           </AlertDialogCancel>

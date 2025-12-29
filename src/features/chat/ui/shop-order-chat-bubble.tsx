@@ -2,9 +2,6 @@
 
 import CustomBadge from "@/components/custom-badge";
 import NavButton from "@/components/nav-button";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { getOrderSummaryForChatBubble } from "@/features/order/lib/order-queries";
@@ -20,18 +17,9 @@ import { db } from "@/lib/firebase/client";
 import { useQuery } from "@tanstack/react-query";
 import { doc, onSnapshot, Timestamp } from "firebase/firestore";
 import { ChevronRight, FileText, MessageCircle } from "lucide-react";
-import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
-
-const ShopOrderDetailDialog = dynamic(
-  () => import("@/features/order/ui/shop-order-detail-dialog"),
-  {
-    loading: () => <Skeleton className="w-52 h-9 my-4" />,
-    ssr: false,
-  }
-);
 
 export default function ShopOrderChatBubble({
   order_id,

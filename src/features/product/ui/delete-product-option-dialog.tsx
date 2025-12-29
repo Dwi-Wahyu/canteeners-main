@@ -11,8 +11,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { deleteProductOption } from "../lib/product-actions";
 import { useRouter } from "next/navigation";
 import { Loader, Trash } from "lucide-react";
@@ -26,26 +25,23 @@ export default function DeleteProductOptionDialog({
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
-  const { isPending, mutateAsync } = useMutation({
-    mutationFn: async () => {
-      return deleteProductOption(option_id);
-    },
-  });
+  const [isPending, startTransition] = useTransition();
 
   async function handleConfirm() {
-    const result = await mutateAsync();
+    startTransition(async () => {
+      const result = await deleteProductOption(option_id);
 
-    if (result.success) {
-      setOpen(false);
-      router.refresh();
-    } else {
-      setOpen(false);
-      notificationDialog.error({
-        title: "Gagal Menghapus Varian",
-        message: "Silakan hubungi CS",
-      });
-      console.log(result.error);
-    }
+      if (result.success) {
+        setOpen(false);
+        router.refresh();
+      } else {
+        setOpen(false);
+        notificationDialog.error({
+          title: "Gagal Menghapus Varian",
+          message: "Silakan hubungi CS",
+        });
+      }
+    });
   }
 
   return (
@@ -58,7 +54,9 @@ export default function DeleteProductOptionDialog({
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-start">Yakin Menghapus Varian?</AlertDialogTitle>
+            <AlertDialogTitle className="text-start">
+              Yakin Menghapus Varian?
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-start">
               Seluruh order yang memilih varian ini akan terpengaruh. Tindakan
               tidak dapat dibatalkan

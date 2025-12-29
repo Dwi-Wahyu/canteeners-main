@@ -1,20 +1,20 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
-import { useState, useCallback } from "react";
+import { useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
-
-import { useMutation } from "@tanstack/react-query";
 
 import { toast } from "sonner";
 import Link from "next/link";
-import { EllipsisVertical, StickyNote, Trash } from "lucide-react";
+import { EllipsisVertical, StickyNote, Trash, Loader2 } from "lucide-react"; // Menambahkan Loader2 untuk indikator loading
 import { formatRupiah } from "@/helper/format-rupiah";
 import { changeCartItemDetails, deleteCartItem } from "../lib/cart-actions";
 import { GetShopCartItemType } from "../types/cart-queries-types";
-import CartItemDialog from "./cart-item-dialog";
 import { getImageUrl } from "@/helper/get-image-url";
+import { useRouter } from "nextjs-toploader/app";
 
 export default function CartItemCard({
   cartItem,
@@ -27,45 +27,47 @@ export default function CartItemCard({
   disabledDeleteButton: boolean;
   cartItemDetailUrl: string;
 }) {
+  const router = useRouter();
   const [qty, setQty] = useState(cartItem.quantity);
+  const [isPending, startTransition] = useTransition();
 
-  const mutation = useMutation({
-    mutationFn: async ({ quantity }: { quantity: number }) => {
-      return await changeCartItemDetails({
+  async function handleChangeQuantity(newQty: number) {
+    if (newQty < 1) return;
+
+    // Optimistic update pada state lokal agar UI terasa responsif
+    setQty(newQty);
+
+    startTransition(async () => {
+      const result = await changeCartItemDetails({
         id: cartItem.id,
-        quantity,
-        note: null,
+        quantity: newQty,
+        note: cartItem.note,
       });
-    },
-    onSuccess: () => {
-      toast.success("Perubahan keranjang berhasil disimpan.");
-    },
-    onError: (error) => {
-      toast.error("Gagal menyimpan perubahan. Silakan coba lagi.");
-    },
-  });
 
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      return await deleteCartItem(cartItem.id);
-    },
-    onSuccess: () => {
-      toast.success("Berhasil menghapus item.");
-    },
-    onError: (error) => {
-      toast.error("Gagal menghapus item. Silakan coba lagi.");
-    },
-  });
-
-  const changeQuantity = useCallback(
-    (newQty: number) => {
-      if (newQty >= 1) {
-        setQty(newQty);
-        mutation.mutate({ quantity: newQty });
+      if (result.success) {
+        toast.success("Perubahan keranjang berhasil disimpan.");
+        router.refresh();
+      } else {
+        toast.error("Gagal menyimpan perubahan. Silakan coba lagi.");
+        // Revert qty jika gagal (opsional, tapi disarankan)
+        setQty(cartItem.quantity);
       }
-    },
-    [mutation]
-  );
+    });
+  }
+
+  // Fungsi untuk menghapus item
+  async function handleDelete() {
+    startTransition(async () => {
+      const result = await deleteCartItem(cartItem.id);
+
+      if (result?.success) {
+        toast.success("Berhasil menghapus item.");
+        router.refresh();
+      } else {
+        toast.error("Gagal menghapus item. Silakan coba lagi.");
+      }
+    });
+  }
 
   return (
     <Card>
@@ -77,7 +79,7 @@ export default function CartItemCard({
             width={100}
             height={100}
             className="rounded-lg object-cover aspect-square"
-            onError={(e) => (e.currentTarget.src = "/placeholder-image.jpg")} // Fallback jika gambar gagal dimuat
+            onError={(e) => (e.currentTarget.src = "/placeholder-image.jpg")}
           />
           <div className="w-full">
             <div className="flex justify-between items-center w-full">
@@ -97,22 +99,23 @@ export default function CartItemCard({
               <div className="flex gap-2 items-center">
                 <Button
                   size="icon"
-                  onClick={() => changeQuantity(qty - 1)}
-                  disabled={qty <= 1 || mutation.isPending || disabled}
+                  onClick={() => handleChangeQuantity(qty - 1)}
+                  disabled={qty <= 1 || isPending || disabled}
                 >
                   -
                 </Button>
                 <Input
                   type="number"
                   value={qty}
-                  onChange={(e) => changeQuantity(Number(e.target.value))}
-                  className="w-16 text-center "
+                  onChange={(e) => handleChangeQuantity(Number(e.target.value))}
+                  className="w-16 text-center"
                   min={1}
+                  disabled={isPending || disabled}
                 />
                 <Button
                   size="icon"
-                  onClick={() => changeQuantity(qty + 1)}
-                  disabled={mutation.isPending || disabled}
+                  onClick={() => handleChangeQuantity(qty + 1)}
+                  disabled={isPending || disabled}
                 >
                   +
                 </Button>
@@ -121,12 +124,14 @@ export default function CartItemCard({
               <Button
                 variant="destructive"
                 size="icon"
-                disabled={
-                  deleteMutation.isPending || disabled || disabledDeleteButton
-                }
-                onClick={() => deleteMutation.mutate()}
+                disabled={isPending || disabled || disabledDeleteButton}
+                onClick={handleDelete}
               >
-                <Trash />
+                {isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>

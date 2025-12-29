@@ -12,11 +12,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { PaymentMethod } from "@/generated/prisma";
-import { useMutation } from "@tanstack/react-query";
-import { CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { CheckCircle, Loader2 } from "lucide-react";
+import { useState, useTransition } from "react";
 import { confirmOrder } from "../lib/order-actions";
-import { useRouter } from "nextjs-toploader/app";
+import { notificationDialog } from "@/hooks/use-notification-dialog";
 
 export default function ConfirmOrderDialog({
   order_id,
@@ -28,35 +27,39 @@ export default function ConfirmOrderDialog({
   shop_id: string;
 }) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
 
-  const { isPending, mutateAsync } = useMutation({
-    mutationFn: async () => {
-      return await confirmOrder({
+  const [isPending, startTransition] = useTransition();
+
+  async function handleConfirm() {
+    startTransition(async () => {
+      const result = await confirmOrder({
         order_id,
         payment_method,
         shop_id,
       });
-    },
-  });
 
-  async function handleConfirm() {
-    const result = await mutateAsync();
-
-    if (result.success) {
-      setOpen(false);
-      router.refresh();
-    } else {
-      console.log(result.error);
-    }
+      if (result.success) {
+        setOpen(false);
+        notificationDialog.success({
+          title: "Berhasil",
+          message: "Pesanan berhasil diterima",
+        });
+      } else {
+        // Handle error dengan UI yang lebih baik daripada console.log
+        notificationDialog.error({
+          title: "Gagal Menerima Pesanan",
+          message: result.error?.message || "Terjadi kesalahan sistem",
+        });
+      }
+    });
   }
 
   return (
     <div>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
-          <Button size={"lg"} className="w-full">
-            <CheckCircle />
+          <Button size={"lg"} className="w-full" disabled={isPending}>
+            <CheckCircle className="mr-2 h-4 w-4" />
             Terima Pesanan
           </Button>
         </AlertDialogTrigger>
@@ -70,14 +73,18 @@ export default function ConfirmOrderDialog({
               Pastikan stok pesanan tersedia, customer akan diberi tahu
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row justify-end">
+          <AlertDialogFooter className="flex-row justify-end gap-2">
             <AlertDialogCancel asChild>
-              <Button size={"lg"} variant={"outline"}>
+              <Button size={"lg"} variant={"outline"} disabled={isPending}>
                 Batal
               </Button>
             </AlertDialogCancel>
             <Button size={"lg"} onClick={handleConfirm} disabled={isPending}>
-              Terima
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Terima"
+              )}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

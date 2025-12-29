@@ -1,5 +1,6 @@
 import { RefundStatus } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
+import { cacheLife, cacheTag } from "next/cache";
 
 export async function getRefundByOrderId(orderId: string) {
   try {
@@ -55,7 +56,10 @@ export async function getRefundByOrderId(orderId: string) {
   }
 }
 
-export async function getShopRefunds(shopId: string, status?: RefundStatus) {
+export async function getShopRefunds(
+  shopId: string,
+  status: RefundStatus | null
+) {
   try {
     const refunds = await prisma.refund.findMany({
       where: {

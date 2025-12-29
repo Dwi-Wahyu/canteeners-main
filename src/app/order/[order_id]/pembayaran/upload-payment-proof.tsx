@@ -8,16 +8,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
 import { savePaymentProof } from "@/features/order/lib/order-actions";
 import { GetOrderAndPaymentMethod } from "@/features/shop/settings/payment/types/shop-payment-queries-types";
-import { generateFileName, getFileExtension } from "@/helper/file-helper";
+import { generateFileName } from "@/helper/file-helper";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { Loader, Loader2, Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2, Send } from "lucide-react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
-import { uuidv4, z } from "zod";
+import { z } from "zod";
 
 const PaymentFormSchema = z.object({
   order_id: z.string(),
@@ -35,8 +34,6 @@ export default function UploadPaymentProof({
 }) {
   const [files, setFiles] = useState<File[]>([]);
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const form = useForm<PaymentFormInput>({
     resolver: zodResolver(PaymentFormSchema),
     defaultValues: {
@@ -45,71 +42,62 @@ export default function UploadPaymentProof({
     },
   });
 
-  const { mutateAsync } = useMutation({
-    mutationFn: async (proof_url: string) => {
-      return await savePaymentProof({
-        order_id,
-        proof_url,
-      });
-    },
-  });
-
-  useEffect(() => {
-    console.log(form.formState.errors);
-  }, [form.formState.errors]);
+  const [isPending, startTransition] = useTransition();
 
   const onSubmit = async (payload: PaymentFormInput) => {
-    setIsLoading(true);
-    if (files.length > 0) {
-      const file = files[0];
-      const filename = generateFileName(file.name, "payment-proofs");
-      const formData = new FormData();
+    startTransition(async () => {
+      if (files.length > 0) {
+        const file = files[0];
+        const filename = generateFileName(file.name, "payment-proofs");
+        const formData = new FormData();
 
-      formData.append("file", file);
-      formData.append("filename", filename);
+        formData.append("file", file);
+        formData.append("filename", filename);
 
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!uploadResponse.ok) {
-        form.setError("image_url", {
-          message: "Gagal mengunggah file melalui API.",
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
         });
+
+        if (!uploadResponse.ok) {
+          form.setError("image_url", {
+            message: "Gagal mengunggah file melalui API.",
+          });
+          return;
+        }
+
+        payload.image_url = filename;
+      }
+
+      if (payload.image_url === "") {
+        form.setError("image_url", { message: "Tolong pilih gambar" });
         return;
       }
 
-      payload.image_url = filename;
-    }
-
-    if (payload.image_url === "") {
-      form.setError("image_url", { message: "Tolong pilih gambar" });
-      return;
-    }
-
-    const result = await mutateAsync(payload.image_url);
-
-    if (result.success) {
-      notificationDialog.success({
-        title: "Sukses",
-        message: "Bukti pembayaran berhasil di kirim",
-        actionButtons: (
-          <div className="">
-            <NavButton href={"/chat/" + order.conversation_id}>
-              Kembali
-            </NavButton>
-          </div>
-        ),
+      const result = await await savePaymentProof({
+        order_id,
+        proof_url: payload.image_url,
       });
-    } else {
-      notificationDialog.error({
-        title: "Gagal",
-        message: "Gagal mengunggah bukti pembayaran.",
-      });
-    }
 
-    setIsLoading(false);
+      if (result.success) {
+        notificationDialog.success({
+          title: "Sukses",
+          message: "Bukti pembayaran berhasil di kirim",
+          actionButtons: (
+            <div className="">
+              <NavButton href={"/chat/" + order.conversation_id}>
+                Kembali
+              </NavButton>
+            </div>
+          ),
+        });
+      } else {
+        notificationDialog.error({
+          title: "Gagal",
+          message: "Gagal mengunggah bukti pembayaran.",
+        });
+      }
+    });
   };
 
   return (
@@ -223,10 +211,10 @@ export default function UploadPaymentProof({
                 <Button
                   form="payment-form"
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isPending}
                   className="mt-2 h-12"
                 >
-                  {isLoading ? (
+                  {isPending ? (
                     <Loader2 className="animate-spin" />
                   ) : (
                     <Send className="" />

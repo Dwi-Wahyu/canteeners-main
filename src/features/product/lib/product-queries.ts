@@ -1,15 +1,23 @@
 "use server";
 
+import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
-export async function getShopProducts(shop_id: string, name: string) {
+export async function getShopProducts(shop_id: string, name: string | null) {
+  type WhereClause = Prisma.ProductWhereInput;
+  let whereClause: WhereClause = {
+    shop_id,
+  };
+
+  if (name) {
+    whereClause["name"] = {
+      contains: name,
+      mode: "insensitive",
+    };
+  }
+
   return await prisma.product.findMany({
-    where: {
-      shop_id,
-      name: {
-        contains: name,
-      },
-    },
+    where: whereClause,
     include: {
       options: {
         select: {

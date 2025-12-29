@@ -1,6 +1,6 @@
 import LandingTopbar from "@/components/layouts/landing-topbar";
 import { Skeleton } from "@/components/ui/skeleton";
-import CanteenTopbar from "@/features/canteen/ui/canteen-topbar";
+import { CanteenTopbarSkeleton } from "@/features/canteen/ui/canteen-topbar-skeleton";
 
 export default function LoadingCanteenPage() {
   return (
@@ -8,11 +8,11 @@ export default function LoadingCanteenPage() {
       <LandingTopbar />
 
       <div className="mt-20">
-        <CanteenTopbar shopCount={0} />
+        <CanteenTopbarSkeleton />
 
         {/* Banner Slider Skeleton */}
         <div className="p-5">
-          <Skeleton className="w-full h-[200px] rounded-xl" />
+          <Skeleton className="w-full h-50 rounded-xl" />
         </div>
 
         <div className="flex flex-col gap-5 p-5">
@@ -21,8 +21,10 @@ export default function LoadingCanteenPage() {
             <Skeleton className="h-7 w-24" />
             <div className="flex gap-4 overflow-hidden">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="flex flex-col justify-center items-center">
-
+                <div
+                  key={i}
+                  className="flex flex-col justify-center items-center"
+                >
                   <Skeleton className="h-24 w-24 rounded-lg shrink-0" />
 
                   <Skeleton className="w-14 mt-2 h-6" />

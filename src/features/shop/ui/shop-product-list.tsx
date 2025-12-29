@@ -6,13 +6,18 @@ import { Search } from "lucide-react";
 import CustomerProductCard from "@/features/product/ui/customer-product-card";
 import NoProductFound from "./no-product-found";
 import { GetShopAndProducts } from "../types/shop-queries-types";
+import { useQueryState } from "nuqs";
 
 export default function ShopProductList({
   shop,
 }: {
   shop: GetShopAndProducts;
 }) {
-  const [productName, setProductName] = useState("");
+  const [productName, setProductName] = useQueryState("productName", {
+    shallow: false,
+    clearOnDefault: true,
+    defaultValue: "",
+  });
 
   return (
     <div className="w-full pb-10">

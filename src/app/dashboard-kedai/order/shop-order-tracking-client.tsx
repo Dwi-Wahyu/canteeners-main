@@ -23,7 +23,7 @@ import RejectPaymentDialog from "@/features/order/ui/reject-payment-dialog";
 import { OrderStatus } from "@/generated/prisma";
 import { getImageUrl } from "@/helper/get-image-url";
 import { db } from "@/lib/firebase/client";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   collection,
   onSnapshot,
@@ -33,7 +33,7 @@ import {
 } from "firebase/firestore";
 import { Clock, SquareArrowOutUpRight, Trash, UserIcon } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useEffect } from "react";
 
 export default function ShopOrderTrackingClient({
   shopId,
@@ -42,21 +42,18 @@ export default function ShopOrderTrackingClient({
   shopId: string;
   initialData: GetOrderTrackingData;
 }) {
-  const [orders, setOrders] = useState<GetOrderTrackingData>(initialData);
+  const queryClient = useQueryClient();
 
-  const [isPending, startTransition] = useTransition();
+  // initialData dipakai agar SSR berfungsi (user langsung melihat data tanpa loading spinner)
+  const { data: orders, isLoading } = useQuery({
+    queryKey: ["shop-order-tracking", shopId],
+    queryFn: () => getOrderTrackingData({ shopId }),
+    initialData: initialData,
+  });
 
-  const fetchData = useCallback(() => {
-    startTransition(async () => {
-      const data = await getOrderTrackingData({ shopId });
-      setOrders(data);
-    });
-  }, [shopId]);
-
+  // 2. Setup Firestore Listener untuk Realtime Update
   useEffect(() => {
-    if (!shopId) {
-      return;
-    }
+    if (!shopId) return;
 
     const ordersRef = collection(db, "orders");
     const q = query(
@@ -68,19 +65,21 @@ export default function ShopOrderTrackingClient({
     let isInitialSnapshot = true;
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      // Pastikan data bukan berasal dari cache lokal (Metadata check)
-      // agar tidak double-toast saat offline-to-online
+      // Abaikan pending writes (perubahan lokal yang belum sync ke server)
       if (querySnapshot.metadata.hasPendingWrites) return;
 
-      // Lewati snapshot pertama (data yang sudah ada saat listener baru nyala)
+      // Abaikan snapshot pertama kali load, karena data sudah diambil via initialData (SSR)
+      // Ini mencegah double-fetch saat halaman baru dibuka
       if (isInitialSnapshot) {
         isInitialSnapshot = false;
         return;
       }
 
+      // Jika ada perubahan dokumen di Firestore (add/modify/remove)
       if (!querySnapshot.empty) {
-        querySnapshot.docChanges().forEach(async (change) => {
-          fetchData();
+        // Invalidate query agar React Query mengambil data terbaru dari Database SQL
+        queryClient.invalidateQueries({
+          queryKey: ["shop-order-tracking", shopId],
         });
       }
     });
@@ -88,56 +87,65 @@ export default function ShopOrderTrackingClient({
     return () => {
       unsubscribe();
     };
-  }, [shopId, fetchData]);
+  }, [shopId, queryClient]);
 
-  return (
-    <div>
-      {isPending && (
-        <div className="flex flex-col gap-4">
-          <Skeleton className="w-full h-40" />
-          <Skeleton className="w-full h-40" />
-          <Skeleton className="w-full h-40" />
-          <Skeleton className="w-full h-40" />
-          <Skeleton className="w-full h-40" />
-          <Skeleton className="w-full h-40" />
-          <Skeleton className="w-full h-40" />
-        </div>
-      )}
-
-      {!isPending && orders.length === 0 && (
-        <Empty className="border">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <Trash />
-            </EmptyMedia>
-            <EmptyTitle>Belum Ada Pesanan</EmptyTitle>
-            <EmptyDescription>Belum ada pesanan terbaru</EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent>
-            <NavButton href="/dashboard-kedai/order/riwayat">
-              Lihat Riwayat Pesanan
-            </NavButton>
-          </EmptyContent>
-        </Empty>
-      )}
-
+  // Jika sedang loading (biasanya tidak terjadi karena ada initialData,
+  // tapi berguna jika key berubah atau cache kosong)
+  if (isLoading) {
+    return (
       <div className="flex flex-col gap-4">
-        {orders.map((order, idx) => (
-          <Card key={idx}>
-            <CardContent className="space-y-2 relative">
-              <NavButton
-                variant="ghost"
-                className="absolute right-4 top-0"
-                href={"/dashboard-kedai/order/" + order.id}
-              >
-                <SquareArrowOutUpRight />
-              </NavButton>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="w-full h-40" />
+        ))}
+      </div>
+    );
+  }
 
-              <div className="flex gap-1 items-center">
-                <UserIcon className="w-4 h-4" />
-                <h1 className="font-medium">{order.customer.user.name}</h1>
-              </div>
+  // State Kosong
+  if (!orders || orders.length === 0) {
+    return (
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Trash />
+          </EmptyMedia>
+          <EmptyTitle>Belum Ada Pesanan</EmptyTitle>
+          <EmptyDescription>
+            Belum ada pesanan terbaru saat ini
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <NavButton href="/dashboard-kedai/order/riwayat">
+            Lihat Riwayat Pesanan
+          </NavButton>
+        </EmptyContent>
+      </Empty>
+    );
+  }
 
+  // Render List Pesanan
+  return (
+    <div className="flex flex-col gap-4">
+      {orders.map((order) => (
+        <Card key={order.id}>
+          <CardContent className="space-y-2 relative pt-6">
+            <NavButton
+              variant="ghost"
+              className="absolute right-4 top-2"
+              href={"/dashboard-kedai/order/" + order.id}
+              size="icon"
+            >
+              <SquareArrowOutUpRight className="w-4 h-4" />
+            </NavButton>
+
+            <div className="flex gap-2 items-center mb-2">
+              <UserIcon className="w-4 h-4 text-muted-foreground" />
+              <h1 className="font-medium text-lg">
+                {order.customer.user.name}
+              </h1>
+            </div>
+
+            <div className="mb-3">
               <CustomBadge
                 value={order.status}
                 outlineValues={[
@@ -151,44 +159,48 @@ export default function ShopOrderTrackingClient({
               >
                 {orderStatusMapping[order.status]}
               </CustomBadge>
+            </div>
 
-              {order.estimation && (
-                <div>
-                  <h1 className="font-medium">Estimasi</h1>
-                  <div className="flex gap-1 text-muted-foreground items-center">
-                    <Clock className="w-4 h-4" />
-                    <h1>{order.estimation} Menit</h1>
+            {order.estimation && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="w-4 h-4" />
+                <span>Estimasi: {order.estimation} Menit</span>
+              </div>
+            )}
+
+            {order.post_order_type === "DELIVERY_TO_TABLE" &&
+              order.customer.table_number && (
+                <div className="text-sm bg-muted/50 p-2 rounded-md">
+                  <div className="flex justify-between">
+                    <span>
+                      Meja:{" "}
+                      <span className="font-medium">
+                        {order.customer.table_number}
+                      </span>
+                    </span>
+                    <span>
+                      Lantai:{" "}
+                      <span className="font-medium">
+                        {order.customer.floor}
+                      </span>
+                    </span>
                   </div>
                 </div>
               )}
 
-              {order.post_order_type === "DELIVERY_TO_TABLE" &&
-                order.customer.table_number && (
-                  <div className="">
-                    <h1 className="font-medium">
-                      Meja: {order.customer.table_number}
-                    </h1>
-                    <h1 className="font-medium">
-                      Lantai: {order.customer.floor}
-                    </h1>
-                  </div>
-                )}
-
+            {/* AREA DIALOG ACTIONS */}
+            <div className="mt-4 pt-2 border-t space-y-3">
               {order.status === "PROCESSING" && (
-                <div>
-                  <CompleteOrderDialog order_id={order.id} />
-                </div>
+                <CompleteOrderDialog order_id={order.id} />
               )}
 
               {order.status === "WAITING_SHOP_CONFIRMATION" &&
                 order.payment_method === "CASH" && (
-                  <div>
-                    <ConfirmPaymentDialog order_id={order.id} />
-                  </div>
+                  <ConfirmPaymentDialog order_id={order.id} />
                 )}
 
               {order.status === "PENDING_CONFIRMATION" && (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <RejectOrderDialog order_id={order.id} />
                   <ConfirmOrderDialog
                     order_id={order.id}
@@ -199,38 +211,43 @@ export default function ShopOrderTrackingClient({
               )}
 
               {order.payment_method !== "CASH" && order.payment_proof_url && (
-                <div>
-                  <h1 className="font-medium">
+                <div className="bg-muted/30 p-3 rounded-lg border">
+                  <h1 className="font-medium text-sm mb-2">
                     {order.status === "WAITING_SHOP_CONFIRMATION"
-                      ? "Verifikasi"
-                      : "Bukti"}{" "}
-                    Pembayaran
+                      ? "Verifikasi Pembayaran"
+                      : "Bukti Pembayaran"}
                   </h1>
-                  <div className="my-1 block">
+
+                  <a
+                    href={getImageUrl(order.payment_proof_url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-fit group"
+                  >
                     <Image
-                      className="rounded"
+                      className="rounded border group-hover:opacity-90 transition-opacity"
                       width={100}
                       height={100}
                       alt="Bukti pembayaran"
                       src={getImageUrl(order.payment_proof_url)}
                     />
-                    <h1 className="text-xs mt-0.5 text-muted-foreground">
-                      Klik gambar untuk lihat bukti pembayaran
-                    </h1>
-                  </div>
+                    <span className="text-[10px] text-muted-foreground mt-1 block">
+                      Klik untuk memperbesar
+                    </span>
+                  </a>
 
                   {order.status === "WAITING_SHOP_CONFIRMATION" && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3 mt-3">
                       <RejectPaymentDialog order_id={order.id} />
                       <ConfirmPaymentDialog order_id={order.id} />
                     </div>
                   )}
                 </div>
               )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

@@ -12,7 +12,6 @@ interface IndexPageProps {
 
 export default async function ProductPage({ searchParams }: IndexPageProps) {
   const session = await auth();
-  const search = await ProductSearchParams.parse(searchParams);
 
   if (!session) {
     redirect("/auth/signin");
@@ -26,6 +25,8 @@ export default async function ProductPage({ searchParams }: IndexPageProps) {
   if (session.user.role !== "SHOP_OWNER") {
     return <UnauthorizedPage />;
   }
+
+  const search = await ProductSearchParams.parse(searchParams);
 
   const products = await getShopProducts(session.user.shopId, search.name);
 

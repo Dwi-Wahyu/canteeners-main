@@ -5,6 +5,7 @@ import {
   ShopProductsSearchParamsInput,
   ShopSearchParamsInput,
 } from "../types/shop-search-params";
+import { cacheLife, cacheTag } from "next/cache";
 
 export async function getShopById(id: string) {
   return await prisma.shop.findUnique({
@@ -23,7 +24,7 @@ export async function getShopAndProducts(
 ) {
   const { page, perPage, productName } = searchParams;
 
-  const shop = await prisma.shop.findUnique({
+  return await prisma.shop.findUnique({
     where: {
       id,
     },
@@ -35,6 +36,8 @@ export async function getShopAndProducts(
           slug: true,
         },
       },
+      open_time: true,
+      close_time: true,
       owner: {
         select: {
           user: {
@@ -51,6 +54,9 @@ export async function getShopAndProducts(
       average_rating: true,
       total_ratings: true,
       products: {
+        where: {
+          name: { contains: productName, mode: "insensitive" },
+        },
         select: {
           id: true,
           name: true,
@@ -62,8 +68,6 @@ export async function getShopAndProducts(
       },
     },
   });
-
-  return shop;
 }
 
 export async function getShopTestimonies(shop_id: string) {
@@ -218,7 +222,6 @@ export async function getShopRatings(id: string) {
       total_ratings: true,
     },
   });
-
 }
 
 export async function getShopByOwnerId(ownerId: string) {

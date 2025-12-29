@@ -4,7 +4,6 @@ import CustomBadge from "@/components/custom-badge";
 import CashIcon from "@/components/icons/cash-icon";
 import NavButton from "@/components/nav-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { getOrderSummaryForChatBubble } from "@/features/order/lib/order-queries";
@@ -17,7 +16,6 @@ import { Timestamp } from "firebase-admin/firestore";
 import { doc, onSnapshot } from "firebase/firestore";
 import { ChevronRight, FileText, MapPin, ShoppingBag } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
