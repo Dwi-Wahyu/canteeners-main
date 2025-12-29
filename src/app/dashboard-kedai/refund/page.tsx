@@ -2,11 +2,8 @@ import { auth } from "@/config/auth";
 import { getShopRefunds } from "@/features/shop/refund/lib/refund-queries";
 import { redirect } from "next/navigation";
 import { RefundList } from "@/features/shop/refund/ui/refund-list";
-import { Suspense } from "react";
-import LoadingRefundList from "./loading";
 import { SearchParams } from "nuqs";
 import { RefundSearchParams } from "@/features/shop/refund/types/refund-search-params";
-import { cacheLife, cacheTag } from "next/cache";
 
 export default async function ShopRefundListPage({
   searchParams,
