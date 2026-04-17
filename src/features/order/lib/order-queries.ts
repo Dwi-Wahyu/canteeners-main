@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma, prismaAccelerate } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function getShopOrderHistory(shopId: string) {
   return await prisma.order.findMany({

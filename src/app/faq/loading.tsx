@@ -1,14 +1,8 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { prismaAccelerate } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export default async function FAQ() {
-  const faq = await prismaAccelerate.faq.findMany();
+  const faq = await prisma.faq.findMany();
 
   return (
     <div>

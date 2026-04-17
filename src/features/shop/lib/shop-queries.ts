@@ -1,11 +1,7 @@
 "use server";
 
-import { prisma, prismaAccelerate } from "@/lib/prisma";
-import {
-  ShopProductsSearchParamsInput,
-  ShopSearchParamsInput,
-} from "../types/shop-search-params";
-import { cacheLife, cacheTag } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import { ShopProductsSearchParamsInput } from "../types/shop-search-params";
 
 export async function getShopById(id: string) {
   return await prisma.shop.findUnique({
@@ -20,7 +16,7 @@ export async function getShopById(id: string) {
 
 export async function getShopAndProducts(
   id: string,
-  searchParams: ShopProductsSearchParamsInput
+  searchParams: ShopProductsSearchParamsInput,
 ) {
   const { page, perPage, productName } = searchParams;
 
@@ -102,7 +98,7 @@ export async function getShopDashboardStats(shopId: string) {
   const endOfDay = new Date(
     now.getFullYear(),
     now.getMonth(),
-    now.getDate() + 1
+    now.getDate() + 1,
   );
 
   // Get total revenue today
@@ -122,7 +118,7 @@ export async function getShopDashboardStats(shopId: string) {
 
   const totalRevenueToday = ordersToday.reduce(
     (acc, order) => acc + order.total_price,
-    0
+    0,
   );
 
   // Get total orders today
@@ -201,7 +197,7 @@ export async function getShopDashboardStats(shopId: string) {
 }
 
 export async function getShopStatus(id: string) {
-  return prismaAccelerate.shop.findFirst({
+  return prisma.shop.findFirst({
     where: {
       id,
     },

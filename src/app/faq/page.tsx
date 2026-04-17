@@ -4,10 +4,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { prismaAccelerate } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export default async function FAQ() {
-  const faqs = await prismaAccelerate.faq.findMany();
+  const faqs = await prisma.faq.findMany();
 
   return (
     <div className="p-5">

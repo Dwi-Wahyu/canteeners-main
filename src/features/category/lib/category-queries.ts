@@ -1,7 +1,7 @@
 "use server";
 
-import { prismaAccelerate } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function getCategories() {
-  return await prismaAccelerate.category.findMany();
+  return await prisma.category.findMany();
 }

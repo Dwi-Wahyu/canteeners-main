@@ -2,11 +2,11 @@
 
 import { ShopSearchParamsInput } from "@/features/shop/types/shop-search-params";
 import { Prisma } from "@/generated/prisma";
-import { prisma, prismaAccelerate } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function getCanteenBySlug(
   slug: string,
-  search: ShopSearchParamsInput
+  search: ShopSearchParamsInput,
 ) {
   const { name, categories, minimumPrice, maximumPrice } = search;
 
@@ -84,7 +84,7 @@ export async function getCanteenBySlug(
 }
 
 export async function getCanteenIncludeMaps(slug: string) {
-  return await prismaAccelerate.canteen.findUnique({
+  return await prisma.canteen.findUnique({
     where: { slug },
     select: {
       id: true,

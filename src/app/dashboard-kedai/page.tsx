@@ -23,13 +23,13 @@ import {
   RefreshCcw,
   SquareArrowOutUpRight,
 } from "lucide-react";
-import { prismaAccelerate } from "@/lib/prisma";
 import { formatRupiah } from "@/helper/format-rupiah";
 import CashIcon from "@/components/icons/cash-icon";
 import NavButton from "@/components/nav-button";
 import { ShopBestSellingProduct } from "@/features/product/ui/shop-best-selling-product";
 import { getBestSellingProducts } from "@/features/product/lib/product-queries";
 import ToggleShopStatus from "@/features/shop/ui/toggle-shop-open";
+import { prisma } from "@/lib/prisma";
 
 export default async function DashboardKedai() {
   const session = await auth();
@@ -57,7 +57,7 @@ export default async function DashboardKedai() {
     getRecentOrdersByShop(session.user.shopId, 5),
   ]);
 
-  const getUnpaidBillingTotals = await prismaAccelerate.shopBilling.aggregate({
+  const getUnpaidBillingTotals = await prisma.shopBilling.aggregate({
     where: {
       shop_id: session.user.shopId,
       status: "UNPAID",
@@ -69,7 +69,7 @@ export default async function DashboardKedai() {
 
   const bestSellerProducts = await getBestSellingProducts(
     session.user.shopId,
-    5
+    5,
   );
 
   return (
