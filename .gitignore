@@ -11,6 +11,7 @@
 !.yarn/versions
 
 firebase-document-structure.md
+ecosystem.config.js
 firebase-debug.log
 
 src/generated/prisma
