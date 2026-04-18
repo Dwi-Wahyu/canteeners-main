@@ -1,8 +1,26 @@
-import { seedShops } from "./seed-shops";
+import { seedUsers } from "./seed-users";
+import { seedCanteens } from "./seed-canteens";
+import { seedCategories } from "./seed-categories";
 import { prisma } from "@/lib/prisma";
 
 async function main() {
-  await seedShops();
+  await prisma.canteenMap.deleteMany();
+  await prisma.payment.deleteMany();
+  await prisma.shopTestimony.deleteMany();
+  await prisma.shopComplaint.deleteMany();
+  await prisma.shopBilling.deleteMany();
+  await prisma.productOptionValue.deleteMany();
+  await prisma.productOption.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.shopCart.deleteMany();
+  await prisma.shop.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.canteen.deleteMany();
+  await prisma.category.deleteMany();
+
+  await seedCanteens();
+  await seedCategories();
+  await seedUsers();
 }
 
 main()
