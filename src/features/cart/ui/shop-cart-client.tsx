@@ -35,7 +35,7 @@ export default function ShopCartClient({
 }) {
   const [showSnk, setShowSnk] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    shopCart.payment_method
+    shopCart.payment_method,
   );
 
   const [checkouted, setCheckouted] = useState(false);
@@ -43,16 +43,12 @@ export default function ShopCartClient({
     useState(false);
 
   const [postOrderType, setPostOrderType] = useState<PostOrderType>(
-    shopCart.post_order_type
+    shopCart.post_order_type,
   );
 
   function handleClickCheckout() {
     // Jika belum set nama / masih default = ""
-    if (
-      (postOrderType === "DELIVERY_TO_TABLE" &&
-        !customerProfile.table_number) ||
-      !customerProfile.floor
-    ) {
+    if (postOrderType === "DELIVERY_TO_TABLE") {
       toast.error("Tolong pilih nomor meja");
       return;
     }
