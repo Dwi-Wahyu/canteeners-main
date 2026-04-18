@@ -65,7 +65,7 @@ export default function UploadPaymentProof({
         }
 
         const uploadData = await uploadResponse.json();
-        payload.image_url = uploadData.url.split("/").pop();
+        payload.image_url = uploadData.data.url.split("/").pop();
       }
 
       if (payload.image_url === "") {

@@ -28,7 +28,6 @@ import MultipleSelector from "@/components/multiple-select";
 import { FileUploadImage } from "@/components/file-upload-image";
 import { createProduct } from "../../../../features/product/lib/product-actions";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
-import { generateFileName } from "@/helper/file-helper";
 
 export default function CreateProductForm({
   shop_id,
@@ -77,7 +76,7 @@ export default function CreateProductForm({
         }
 
         const uploadData = await uploadResponse.json();
-        payload.image_url = uploadData.url.split("/").pop(); // Get filename from returned URL
+        payload.image_url = uploadData.data.url.split("/").pop(); // Get filename from returned URL
       }
 
       if (payload.image_url === "") {

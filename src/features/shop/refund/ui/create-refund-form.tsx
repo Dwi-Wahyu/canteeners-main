@@ -151,9 +151,9 @@ export function CreateRefundForm({
       }
 
       const data = await response.json();
-      const filename = data.url.split("/").pop();
+      const filename = data.data.url.split("/").pop();
       setUploadedFile({
-        url: data.url,
+        url: data.data.url,
         name: file.name,
       });
       form.setValue("complaint_proof_url", filename);

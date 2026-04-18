@@ -91,7 +91,7 @@ export default function EditShopForm({
       }
 
       const uploadData = await uploadResponse.json();
-      payload.image_url = uploadData.url.split("/").pop();
+      payload.image_url = uploadData.data.url.split("/").pop();
     }
 
     const result = await updateShop(payload);

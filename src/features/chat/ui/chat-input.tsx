@@ -136,8 +136,8 @@ export function ChatInput({
             // Store the relative path (filename) in blobResult if needed by other components,
             // but usually components want the URL. The blobResult now has the backend response.
             // We ensure we have the filename for the backend.
-            if (blob.url) {
-              blob.filename = blob.url.split("/").pop();
+            if (blob.data.url) {
+              blob.filename = blob.data.url.split("/").pop();
             }
             // We need to attach the blob url/details to the file object so we can access it later on submit.
             // Since File object is read-only, we might need a separate state or augment it if possible,

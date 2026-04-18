@@ -9,14 +9,14 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!file) {
     return NextResponse.json(
       { success: false, error: "No file uploaded" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   if (!path) {
     return NextResponse.json(
       { success: false, error: "No path provided" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -27,11 +27,11 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/upload`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/files/upload`,
       {
         method: "POST",
         body: backendFormData,
-      }
+      },
     );
 
     const data = await response.json();
@@ -44,7 +44,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

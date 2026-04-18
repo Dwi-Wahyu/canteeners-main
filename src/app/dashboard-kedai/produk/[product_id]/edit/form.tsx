@@ -86,7 +86,7 @@ export default function EditProductForm({
         }
 
         const uploadData = await uploadResponse.json();
-        payload.image_url = uploadData.url.split("/").pop(); // Get filename from returned URL if needed, or adjust based on API response
+        payload.image_url = uploadData.data.url.split("/").pop(); // Get filename from returned URL if needed, or adjust based on API response
       }
 
       if (payload.image_url === "") {

@@ -89,7 +89,7 @@ export default function EditQrisPaymentForm({
       }
 
       const uploadData = await uploadResponse.json();
-      values.qr_url = uploadData.url.split("/").pop();
+      values.qr_url = uploadData.data.url.split("/").pop();
     }
 
     if (values.qr_url === "") {

@@ -83,7 +83,7 @@ export default function InputQrisPaymentForm({
         }
 
         const uploadData = await uploadResponse.json();
-        values.qr_url = uploadData.url.split("/").pop();
+        values.qr_url = uploadData.data.url.split("/").pop();
       } catch (error: any) {
         toast.error(error.message || "Gagal mengunggah gambar");
         form.setError("qr_url", {
