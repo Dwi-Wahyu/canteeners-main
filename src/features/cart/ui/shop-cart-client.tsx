@@ -48,7 +48,10 @@ export default function ShopCartClient({
 
   function handleClickCheckout() {
     // Jika belum set nama / masih default = ""
-    if (postOrderType === "DELIVERY_TO_TABLE") {
+    if (
+      postOrderType === "DELIVERY_TO_TABLE" &&
+      customerProfile.table_number === null
+    ) {
       toast.error("Tolong pilih nomor meja");
       return;
     }
