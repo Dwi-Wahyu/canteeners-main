@@ -25,7 +25,7 @@ export async function seedShops() {
             shop: {
               create: {
                 name: "Kedai Subarjo",
-                image_url: "shops/kedai-subarjo.webp",
+                image_url: "kedai-subarjo.webp",
                 canteen: {
                   connect: {
                     slug: "kantin-kudapan",
