@@ -138,10 +138,8 @@ export function CreateRefundForm({
 
     try {
       const formData = new FormData();
-      const randomName = generateFileName(file.name, "complaint-proofs");
-
+      formData.append("path", "complaint-proof");
       formData.append("file", file);
-      formData.append("filename", randomName);
 
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -153,11 +151,12 @@ export function CreateRefundForm({
       }
 
       const data = await response.json();
+      const filename = data.url.split("/").pop();
       setUploadedFile({
         url: data.url,
         name: file.name,
       });
-      form.setValue("complaint_proof_url", data.url);
+      form.setValue("complaint_proof_url", filename);
       toast.success("Bukti berhasil diunggah");
     } catch (error) {
       console.error("Upload error:", error);

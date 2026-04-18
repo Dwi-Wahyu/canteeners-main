@@ -48,7 +48,7 @@ export default function ChatTopbar({
 
         <div className="flex gap-4 items-center">
           <Avatar className="size-11">
-            <AvatarImage src={getImageUrl(opponent.avatar)} />
+            <AvatarImage src={getImageUrl("/avatar/" + opponent.avatar)} />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
 

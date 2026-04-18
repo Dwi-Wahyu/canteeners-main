@@ -219,7 +219,7 @@ export default function ShopOrderTrackingClient({
                   </h1>
 
                   <a
-                    href={getImageUrl(order.payment_proof_url)}
+                    href={getImageUrl("/payment-proof/" + order.payment_proof_url)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-fit group"
@@ -229,7 +229,7 @@ export default function ShopOrderTrackingClient({
                       width={100}
                       height={100}
                       alt="Bukti pembayaran"
-                      src={getImageUrl(order.payment_proof_url)}
+                      src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
                     />
                     <span className="text-[10px] text-muted-foreground mt-1 block">
                       Klik untuk memperbesar

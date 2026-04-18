@@ -30,3 +30,28 @@ export function generateFileName(originalName: string, prefix: string): string {
 
   return `${prefix}/${dateStr}_${randomSuffix}.${extension}`;
 }
+
+/**
+ * Menghapus file melalui API Backend.
+ * @param filename Nama file (bukan full URL)
+ */
+export async function deleteFile(filename: string) {
+  if (!filename) return;
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/files/${filename}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Failed to delete file:", filename);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error deleting file:", error);
+  }
+}

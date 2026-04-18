@@ -31,7 +31,7 @@ export default async function CanteenPage() {
           <Card>
             <CardContent>
               <Image
-                src={getImageUrl(canteen.image_url)}
+                src={getImageUrl("/canteen/" + canteen.image_url)}
                 alt={canteen.name}
                 width={400}
                 height={400}

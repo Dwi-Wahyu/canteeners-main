@@ -84,11 +84,8 @@ export function ProcessRefundDialog({
 
     try {
       const formData = new FormData();
-      const ext = getFileExtension(file.name);
-      const randomName = `disbursement-proofs/${uuidv4()}.${ext}`;
-
+      formData.append("path", "disbursement-proof");
       formData.append("file", file);
-      formData.append("filename", randomName);
 
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -100,11 +97,12 @@ export function ProcessRefundDialog({
       }
 
       const data = await response.json();
+      const filename = data.url.split("/").pop();
       setUploadedFile({
         url: data.url,
         name: file.name,
       });
-      form.setValue("disbursement_proof_url", data.url);
+      form.setValue("disbursement_proof_url", filename);
       toast.success("Bukti berhasil diunggah");
     } catch (error) {
       console.error("Upload error:", error);

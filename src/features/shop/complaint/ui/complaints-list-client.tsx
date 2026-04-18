@@ -86,7 +86,7 @@ export default function ComplaintsListClient({
                       {complaint.order.customer.user.avatar ? (
                         <Image
                           src={getImageUrl(
-                            complaint.order.customer.user.avatar
+                            "/avatar/" + complaint.order.customer.user.avatar
                           )}
                           alt={complaint.order.customer.user.name}
                           fill
@@ -144,7 +144,7 @@ export default function ComplaintsListClient({
                     <div className="shrink-0">
                       <div className="h-12 w-12 rounded overflow-hidden bg-muted border">
                         <Image
-                          src={complaint.proof_url}
+                          src={getImageUrl("/complaint-proof/" + complaint.proof_url)}
                           alt="Bukti"
                           width={48}
                           height={48}

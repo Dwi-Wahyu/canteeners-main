@@ -104,7 +104,7 @@ export default function CustomerChatListPage() {
                   }`}
                 >
                   <Avatar className="size-11 shadow shrink-0">
-                    <AvatarImage src={getImageUrl(opponent.avatar)} />
+                    <AvatarImage src={getImageUrl("/avatar/" + opponent.avatar)} />
                     <AvatarFallback>
                       {opponent.name?.charAt(0).toUpperCase() || "C"}
                     </AvatarFallback>

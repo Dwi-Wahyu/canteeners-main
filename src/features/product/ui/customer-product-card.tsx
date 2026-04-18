@@ -18,7 +18,7 @@ export default function CustomerProductCard({
           <div className="w-1/3 shrink-0">
             <div className="relative shadow aspect-square w-full overflow-hidden rounded-md bg-muted">
               <img
-                src={getImageUrl(product.image_url)}
+                src={getImageUrl("/product/" + product.image_url)}
                 alt={product.name}
                 className="h-full w-full object-cover"
               />

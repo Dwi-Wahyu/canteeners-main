@@ -207,7 +207,7 @@ export default function CartItemClient({
       {/* Image */}
       <div className="relative w-full md:w-48 h-48 md:h-auto shrink-0">
         <Image
-          src={getImageUrl(data.product.image_url)}
+          src={getImageUrl("/product/" + data.product.image_url)}
           alt={data.product.name}
           fill
           className="object-cover shadow rounded-md"

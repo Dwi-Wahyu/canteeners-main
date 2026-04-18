@@ -44,7 +44,7 @@ export default async function ShopDetail({
       <div className="fixed top-0 left-0 w-full h-[25vh] z-0">
         <img
           className="w-full h-full object-cover"
-          src={getImageUrl(shop.image_url)}
+          src={getImageUrl("/shop/" + shop.image_url)}
           alt={shop.name}
         />
 

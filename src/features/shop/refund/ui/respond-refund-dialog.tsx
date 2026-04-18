@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { Check, X, AlertCircle, Loader } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
+import { getImageUrl } from "@/helper/get-image-url";
 import { refundReasonMapping } from "@/constant/refund-mapping";
 
 interface RespondRefundDialogProps {
@@ -208,7 +209,7 @@ export function RespondRefundDialog({
               <p className="text-sm font-medium">Bukti:</p>
               <div className="relative w-full h-48 rounded-lg overflow-hidden border">
                 <Image
-                  src={refund.complaint_proof_url}
+                  src={getImageUrl("/complaint-proof/" + refund.complaint_proof_url)}
                   alt="Bukti komplain"
                   fill
                   className="object-contain"

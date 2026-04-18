@@ -128,7 +128,7 @@ export default function OwnerChatListPage() {
                   }`}
                 >
                   <Avatar className="size-11 shadow">
-                    <AvatarImage src={getImageUrl(opponentInfo.avatar)} />
+                    <AvatarImage src={getImageUrl("/avatar/" + opponentInfo.avatar)} />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
 

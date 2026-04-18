@@ -39,7 +39,7 @@ export default function Client({
         <CardContent className="flex flex-col gap-3">
           <img
             className="rounded-lg shadow"
-            src={getImageUrl(data.image_url)}
+            src={getImageUrl("/product/" + data.image_url)}
           />
 
           <div>

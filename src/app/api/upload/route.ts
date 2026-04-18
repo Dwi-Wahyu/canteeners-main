@@ -1,11 +1,10 @@
-import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request): Promise<NextResponse> {
   const formData = await request.formData();
 
   const file = formData.get("file") as File | null;
-  const filename = formData.get("filename") as string | null;
+  const path = formData.get("path") as string | null;
 
   if (!file) {
     return NextResponse.json(
@@ -14,17 +13,38 @@ export async function POST(request: Request): Promise<NextResponse> {
     );
   }
 
-  if (!filename) {
+  if (!path) {
     return NextResponse.json(
-      { success: false, error: "No filename" },
+      { success: false, error: "No path provided" },
       { status: 400 }
     );
   }
 
-  const blob = await put(filename, file, {
-    access: "public",
-    token: process.env.BLOB_READ_WRITE_TOKEN,
-  });
+  // Forward to backend
+  const backendFormData = new FormData();
+  backendFormData.append("path", path);
+  backendFormData.append("file", file);
 
-  return NextResponse.json(blob);
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/upload`,
+      {
+        method: "POST",
+        body: backendFormData,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status });
+    }
+
+    return NextResponse.json(data);
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
 }

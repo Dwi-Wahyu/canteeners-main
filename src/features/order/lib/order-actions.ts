@@ -10,7 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
-import { del } from "@vercel/blob";
+import { deleteFile } from "@/helper/file-helper";
 import { getImageUrl } from "@/helper/get-image-url";
 import { paymentMethodMapping } from "@/constant/payment-method";
 
@@ -535,7 +535,7 @@ export async function savePaymentProof({
 
     // hapus nanti file yang lama, pastikan pake trycatch biar ga error
     if (order.payment_proof_url) {
-      await del(getImageUrl(order.payment_proof_url));
+      await deleteFile(order.payment_proof_url);
     }
 
     await prisma.order.update({

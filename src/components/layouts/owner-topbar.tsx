@@ -42,7 +42,7 @@ export default function OwnerTopbar({
       <DropdownMenu>
         <DropdownMenuTrigger className="focus:outline-none">
           <Avatar>
-            <AvatarImage src={getImageUrl(avatar)} alt={shopName} />
+            <AvatarImage src={getImageUrl("/avatar/" + avatar)} alt={shopName} />
             <AvatarFallback>
               {shopName.slice(0, 2).toUpperCase()}
             </AvatarFallback>

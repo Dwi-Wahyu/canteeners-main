@@ -36,7 +36,7 @@ export function ShopBestSellingProduct({
                 {/* Thumbnail */}
                 <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-gray-100">
                   <img
-                    src={getImageUrl(product?.image_url ?? "")}
+                    src={getImageUrl("/product/" + (product?.image_url ?? ""))}
                     alt={product?.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {

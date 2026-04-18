@@ -60,11 +60,9 @@ export default function CreateProductForm({
     startTransition(async () => {
       if (files.length > 0) {
         const file = files[0];
-        const filename = generateFileName(file.name, "products");
         const formData = new FormData();
-
+        formData.append("path", "product");
         formData.append("file", file);
-        formData.append("filename", filename);
 
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
@@ -78,7 +76,8 @@ export default function CreateProductForm({
           return;
         }
 
-        payload.image_url = filename;
+        const uploadData = await uploadResponse.json();
+        payload.image_url = uploadData.url.split("/").pop(); // Get filename from returned URL
       }
 
       if (payload.image_url === "") {

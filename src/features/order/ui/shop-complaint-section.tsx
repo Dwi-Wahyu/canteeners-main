@@ -1,5 +1,6 @@
 "use client";
 
+import { getImageUrl } from "@/helper/get-image-url";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -75,7 +76,7 @@ export default function ShopComplaintSection({
             <div>
               <p className="text-sm font-medium mb-2">Bukti:</p>
               <img
-                src={order.complaint.proof_url}
+                src={getImageUrl("/complaint-proof/" + order.complaint.proof_url)}
                 alt="Bukti komplain"
                 className="rounded-lg border max-w-sm w-full"
               />

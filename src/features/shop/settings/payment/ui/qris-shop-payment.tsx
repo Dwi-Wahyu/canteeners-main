@@ -67,7 +67,7 @@ export default function QrisShopPayment({ shop_id }: { shop_id: string }) {
         {payment && !isEditing && payment.qr_url && (
           <div className="space-y-2">
             <img
-              src={getImageUrl(payment.qr_url)}
+              src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
               alt="QRIS Code"
               className="rounded-lg mb-2 shadow"
             />

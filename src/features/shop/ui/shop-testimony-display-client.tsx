@@ -29,7 +29,7 @@ export default function ShopTestimonyDisplayClient({
             <CardContent className="flex gap-3 items-start">
               <Avatar>
                 <AvatarImage
-                  src={getImageUrl(testimony.order.customer.user.avatar)}
+                  src={getImageUrl("/avatar/" + testimony.order.customer.user.avatar)}
                 />
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>

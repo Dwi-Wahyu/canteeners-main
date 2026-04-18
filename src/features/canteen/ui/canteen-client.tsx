@@ -46,7 +46,7 @@ export default function CanteenClient({
             <Card>
               <CardContent className="flex gap-4">
                 <img
-                  src={getImageUrl(shop.image_url)}
+                  src={getImageUrl("/shop/" + shop.image_url)}
                   alt=""
                   className="aspect-square shadow rounded-lg w-1/3"
                 />

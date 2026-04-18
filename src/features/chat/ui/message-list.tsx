@@ -10,6 +10,7 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
+import { getImageUrl } from "@/helper/get-image-url";
 import { format } from "date-fns";
 import { Message, Attachment } from "../types";
 import { MediaGallery } from "./media-gallery";
@@ -191,7 +192,7 @@ export function MessageList({
                                         with #t=0.1 to show the first frame, but controls disabled.
                                      */}
                             <video
-                              src={`${item.url}#t=0.5`}
+                              src={`${getImageUrl("/message-media-video/" + item.url)}#t=0.5`}
                               className="w-full h-full object-cover"
                               preload="metadata"
                             />
@@ -201,7 +202,7 @@ export function MessageList({
                           </div>
                         ) : (
                           <img
-                            src={item.url}
+                            src={getImageUrl("/message-media-image/" + item.url)}
                             alt="attachment"
                             className="w-full h-full object-cover"
                           />

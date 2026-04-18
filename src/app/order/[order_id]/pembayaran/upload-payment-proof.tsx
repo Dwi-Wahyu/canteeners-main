@@ -48,11 +48,9 @@ export default function UploadPaymentProof({
     startTransition(async () => {
       if (files.length > 0) {
         const file = files[0];
-        const filename = generateFileName(file.name, "payment-proofs");
         const formData = new FormData();
-
+        formData.append("path", "payment-proof");
         formData.append("file", file);
-        formData.append("filename", filename);
 
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
@@ -66,7 +64,8 @@ export default function UploadPaymentProof({
           return;
         }
 
-        payload.image_url = filename;
+        const uploadData = await uploadResponse.json();
+        payload.image_url = uploadData.url.split("/").pop();
       }
 
       if (payload.image_url === "") {
@@ -116,7 +115,7 @@ export default function UploadPaymentProof({
               <CardContent>
                 <h1 className="font-medium mb-4">Bukti Pembayaran</h1>
                 <img
-                  src={getImageUrl(order.payment_proof_url)}
+                  src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
                   className="rounded-lg"
                   alt=""
                 />
@@ -150,7 +149,7 @@ export default function UploadPaymentProof({
                         <img
                           key={idx}
                           className="rounded-lg"
-                          src={getImageUrl(payment.qr_url)}
+                          src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
                         />
                       );
                     })}

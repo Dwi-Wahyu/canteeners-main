@@ -125,7 +125,7 @@ export default function ShopOrderDetailDialog({
                         <CardContent className="p-2">
                           <div className="flex gap-4">
                             <Image
-                              src={getImageUrl(orderItem.product.image_url)}
+                              src={getImageUrl("/product/" + orderItem.product.image_url)}
                               alt={orderItem.product.name}
                               width={70}
                               height={70}
@@ -178,7 +178,7 @@ export default function ShopOrderDetailDialog({
                   <div>
                     <h1>Bukti</h1>
                     <Image
-                      src={getImageUrl(orderData.payment_proof_url)}
+                      src={getImageUrl("/payment-proof/" + orderData.payment_proof_url)}
                       alt="Bukti Pembayaran"
                       width={200}
                       height={200}

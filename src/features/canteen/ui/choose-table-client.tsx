@@ -140,7 +140,7 @@ export default function ChooseTableClient({
             return (
               <TabsContent key={i} value={floorKey} className="mt-2">
                 <img
-                  src={getImageUrl(map.image_url)}
+                  src={getImageUrl("/canteen-map/" + map.image_url)}
                   className="mb-4 shadow rounded-lg"
                 />
                 <div className="grid grid-cols-2 gap-4">

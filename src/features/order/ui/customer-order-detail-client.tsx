@@ -98,7 +98,7 @@ export default function CustomerOrderDetailClient({
             <Item key={idx} variant={"outline"}>
               <ItemMedia variant={"image"}>
                 <Image
-                  src={getImageUrl(item.product.image_url)}
+                  src={getImageUrl("/product/" + item.product.image_url)}
                   width={100}
                   height={100}
                   alt="product image"
@@ -211,7 +211,7 @@ export default function CustomerOrderDetailClient({
                     return <div>Belum ada qr code</div>;
                   }
 
-                  return <img key={idx} src={getImageUrl(payment.qr_url)} />;
+                  return <img key={idx} src={getImageUrl("/qris-qrcode/" + payment.qr_url)} />;
                 })}
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function CustomerOrderDetailClient({
               />
             ) : (
               <img
-                src={"/uploads/payment-proof/" + order.payment_proof_url}
+                src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
                 width={400}
                 height={300}
                 alt="payment proof"

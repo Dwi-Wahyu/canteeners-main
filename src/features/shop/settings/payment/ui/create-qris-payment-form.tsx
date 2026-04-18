@@ -66,11 +66,9 @@ export default function InputQrisPaymentForm({
     if (files.length > 0) {
       try {
         const file = files[0];
-        const filename = `qrcodes/qris/${uuidv4()}${file.name}`;
         const formData = new FormData();
-
+        formData.append("path", "qris-qrcode");
         formData.append("file", file);
-        formData.append("filename", filename);
 
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
@@ -84,7 +82,8 @@ export default function InputQrisPaymentForm({
           return;
         }
 
-        values.qr_url = filename;
+        const uploadData = await uploadResponse.json();
+        values.qr_url = uploadData.url.split("/").pop();
       } catch (error: any) {
         toast.error(error.message || "Gagal mengunggah gambar");
         form.setError("qr_url", {

@@ -109,7 +109,7 @@ export default function ShopOrderDetailClient({
             <Item key={idx} variant={"outline"}>
               <ItemMedia variant={"image"}>
                 <Image
-                  src={getImageUrl(item.product.image_url)}
+                  src={getImageUrl("/product/" + item.product.image_url)}
                   width={100}
                   height={100}
                   alt="product image"
@@ -171,7 +171,7 @@ export default function ShopOrderDetailClient({
           ) : (
             <div>
               <img
-                src={getImageUrl(order.payment_proof_url)}
+                src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
                 width={400}
                 height={300}
                 alt="payment proof"

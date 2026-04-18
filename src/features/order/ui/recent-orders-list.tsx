@@ -41,7 +41,7 @@ export default function RecentOrdersList({ orders }: RecentOrdersListProps) {
                   {/* <div className="flex items-center">
                     <Avatar className="h-9 w-9">
                       <AvatarImage
-                        src={getImageUrl(order.customer.user.avatar)}
+                        src={getImageUrl("/avatar/" + order.customer.user.avatar)}
                         alt="Avatar"
                       />
                       <AvatarFallback>

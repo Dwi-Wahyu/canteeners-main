@@ -24,7 +24,7 @@ export default function ProductCard({
       <div className="flex p-4 py-0">
         <div className="w-1/3 pr-4">
           <img
-            src={getImageUrl(product.image_url)}
+            src={getImageUrl("/product/" + product.image_url)}
             alt={product.name}
             className="aspect-square shadow w-full rounded-md object-cover"
           />

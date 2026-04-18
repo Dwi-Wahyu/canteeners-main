@@ -57,8 +57,7 @@ export default function CategoryScroller({
               `}
             >
               <img
-                src={getImageUrl(category.image_url)}
-                alt={category.name + " image"}
+                src={getImageUrl("/category/" + category.image_url)}                alt={category.name + " image"}
                 width="96"
                 height="96"
                 className="rounded-sm object-cover w-24 h-24"

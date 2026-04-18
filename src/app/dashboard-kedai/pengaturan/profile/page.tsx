@@ -17,7 +17,7 @@ export default async function ProfilePage() {
         </CardHeader>
         <CardContent className="flex items-center space-x-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={getImageUrl(session.user.avatar)} />
+            <AvatarImage src={getImageUrl("/avatar/" + session.user.avatar)} />
             <AvatarFallback>
               {session.user.name?.slice(0, 2).toUpperCase()}
             </AvatarFallback>

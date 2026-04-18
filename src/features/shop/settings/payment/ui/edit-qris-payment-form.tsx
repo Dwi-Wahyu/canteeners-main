@@ -24,6 +24,7 @@ import {
 import { updateQrisPayment } from "../lib/shop-payment-actions";
 import { FileUploadImage } from "@/components/file-upload-image";
 import { uuidv4 } from "zod";
+import { getImageUrl } from "@/helper/get-image-url";
 
 export default function EditQrisPaymentForm({
   payment,
@@ -71,11 +72,9 @@ export default function EditQrisPaymentForm({
   const onSubmit = async (values: PaymentSchemaInput) => {
     if (files.length > 0) {
       const file = files[0];
-      const filename = `qrcodes/qris/${uuidv4()}${file.name}`;
       const formData = new FormData();
-
+      formData.append("path", "qris-qrcode");
       formData.append("file", file);
-      formData.append("filename", filename);
 
       const uploadResponse = await fetch("/api/upload", {
         method: "POST",
@@ -89,7 +88,8 @@ export default function EditQrisPaymentForm({
         return;
       }
 
-      values.qr_url = filename;
+      const uploadData = await uploadResponse.json();
+      values.qr_url = uploadData.url.split("/").pop();
     }
 
     if (values.qr_url === "") {
@@ -120,7 +120,9 @@ export default function EditQrisPaymentForm({
                   <FileUploadImage
                     multiple={false}
                     onFilesChange={setFiles}
-                    initialPreviewUrl={"/uploads/shop-qrcode/" + payment.qr_url}
+                    initialPreviewUrl={getImageUrl(
+                      "/qris-qrcode/" + payment.qr_url,
+                    )}
                   />
                 </FormControl>
                 <FormMessage />

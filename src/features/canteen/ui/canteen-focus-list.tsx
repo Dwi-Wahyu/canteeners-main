@@ -63,7 +63,7 @@ export function CanteenFocusList({ data }: { data: any[] }) {
           >
             <div className="relative h-56 w-full">
               <Image
-                src={getImageUrl(item.image_url)} //
+                src={getImageUrl("/canteen/" + item.image_url)} //
                 alt={item.name}
                 fill
                 className="object-cover"

@@ -65,7 +65,7 @@ export default function ProductClientPage({
             <Card key={idx} className="max-w-md pt-0">
               <CardContent className="px-0">
                 <img
-                  src={getImageUrl(product.image_url)}
+                  src={getImageUrl("/product/" + product.image_url)}
                   alt="Banner"
                   className="aspect-video h-70 rounded-t-xl object-cover"
                 />

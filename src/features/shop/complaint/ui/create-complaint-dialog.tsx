@@ -90,11 +90,8 @@ export default function CreateComplaintDialog({
 
     try {
       const formData = new FormData();
-      // Generate random filename with original extension
-      const randomName = generateFileName(file.name, "complaint-proofs");
-
+      formData.append("path", "complaint-proof");
       formData.append("file", file);
-      formData.append("filename", randomName);
 
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -106,11 +103,12 @@ export default function CreateComplaintDialog({
       }
 
       const data = await response.json();
+      const filename = data.url.split("/").pop();
       setUploadedFile({
         url: data.url,
         name: file.name,
       });
-      form.setValue("proof_url", data.url);
+      form.setValue("proof_url", filename);
       toast.success("Bukti berhasil diunggah");
     } catch (error) {
       console.error("Upload error:", error);

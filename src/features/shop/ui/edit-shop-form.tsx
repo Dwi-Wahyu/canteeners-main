@@ -74,11 +74,9 @@ export default function EditShopForm({
   const onSubmit = async (payload: UpdateShopInput) => {
     if (files.length > 0) {
       const file = files[0];
-      const filename = `shops/${file.name}`;
       const formData = new FormData();
-
+      formData.append("path", "shop");
       formData.append("file", file);
-      formData.append("filename", filename);
 
       const uploadResponse = await fetch("/api/upload", {
         method: "POST",
@@ -92,7 +90,8 @@ export default function EditShopForm({
         return;
       }
 
-      payload.image_url = filename;
+      const uploadData = await uploadResponse.json();
+      payload.image_url = uploadData.url.split("/").pop();
     }
 
     const result = await updateShop(payload);
@@ -227,7 +226,7 @@ export default function EditShopForm({
 
           <FileUploadImage
             multiple={false}
-            initialPreviewUrl={getImageUrl(initialData.image_url)}
+            initialPreviewUrl={getImageUrl("/shop/" + initialData.image_url)}
             onFilesChange={(newFiles) => {
               setFiles(newFiles);
             }}

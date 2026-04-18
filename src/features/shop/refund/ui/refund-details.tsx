@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
 import Image from "next/image";
+import { getImageUrl } from "@/helper/get-image-url";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface RefundDetailsProps {
@@ -181,7 +182,7 @@ export function RefundDetails({
           <p className="text-sm text-muted-foreground mb-2">Bukti Komplain</p>
           <div className="relative w-full h-48 rounded-lg overflow-hidden border">
             <Image
-              src={refund.complaint_proof_url}
+              src={getImageUrl("/complaint-proof/" + refund.complaint_proof_url)}
               alt="Bukti komplain"
               fill
               className="object-contain"
@@ -195,7 +196,7 @@ export function RefundDetails({
           <p className="text-sm text-muted-foreground mb-2">Bukti Transfer</p>
           <div className="relative w-full h-48 rounded-lg overflow-hidden border">
             <Image
-              src={refund.disbursement_proof_url}
+              src={getImageUrl("/disbursement-proof/" + refund.disbursement_proof_url)}
               alt="Bukti transfer"
               fill
               className="object-contain"

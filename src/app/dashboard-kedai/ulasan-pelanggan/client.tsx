@@ -16,6 +16,7 @@ import {
   getShopTestimonies,
 } from "@/features/shop/lib/shop-queries";
 import { MessageCircle, Star, ThumbsUp } from "lucide-react";
+import { getImageUrl } from "@/helper/get-image-url";
 
 export default function ShopDashboardTestimonyClient({
   shopRatings,
@@ -60,10 +61,10 @@ export default function ShopDashboardTestimonyClient({
             <CardContent className="flex gap-3 items-start">
               <Avatar>
                 <AvatarImage
-                  src={
-                    "/uploads/avatar/" + testimony.order.customer.user.avatar
-                  }
-                />
+                  src={getImageUrl(
+                    "/avatar/" + testimony.order.customer.user.avatar,
+                  )}
+                />{" "}
                 <AvatarFallback>CN</AvatarFallback>
               </Avatar>
 

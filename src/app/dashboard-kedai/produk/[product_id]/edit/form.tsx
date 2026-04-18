@@ -69,11 +69,9 @@ export default function EditProductForm({
       // Handle Image Upload
       if (files.length > 0) {
         const file = files[0];
-        const filename = generateFileName(file.name, "products");
         const formData = new FormData();
-
+        formData.append("path", "product");
         formData.append("file", file);
-        formData.append("filename", filename);
 
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
@@ -87,7 +85,8 @@ export default function EditProductForm({
           return;
         }
 
-        payload.image_url = filename;
+        const uploadData = await uploadResponse.json();
+        payload.image_url = uploadData.url.split("/").pop(); // Get filename from returned URL if needed, or adjust based on API response
       }
 
       if (payload.image_url === "") {
@@ -247,7 +246,7 @@ export default function EditProductForm({
           {files.length === 0 && product.image_url && (
             <div className="mb-4">
               <img
-                src={getImageUrl(product.image_url)}
+                src={getImageUrl("/product/" + product.image_url)}
                 alt="Current Product"
                 className="w-32 h-32 object-cover rounded-md border"
               />

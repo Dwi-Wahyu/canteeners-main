@@ -184,7 +184,7 @@ export default async function MitraRegistrationPage() {
               >
                 <div className="relative h-48 w-full overflow-hidden">
                   <Image
-                    src={getImageUrl(shop.image_url)}
+                    src={getImageUrl("/shop/" + shop.image_url)}
                     alt={shop.name}
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"

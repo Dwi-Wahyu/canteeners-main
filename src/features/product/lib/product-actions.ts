@@ -15,7 +15,7 @@ import {
   ServerActionReturn,
   successResponse,
 } from "@/helper/action-helper";
-import { del } from "@vercel/blob";
+import { deleteFile } from "@/helper/file-helper";
 import { getImageUrl } from "@/helper/get-image-url";
 
 async function updateMaximumShopPrice(shop_id: string, maximum_price: number) {
@@ -107,7 +107,7 @@ export async function updateProduct(
   try {
     if (isUpdatingImage) {
       // Delete previous product image
-      await del(getImageUrl(previousImageUrl));
+      await deleteFile(previousImageUrl);
     }
 
     await prisma.product.update({
@@ -330,7 +330,7 @@ export async function deleteProduct(
       },
     });
 
-    await del(getImageUrl(product.image_url));
+    await deleteFile(product.image_url);
 
     return successResponse(undefined, "Sukses menghapus varian");
   } catch (error) {

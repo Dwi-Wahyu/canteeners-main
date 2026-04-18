@@ -38,7 +38,7 @@ export function ChatNotificationToast({
     >
       <div className="flex items-start gap-4">
         <Avatar className="size-10">
-          <AvatarImage src={getImageUrl(opponent.avatar)} />
+          <AvatarImage src={getImageUrl("/avatar/" + opponent.avatar)} />
           <AvatarFallback>CN</AvatarFallback>
         </Avatar>
 

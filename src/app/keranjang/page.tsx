@@ -40,7 +40,7 @@ export default async function GuestCartPage() {
             <Card className="relative">
               <CardContent className="flex gap-4">
                 <Image
-                  src={getImageUrl(shopCart.shop.image_url)}
+                  src={getImageUrl("/shop/" + shopCart.shop.image_url)}
                   alt="shop image"
                   className="rounded-lg"
                   width={100}

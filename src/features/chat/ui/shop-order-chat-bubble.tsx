@@ -112,7 +112,7 @@ export default function ShopOrderChatBubble({
                   className="flex items-center gap-3"
                 >
                   <Image
-                    src={getImageUrl(items.product.image_url)}
+                    src={getImageUrl("/product/" + items.product.image_url)}
                     width={40}
                     height={40}
                     alt="product image"

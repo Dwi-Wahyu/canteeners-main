@@ -116,12 +116,12 @@ export function ChatInput({
             // Ah, the existing example chat-input-example.tsx lines 69-103 ONLY SIMULATES progress.
             // I need to actually upload to /api/upload.
 
+            const path = file.type.startsWith("video/")
+              ? "message-media-video"
+              : "message-media-image";
             const formData = new FormData();
+            formData.append("path", path);
             formData.append("file", file);
-            // Generate filename: chat-attachments/{date}_{uuid}
-            const dateStr = format(new Date(), "yyyy-MM-dd");
-            const filename = `chat-attachments/${dateStr}_${uuidv4()}`;
-            formData.append("filename", filename);
 
             const res = await fetch("/api/upload", {
               method: "POST",
@@ -133,6 +133,12 @@ export function ChatInput({
             }
 
             const blob = await res.json();
+            // Store the relative path (filename) in blobResult if needed by other components,
+            // but usually components want the URL. The blobResult now has the backend response.
+            // We ensure we have the filename for the backend.
+            if (blob.url) {
+              blob.filename = blob.url.split("/").pop();
+            }
             // We need to attach the blob url/details to the file object so we can access it later on submit.
             // Since File object is read-only, we might need a separate state or augment it if possible,
             // but better: `setAttachments` tracks the Files.

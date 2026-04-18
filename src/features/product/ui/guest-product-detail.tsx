@@ -172,7 +172,7 @@ export default function GuestProductDetail({
     <div className="flex flex-col gap-3 p-5">
       <div>
         <img
-          src={getImageUrl(data.image_url)}
+          src={getImageUrl("/product/" + data.image_url)}
           alt={data.name}
           className="h-full w-full rounded-lg shadow object-cover"
         />

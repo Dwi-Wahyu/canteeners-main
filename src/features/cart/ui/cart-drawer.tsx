@@ -126,7 +126,7 @@ export function CartDrawer({ cart_id }: { cart_id?: string }) {
                                 <div className="relative w-16 h-16 rounded-md overflow-hidden bg-muted shrink-0">
                                   {item.product.image_url ? (
                                     <Image
-                                      src={getImageUrl(item.product.image_url)}
+                                      src={getImageUrl("/product/" + item.product.image_url)}
                                       alt={item.product.name}
                                       fill
                                       className="object-cover"

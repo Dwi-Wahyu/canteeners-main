@@ -74,7 +74,7 @@ export default function CartItemCard({
       <CardContent>
         <div className="flex gap-4">
           <Image
-            src={getImageUrl(cartItem.product.image_url)}
+            src={getImageUrl("/product/" + cartItem.product.image_url)}
             alt={cartItem.product.name}
             width={100}
             height={100}

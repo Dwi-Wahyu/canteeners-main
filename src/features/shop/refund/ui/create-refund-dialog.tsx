@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import { AlertCircle, DollarSign, Loader2, Upload, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
+import { getImageUrl } from "@/helper/get-image-url";
 import {
   refundReasonMapping,
   refundDisbursementModeMapping,
@@ -143,13 +144,8 @@ export default function CreateRefundDialog({
 
     try {
       const formData = new FormData();
-      const ext = file.name.split(".").pop();
-      const randomName = `complaint-proofs/${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(7)}.${ext}`;
-
+      formData.append("path", "complaint-proof");
       formData.append("file", file);
-      formData.append("filename", randomName);
 
       const response = await fetch("/api/upload", {
         method: "POST",
@@ -161,11 +157,12 @@ export default function CreateRefundDialog({
       }
 
       const data = await response.json();
+      const filename = data.url.split("/").pop();
       setUploadedFile({
         url: data.url,
         name: file.name,
       });
-      form.setValue("complaint_proof_url", data.url);
+      form.setValue("complaint_proof_url", filename);
       toast.success("Bukti berhasil diunggah");
     } catch (error) {
       console.error("Upload error:", error);
@@ -304,7 +301,7 @@ export default function CreateRefundDialog({
                       />
                       <div className="relative h-12 w-12 rounded overflow-hidden shrink-0">
                         <Image
-                          src={item.product.image_url}
+                          src={getImageUrl("/product/" + item.product.image_url)}
                           alt={item.product.name}
                           fill
                           className="object-cover"

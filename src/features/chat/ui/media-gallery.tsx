@@ -13,6 +13,7 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { getImageUrl } from "@/helper/get-image-url";
 import { Button } from "@/components/ui/button";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"; // Ensure accessible titles
 import { Attachment } from "../types";
@@ -71,14 +72,14 @@ export function MediaGallery({
                 <div className="w-full h-full flex items-center justify-center">
                   {item.contentType.startsWith("video/") ? (
                     <video
-                      src={item.url}
+                      src={getImageUrl("/message-media-video/" + item.url)}
                       controls
                       autoPlay={index === initialIndex}
                       className="max-h-full max-w-full rounded-md object-contain"
                     />
                   ) : (
                     <img
-                      src={item.url}
+                      src={getImageUrl("/message-media-image/" + item.url)}
                       alt="attachment"
                       className="max-h-full max-w-full rounded-md object-contain"
                     />
