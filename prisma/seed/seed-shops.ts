@@ -9,6 +9,8 @@ export async function seedShops() {
   console.log("Memulai seeding shop...");
 
   try {
+    await prisma.shop.deleteMany();
+
     await prisma.user.deleteMany();
 
     await prisma.user.create({
