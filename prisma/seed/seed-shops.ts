@@ -5,11 +5,12 @@ import { config } from "dotenv";
 
 config();
 
-
 export async function seedShops() {
   console.log("Memulai seeding shop...");
 
   try {
+    await prisma.user.deleteMany();
+
     await prisma.user.create({
       data: {
         id: process.env.OWNER_FIREBASE_UID,
