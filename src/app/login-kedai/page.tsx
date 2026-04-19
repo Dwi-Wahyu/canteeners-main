@@ -128,7 +128,7 @@ export default function LoginKedaiPage() {
               background: "rgba(183, 0, 17, 0.08)",
             }}>
               <span className="text-xs font-semibold font-headline" style={{ color: "#b70011" }}>
-                🏪 Akun Kedai
+                Akun Kedai
               </span>
             </div>
             <h2
@@ -328,7 +328,6 @@ export default function LoginKedaiPage() {
               boxShadow: "0 1px 4px rgba(11, 28, 48, 0.05)",
             }}
           >
-            <span>🧑‍🍽️</span>
             <span>Masuk sebagai Pelanggan</span>
           </Link>
         </div>

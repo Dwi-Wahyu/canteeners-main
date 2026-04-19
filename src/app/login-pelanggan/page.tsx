@@ -120,6 +120,14 @@ export default function LoginPelangganPage() {
           }}
         >
           <div className="text-center mb-2">
+            {/* Pelanggan Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{
+              background: "rgba(183, 0, 17, 0.08)",
+            }}>
+              <span className="text-xs font-semibold font-headline" style={{ color: "#b70011" }}>
+                Akun Pelanggan
+              </span>
+            </div>
             <h2
               className="font-headline font-bold text-2xl tracking-tight"
               style={{ color: "#0b1c30" }}
