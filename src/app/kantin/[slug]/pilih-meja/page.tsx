@@ -1,11 +1,9 @@
 import HistoryBackButton from "@/components/layouts/history-back-button";
-import NavButton from "@/components/nav-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { auth } from "@/config/auth";
 import { getCanteenIncludeMaps } from "@/features/canteen/lib/canteen-queries";
 import ChooseTableClient from "@/features/canteen/ui/choose-table-client";
 import { getCustomerSelectedTable } from "@/features/user/lib/user-queries";
-import { ChevronLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -30,7 +28,7 @@ export default async function ChooseTablePage({
   }
 
   const customerProfile = await getCustomerSelectedTable(
-    session?.user.customerId!
+    session?.user.customerId!,
   );
 
   return (
