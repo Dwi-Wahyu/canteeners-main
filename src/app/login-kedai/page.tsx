@@ -3,13 +3,9 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "nextjs-toploader/app";
-import { Loader, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Loader2, User, Lock, Eye, EyeOff } from "lucide-react";
 import { LoginSchema, LoginInput } from "@/features/auth/types/auth-schemas";
 import Image from "next/image";
 import Link from "next/link";
@@ -58,134 +54,297 @@ export default function LoginKedaiPage() {
   }, [session, session.status]);
 
   return (
-    <div className="min-h-svh flex flex-col items-center">
-      {/* Mobile-first centered container for desktop */}
-      <div className="w-full max-w-120 min-h-svh flex flex-col shadow-xl">
-        {/* Header Section */}
-        <div className="relative bg-primary h-75 w-full rounded-b-[60px] flex flex-col items-center justify-center text-white overflow-hidden shrink-0">
-          {/* Background decoration circles could go here if needed, but keeping it simple first */}
+    <div
+      className="min-h-svh relative overflow-hidden flex flex-col justify-center items-center"
+      style={{ background: "linear-gradient(135deg, #f8f9ff 0%, #eff4ff 50%, #dce9ff 100%)" }}
+    >
+      {/* Abstract Background Blobs */}
+      <div
+        style={{
+          position: "absolute",
+          top: "-10%",
+          left: "-10%",
+          width: "70vw",
+          height: "70vw",
+          background: "radial-gradient(circle, rgba(220, 38, 38, 0.08) 0%, rgba(220, 38, 38, 0) 70%)",
+          borderRadius: "50%",
+          filter: "blur(40px)",
+          zIndex: 0,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          bottom: "-20%",
+          right: "-10%",
+          width: "80vw",
+          height: "80vw",
+          background: "radial-gradient(circle, rgba(214, 224, 243, 0.4) 0%, rgba(214, 224, 243, 0) 70%)",
+          borderRadius: "50%",
+          filter: "blur(40px)",
+          zIndex: 0,
+        }}
+      />
 
-          <div className="flex flex-col items-center z-10 gap-2 -mt-5">
-            <Link href={"/"}>
-              <div className="relative w-24 h-24 mb-2">
-                <Image
-                  src="/app-logo.svg"
-                  alt="Canteeners Logo"
-                  fill
-                  className="object-contain brightness-0 invert"
-                />
-              </div>
-            </Link>
-            <h1 className="text-3xl font-bold tracking-wide">CANTEENERS</h1>
-            <p className="text-sm font-medium opacity-90">Kantin Naik Level</p>
-          </div>
+      <main className="w-full max-w-md px-6 py-12 relative z-10 flex flex-col items-center">
+        {/* Brand Header */}
+        <div className="mb-10 text-center w-full">
+          <Link href="/" className="inline-flex flex-col items-center gap-1">
+            <div className="relative w-16 h-16 mb-2">
+              <Image
+                src="/app-logo.svg"
+                alt="Canteeners Logo"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <h1
+              className="font-headline font-extrabold text-4xl tracking-tight"
+              style={{ color: "#0b1c30" }}
+            >
+              Canteen<span style={{ color: "#b70011" }}>eers</span>
+            </h1>
+          </Link>
+          <p className="font-body-inter text-sm mt-2" style={{ color: "#555f6f" }}>
+            Portal Kedai — Kelola Usaha Anda
+          </p>
         </div>
 
-        {/* Form Section */}
-        <div className="flex-1 px-8 pt-10 pb-6 flex flex-col">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold">Selamat Datang</h2>
-            <h2 className="text-lg text-muted-foreground">
-              Masukkan Akun Kedai Anda
+        {/* Glassmorphism Login Card */}
+        <div
+          className="w-full p-8 flex flex-col gap-6 relative overflow-hidden rounded-2xl"
+          style={{
+            background: "rgba(255, 255, 255, 0.75)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+            border: "1px solid rgba(255, 255, 255, 0.4)",
+            boxShadow: "0 32px 64px -12px rgba(11, 28, 48, 0.08)",
+          }}
+        >
+          {/* Card Header */}
+          <div className="text-center mb-2">
+            {/* Kedai Badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{
+              background: "rgba(183, 0, 17, 0.08)",
+            }}>
+              <span className="text-xs font-semibold font-headline" style={{ color: "#b70011" }}>
+                🏪 Akun Kedai
+              </span>
+            </div>
+            <h2
+              className="font-headline font-bold text-2xl tracking-tight"
+              style={{ color: "#0b1c30" }}
+            >
+              Selamat Datang Kembali
             </h2>
+            <p className="font-body-inter text-sm mt-1" style={{ color: "#555f6f" }}>
+              Masukkan akun kedai Anda untuk melanjutkan.
+            </p>
           </div>
 
+          {/* Form */}
           <form
-            id="login-form"
-            className="flex flex-col gap-5"
+            id="login-kedai-form"
+            className="flex flex-col gap-5 w-full"
             onSubmit={form.handleSubmit(onSubmit)}
           >
             {/* Username Field */}
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-semibold">
-                Username <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="username"
-                {...form.register("username")}
-                className="h-12 px-4 focus:ring-primary focus:border-primary"
-                placeholder="Masukkan username"
-                autoComplete="off"
-              />
-              {form.formState.errors.username && (
-                <p className="text-sm text-red-500">
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="username"
+                className="text-sm font-semibold ml-1 font-headline"
+                style={{ color: "#0b1c30" }}
+              >
+                Username
+              </label>
+              <div className="relative">
+                <User
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                  style={{ color: "#555f6f" }}
+                />
+                <input
+                  id="username"
+                  type="text"
+                  placeholder="username kedai"
+                  autoComplete="off"
+                  aria-invalid={!!form.formState.errors.username}
+                  {...form.register("username")}
+                  className="w-full rounded-xl py-3.5 pl-12 pr-4 text-sm transition-all duration-200"
+                  style={{
+                    background: "#ffffff",
+                    border: form.formState.errors.username
+                      ? "1px solid #ba1a1a"
+                      : "1px solid rgba(230, 189, 184, 0.3)",
+                    color: "#0b1c30",
+                    outline: "none",
+                    fontFamily: "Inter, sans-serif",
+                  }}
+                  onFocus={(e) => {
+                    if (!form.formState.errors.username) {
+                      e.currentTarget.style.borderColor = "#b70011";
+                      e.currentTarget.style.boxShadow = "0 0 0 4px rgba(183, 0, 17, 0.1)";
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.boxShadow = "none";
+                    if (!form.formState.errors.username) {
+                      e.currentTarget.style.borderColor = "rgba(230, 189, 184, 0.3)";
+                    }
+                  }}
+                />
+              </div>
+              {form.formState.errors.username?.message && (
+                <p className="text-xs ml-1" style={{ color: "#ba1a1a" }}>
                   {form.formState.errors.username.message}
                 </p>
               )}
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-semibold">
-                Password <span className="text-red-500">*</span>
-              </Label>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between items-center ml-1">
+                <label
+                  htmlFor="password"
+                  className="text-sm font-semibold font-headline"
+                  style={{ color: "#0b1c30" }}
+                >
+                  Password
+                </label>
+                <Link
+                  href="#"
+                  className="text-xs font-semibold transition-colors font-headline"
+                  style={{ color: "#b70011" }}
+                >
+                  Lupa Password?
+                </Link>
+              </div>
               <div className="relative">
-                <Input
+                <Lock
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                  style={{ color: "#555f6f" }}
+                />
+                <input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  {...form.register("password")}
-                  className="h-12 pl-4 pr-12 focus:ring-primary focus:border-primary"
-                  placeholder="*********"
+                  placeholder="••••••••"
                   autoComplete="off"
+                  aria-invalid={!!form.formState.errors.password}
+                  {...form.register("password")}
+                  className="w-full rounded-xl py-3.5 pl-12 pr-12 text-sm transition-all duration-200"
+                  style={{
+                    background: "#ffffff",
+                    border: form.formState.errors.password
+                      ? "1px solid #ba1a1a"
+                      : "1px solid rgba(230, 189, 184, 0.3)",
+                    color: "#0b1c30",
+                    outline: "none",
+                    fontFamily: "Inter, sans-serif",
+                  }}
+                  onFocus={(e) => {
+                    if (!form.formState.errors.password) {
+                      e.currentTarget.style.borderColor = "#b70011";
+                      e.currentTarget.style.boxShadow = "0 0 0 4px rgba(183, 0, 17, 0.1)";
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.boxShadow = "none";
+                    if (!form.formState.errors.password) {
+                      e.currentTarget.style.borderColor = "rgba(230, 189, 184, 0.3)";
+                    }
+                  }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: "#555f6f" }}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
+                    <EyeOff className="w-5 h-5" />
                   ) : (
-                    <Eye className="h-5 w-5" />
+                    <Eye className="w-5 h-5" />
                   )}
                 </button>
               </div>
-              {form.formState.errors.password && (
-                <p className="text-sm text-red-500">
+              {form.formState.errors.password?.message && (
+                <p className="text-xs ml-1" style={{ color: "#ba1a1a" }}>
                   {form.formState.errors.password.message}
                 </p>
               )}
             </div>
 
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between pt-1">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="remember"
-                  className="h-5 w-5 rounded-md data-[state=checked]:bg-primary data-[state=checked]:text-white"
-                />
-                <Label
-                  htmlFor="remember"
-                  className="text-sm font-normal cursor-pointer"
-                >
-                  Remember me?
-                </Label>
-              </div>
-              <Link
-                href="#"
-                className="text-sm font-semibold text-red-500 hover:text-red-600"
-              >
-                Forgot password
-              </Link>
-            </div>
-
-            {/* Login Button */}
-            <Button
+            {/* Submit Button */}
+            <button
               type="submit"
-              className="mt-4 h-12 w-full text-base font-semibold"
+              form="login-kedai-form"
               disabled={form.formState.isSubmitting}
+              className="w-full rounded-full py-4 mt-2 font-headline font-bold text-base tracking-wide text-white transition-all duration-300 disabled:opacity-70"
+              style={{
+                background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
+                boxShadow: "0 8px 24px -4px rgba(183, 0, 17, 0.25)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 12px 32px -4px rgba(183, 0, 17, 0.35)";
+                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 8px 24px -4px rgba(183, 0, 17, 0.25)";
+                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+              }}
             >
               {form.formState.isSubmitting ? (
-                <>
-                  <Loader2 className="animate-spin" /> Loading...
-                </>
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Memuat...
+                </span>
               ) : (
-                "Login"
+                "Masuk ke Kedai"
               )}
-            </Button>
+            </button>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 my-2">
+            <div className="h-px flex-1" style={{ background: "#d3e4fe" }} />
+            <span
+              className="font-headline text-xs font-medium uppercase tracking-widest"
+              style={{ color: "#555f6f" }}
+            >
+              Atau
+            </span>
+            <div className="h-px flex-1" style={{ background: "#d3e4fe" }} />
+          </div>
+
+          {/* Switch to Pelanggan */}
+          <Link
+            href="/login-pelanggan"
+            className="w-full rounded-full py-3.5 flex items-center justify-center gap-3 transition-all duration-200 font-headline font-semibold text-sm"
+            style={{
+              background: "#ffffff",
+              border: "1px solid rgba(230, 189, 184, 0.2)",
+              color: "#0b1c30",
+              boxShadow: "0 1px 4px rgba(11, 28, 48, 0.05)",
+            }}
+          >
+            <span>🧑‍🍽️</span>
+            <span>Masuk sebagai Pelanggan</span>
+          </Link>
         </div>
-      </div>
+
+        {/* Footer Link */}
+        <p className="font-body-inter text-sm mt-8 text-center" style={{ color: "#555f6f" }}>
+          Ingin bergabung sebagai mitra?{" "}
+          <Link
+            href="/mitra"
+            className="font-headline font-bold transition-colors"
+            style={{ color: "#b70011" }}
+          >
+            Daftar Mitra
+          </Link>
+        </p>
+      </main>
     </div>
   );
 }
