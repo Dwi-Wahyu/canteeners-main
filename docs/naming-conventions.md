@@ -643,11 +643,9 @@ function calculateCartTotal(items: CartItem[]): number {
 const price_at_add = product.price;
 
 // ✅ Good - Explain complex business logic
-// Commission is 1000 per item quantity, not per order
-const commission = orderItems.reduce(
-  (sum, item) => sum + 1000 * item.quantity,
-  0
-);
+// Commission is tiered, not per order
+// 1000 for first 2 items, 500 after that
+const commission = calculateCommission(totalQty);
 
 // ❌ Bad - Obvious comment
 // Set user id

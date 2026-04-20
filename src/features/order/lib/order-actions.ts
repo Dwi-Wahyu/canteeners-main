@@ -16,7 +16,6 @@ import { revalidatePath } from "next/cache";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { deleteFile } from "@/helper/file-helper";
-import { getImageUrl } from "@/helper/get-image-url";
 import { paymentMethodMapping } from "@/constant/payment-method";
 
 // --- Helper untuk Revalidasi (DRY Principle) ---
@@ -28,7 +27,7 @@ function revalidateOrderPaths(orderId: string) {
 // --- Helper untuk Validasi Metode Pembayaran ---
 async function validateShopPaymentMethod(
   shopId: string,
-  method: PaymentMethod
+  method: PaymentMethod,
 ) {
   if (method === "CASH") return true; // CASH pembayaran default yang harus ada
 
@@ -53,12 +52,12 @@ export async function confirmOrder({
     // Supaya tidak update status order jika metode tidak tersedia
     const isMethodAvailable = await validateShopPaymentMethod(
       shop_id,
-      payment_method
+      payment_method,
     );
 
     if (!isMethodAvailable) {
       return errorResponse(
-        `Kedai belum menerima pembayaran via ${paymentMethodMapping[payment_method]}`
+        `Kedai belum menerima pembayaran via ${paymentMethodMapping[payment_method]}`,
       );
     }
 

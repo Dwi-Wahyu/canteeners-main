@@ -515,7 +515,7 @@ Alternative paths:
 
 **Business Rules**:
 
-- Commission: 1000 per order item quantity
+- Commission: Tiered (1000 for first 2 items, 500 for subsequent) per order item quantity
 - Billing cycle: Monthly
 - Refunds deducted from billing
 - Suspended shops cannot receive orders

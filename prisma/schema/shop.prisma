@@ -46,7 +46,7 @@ model ShopBilling {
 
     start_date DateTime
     end_date   DateTime
-    // Jumlah komisi yang harus dibayar (1000 per quantity order item)
+    // Jumlah komisi yang harus dibayar (Berdasarkan skema komisi bertingkat)
     subtotal   Float
     // Jumlah refund yang di proses
     refund     Float

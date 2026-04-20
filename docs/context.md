@@ -530,7 +530,7 @@ For comprehensive business rules, workflows, and constraints, see **[Business Pr
 
 ### Pricing Model
 
-- Commission: **1000 IDR per order item quantity**
+- Commission: **Tiered (1000 for first 2 items, 500 for subsequent) IDR per order item quantity**
 - Price snapshot at cart addition prevents manipulation
 - Product options add to base price
 

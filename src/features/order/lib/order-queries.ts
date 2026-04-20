@@ -211,14 +211,27 @@ export async function getOrderDetail(id: string) {
           canteen: {
             select: {
               id: true,
+              slug: true,
               name: true,
             },
           },
           name: true,
           owner_id: true,
+          refund_disbursement_mode: true,
+          payments: {
+            select: {
+              method: true,
+              qr_url: true,
+              additional_price: true,
+              note: true,
+              account_number: true,
+            },
+          },
         },
       },
       testimony: true,
+      complaint: true,
+      refund: true,
       customer: {
         select: {
           table_number: true,

@@ -48,6 +48,7 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { changeCartItemDetails, deleteCartItem } from "../lib/cart-actions";
 import { productOptionTypeMapping } from "@/constant/product-mapping";
 import { GetShopCartItemType } from "../types/cart-queries-types";
+import { calculateCommission } from "@/helper/pricing-helper";
 
 export default function CartItemClient({
   data,
@@ -68,11 +69,11 @@ export default function CartItemClient({
       0
     );
 
-    // Hitung Harga Satuan Total (Harga Dasar + Biaya Layanan 1000 + Opsi)
-    const unitPriceTotal = data.price_at_add + 1000 + optionsTotal;
+    // Hitung Harga Satuan Dasar + Opsi (Tanpa Komisi)
+    const baseUnitPriceTotal = data.price_at_add + optionsTotal;
 
-    // Kalikan dengan Quantity State
-    return unitPriceTotal * quantity;
+    // Kalikan dengan Quantity State + Komisi bertingkat (Estimasi)
+    return baseUnitPriceTotal * quantity + calculateCommission(quantity);
   }, [data.price_at_add, data.selected_options, quantity]);
 
   const initialOptionsState = useMemo(() => {
@@ -134,7 +135,8 @@ export default function CartItemClient({
       .filter((val) => allSelectedIds.includes(val.id))
       .reduce((acc, curr) => acc + (curr.additional_price || 0), 0);
 
-    return quantity * (basePrice + 1000 + additionalPriceTotal);
+    const basePriceTotal = (basePrice + additionalPriceTotal) * quantity;
+    return basePriceTotal + calculateCommission(quantity);
   }, [selectedOptions, data.product.options, data.price_at_add, quantity]);
 
   const handleSaveChanges = async () => {

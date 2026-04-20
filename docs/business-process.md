@@ -77,7 +77,7 @@ Alternative Paths:
 **Process**:
 
 1. System snapshots product prices (`price_at_add`)
-2. System calculates total with options and commission (1000 per item quantity)
+2. System calculates total with options and tiered commission (1000 for first 2 items, 500 thereafter)
 3. System creates Order with status PENDING_CONFIRMATION
 4. System creates OrderItems from CartItems
 5. System preserves selected ProductOptionValues
@@ -283,27 +283,30 @@ DELETED (manual or automatic cleanup)
 **Formula**:
 
 ```
-Item Subtotal = Quantity × (Base Price + Option Prices + 1000)
+Item Subtotal = Quantity × (Base Price + Option Prices) + Distributed Commission
 
 Where:
 - Base Price = product.price (snapshot as price_at_add)
 - Option Prices = Sum of additional_price from selected ProductOptionValues
-- 1000 = Commission per item
+- Distributed Commission = Commission allocated to this item based on the tiered rule:
+    - First 2 items in total cart: 1,000 IDR per quantity
+    - Subsequent items (> 2): 500 IDR per quantity
 ```
 
-**Example**:
-
-```
-Product: Nasi Goreng (10,000)
-Options:
-  - Spice Level: Pedas (+0)
-  - Extras: Telur (+3,000)
-Quantity: 2
-
-Calculation:
-= 2 × (10,000 + 0 + 3,000 + 1,000)
-= 2 × 14,000
-= 28,000
+**Commission Example**:
+1. Ayam Geprek (1), Es Teh (1)
+   - Total Qty = 2
+   - Commission = 1,000 + 1,000 = 2,000
+2. Ayam Geprek (2), Es Teh (1)
+   - Total Qty = 3
+   - Commission = 1,000 + 1,000 + 500 = 2,500
+3. Ayam Geprek (3)
+   - Total Qty = 3
+   - Commission = 1,000 + 1,000 + 500 = 2,500
+**Calculation Example (Ayam Geprek 2 items)**:
+- Total Qty: 2
+- Base Price + Options: 13,000
+- Total Price = (2 × 13,000) + 2,000 = 28,000
 ```
 
 #### Cart Expiration

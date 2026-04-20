@@ -24,6 +24,7 @@ import ReferralSection from "./referral-section";
 import { toast } from "sonner";
 import { useRouter } from "nextjs-toploader/app";
 import VoucherSelectionDialog from "./voucher-selection-dialog";
+import { calculateCommission } from "@/helper/pricing-helper";
 
 export default function ShopCartClient({
   userId,
@@ -249,22 +250,28 @@ export default function ShopCartClient({
         <div className="flex justify-between items-center text-muted-foreground">
           <h1>Biaya Tambahan</h1>
 
-          <h1>1000</h1>
+          <div className="flex flex-col items-end">
+            <h1>Rp 1.000 / item</h1>
+            <span className="text-[10px]">Potongan 50% setelah item ke-2</span>
+          </div>
         </div>
 
         <div className="flex justify-between items-center text-muted-foreground">
           <h1>Total Biaya Tambahan</h1>
 
           <h1>
-            {shopCart.items.reduce((sum, item) => sum + item.quantity, 0) *
-              1000}
+            {formatRupiah(
+              calculateCommission(
+                shopCart.items.reduce((sum, item) => sum + item.quantity, 0)
+              )
+            )}
           </h1>
         </div>
 
         <div className="flex justify-between items-center text-muted-foreground">
           <h1>Subtotal</h1>
 
-          <h1>{shopCart.total_price}</h1>
+          <h1>{formatRupiah(shopCart.total_price)}</h1>
         </div>
 
         {finalDiscount > 0 && (

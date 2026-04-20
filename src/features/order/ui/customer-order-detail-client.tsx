@@ -176,17 +176,17 @@ export default function CustomerOrderDetailClient({
               <div className="flex gap-2 items-center">
                 <h1>
                   {
-                    order.shop.payments.filter(
+                    order.shop.payments?.filter(
                       (payment) => payment.method === "BANK_TRANSFER",
-                    )[0].account_number
+                    )?.[0]?.account_number || "Tidak ada nomor rekening"
                   }
                 </h1>
 
                 <button
                   onClick={() => {
-                    const bankTransferPayment = order.shop.payments.filter(
+                    const bankTransferPayment = order.shop.payments?.filter(
                       (payment) => payment.method === "BANK_TRANSFER",
-                    )[0]; // Ambil elemen pertama, bisa jadi undefined
+                    )?.[0]; // Ambil elemen pertama, bisa jadi undefined
 
                     const accountNumber =
                       bankTransferPayment?.account_number?.toString();
@@ -217,16 +217,17 @@ export default function CustomerOrderDetailClient({
               <h1 className="font-semibold">QRCode QRIS</h1>
               <div>
                 {order.shop.payments
-                  .filter((p) => p.method === "QRIS")
+                  ?.filter((p) => p.method === "QRIS")
                   .map((payment, idx) => {
                     if (!payment.qr_url) {
-                      return <div>Belum ada qr code</div>;
+                      return <div key={idx}>Belum ada qr code</div>;
                     }
 
                     return (
                       <img
                         key={idx}
                         src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
+                        alt="QRIS Code"
                       />
                     );
                   })}

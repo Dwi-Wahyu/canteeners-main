@@ -9,6 +9,7 @@ import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import { GetBillingDetail } from "../types/billing-queries-types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatRupiah } from "@/helper/format-rupiah";
+import { calculateCommission } from "@/helper/pricing-helper";
 
 interface BillingDetailProps {
   billing: GetBillingDetail;
@@ -62,7 +63,7 @@ export function BillingDetail({ billing }: BillingDetailProps) {
               <div className="space-y-1">
                 <p className="font-medium">Komisi Order</p>
                 <p className="text-xs text-muted-foreground">
-                  Rp 1.000 per kuantitas item
+                  Berdasarkan skema komisi bertingkat
                 </p>
               </div>
               <span className="font-semibold text-lg">
@@ -144,7 +145,7 @@ export function BillingDetail({ billing }: BillingDetailProps) {
                             (acc, item) => acc + item.quantity,
                             0
                           );
-                          const commission = totalQty * 1000;
+                          const commission = calculateCommission(totalQty);
 
                           return (
                             <tr

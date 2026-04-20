@@ -12,6 +12,58 @@ import { PaymentMethod, PostOrderType, RewardType, DiscountType } from "@/genera
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { formatRupiah } from "@/helper/format-rupiah";
+import { calculateItemCommission } from "@/helper/pricing-helper";
+
+/**
+ * Helper internal untuk menghitung ulang semua subtotal item dan total harga keranjang
+ * berdasarkan skema komisi bertingkat ( tiered commission ).
+ */
+async function recalculateShopCart(tx: any, shopCartId: string) {
+  const items = await tx.cartItem.findMany({
+    where: { shop_cart_id: shopCartId },
+    include: {
+      selected_options: {
+        select: {
+          additional_price: true,
+        },
+      },
+    },
+    orderBy: { id: "asc" }, // Pastikan urutan stabil untuk distribusi komisi
+  });
+
+  let totalQtyProcessed = 0;
+  let shopCartTotalPrice = 0;
+
+  for (const item of items) {
+    const totalOptionsPrice = item.selected_options.reduce(
+      (sum: number, opt: any) => sum + (opt.additional_price || 0),
+      0
+    );
+
+    const itemCommission = calculateItemCommission(
+      item.quantity,
+      totalQtyProcessed
+    );
+    totalQtyProcessed += item.quantity;
+
+    const newItemSubtotal =
+      item.quantity * (item.price_at_add + totalOptionsPrice) + itemCommission;
+
+    await tx.cartItem.update({
+      where: { id: item.id },
+      data: { subtotal: newItemSubtotal },
+    });
+
+    shopCartTotalPrice += newItemSubtotal;
+  }
+
+  await tx.shopCart.update({
+    where: { id: shopCartId },
+    data: { total_price: shopCartTotalPrice },
+  });
+
+  return shopCartTotalPrice;
+}
 
 export async function processShopCart({
   shopCartId,
@@ -245,7 +297,7 @@ export async function processShopCart({
 
               // HARGA SNAPSHOT
               price_at_add: item.price_at_add, // Harga Satuan Dasar
-              subtotal: item.subtotal, // Total Kalkulasi (Qty * (Base + 1000 + Options))
+              subtotal: item.subtotal, // Total Kalkulasi dengan Komisi Bertingkat
 
               note: item.note,
 
@@ -374,11 +426,6 @@ export async function addToCart({
         0
       );
 
-      // Hitung Subtotal Item
-      // Qty * (Harga Produk + 1000 Komisi + Harga Opsi)
-      const itemSubtotal =
-        quantity * (product.price + 1000 + totalOptionsPrice);
-
       // Cari shop cart
       let shopCart = await tx.shopCart.findFirst({
         where: {
@@ -398,36 +445,22 @@ export async function addToCart({
         });
       }
 
-      // Buat CartItem dengan field 'subtotal'
+      // Buat CartItem dengan field 'subtotal' (sementara 0, akan diupdate oleh recalculateShopCart)
       await tx.cartItem.create({
         data: {
           product_id: productId,
           shop_cart_id: shopCart.id,
           quantity,
           price_at_add: product.price,
-          subtotal: itemSubtotal,
+          subtotal: 0,
           selected_options: {
             connect: selected_option_value_ids.map((id) => ({ id })),
           },
         },
       });
 
-      // Update Total Harga ShopCart
-      const aggregate = await tx.cartItem.aggregate({
-        where: {
-          shop_cart_id: shopCart.id,
-        },
-        _sum: {
-          subtotal: true,
-        },
-      });
-
-      await tx.shopCart.update({
-        where: { id: shopCart.id },
-        data: {
-          total_price: aggregate._sum.subtotal || 0,
-        },
-      });
+      // Hitung ulang semua subtotal dan total harga di keranjang
+      await recalculateShopCart(tx, shopCart.id);
 
       return { shopCartId: shopCart.id };
     });
@@ -486,21 +519,8 @@ export async function deleteCartItem(
         where: { id: cart_item_id },
       });
 
-      // Hitung ulang total harga ShopCart menggunakan AGGREGATE
-      const aggregate = await tx.cartItem.aggregate({
-        where: {
-          shop_cart_id: cartItem.shop_cart_id,
-        },
-        _sum: {
-          subtotal: true, // Jumlahkan field subtotal
-        },
-      });
-
-      // Update Total Harga Shop Cart
-      await tx.shopCart.update({
-        where: { id: cartItem.shop_cart_id },
-        data: { total_price: aggregate._sum.subtotal || 0 },
-      });
+      // Hitung ulang semua subtotal dan total harga di keranjang
+      await recalculateShopCart(tx, cartItem.shop_cart_id);
 
       revalidatePath("/dashboard-pelanggan/keranjang/" + cartItem.shop_cart_id);
     });
@@ -560,34 +580,16 @@ export async function changeCartItemDetails({
         throw new Error("Item keranjang tidak ditemukan");
       }
 
-      // Hitung Total Harga Opsi (Per Unit)
-      const totalOptionsPrice = cartItem.selected_options.reduce(
-        (sum, opt) => sum + (opt.additional_price || 0),
-        0
-      );
-
-      // Qty * (Base Price + 1000 + Options Price)
-      const newSubtotal =
-        quantity * (cartItem.price_at_add + 1000 + totalOptionsPrice);
-
       await tx.cartItem.update({
         where: { id },
         data: {
           quantity,
           note,
-          subtotal: newSubtotal,
         },
       });
 
-      const aggregate = await tx.cartItem.aggregate({
-        where: { shop_cart_id: cartItem.shop_cart_id },
-        _sum: { subtotal: true },
-      });
-
-      await tx.shopCart.update({
-        where: { id: cartItem.shop_cart_id },
-        data: { total_price: aggregate._sum.subtotal || 0 },
-      });
+      // Hitung ulang semua subtotal dan total harga di keranjang
+      await recalculateShopCart(tx, cartItem.shop_cart_id);
 
       return cartItem.shop_cart_id;
     });
@@ -633,34 +635,8 @@ export async function removeCartItemOption(
         throw new Error("Item keranjang tidak ditemukan");
       }
 
-      // Hitung ulang subtotal berdasarkan total harga opsi yang tersisa
-      const totalOptionsPrice = cartItem.selected_options.reduce(
-        (sum, opt) => sum + (opt.additional_price || 0),
-        0
-      );
-
-      // Qty * (Base Price + 1000 + Sisa Options Price)
-      const newSubtotal =
-        cartItem.quantity * (cartItem.price_at_add + 1000 + totalOptionsPrice);
-
-      // Update subtotal di database
-      await tx.cartItem.update({
-        where: { id: cart_item_id },
-        data: {
-          subtotal: newSubtotal,
-        },
-      });
-
-      // Update Total Harga ShopCart (Agregasi dari semua subtotal item)
-      const aggregate = await tx.cartItem.aggregate({
-        where: { shop_cart_id: cartItem.shop_cart_id },
-        _sum: { subtotal: true },
-      });
-
-      await tx.shopCart.update({
-        where: { id: cartItem.shop_cart_id },
-        data: { total_price: aggregate._sum.subtotal || 0 },
-      });
+      // Hitung ulang semua subtotal dan total harga di keranjang
+      await recalculateShopCart(tx, cartItem.shop_cart_id);
 
       return cartItem.shop_cart_id;
     });
