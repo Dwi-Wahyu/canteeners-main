@@ -14,6 +14,7 @@ model Shop {
 
     products Product[]
     orders   Order[]
+    discounts Discount[]
     owner    Owner     @relation(fields: [owner_id], references: [id])
     owner_id String    @unique
 

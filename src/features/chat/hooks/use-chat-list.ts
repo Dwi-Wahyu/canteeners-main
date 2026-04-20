@@ -1,5 +1,8 @@
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { auth, db } from "@/lib/firebase/client";
+import { Chat } from "../types";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { onAuthStateChanged, User } from "firebase/auth";
 import {
   collection,
   onSnapshot,
@@ -7,24 +10,26 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
-import { Chat } from "../types";
 
 export const useChatList = () => {
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isFirebaseLoading, setIsFirebaseLoading] = useState(true);
 
-  // Cek Status Login
+  // Cek Status Login Firebase
   useEffect(() => {
-    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      setIsFirebaseLoading(false);
 
-      if (!currentUser) setIsLoading(false);
+      // Jika session NextAuth sudah ada tapi token firebase tidak ada
+      if (status === "authenticated" && !session?.user?.firebaseToken) {
+        setIsFirebaseLoading(false);
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [status, session?.user?.firebaseToken]);
 
   // Ambil Data Chat Realtime
   useEffect(() => {
@@ -32,12 +37,10 @@ export const useChatList = () => {
 
     const chatsRef = collection(db, "chats");
 
-    // Cari chat dimana participantIds mengandung UID user saat ini
-    // Dan urutkan berdasarkan waktu pesan terakhir
     const q = query(
       chatsRef,
       where("participantIds", "array-contains", user.uid),
-      orderBy("lastMessageAt", "desc")
+      orderBy("lastMessageAt", "desc"),
     );
 
     const unsubscribe = onSnapshot(
@@ -49,18 +52,18 @@ export const useChatList = () => {
         })) as Chat[];
 
         setChats(results);
-        setIsLoading(false);
       },
       (error) => {
         console.error("Error fetching chats:", error);
-        // Jika muncul error "index required", cek console browser
-        // dan klik link yang diberikan Firebase untuk membuat index.
-        setIsLoading(false);
-      }
+      },
     );
 
     return () => unsubscribe();
   }, [user]);
+
+  // Gabungkan status loading NextAuth dan Firebase
+  const isLoading =
+    status === "loading" || (status === "authenticated" && isFirebaseLoading);
 
   return { isLoading, chats, user };
 };

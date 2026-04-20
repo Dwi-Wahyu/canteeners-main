@@ -29,6 +29,11 @@ model Order {
   complaint ShopComplaint?
   refund    Refund?
 
+  referral_code_used String? // Kode referral yang digunakan pelanggan saat order ini dibuat
+
+  applied_discounts     OrderDiscount[]
+  total_discount_amount Float           @default(0)
+
   payment_method PaymentMethod
 
   order_items OrderItem[]
@@ -45,6 +50,22 @@ model Order {
   @@index([customer_id, created_at]) // Untuk riwayat pelanggan (sortir by terbaru)
   @@index([status])
   @@map("orders")
+}
+
+model OrderDiscount {
+  id       String @id @default(uuid())
+  order    Order  @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  order_id String
+
+  discount    Discount? @relation(fields: [discount_id], references: [id], onDelete: SetNull)
+  discount_id String?
+
+  name   String // Snapshot nama diskon/promo
+  amount Float  // Nominal potongan yang diberikan
+
+  @@index([order_id])
+  @@index([discount_id])
+  @@map("order_discounts")
 }
 
 enum OrderType {

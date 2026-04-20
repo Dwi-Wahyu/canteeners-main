@@ -7,8 +7,6 @@ import { getRecentOrdersByShop } from "@/features/order/lib/order-queries";
 import { redirect } from "next/navigation";
 import DashboardStats from "@/features/shop/ui/dashboard-stats";
 import RecentOrdersList from "@/features/order/ui/recent-orders-list";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -86,6 +84,38 @@ export default async function DashboardKedai() {
         close_time={shopStatus.close_time}
       />
 
+      <div className="grid gap-4 grid-cols-2">
+        <NavButton
+          href="/dashboard-kedai/order"
+          size="lg"
+          className="h-14 focus:scale-105"
+          variant="outline"
+        >
+          <ClipboardClock />
+          Order Tracking
+        </NavButton>
+
+        <NavButton
+          href="/dashboard-kedai/komplain"
+          size="lg"
+          className="h-14 focus:scale-105"
+          variant="outline"
+        >
+          <MessageSquareWarning />
+          Komplain
+        </NavButton>
+
+        <NavButton
+          href="/dashboard-kedai/refund"
+          size="lg"
+          className="h-14 col-span-2 focus:scale-105"
+          variant="outline"
+        >
+          <BanknoteX />
+          Pengajuan Refund
+        </NavButton>
+      </div>
+
       <DashboardStats stats={stats} />
 
       <RecentOrdersList orders={recentOrders} />
@@ -110,50 +140,6 @@ export default async function DashboardKedai() {
           </NavButton>
         </CardContent>
       </Card>
-
-      <div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="col-span-4 lg:col-span-1">
-            <CardHeader>
-              <CardTitle>Aksi Cepat</CardTitle>
-              <CardDescription>
-                Kelola komplain dan pengembalian.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              <NavButton
-                href="/dashboard-kedai/order"
-                size="lg"
-                className="h-14 focus:scale-105"
-                variant="outline"
-              >
-                <ClipboardClock />
-                Order Tracking
-              </NavButton>
-
-              <NavButton
-                href="/dashboard-kedai/komplain"
-                size="lg"
-                className="h-14 focus:scale-105"
-                variant="outline"
-              >
-                <MessageSquareWarning />
-                Komplain Pelanggan
-              </NavButton>
-
-              <NavButton
-                href="/dashboard-kedai/refund"
-                size="lg"
-                className="h-14 focus:scale-105"
-                variant="outline"
-              >
-                <BanknoteX />
-                Pengajuan Refund
-              </NavButton>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
     </div>
   );
 }

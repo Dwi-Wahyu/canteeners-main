@@ -18,9 +18,12 @@ import { GetShopCartType } from "../types/cart-queries-types";
 import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Store } from "lucide-react";
+import { Store, Loader2 } from "lucide-react";
 import { formatToHour } from "@/helper/hour-helper";
+import ReferralSection from "./referral-section";
 import { toast } from "sonner";
+import { useRouter } from "nextjs-toploader/app";
+import VoucherSelectionDialog from "./voucher-selection-dialog";
 
 export default function ShopCartClient({
   userId,
@@ -33,6 +36,7 @@ export default function ShopCartClient({
   customerProfile: GetCustomerProfileType;
   nameAlreadySet: boolean;
 }) {
+  const router = useRouter();
   const [showSnk, setShowSnk] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     shopCart.payment_method,
@@ -41,6 +45,39 @@ export default function ShopCartClient({
   const [checkouted, setCheckouted] = useState(false);
   const [showGuestDetailsFormDialog, setShowGuestDetailsFormDialog] =
     useState(false);
+
+  const [appliedCode, setAppliedCode] = useState<string | null>(null);
+  const [selectedDiscountIds, setSelectedDiscountIds] = useState<string[]>([]);
+
+  const handleApplyReferral = (code: string) => {
+    setAppliedCode(code);
+  };
+
+  const removeReferral = () => {
+    setAppliedCode(null);
+  };
+
+  const toggleDiscount = (cdId: string) => {
+    if (selectedDiscountIds.includes(cdId)) {
+      setSelectedDiscountIds(selectedDiscountIds.filter((id) => id !== cdId));
+    } else {
+      setSelectedDiscountIds([...selectedDiscountIds, cdId]);
+    }
+  };
+
+  // Hitung total potongan dari voucher yang dipilih
+  const finalDiscount = (customerProfile.discounts || [])
+    .filter((cd) => selectedDiscountIds.includes(cd.id))
+    .reduce((sum, cd: any) => {
+      if (cd.discount.type === "FIXED") return sum + cd.discount.value;
+      const pct = (shopCart.total_price * cd.discount.value) / 100;
+      return (
+        sum +
+        (cd.discount.max_discount
+          ? Math.min(pct, cd.discount.max_discount)
+          : pct)
+      );
+    }, 0);
 
   const [postOrderType, setPostOrderType] = useState<PostOrderType>(
     shopCart.post_order_type,
@@ -78,6 +115,8 @@ export default function ShopCartClient({
           postOrderType,
           floor: customerProfile.floor,
           table_number: customerProfile.table_number,
+          referralCode: appliedCode || undefined,
+          appliedCustomerDiscountIds: selectedDiscountIds,
         });
 
         if (result.success) {
@@ -85,8 +124,17 @@ export default function ShopCartClient({
 
           notificationDialog.success({
             title: "Sukses checkout keranjang",
-            message: "Order berhasil dicatat",
+            message: "Order berhasil dicatat, mengalihkan ke detail order...",
+            showLoadingBar: true,
           });
+
+          if (result.data) {
+            setTimeout(() => {
+              notificationDialog.hide();
+              // router.push("/order/" + result.data.order_id);
+              router.back();
+            }, 2000);
+          }
         } else {
           notificationDialog.error({
             title: "Gagal checkout keranjang",
@@ -177,7 +225,6 @@ export default function ShopCartClient({
         setPaymentMethod={setPaymentMethod}
         disabled={shopCart.order_id !== null}
       />
-
       <PostOrderTypeTab
         canteen_name={shopCart.shop.canteen.name}
         customerProfile={customerProfile}
@@ -185,6 +232,19 @@ export default function ShopCartClient({
         setPostOrderType={setPostOrderType}
         selectTablePageUrl={`/kantin/${shopCart.shop.canteen.slug}/pilih-meja`}
       />
+
+      {/* <VoucherSelectionDialog
+        vouchers={(customerProfile.discounts || []).filter((d) => !d.is_used) as any}
+        selectedIds={selectedDiscountIds}
+        onToggle={toggleDiscount}
+        totalPrice={shopCart.total_price}
+      /> */}
+
+      {/* <ReferralSection
+        appliedCode={appliedCode}
+        onApply={handleApplyReferral}
+        onRemove={removeReferral}
+      /> */}
 
       <div className="flex flex-col gap-1">
         <div className="flex justify-between items-center text-muted-foreground">
@@ -202,13 +262,27 @@ export default function ShopCartClient({
           </h1>
         </div>
 
-        <div className="flex font-semibold justify-between items-center text-muted-foreground">
+        <div className="flex justify-between items-center text-muted-foreground">
+          <h1>Subtotal</h1>
+
+          <h1>{shopCart.total_price}</h1>
+        </div>
+
+        {finalDiscount > 0 && (
+          <div className="flex justify-between items-center text-blue-600 font-semibold animate-in slide-in-from-right-2 duration-300">
+            <h1>Total Potongan</h1>
+            <h1>-{formatRupiah(finalDiscount)}</h1>
+          </div>
+        )}
+
+        <div className="flex font-semibold justify-between items-center text-muted-foreground mt-2 border-t pt-2">
           <h1>
-            Subtotal{" "}
-            {shopCart.items.reduce((sum, item) => sum + item.quantity, 0)} Item
+            Total Harga{" "}
+            {shopCart.items.reduce((sum, item) => sum + item.quantity, 0) * 1}{" "}
+            Item
           </h1>
 
-          <h1>{formatRupiah(shopCart.total_price)}</h1>
+          <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
         </div>
       </div>
 
@@ -241,7 +315,7 @@ export default function ShopCartClient({
           <h1>{shopCart.items.length} Item</h1>
 
           <div className="flex gap-2 h-4">
-            <h1>Rp {shopCart.total_price}</h1>
+            <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
 
             <Separator orientation="vertical" />
 

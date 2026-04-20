@@ -59,7 +59,7 @@ export default function ShopOrderTrackingClient({
     const q = query(
       ordersRef,
       where("shopId", "==", shopId),
-      orderBy("lastUpdatedAt", "desc")
+      orderBy("lastUpdatedAt", "desc"),
     );
 
     let isInitialSnapshot = true;
@@ -128,7 +128,7 @@ export default function ShopOrderTrackingClient({
     <div className="flex flex-col gap-4">
       {orders.map((order) => (
         <Card key={order.id}>
-          <CardContent className="space-y-2 relative pt-6">
+          <CardContent className="space-y-2 relative">
             <NavButton
               variant="ghost"
               className="absolute right-4 top-2"
@@ -219,7 +219,9 @@ export default function ShopOrderTrackingClient({
                   </h1>
 
                   <a
-                    href={getImageUrl("/payment-proof/" + order.payment_proof_url)}
+                    href={getImageUrl(
+                      "/payment-proof/" + order.payment_proof_url,
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-fit group"
@@ -229,7 +231,9 @@ export default function ShopOrderTrackingClient({
                       width={100}
                       height={100}
                       alt="Bukti pembayaran"
-                      src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
+                      src={getImageUrl(
+                        "/payment-proof/" + order.payment_proof_url,
+                      )}
                     />
                     <span className="text-[10px] text-muted-foreground mt-1 block">
                       Klik untuk memperbesar

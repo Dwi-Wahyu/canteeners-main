@@ -15,6 +15,7 @@ import {
 } from "@/features/notification/types";
 import { Timestamp } from "firebase/firestore";
 import { Chat } from "@/features/chat/types";
+import { notificationDialog } from "@/hooks/use-notification-dialog";
 
 export default function DemoNotificationPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -148,6 +149,31 @@ export default function DemoNotificationPage() {
     setDialogOpen(true);
   }
 
+  function triggerDialog(type: "success" | "error" | "info") {
+    if (type === "success") {
+      notificationDialog.success({
+        title: "Meja Berhasil Dipilih",
+        message: "Kamu telah memilih Meja 5 di Lantai 1. Selamat berbelanja!",
+      });
+    } else if (type === "error") {
+      notificationDialog.error({
+        title: "Gagal Proses Pesanan",
+        message: "Maaf, stok bahan di kedai ini sedang habis.",
+        actionButtons: (
+          <Button variant="default" onClick={notificationDialog.hide}>
+            Coba Lagi
+          </Button>
+        ),
+      });
+    } else {
+      notificationDialog.info({
+        title: "Informasi Penting",
+        message:
+          "Kedai akan tutup dalam 15 menit. Segera selesaikan pesananmu.",
+      });
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -157,6 +183,36 @@ export default function DemoNotificationPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        {/* GLOBAL DIALOG */}
+        <div className="space-y-4 rounded-lg border p-4 bg-slate-50">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            🔔 Global Notification Dialog
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Dialog terpusat untuk sukses, error, dan informasi.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => triggerDialog("success")}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Success (w/ Loading)
+            </Button>
+            <Button
+              onClick={() => triggerDialog("error")}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Error Dialog
+            </Button>
+            <Button
+              onClick={() => triggerDialog("info")}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Info Dialog
+            </Button>
+          </div>
+        </div>
+
         {/* ORDER */}
         <div className="space-y-4 rounded-lg border p-4">
           <h2 className="text-xl font-semibold flex items-center gap-2">

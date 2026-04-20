@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { chooseCustomerTable } from "@/features/user/lib/user-actions";
 import NavButton from "@/components/nav-button";
 import { GetCanteenIncludeMaps } from "../types/canteen-queries-types";
@@ -41,6 +41,7 @@ export default function ChooseTableClient({
   customer_id: string;
   defaultSelectedTable: SelectedTable | null;
 }) {
+  const router = useRouter();
   const params = useSearchParams();
   const floorSearchParams = params.get("floor");
   const tableNumberSearchParams = params.get("table_number");
@@ -83,11 +84,12 @@ export default function ChooseTableClient({
 
       if (result.success) {
         notificationDialog.success({
-          title: "Berhasil pilih meja",
-          message: "Silakan belanja sepuasmu",
+          title: "Meja Berhasil Dipilih",
+          message: `Kamu telah memilih Meja ${table_number} di Lantai ${floor}.`,
+          showLoadingBar: true,
           actionButtons: (
-            <div className="grid grid-cols-2 gap-3">
-              <Button size="lg" asChild>
+            <div className="flex justify-center w-full">
+              <Button size="lg" className="w-full max-w-[200px]" asChild>
                 <Link
                   onClick={notificationDialog.hide}
                   href={"/kantin/" + canteen.slug}
@@ -98,14 +100,27 @@ export default function ChooseTableClient({
             </div>
           ),
         });
+
+        // Redirect otomatis setelah 2 detik
+        setTimeout(() => {
+          notificationDialog.hide();
+          router.back();
+        }, 2000);
       } else {
         notificationDialog.error({
           title: "Gagal Pilih Meja",
-          message: "Terjadi kesalahan tidak terduga",
+          message: "Terjadi kesalahan tidak terduga, silakan coba lagi.",
           actionButtons: (
-            <div>
-              <NavButton href={"/customer-service"}>Hubungi CS</NavButton>
-              <Button variant={"default"}>Pilih Ulang</Button>
+            <div className="flex flex-col sm:flex-row justify-center gap-3 w-full">
+              <NavButton href={"/customer-service"} variant="outline">
+                Hubungi CS
+              </NavButton>
+              <Button
+                variant={"default"}
+                onClick={() => notificationDialog.hide()}
+              >
+                Pilih Ulang
+              </Button>
             </div>
           ),
         });

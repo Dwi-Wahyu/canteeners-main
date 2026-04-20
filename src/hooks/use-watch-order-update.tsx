@@ -45,24 +45,25 @@ export function useWatchOrderUpdate(
       orderRef,
       (snapshot) => {
         if (!snapshot.exists()) {
-          toast.error("Order tidak ditemukan di Firestore");
           return;
         }
 
         const data = snapshot.data();
-        const timestamp = data?.lastUpdatedTimestamp as Timestamp | undefined;
+        // Cek kedua field yang mungkin digunakan
+        const timestamp = (data?.lastUpdatedTimestamp || data?.lastUpdatedAt) as Timestamp | undefined;
 
         if (!timestamp) return;
 
         const updateMillis = timestamp.toMillis();
 
         // Jika timestamp besar berarti ada perubahan
-        // Handle ketika pertama kali fetch tidak perlu update
+        if (lastKnownUpdate.current === 0) {
+          lastKnownUpdate.current = updateMillis;
+          return;
+        }
+
         if (updateMillis > lastKnownUpdate.current) {
           lastKnownUpdate.current = updateMillis;
-
-          // toast.info("Order diperbarui!");
-
           refetch();
         }
       },

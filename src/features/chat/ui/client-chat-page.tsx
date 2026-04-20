@@ -2,14 +2,15 @@
 
 import { ChatInput } from "@/features/chat/ui/chat-input";
 import { MessageList } from "@/features/chat/ui/message-list";
-import { db } from "@/lib/firebase/client";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { db, auth } from "@/lib/firebase/client";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import ChatTopbar from "./chat-topbar";
 import LoadingDetailChatPage from "./loading-detail-chat-page";
 import { Chat } from "../types";
 import { getOpponentId, getOpponentInfo } from "../lib/chat-helper";
+import { useSession } from "next-auth/react";
 
 export default function ClientChatPage({
   chatId,
@@ -18,53 +19,74 @@ export default function ClientChatPage({
   chatId: string;
   role: "SHOP_OWNER" | "CUSTOMER";
 }) {
+  const { data: session, status } = useSession();
   const [chatData, setChatData] = useState<Chat | null>(null);
 
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isChatLoading, setIsChatLoading] = useState(true);
 
-  // Cek Status Login
+  // Cek Status Login Firebase
   useEffect(() => {
-    const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
 
-      if (!currentUser) setIsLoading(false);
+      // Jika session NextAuth sudah ada tapi token firebase tidak ada (sinkronisasi tidak akan jalan)
+      if (status === "authenticated" && !session?.user?.firebaseToken) {
+        setIsChatLoading(false);
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [status, session?.user?.firebaseToken]);
 
   useEffect(() => {
     async function getChat() {
-      const chatRef = doc(db, "chats", chatId);
-      const chatSnap = await getDoc(chatRef);
+      try {
+        const chatRef = doc(db, "chats", chatId);
+        const chatSnap = await getDoc(chatRef);
 
-      if (chatSnap.exists()) {
-        setChatData(chatSnap.data() as Chat);
+        if (chatSnap.exists()) {
+          setChatData(chatSnap.data() as Chat);
 
-        updateDoc(chatRef, {
-          [`lastSeenAt.${user?.uid}`]: serverTimestamp(),
-        });
+          updateDoc(chatRef, {
+            [`lastSeenAt.${user?.uid}`]: serverTimestamp(),
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching chat:", error);
+      } finally {
+        setIsChatLoading(false);
       }
-
-      setIsLoading(false);
     }
 
     if (user) {
       getChat();
     }
-  }, [user]);
+  }, [user, chatId]);
 
-  if (isLoading) {
+  if (
+    status === "loading" ||
+    (status === "authenticated" && !user && session?.user?.firebaseToken)
+  ) {
     return <LoadingDetailChatPage />;
   }
 
-  if (!user) {
+  if (status === "unauthenticated") {
     return (
-      <div>
-        <h1>Sesi tidak ditemukan</h1>
+      <div className="min-h-screen flex items-center justify-center p-5 text-center">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">
+            Sesi tidak ditemukan
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Silakan login kembali untuk melanjutkan.
+          </p>
+        </div>
       </div>
     );
+  }
+
+  if (isChatLoading) {
+    return <LoadingDetailChatPage />;
   }
 
   if (!chatData) {
@@ -76,6 +98,14 @@ export default function ClientChatPage({
   }
 
   const isOwner = role === "SHOP_OWNER";
+
+  if (!user) {
+    return (
+      <div>
+        <h1>User tidak ditemukan</h1>
+      </div>
+    );
+  }
 
   const opponentId = getOpponentId(chatData, user.uid);
   const opponent = getOpponentInfo(chatData, user.uid);

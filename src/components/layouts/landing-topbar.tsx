@@ -45,8 +45,8 @@ export default function LandingTopbar() {
                 i === 0
                   ? "text-[#DC2626] border-b-2 border-[#DC2626] pb-1"
                   : scrolled
-                  ? "text-slate-600 hover:text-[#DC2626]"
-                  : "text-white/90 hover:text-white"
+                    ? "text-slate-600 hover:text-[#DC2626]"
+                    : "text-white/90 hover:text-white"
               }`}
             >
               <span
@@ -65,35 +65,15 @@ export default function LandingTopbar() {
 
         {/* Desktop CTA Buttons */}
         <div className="hidden md:flex items-center gap-3">
-          {/* Notifikasi Button */}
-          <Link
-            href="/notifikasi"
-            className={`relative flex items-center gap-1.5 px-4 py-2.5 rounded-full font-semibold text-sm transition-all duration-200 ${
-              scrolled
-                ? "bg-[#dce9ff] text-[#596373] hover:bg-[#d3e4fe]"
-                : "bg-white/15 text-white hover:bg-white/25 backdrop-blur-sm border border-white/20"
-            }`}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 17 }}>
-              notifications
-            </span>
-            Notifikasi
-            {/* Red dot indicator */}
-            <span
-              className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2"
-              style={{
-                background: "#DC2626",
-                borderColor: scrolled ? "#dce9ff" : "transparent",
-              }}
-            />
-          </Link>
-
           {/* Mulai Pesanan Button */}
           <Link
             href="/kantin"
             className="flex items-center gap-2 btn-primary-landing text-sm px-5 py-2.5"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 18 }}
+            >
               add_shopping_cart
             </span>
             Mulai Pesanan
@@ -137,25 +117,16 @@ export default function LandingTopbar() {
           ))}
 
           <div className="flex gap-3 pt-2 border-t border-slate-100">
-            {/* Notifikasi mobile */}
-            <Link
-              href="/notifikasi"
-              onClick={() => setMenuOpen(false)}
-              className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full font-semibold text-sm bg-[#dce9ff] text-[#596373] hover:bg-[#d3e4fe] transition-all"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                notifications
-              </span>
-              Notifikasi
-            </Link>
-
             {/* Mulai Pesanan mobile */}
             <Link
               href="/kantin"
               onClick={() => setMenuOpen(false)}
               className="flex-1 flex items-center justify-center gap-1.5 btn-primary-landing text-sm px-4 py-2.5"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 16 }}
+              >
                 add_shopping_cart
               </span>
               Mulai Pesanan

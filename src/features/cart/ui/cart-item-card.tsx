@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { useState, useTransition } from "react";
@@ -73,12 +72,10 @@ export default function CartItemCard({
     <Card>
       <CardContent>
         <div className="flex gap-4">
-          <Image
+          <img
             src={getImageUrl("/product/" + cartItem.product.image_url)}
             alt={cartItem.product.name}
-            width={100}
-            height={100}
-            className="rounded-lg object-cover aspect-square"
+            className="rounded-lg object-cover aspect-square w-[100px] h-[100px]"
             onError={(e) => (e.currentTarget.src = "/placeholder-image.jpg")}
           />
           <div className="w-full">

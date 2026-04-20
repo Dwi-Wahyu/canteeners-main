@@ -1,6 +1,11 @@
 "use server";
 
-import { OrderStatus, PaymentMethod } from "@/generated/prisma";
+import {
+  OrderStatus,
+  PaymentMethod,
+  RewardType,
+  DiscountType,
+} from "@/generated/prisma";
 import {
   errorResponse,
   ServerActionReturn,
@@ -128,47 +133,105 @@ export async function confirmPayment({
   estimation: number;
 }): Promise<ServerActionReturn<void>> {
   try {
-    const order = await prisma.order.update({
-      where: {
-        id: order_id,
-      },
-      data: {
-        status: "PROCESSING",
-        processed_at: new Date(),
-        estimation,
-      },
-      select: {
-        customer: {
-          select: {
-            user_id: true,
-          },
+    await prisma.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: {
+          id: order_id,
         },
-        shop_id: true,
-      },
-    });
+        data: {
+          status: "PROCESSING",
+          processed_at: new Date(),
+          estimation,
+        },
+        select: {
+          customer_id: true,
+          referral_code_used: true,
+          customer: {
+            select: {
+              user_id: true,
+            },
+          },
+          shop_id: true,
+        },
+      });
 
-    const notificationRef = adminDb.collection("notifications");
+      // --- LOGIKA REFERRAL ---
+      if (order.referral_code_used) {
+        const referrer = await tx.customer.findUnique({
+          where: { referral_code: order.referral_code_used },
+          select: { id: true, referral_usage_count: true },
+        });
 
-    // Send notification
-    const notificationData = {
-      recipientId: order.customer.user_id,
-      type: "ORDER",
-      subType: "ACCEPTED",
-      title: "Pembayaran di Konfirmasi",
-      body: "Kedai sudah mulai menyiapkan pesanan anda",
-      isRead: false,
-      intent: "SUCCESS",
-      resourcePath: "/order/" + order_id,
-      createdAt: FieldValue.serverTimestamp(),
-    };
+        // Pastikan referrer ada dan bukan dirinya sendiri
+        if (referrer && referrer.id !== order.customer_id) {
+          const newCount = (referrer.referral_usage_count || 0) + 1;
 
-    await notificationRef.add(notificationData);
+          if (newCount >= 3) {
+            // Berikan Reward Cashback ke Referrer
+            let refDiscount = await tx.discount.findFirst({
+              where: {
+                name: "Referral Reward",
+                value: 10000,
+                reward_type: RewardType.CASHBACK,
+              },
+            });
 
-    // Update doc order untuk realtime trigger
-    const orderRef = adminDb.collection("orders").doc(order_id);
+            if (!refDiscount) {
+              refDiscount = await tx.discount.create({
+                data: {
+                  name: "Referral Reward",
+                  value: 10000,
+                  type: DiscountType.FIXED,
+                  reward_type: RewardType.CASHBACK,
+                  status: "ACTIVE",
+                },
+              });
+            }
 
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
+            await tx.customerDiscount.create({
+              data: {
+                customer_id: referrer.id,
+                discount_id: refDiscount.id,
+              },
+            });
+
+            // Reset Counter
+            await tx.customer.update({
+              where: { id: referrer.id },
+              data: { referral_usage_count: 0 },
+            });
+          } else {
+            await tx.customer.update({
+              where: { id: referrer.id },
+              data: { referral_usage_count: newCount },
+            });
+          }
+        }
+      }
+
+      const notificationRef = adminDb.collection("notifications");
+
+      // Send notification
+      const notificationData = {
+        recipientId: order.customer.user_id,
+        type: "ORDER",
+        subType: "ACCEPTED",
+        title: "Pembayaran di Konfirmasi",
+        body: "Kedai sudah mulai menyiapkan pesanan anda",
+        isRead: false,
+        intent: "SUCCESS",
+        resourcePath: "/order/" + order_id,
+        createdAt: FieldValue.serverTimestamp(),
+      };
+
+      await notificationRef.add(notificationData);
+
+      // Update doc order untuk realtime trigger
+      const orderRef = adminDb.collection("orders").doc(order_id);
+
+      await orderRef.update({
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+      });
     });
 
     revalidateOrderPaths(order_id);

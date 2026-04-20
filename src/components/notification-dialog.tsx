@@ -15,29 +15,23 @@ import { JSX } from "react";
 type NotificationType = "success" | "error" | "info";
 
 const icons: Record<NotificationType, JSX.Element> = {
-  success: <Check className="w-20 h-20 text-success-foreground" />,
-  error: <AlertCircle className="w-20 h-20 text-destructive-foreground" />,
-  info: <Info className="w-20 h-20 text-accent-foreground" />,
+  success: <Check className="w-10 h-10 text-white" />,
+  error: <AlertCircle className="w-10 h-10 text-white" />,
+  info: <Info className="w-10 h-10 text-white" />,
 };
 
 const colors = {
   // Warna solid untuk icon paling dalam
   solid: {
-    success: "bg-success",
-    error: "bg-destructive",
-    info: "bg-accent",
+    success: "bg-linear-to-br from-[#b70011] to-[#dc2626]",
+    error: "bg-linear-to-br from-destructive to-destructive/80",
+    info: "bg-linear-to-br from-primary to-primary/80",
   },
-  // Warna dengan opasitas 50% untuk ring tengah
-  ring_middle: {
-    success: "bg-success/50",
-    error: "bg-destructive/50",
-    info: "bg-accent/50",
-  },
-  // Warna dengan opasitas 25% untuk ring luar
-  ring_outer: {
-    success: "bg-success/25",
-    error: "bg-destructive/25",
-    info: "bg-accent/25",
+  // Warna dengan opasitas ring
+  ring: {
+    success: "bg-red-50",
+    error: "bg-red-50",
+    info: "bg-blue-50",
   },
 };
 
@@ -50,35 +44,44 @@ export default function NotificationDialog() {
 
   return (
     <Dialog open={!!notification} onOpenChange={() => hide()}>
-      <DialogContent showCloseButton={false}>
-        <DialogHeader className="flex flex-col items-center gap-4 ">
-          <div className="fixed left-0 -top-26 w-full flex justify-center">
-            <div className={`rounded-full p-4 bg-card`}>
-              <div className={`rounded-full p-4 ${colors.ring_middle[type]}`}>
-                <div className={`rounded-full p-4 ${colors.ring_outer[type]}`}>
-                  <div className={`rounded-full p-4 ${colors.solid[type]}`}>
-                    {notification.icon ? notification.icon : icons[type]}
-                  </div>
-                </div>
-              </div>
+      <DialogContent showCloseButton={false} className="overflow-hidden p-0 max-w-[90vw] sm:max-w-[400px] rounded-3xl border-none shadow-2xl">
+        <div className="flex flex-col items-center p-8 pt-10">
+          {/* Simplified Icon Container */}
+          <div className={`size-20 rounded-3xl ${colors.ring[type]} flex items-center justify-center mb-6`}>
+            <div className={`size-14 rounded-2xl ${colors.solid[type]} flex items-center justify-center shadow-lg shadow-primary/20`}>
+              {notification.icon ? notification.icon : icons[type]}
             </div>
           </div>
 
-          <div className="pt-22 text-center">
-            <DialogTitle className="text-xl font-semibold">
+          <div className="text-center w-full">
+            <DialogTitle className="text-2xl font-black text-gray-900 tracking-tight">
               {notification.title}
             </DialogTitle>
             {notification.message && (
-              <DialogDescription>{notification.message}</DialogDescription>
+              <DialogDescription className="text-gray-500 mt-2 font-medium leading-relaxed">
+                {notification.message}
+              </DialogDescription>
             )}
 
             {notification.actionButtons && (
-              <div className="mt-5 flex justify-center gap-4">
+              <div className="mt-8 flex justify-center gap-4 w-full">
                 {notification.actionButtons}
               </div>
             )}
           </div>
-        </DialogHeader>
+        </div>
+
+        {notification.showLoadingBar && (
+          <div className="h-1.5 w-full bg-gray-100/50">
+            <div 
+              className="h-full bg-linear-to-r from-[#b70011] to-[#dc2626] animate-progress"
+              style={{
+                width: "100%",
+                transformOrigin: "left",
+              }}
+            />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

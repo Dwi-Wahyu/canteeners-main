@@ -1,10 +1,11 @@
 import { useNotificationDialogStore } from "@/stores/use-notification-store";
 import React from "react";
 
-type NotificationOptions = {
+export type NotificationOptions = {
   title: string;
   message?: string;
   actionButtons?: React.ReactNode;
+  showLoadingBar?: boolean;
   icon?: React.ReactNode;
 };
 

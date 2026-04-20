@@ -70,6 +70,7 @@ model Category {
     slug      String            @unique
     image_url String
     products  ProductCategory[]
+    discounts Discount[]
 
     @@map("categories")
 }

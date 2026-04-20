@@ -19,6 +19,7 @@ import { useRouter } from "nextjs-toploader/app";
 import LandingTopbar from "@/components/layouts/landing-topbar";
 import NavButton from "@/components/nav-button";
 import useWatchNotification from "@/features/notification/hooks/use-watch-notification";
+import { BottomNav } from "@/components/layouts/bottom-nav";
 
 export default function CustomerChatListPage() {
   const { chats, isLoading, user } = useChatList();
@@ -38,9 +39,7 @@ export default function CustomerChatListPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="p-5 pt-20">
-        <LandingTopbar />
-
+      <div className="p-5">
         <h1 className="text-xl mb-4">Chat & Orderan</h1>
 
         <div className="space-y-4">
@@ -48,6 +47,7 @@ export default function CustomerChatListPage() {
             <Skeleton key={i} className="w-full h-20 rounded-lg" />
           ))}
         </div>
+        <BottomNav />
       </div>
     );
   }
@@ -55,22 +55,19 @@ export default function CustomerChatListPage() {
   // User belum login atau data belum ready
   if (!user) {
     return (
-      <div className="p-5 pt-20">
-        <LandingTopbar />
-
+      <div className="p-5 ">
         <h1 className="text-xl mb-4">Chat & Orderan</h1>
 
         <div className="text-center text-muted-foreground py-10">
           <p>Belum ada percakapan.</p>
         </div>
+        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="p-5 pt-20">
-      <LandingTopbar />
-
+    <div className="p-5 ">
       <h1 className="text-xl mb-4">Chat & Orderan</h1>
 
       <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
@@ -104,7 +101,9 @@ export default function CustomerChatListPage() {
                   }`}
                 >
                   <Avatar className="size-11 shadow shrink-0">
-                    <AvatarImage src={getImageUrl("/avatar/" + opponent.avatar)} />
+                    <AvatarImage
+                      src={getImageUrl("/avatar/" + opponent.avatar)}
+                    />
                     <AvatarFallback>
                       {opponent.name?.charAt(0).toUpperCase() || "C"}
                     </AvatarFallback>
@@ -126,8 +125,8 @@ export default function CustomerChatListPage() {
                           typing
                             ? "text-green-600 font-medium italic animate-pulse"
                             : unreadCount > 0
-                            ? "text-gray-900 font-medium"
-                            : "text-gray-500"
+                              ? "text-gray-900 font-medium"
+                              : "text-gray-500"
                         }`}
                       >
                         {typing
@@ -148,6 +147,8 @@ export default function CustomerChatListPage() {
           </div>
         )}
       </div>
+
+      <BottomNav />
     </div>
   );
 }

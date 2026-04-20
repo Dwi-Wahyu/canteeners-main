@@ -8,6 +8,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { ReportUserInput } from "../types/user-schema";
 import { auth } from "@/config/auth";
+import { revalidatePath } from "next/cache";
 
 export async function createGuestCustomer({
   firebaseUserUid,
@@ -75,7 +76,7 @@ export async function createGuestCustomer({
         customer_id: createdCustomer.id,
         cart_id: createdCart.id,
       },
-      "Sukses membuat guest customer"
+      "Sukses membuat guest customer",
     );
   } catch (error) {
     console.log(error);
@@ -130,6 +131,8 @@ export async function chooseCustomerTable({
       },
     });
 
+    revalidatePath("/", "layout");
+
     return successResponse(undefined, "Sukses mencatat meja");
   } catch (error) {
     console.log(error);
@@ -160,5 +163,98 @@ export async function reportUser(payload: ReportUserInput) {
     console.log(error);
 
     return errorResponse("Terjadi kesalahan membuat laporan");
+  }
+}
+
+export async function activateReferralCode(): Promise<
+  ServerActionReturn<string>
+> {
+  const session = await auth();
+
+  if (!session || session.user.role !== "CUSTOMER") {
+    return errorResponse("Sesi tidak valid");
+  }
+
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { user_id: session.user.id },
+      include: {
+        _count: {
+          select: {
+            orders: {
+              where: {
+                status: "COMPLETED",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!customer) {
+      return errorResponse("Customer tidak ditemukan");
+    }
+
+    if (customer.referral_code) {
+      return successResponse(
+        customer.referral_code,
+        "Referral code sudah aktif",
+      );
+    }
+
+    if (customer._count.orders < 2) {
+      return errorResponse("Belum memenuhi syarat (minimal 2 pesanan selesai)");
+    }
+
+    // Generate random referral code
+    const randomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const referralCode = `${session.user.name?.split(" ")[0].toUpperCase() || "USER"}-${randomCode}`;
+
+    await prisma.customer.update({
+      where: { id: customer.id },
+      data: { referral_code: referralCode },
+    });
+
+    return successResponse(referralCode, "Referral code berhasil diaktifkan");
+  } catch (error) {
+    console.log(error);
+    return errorResponse("Terjadi kesalahan saat mengaktifkan referral code");
+  }
+}
+
+export async function validateReferralCode(
+  code: string,
+): Promise<ServerActionReturn<{ discount: number; code: string }>> {
+  const session = await auth();
+
+  if (!session) {
+    return errorResponse("Sesi tidak valid");
+  }
+
+  try {
+    const referrer = await prisma.customer.findUnique({
+      where: { referral_code: code },
+      select: {
+        id: true,
+        user_id: true,
+      },
+    });
+
+    if (!referrer) {
+      return errorResponse("Kode referral tidak valid atau tidak ditemukan");
+    }
+
+    if (referrer.user_id === session.user.id) {
+      return errorResponse("Anda tidak bisa menggunakan kode referral sendiri");
+    }
+
+    // Fixed discount of 10,000
+    return successResponse(
+      { discount: 10000, code },
+      "Kode referral berhasil diterapkan",
+    );
+  } catch (error) {
+    console.log(error);
+    return errorResponse("Terjadi kesalahan saat validasi kode referral");
   }
 }

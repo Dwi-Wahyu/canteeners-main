@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
 import CanteenClient from "../../../features/canteen/ui/canteen-client";
 import { getCanteenBySlug } from "@/features/canteen/lib/canteen-queries";
-import { getCategories } from "@/features/category/lib/category-queries";
 import { SearchParams } from "nuqs";
 import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
-import LandingTopbar from "@/components/layouts/landing-topbar";
+import { BottomNav } from "@/components/layouts/bottom-nav";
 import { auth } from "@/config/auth";
 
 export default async function CanteenDetailPage({
@@ -29,21 +28,13 @@ export default async function CanteenDetailPage({
     return notFound();
   }
 
-  const session = await auth();
-
-  const categories = await getCategories();
-
   return (
-    <div>
-      <LandingTopbar />
+    <div className="min-h-screen bg-gray-50 pb-32">
+      <CanteenClient
+        canteen={canteen}
+      />
 
-      <div className="mt-20">
-        <CanteenClient
-          canteen={canteen}
-          categories={categories}
-          cart_id={session?.user?.cartId}
-        />
-      </div>
+      <BottomNav />
     </div>
   );
 }

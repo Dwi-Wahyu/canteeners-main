@@ -1,5 +1,4 @@
 import { Input } from "@/components/ui/input";
-import { CartDrawer } from "@/features/cart/ui/cart-drawer";
 import { Search } from "lucide-react";
 import { ProductFilterDialog } from "./product-filter-dialog";
 import { Suspense } from "react";
@@ -7,10 +6,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CanteenTopbar({
   shopCount,
-  cart_id,
 }: {
   shopCount: number;
-  cart_id?: string;
 }) {
   return (
     <div className="p-4 flex gap-4 items-center">
@@ -21,7 +18,7 @@ export default function CanteenTopbar({
         </div>
         <Input
           type="text"
-          placeholder="Cari Produk"
+          placeholder="Cari Kedai"
           className="peer pl-9 h-10"
         />
       </div>
@@ -29,8 +26,6 @@ export default function CanteenTopbar({
       <Suspense fallback={<Skeleton className="h-10 w-10" />}>
         <ProductFilterDialog />
       </Suspense>
-
-      <CartDrawer cart_id={cart_id} />
     </div>
   );
 }

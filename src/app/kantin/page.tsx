@@ -1,86 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getCanteens } from "@/features/canteen/lib/canteen-queries";
+import { getCategories } from "@/features/category/lib/category-queries";
+import { getImageUrl } from "@/helper/get-image-url";
+import { useSession, signOut } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { LogOut, User } from "lucide-react";
+import { BottomNav } from "@/components/layouts/bottom-nav";
 
-const canteens = [
-  {
-    slug: "kantin-kudapan",
-    image_url:
-      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=80",
-    name: "Kantin Kudapan",
-    description: "Aneka Jajanan, Roti Bakar, Kopi Susu",
-    location: "Kantin Timur",
-    rating: "4.8",
-    deliveryTime: "15-20 mnt",
-    deliveryFee: "Rp 0 (Promo)",
-  },
-  {
-    slug: "kantin-sastra",
-    image_url:
-      "https://images.unsplash.com/photo-1567521464027-f127ff144326?w=800&q=80",
-    name: "Kantin Sastra",
-    description: "Nasi Kuning, Bakso, Mie Ayam",
-    location: "Kantin Pusat",
-    rating: "4.6",
-    deliveryTime: "20-30 mnt",
-    deliveryFee: "Rp 2.000",
-  },
-  {
-    slug: "kantin-sosiologi",
-    image_url:
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
-    name: "Kantin Sosiologi",
-    description: "Ayam Geprek, Nasi Goreng, Minuman Dingin",
-    location: "Kantin Barat",
-    rating: "4.7",
-    deliveryTime: "25-35 mnt",
-    deliveryFee: "Rp 1.500",
-  },
-];
-
-const categories = [
-  {
-    label: "Es Buah",
-    icon: "emoji_food_beverage",
-    img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&q=80",
-  },
-  {
-    label: "Ayam",
-    icon: "restaurant",
-    img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c4?w=100&q=80",
-  },
-  {
-    label: "Gorengan",
-    icon: "local_fire_department",
-    img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=100&q=80",
-  },
-  {
-    label: "Mie",
-    icon: "ramen_dining",
-    img: "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=100&q=80",
-  },
-  {
-    label: "Minuman",
-    icon: "local_cafe",
-    img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=100&q=80",
-  },
-  {
-    label: "Nasi",
-    icon: "rice_bowl",
-    img: "https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?w=100&q=80",
-  },
-  {
-    label: "Bakso",
-    icon: "soup_kitchen",
-    img: "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=100&q=80",
-  },
-  {
-    label: "Semua",
-    icon: "apps",
-    img: null,
-  },
-];
+const categoryIconMap: Record<string, string> = {
+  "Es Buah": "emoji_food_beverage",
+  Ayam: "restaurant",
+  Gorengan: "local_fire_department",
+  Mie: "ramen_dining",
+  Minuman: "local_cafe",
+  Nasi: "rice_bowl",
+  Bakso: "soup_kitchen",
+  Semua: "apps",
+};
 
 const banners = [
   {
@@ -110,26 +57,72 @@ const banners = [
 ];
 
 export default function CanteenPage() {
+  const { data: session } = useSession();
   const [activeBanner, setActiveBanner] = useState(0);
   const [activeCategory, setActiveCategory] = useState("Semua");
+  const [canteens, setCanteens] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const [canteensData, categoriesData] = await Promise.all([
+        getCanteens(),
+        getCategories(),
+      ]);
+
+      const mappedCanteens = canteensData.map((c) => ({
+        slug: c.slug || "",
+        image_url: getImageUrl("/canteen/" + c.image_url),
+        name: c.name,
+        description: c.shops.map((s) => s.name).join(", ") || "Aneka Menu",
+        location: c.maps.length > 0 ? `Lantai ${c.maps[0].floor}` : "Kantin",
+        rating: (
+          c.shops.reduce((acc, s) => acc + s.average_rating, 0) /
+            c.shops.length || 0
+        ).toFixed(1),
+        deliveryTime: "15-20 mnt",
+        deliveryFee: "Rp 0 (Promo)",
+      }));
+
+      const mappedCategories = [
+        ...categoriesData.map((cat) => ({
+          label: cat.name,
+          icon: categoryIconMap[cat.name] || "restaurant",
+          img: getImageUrl("/category/" + cat.image_url),
+        })),
+        {
+          label: "Semua",
+          icon: "apps",
+          img: null,
+        },
+      ];
+
+      setCanteens(mappedCanteens);
+      setCategories(mappedCategories);
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <div
       className="min-h-screen pb-28 md:pb-0"
-      style={{ background: "#f8f9ff", fontFamily: "var(--font-plus-jakarta-sans), 'Plus Jakarta Sans', sans-serif" }}
+      style={{
+        background: "#f8f9ff",
+        fontFamily:
+          "var(--font-plus-jakarta-sans), 'Plus Jakarta Sans', sans-serif",
+      }}
     >
       {/* ── Mobile Header ── */}
       <div className="md:hidden flex justify-between items-center px-4 py-4 bg-white/95 backdrop-blur-xl z-40 sticky top-0 shadow-sm">
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm"
-            style={{ background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)" }}
-          >
-            C
-          </div>
           <div>
-            <p className="text-xs" style={{ color: "#555f6f" }}>Selamat Datang,</p>
-            <p className="font-bold text-sm" style={{ color: "#0b1c30" }}>Canteeners</p>
+            <p className="text-xs" style={{ color: "#555f6f" }}>
+              Selamat Datang,
+            </p>
+            <p className="font-bold text-sm" style={{ color: "#0b1c30" }}>
+              {session?.user?.name || "Canteeners"}
+            </p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -138,7 +131,12 @@ export default function CanteenPage() {
             style={{ background: "#eff4ff", color: "#DC2626" }}
             aria-label="Cari"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>search</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 20 }}
+            >
+              search
+            </span>
           </button>
           <Link
             href="/notifikasi"
@@ -146,7 +144,12 @@ export default function CanteenPage() {
             style={{ background: "#eff4ff", color: "#DC2626" }}
             aria-label="Notifikasi"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>notifications</span>
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 20 }}
+            >
+              notifications
+            </span>
             <span
               className="absolute top-2 right-2 w-2 h-2 rounded-full border-2 border-white"
               style={{ background: "#DC2626" }}
@@ -156,7 +159,6 @@ export default function CanteenPage() {
       </div>
 
       <main className="md:pt-28 pt-4 pb-6 max-w-7xl mx-auto px-4 md:px-6">
-
         {/* ── Hero Banners ── */}
         <section className="mb-10">
           <div className="relative overflow-hidden rounded-2xl">
@@ -279,7 +281,8 @@ export default function CanteenPage() {
                       className="material-symbols-outlined"
                       style={{
                         fontSize: 26,
-                        color: activeCategory === cat.label ? "#fff" : "#DC2626",
+                        color:
+                          activeCategory === cat.label ? "#fff" : "#DC2626",
                       }}
                     >
                       {cat.icon}
@@ -289,8 +292,7 @@ export default function CanteenPage() {
                 <span
                   className="text-[11px] font-semibold text-center transition-colors"
                   style={{
-                    color:
-                      activeCategory === cat.label ? "#DC2626" : "#0b1c30",
+                    color: activeCategory === cat.label ? "#DC2626" : "#0b1c30",
                   }}
                 >
                   {cat.label}
@@ -344,7 +346,10 @@ export default function CanteenPage() {
                       >
                         <span
                           className="material-symbols-outlined"
-                          style={{ fontSize: 12, fontVariationSettings: "'FILL' 1" }}
+                          style={{
+                            fontSize: 12,
+                            fontVariationSettings: "'FILL' 1",
+                          }}
                         >
                           star
                         </span>
@@ -430,105 +435,7 @@ export default function CanteenPage() {
         </section>
       </main>
 
-      {/* ── Mobile Bottom Navigation ── */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 z-50"
-        style={{
-          background: "rgba(255,255,255,0.95)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderTop: "1px solid rgba(220,38,38,0.08)",
-          borderRadius: "1.5rem 1.5rem 0 0",
-          boxShadow: "0 -8px 30px rgba(0,0,0,0.05)",
-        }}
-      >
-        {/* Home */}
-        <Link
-          href="/"
-          className="flex flex-col items-center justify-center rounded-2xl px-3 py-2 transition-all active:scale-95"
-          style={{ background: "#fff1f1", color: "#DC2626" }}
-          aria-label="Home"
-        >
-          <span
-            className="material-symbols-outlined mb-0.5"
-            style={{ fontSize: 22, fontVariationSettings: "'FILL' 1" }}
-          >
-            home
-          </span>
-          <span className="text-[10px] font-bold tracking-wide">Home</span>
-        </Link>
-
-        {/* Belanja */}
-        <Link
-          href="/kantin/kantin-kudapan"
-          className="flex flex-col items-center justify-center px-3 py-2 transition-all active:scale-95 hover:text-red-500"
-          style={{ color: "#94a3b8" }}
-          aria-label="Belanja"
-        >
-          <span className="material-symbols-outlined mb-0.5" style={{ fontSize: 22 }}>
-            shopping_bag
-          </span>
-          <span className="text-[10px] font-semibold tracking-wide">Belanja</span>
-        </Link>
-
-        {/* Mulai Pesanan — FAB center */}
-        <Link
-          href="/kantin/kantin-kudapan"
-          className="flex flex-col items-center justify-center -mt-6 transition-all active:scale-95"
-          aria-label="Mulai Pesanan"
-        >
-          <div
-            className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
-            style={{
-              background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
-              boxShadow: "0 6px 24px rgba(220,38,38,0.4)",
-            }}
-          >
-            <span
-              className="material-symbols-outlined text-white"
-              style={{ fontSize: 26 }}
-            >
-              add_shopping_cart
-            </span>
-          </div>
-          <span
-            className="text-[9px] font-bold tracking-wide mt-1"
-            style={{ color: "#DC2626" }}
-          >
-            Pesan
-          </span>
-        </Link>
-
-        {/* Login */}
-        <Link
-          href="/login-pelanggan"
-          className="flex flex-col items-center justify-center px-3 py-2 transition-all active:scale-95 hover:text-red-500"
-          style={{ color: "#94a3b8" }}
-          aria-label="Login"
-        >
-          <span className="material-symbols-outlined mb-0.5" style={{ fontSize: 22 }}>
-            person
-          </span>
-          <span className="text-[10px] font-semibold tracking-wide">Login</span>
-        </Link>
-
-        {/* Notifikasi */}
-        <Link
-          href="/notifikasi"
-          className="flex flex-col items-center justify-center px-3 py-2 relative transition-all active:scale-95 hover:text-red-500"
-          style={{ color: "#94a3b8" }}
-          aria-label="Notifikasi"
-        >
-          <span className="material-symbols-outlined mb-0.5" style={{ fontSize: 22 }}>
-            notifications
-          </span>
-          <span
-            className="absolute top-1.5 right-3.5 w-2 h-2 rounded-full border-2 border-white"
-            style={{ background: "#DC2626" }}
-          />
-          <span className="text-[10px] font-semibold tracking-wide">Notif</span>
-        </Link>
-      </nav>
+      <BottomNav />
     </div>
   );
 }

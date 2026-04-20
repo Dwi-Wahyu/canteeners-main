@@ -6,7 +6,6 @@ import ShopComplaintSection from "@/features/order/ui/shop-complaint-section";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/config/auth";
 import { OrderRefundSection } from "@/features/order/ui/order-refund-section";
-import { revalidatePath } from "next/cache";
 
 export default async function ShopOrderDetailPage({
   params,
@@ -34,7 +33,7 @@ export default async function ShopOrderDetailPage({
         backUrl={"/dashboard-kedai/chat/" + order.conversation_id}
       />
 
-      <div className="p-5 pt-20 space-y-5">
+      <div className="space-y-5">
         <ShopOrderDetailClient order={order} />
 
         <ShopComplaintSection order={order} />

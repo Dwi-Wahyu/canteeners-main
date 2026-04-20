@@ -7,13 +7,14 @@ import {
 } from "@/features/auth/types/auth-schemas";
 import { prisma } from "@/lib/prisma";
 import { adminAuth } from "@/lib/firebase/admin";
+import GoogleProvider from "next-auth/providers/google";
 
 async function getFirebaseToken({ uid }: { uid: string }) {
   try {
     return await adminAuth.createCustomToken(uid);
   } catch (error) {
     console.error("Error creating firebase token:", error);
-    return null;
+    return undefined;
   }
 }
 
@@ -67,6 +68,8 @@ export const authConfig: NextAuthConfig = {
             return null;
           }
 
+          const firebaseToken = await getFirebaseToken({ uid: firebaseUid });
+
           return {
             id: firebaseUid,
             username: "",
@@ -78,6 +81,7 @@ export const authConfig: NextAuthConfig = {
             shopId: undefined,
             shopName: undefined,
             ownerId: undefined,
+            firebaseToken,
           };
         }
 
@@ -134,7 +138,6 @@ export const authConfig: NextAuthConfig = {
           },
         });
 
-        if (firebaseToken) {
           return {
             id: user.id,
             username: user.username ?? "",
@@ -147,14 +150,15 @@ export const authConfig: NextAuthConfig = {
             shopName: user.owner?.shop?.name,
             // Customer payload
             customerId: user.customer?.id,
-            cartId: user.customer?.id,
+            cartId: user.customer?.cart?.id || user.customer?.id,
 
             firebaseToken,
           };
-        } else {
-          return null;
-        }
       },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
   pages: {
@@ -162,6 +166,42 @@ export const authConfig: NextAuthConfig = {
     signOut: "/logout",
   },
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        const existingUser = await prisma.user.findUnique({
+          where: { username: user.email as string },
+        });
+
+        if (!existingUser) {
+          // Buat user baru jika belum ada
+          await prisma.user.create({
+            data: {
+              id: user.id as string,
+              name: user.name as string,
+              username: user.email as string,
+              role: "CUSTOMER",
+              avatar: user.image || "avatars/default-avatar.jpg",
+              customer: {
+                create: {
+                  cart: {
+                    create: {
+                      status: "ACTIVE",
+                    },
+                  },
+                },
+              },
+            },
+          });
+        } else if (!existingUser.name || existingUser.name === "") {
+          // Update nama jika kosong di database
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: { name: user.name as string },
+          });
+        }
+      }
+      return true;
+    },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
@@ -182,7 +222,7 @@ export const authConfig: NextAuthConfig = {
       }
       return session;
     },
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user, trigger, session, account }) {
       if (user) {
         token.id = user.id;
         token.username = user.username;
@@ -199,6 +239,37 @@ export const authConfig: NextAuthConfig = {
         // Customer payload
         token.customerId = user.customerId;
         token.cartId = user.cartId;
+      }
+
+      // If social login (Google), fetch role and other data from DB
+      if (account?.provider === "google" && token.email) {
+        const dbUser = await prisma.user.findUnique({
+          where: { username: token.email },
+          include: {
+            customer: {
+              select: {
+                id: true,
+                cart: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.name = dbUser.name;
+          token.role = dbUser.role;
+          token.avatar = dbUser.avatar;
+          token.customerId = dbUser.customer?.id;
+          token.cartId = dbUser.customer?.cart?.id;
+
+          const firebaseToken = await getFirebaseToken({ uid: dbUser.id });
+          token.firebaseToken = firebaseToken;
+        }
       }
 
       if (trigger === "update" && session) {

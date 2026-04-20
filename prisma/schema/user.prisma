@@ -98,11 +98,17 @@ model Customer {
     orders Order[]
     cart   Cart?
 
+    discounts CustomerDiscount[]
+
     // Data posisi terakhir pilih meja
     canteen_id    Int?
     floor         Int?
     table_number  Int?
     last_visit_at DateTime?
+
+    referral_code String? @unique
+
+    referral_usage_count Int @default(0) // maksimal 3, setelah itu diklaim dan direset 0
 
     updated_at DateTime @updatedAt
 

@@ -8,7 +8,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { AddCartItemNoteInput } from "../types/cart-schema";
-import { PaymentMethod, PostOrderType } from "@/generated/prisma";
+import { PaymentMethod, PostOrderType, RewardType, DiscountType } from "@/generated/prisma";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { formatRupiah } from "@/helper/format-rupiah";
@@ -20,6 +20,8 @@ export async function processShopCart({
   floor,
   table_number,
   note,
+  referralCode,
+  appliedCustomerDiscountIds,
 }: {
   shopCartId: string;
   paymentMethod: PaymentMethod;
@@ -27,6 +29,8 @@ export async function processShopCart({
   floor: number | null;
   table_number: number | null;
   note?: string;
+  referralCode?: string;
+  appliedCustomerDiscountIds?: string[];
 }): Promise<
   ServerActionReturn<{ conversation_id?: string; order_id?: string }>
 > {
@@ -109,6 +113,7 @@ export async function processShopCart({
 
       // Handle Conversation (Chat)
       const chatId = `${customer_user_id}_${owner_user_id}`;
+      conversation_id = chatId;
 
       const chatRef = adminDb.collection("chats").doc(chatId);
       const chatSnap = await chatRef.get();
@@ -145,6 +150,60 @@ export async function processShopCart({
         });
       }
 
+      // 1. Hitung Diskon & Handle Referral
+      let total_discount_amount = 0;
+      const appliedDiscountsData: {
+        name: string;
+        amount: number;
+        discount_id?: string;
+      }[] = [];
+
+      // Handle Vouchers (CustomerDiscount)
+      if (appliedCustomerDiscountIds && appliedCustomerDiscountIds.length > 0) {
+        const vouchers = await tx.customerDiscount.findMany({
+          where: {
+            id: { in: appliedCustomerDiscountIds },
+            customer_id,
+            is_used: false,
+          },
+          include: { discount: true },
+        });
+
+        for (const v of vouchers) {
+          let amount = 0;
+          if (v.discount.type === DiscountType.FIXED) {
+            amount = v.discount.value;
+          } else {
+            amount = (shopCart.total_price * v.discount.value) / 100;
+            if (v.discount.max_discount && amount > v.discount.max_discount) {
+              amount = v.discount.max_discount;
+            }
+          }
+
+          // Validasi Sederhana
+          if (
+            v.discount.min_purchase &&
+            shopCart.total_price < v.discount.min_purchase
+          )
+            continue;
+          if (v.discount.shop_id && v.discount.shop_id !== shopCart.shop.id)
+            continue;
+
+          total_discount_amount += amount;
+          appliedDiscountsData.push({
+            name: v.discount.name,
+            amount: amount,
+            discount_id: v.discount.id,
+          });
+
+          // Tandai sudah dipakai
+          await tx.customerDiscount.update({
+            where: { id: v.id },
+            data: { is_used: true, used_at: new Date() },
+          });
+        }
+      }
+
       // Buat Order Utama
       const order = await tx.order.create({
         data: {
@@ -152,13 +211,22 @@ export async function processShopCart({
           customer_id,
           payment_method: paymentMethod,
           status: "PENDING_CONFIRMATION",
-          total_price: shopCart.total_price, // total_price ShopCart yang sudah dihitung
+          total_price: shopCart.total_price - total_discount_amount,
+          total_discount_amount,
           post_order_type: postOrderType,
           note,
           floor: postOrderType === "DELIVERY_TO_TABLE" ? floor : null,
           table_number:
             postOrderType === "DELIVERY_TO_TABLE" ? table_number : null,
           conversation_id: chatId,
+          referral_code_used: referralCode, // Catat kode referral untuk diproses saat bayar
+          applied_discounts: {
+            create: appliedDiscountsData.map((d) => ({
+              name: d.name,
+              amount: d.amount,
+              discount_id: d.discount_id,
+            })),
+          },
         },
       });
 

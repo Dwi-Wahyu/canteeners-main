@@ -12,9 +12,9 @@ export default async function Layout({
     redirect("/login-pelanggan");
   }
 
-  if (session.user.role !== "CUSTOMER") {
-    redirect("/");
-  }
+  // if (session.user.role !== "CUSTOMER") {
+  //   redirect("/");
+  // }
 
   return <div>{children}</div>;
 }

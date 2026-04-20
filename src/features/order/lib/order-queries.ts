@@ -330,3 +330,32 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
     },
   });
 }
+
+export async function getCustomerOrderHistory(customerId: string) {
+  return await prisma.order.findMany({
+    where: {
+      customer_id: customerId,
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+    include: {
+      shop: {
+        select: {
+          name: true,
+          image_url: true,
+        },
+      },
+      order_items: {
+        select: {
+          quantity: true,
+          product: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}

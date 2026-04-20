@@ -10,37 +10,20 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { MessageCircle, Star } from "lucide-react";
 import Link from "next/link";
 import { GetCanteenBySlug } from "../types/canteen-queries-types";
-import CategoryScroller from "@/features/category/ui/category-scroller";
-import { GetCategories } from "@/features/category/types/category-queries-types";
 import CashIcon from "@/components/icons/cash-icon";
-import { BannerSlider } from "./banner-slider";
 
 export default function CanteenClient({
   canteen,
-  categories,
-  cart_id,
 }: {
   canteen: GetCanteenBySlug;
-  categories: GetCategories;
-  cart_id?: string;
 }) {
   return (
     <div>
       <Suspense fallback={<div className="p-4 h-16" />}>
-        <CanteenTopbar shopCount={canteen.shops.length} cart_id={cart_id} />
+        <CanteenTopbar shopCount={canteen.shops.length} />
       </Suspense>
 
-      <BannerSlider />
-
       <div className="flex flex-col gap-5 p-5">
-        <div>
-          <h1 className="font-semibold text-xl">Kategori</h1>
-
-          <Suspense fallback={<div className="h-32" />}>
-            <CategoryScroller categories={categories} />
-          </Suspense>
-        </div>
-
         {canteen.shops.map((shop, idx) => (
           <Link className="group" href={`/kedai/${shop.id}`} key={idx}>
             <Card>

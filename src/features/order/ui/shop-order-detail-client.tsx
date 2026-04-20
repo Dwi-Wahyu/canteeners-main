@@ -35,16 +35,17 @@ import { Loader, Map, StickyNote } from "lucide-react";
 import NavButton from "@/components/nav-button";
 import ConfirmPaymentDialog from "./confirm-payment-dialog";
 import RejectPaymentDialog from "./reject-payment-dialog";
-import { useWatchOrderUpdate } from "../hooks/use-watch-order-update";
+import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
 
 export default function ShopOrderDetailClient({
-  order,
+  order: initialOrder,
 }: {
   order: GetShopOrderDetail;
 }) {
   const [isPending, startTransition] = useTransition();
 
-  useWatchOrderUpdate(order.id);
+  const { orderData } = useWatchOrderUpdate(initialOrder.id);
+  const order = (orderData as unknown as GetShopOrderDetail) || initialOrder;
 
   async function handleCompleteOrder() {
     startTransition(async () => {

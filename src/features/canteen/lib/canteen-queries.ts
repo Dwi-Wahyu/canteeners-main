@@ -4,6 +4,25 @@ import { ShopSearchParamsInput } from "@/features/shop/types/shop-search-params"
 import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
 
+export async function getCanteens() {
+  return await prisma.canteen.findMany({
+    include: {
+      shops: {
+        select: {
+          name: true,
+          average_rating: true,
+          description: true,
+        },
+      },
+      maps: {
+        select: {
+          floor: true,
+        },
+      },
+    },
+  });
+}
+
 export async function getCanteenBySlug(
   slug: string,
   search: ShopSearchParamsInput,

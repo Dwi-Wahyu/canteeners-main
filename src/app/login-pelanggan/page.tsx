@@ -9,6 +9,7 @@ import { LoginSchema, LoginInput } from "@/features/auth/types/auth-schemas";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import ContinueWithGoogle from "./continue-with-google";
 
 export default function LoginPelangganPage() {
   const router = useRouter();
@@ -47,14 +48,17 @@ export default function LoginPelangganPage() {
 
   useEffect(() => {
     if (session.status === "authenticated") {
-      router.push("/dashboard-pelanggan");
+      router.push("/kantin");
     }
   }, [session, session.status]);
 
   return (
     <div
-      className="min-h-svh relative overflow-hidden flex flex-col justify-center items-center"
-      style={{ background: "linear-gradient(135deg, #f8f9ff 0%, #eff4ff 50%, #dce9ff 100%)" }}
+      className="min-h-svh relative overflow-hidden flex flex-col"
+      style={{
+        background:
+          "linear-gradient(135deg, #f8f9ff 0%, #eff4ff 50%, #dce9ff 100%)",
+      }}
     >
       {/* Abstract Background Blobs */}
       <div
@@ -64,7 +68,8 @@ export default function LoginPelangganPage() {
           left: "-10%",
           width: "70vw",
           height: "70vw",
-          background: "radial-gradient(circle, rgba(220, 38, 38, 0.08) 0%, rgba(220, 38, 38, 0) 70%)",
+          background:
+            "radial-gradient(circle, rgba(220, 38, 38, 0.08) 0%, rgba(220, 38, 38, 0) 70%)",
           borderRadius: "50%",
           filter: "blur(40px)",
           zIndex: 0,
@@ -77,40 +82,41 @@ export default function LoginPelangganPage() {
           right: "-10%",
           width: "80vw",
           height: "80vw",
-          background: "radial-gradient(circle, rgba(214, 224, 243, 0.4) 0%, rgba(214, 224, 243, 0) 70%)",
+          background:
+            "radial-gradient(circle, rgba(214, 224, 243, 0.4) 0%, rgba(214, 224, 243, 0) 70%)",
           borderRadius: "50%",
           filter: "blur(40px)",
           zIndex: 0,
         }}
       />
 
-      <main className="w-full max-w-md px-6 py-12 relative z-10 flex flex-col items-center">
-        {/* Brand Header */}
-        <div className="mb-10 text-center w-full">
-          <Link href="/" className="inline-flex flex-col items-center gap-1">
-            <div className="relative w-16 h-16 mb-2">
-              <Image
-                src="/app-logo.svg"
-                alt="Canteeners Logo"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <h1
-              className="font-headline font-extrabold text-4xl tracking-tight"
-              style={{ color: "#0b1c30" }}
-            >
-              Canteen<span style={{ color: "#b70011" }}>eers</span>
-            </h1>
-          </Link>
-          <p className="font-body text-sm mt-2" style={{ color: "#555f6f" }}>
-            The Culinary Canvas Awaits
-          </p>
-        </div>
+      {/* Brand Header */}
+      <header className="md:relative absolute top-0 left-0 w-full pt-10 px-6 z-20 text-center pointer-events-none">
+        <Link
+          href="/"
+          className="inline-flex flex-row items-center gap-3 pointer-events-auto"
+        >
+          <div className="relative w-10 h-10">
+            <Image
+              src="/app-logo.svg"
+              alt="Canteeners Logo"
+              fill
+              className="object-contain"
+            />
+          </div>
+          <h1
+            className="font-headline font-extrabold text-2xl md:text-3xl tracking-tight"
+            style={{ color: "#0b1c30" }}
+          >
+            Can<span style={{ color: "#b70011" }}>teen</span>eers
+          </h1>
+        </Link>
+      </header>
 
+      <main className="flex-1 flex flex-col justify-center items-center w-full max-w-md mx-auto px-6 py-8 relative z-10">
         {/* Glassmorphism Login Card */}
         <div
-          className="w-full p-8 flex flex-col gap-6 relative overflow-hidden rounded-2xl"
+          className="w-full p-8 flex flex-col gap-4 relative overflow-hidden rounded-2xl"
           style={{
             background: "rgba(255, 255, 255, 0.75)",
             backdropFilter: "blur(24px)",
@@ -120,14 +126,6 @@ export default function LoginPelangganPage() {
           }}
         >
           <div className="text-center mb-2">
-            {/* Pelanggan Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-4" style={{
-              background: "rgba(183, 0, 17, 0.08)",
-            }}>
-              <span className="text-xs font-semibold font-headline" style={{ color: "#b70011" }}>
-                Akun Pelanggan
-              </span>
-            </div>
             <h2
               className="font-headline font-bold text-2xl tracking-tight"
               style={{ color: "#0b1c30" }}
@@ -183,13 +181,15 @@ export default function LoginPelangganPage() {
                       onFocus={(e) => {
                         if (!fieldState.invalid) {
                           e.currentTarget.style.borderColor = "#b70011";
-                          e.currentTarget.style.boxShadow = "0 0 0 4px rgba(183, 0, 17, 0.1)";
+                          e.currentTarget.style.boxShadow =
+                            "0 0 0 4px rgba(183, 0, 17, 0.1)";
                         }
                       }}
                       onBlur={(e) => {
                         e.currentTarget.style.boxShadow = "none";
                         if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor = "rgba(230, 189, 184, 0.3)";
+                          e.currentTarget.style.borderColor =
+                            "rgba(230, 189, 184, 0.3)";
                         }
                       }}
                     />
@@ -250,13 +250,15 @@ export default function LoginPelangganPage() {
                       onFocus={(e) => {
                         if (!fieldState.invalid) {
                           e.currentTarget.style.borderColor = "#b70011";
-                          e.currentTarget.style.boxShadow = "0 0 0 4px rgba(183, 0, 17, 0.1)";
+                          e.currentTarget.style.boxShadow =
+                            "0 0 0 4px rgba(183, 0, 17, 0.1)";
                         }
                       }}
                       onBlur={(e) => {
                         e.currentTarget.style.boxShadow = "none";
                         if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor = "rgba(230, 189, 184, 0.3)";
+                          e.currentTarget.style.borderColor =
+                            "rgba(230, 189, 184, 0.3)";
                         }
                       }}
                     />
@@ -287,7 +289,7 @@ export default function LoginPelangganPage() {
               type="submit"
               form="login-pelanggan-form"
               disabled={form.formState.isSubmitting}
-              className="w-full rounded-full py-4 mt-2 font-headline font-bold text-base tracking-wide text-white transition-all duration-300 disabled:opacity-70"
+              className="w-full rounded-full py-4 font-headline font-bold text-base tracking-wide text-white transition-all duration-300 disabled:opacity-70"
               style={{
                 background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
                 boxShadow: "0 8px 24px -4px rgba(183, 0, 17, 0.25)",
@@ -295,12 +297,14 @@ export default function LoginPelangganPage() {
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.boxShadow =
                   "0 12px 32px -4px rgba(183, 0, 17, 0.35)";
-                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+                (e.currentTarget as HTMLButtonElement).style.transform =
+                  "translateY(-1px)";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.boxShadow =
                   "0 8px 24px -4px rgba(183, 0, 17, 0.25)";
-                (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
+                (e.currentTarget as HTMLButtonElement).style.transform =
+                  "translateY(0)";
               }}
             >
               {form.formState.isSubmitting ? (
@@ -313,20 +317,16 @@ export default function LoginPelangganPage() {
               )}
             </button>
           </form>
-        </div>
 
-        {/* Footer Link */}
-        <p className="font-body text-secondary-foreground text-sm mt-8 text-center">
-          Belum punya akun?{" "}
-          <Link
-            href="/mitra"
-            className="font-headline font-bold transition-colors"
-            style={{ color: "#b70011" }}
-          >
-            Daftar Sekarang
-          </Link>
-        </p>
+          <ContinueWithGoogle />
+        </div>
       </main>
+
+      {/* Visual Spacer to balance header height on desktop for centering */}
+      <div
+        className="hidden md:block h-32 pointer-events-none"
+        aria-hidden="true"
+      />
     </div>
   );
 }

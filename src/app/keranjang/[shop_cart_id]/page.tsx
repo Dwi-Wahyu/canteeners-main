@@ -48,7 +48,7 @@ export default async function GuestShopCartPage({
     <div>
       <div className="w-full p-4 flex justify-between items-center bg-linear-to-r text-primary-foreground from-primary to-primary/90">
         <div className="flex gap-2 items-center">
-          <NavButton size="icon" variant="ghost" href="/chat">
+          <NavButton size="icon" variant="ghost" href="/keranjang">
             <ChevronLeft />
           </NavButton>
 

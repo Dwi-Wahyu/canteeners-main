@@ -38,21 +38,7 @@ export default async function OrderDetailPage({
         </div>
       </div>
 
-      <div className="p-5 space-y-5">
-        <CustomerOrderDetailClient order={order} />
-
-        <OrderComplaintSection order={order} />
-
-        <OrderRefundSection order={order as any} userRole="CUSTOMER" />
-
-        {order.status === "COMPLETED" && (
-          <OrderReviewSection
-            isUserCustomer={true}
-            order_id={order.id}
-            prevTestimony={order.testimony}
-          />
-        )}
-      </div>
+      <CustomerOrderDetailClient order={order} />
     </div>
   );
 }

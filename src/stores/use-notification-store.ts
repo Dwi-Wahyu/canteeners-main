@@ -9,6 +9,7 @@ interface Notification {
   type: NotificationDialogType;
   actionButtons?: React.ReactNode;
   icon?: ReactNode;
+  showLoadingBar?: boolean;
 }
 
 interface NotificationStore {
