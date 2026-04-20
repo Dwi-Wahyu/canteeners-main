@@ -145,33 +145,74 @@ const heroSlides = [
 export default function LandingAnimatedPage() {
   /* Hero Slider */
   const [slideIdx, setSlideIdx] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const goToSlide = useCallback((idx: number) => {
-    if (isTransitioning) return;
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setSlideIdx(idx);
-      setIsTransitioning(false);
-    }, 400);
-  }, [isTransitioning]);
+    setSlideIdx(idx);
+  }, []);
 
   const nextSlide = useCallback(() => {
-    goToSlide((slideIdx + 1) % heroSlides.length);
-  }, [slideIdx, goToSlide]);
+    setSlideIdx((prev) => (prev + 1) % heroSlides.length);
+  }, []);
 
   const prevSlide = useCallback(() => {
-    goToSlide((slideIdx - 1 + heroSlides.length) % heroSlides.length);
-  }, [slideIdx, goToSlide]);
-
-  // Auto-play
-  useEffect(() => {
-    autoPlayRef.current = setInterval(() => {
-      setSlideIdx(prev => (prev + 1) % heroSlides.length);
-    }, 5000);
-    return () => { if (autoPlayRef.current) clearInterval(autoPlayRef.current); };
+    setSlideIdx((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   }, []);
+
+  const startAutoPlay = useCallback(() => {
+    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    autoPlayRef.current = setInterval(() => {
+      setSlideIdx((prev) => (prev + 1) % heroSlides.length);
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    startAutoPlay();
+    return () => {
+      if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+    };
+  }, [startAutoPlay]);
+
+  /* Swipe logic */
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isSwiping, setIsSwiping] = useState(false);
+
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    setIsSwiping(true);
+    setTouchEnd(null);
+    if ("targetTouches" in e) setTouchStart(e.targetTouches[0].clientX);
+    else setTouchStart((e as React.MouseEvent).clientX);
+    
+    if (autoPlayRef.current) clearInterval(autoPlayRef.current);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isSwiping) return;
+    if ("targetTouches" in e) setTouchEnd(e.targetTouches[0].clientX);
+    else if (touchStart !== null) setTouchEnd((e as React.MouseEvent).clientX);
+  };
+
+  const handleTouchEnd = () => {
+    setIsSwiping(false);
+    if (!touchStart || !touchEnd) {
+      setTouchStart(null);
+      setTouchEnd(null);
+      startAutoPlay();
+      return;
+    }
+    const distance = touchStart - touchEnd;
+    if (distance > minSwipeDistance) nextSlide();
+    else if (distance < -minSwipeDistance) prevSlide();
+    
+    setTouchStart(null);
+    setTouchEnd(null);
+    startAutoPlay();
+  };
+
+  const dragOffset = isSwiping && touchStart !== null && touchEnd !== null ? touchEnd - touchStart : 0;
 
   /* Typing badge */
   const taglines = ["#1 Kantin Digital di Kampus", "Tanpa Antre. Tanpa Ribet.", "Pesan Sekarang, Ambil Langsung."];
@@ -225,23 +266,34 @@ export default function LandingAnimatedPage() {
     <div className="bg-[#f8f9ff] overflow-x-hidden">
 
       {/* ── Hero Slider ───────────────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16">
+      <section 
+        className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16 cursor-grab active:cursor-grabbing"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleTouchStart}
+        onMouseMove={handleTouchMove}
+        onMouseUp={handleTouchEnd}
+        onMouseLeave={handleTouchEnd}
+      >
         {/* Slide Stack */}
-        <div className="absolute inset-0 z-0">
+        <div 
+          className={`absolute inset-0 z-0 flex ${isSwiping ? '' : 'transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]'}`}
+          style={{ width: `${heroSlides.length * 100}%`, transform: `translateX(calc(-${(slideIdx * 100) / heroSlides.length}% + ${dragOffset}px))` }}
+        >
           {heroSlides.map((slide, i) => (
             <div
               key={i}
-              className="absolute inset-0 transition-opacity duration-700 ease-in-out"
-              style={{ opacity: i === slideIdx ? (isTransitioning ? 0 : 1) : 0 }}
+              className="relative w-full h-full flex-1"
             >
               <img
                 src={slide.img}
                 alt={slide.alt}
-                className="w-full h-full object-cover scale-[1.06]"
-                style={{ willChange: "opacity" }}
+                className="w-full h-full object-cover scale-[1.06] select-none pointer-events-none"
+                draggable={false}
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/75" />
-              <div className={`absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t ${slide.accent} to-transparent`} />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/75 pointer-events-none" />
+              <div className={`absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t ${slide.accent} to-transparent pointer-events-none`} />
             </div>
           ))}
         </div>
@@ -336,30 +388,7 @@ export default function LandingAnimatedPage() {
           </div>
         </div>
 
-
-
         {/* ── Slider Controls ─────────────────────────────── */}
-        {/* Prev Arrow */}
-        <button
-          onClick={prevSlide}
-          aria-label="Previous slide"
-          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white transition-all duration-200 hover:scale-110"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-
-        {/* Next Arrow */}
-        <button
-          onClick={nextSlide}
-          aria-label="Next slide"
-          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white transition-all duration-200 hover:scale-110"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
 
         {/* Dot Indicators + Slide Label */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
@@ -380,7 +409,7 @@ export default function LandingAnimatedPage() {
                 {i === slideIdx && (
                   <span
                     className="absolute inset-0 bg-[#DC2626] rounded-full origin-left"
-                    style={{ animation: "slideProgress 5s linear infinite" }}
+                    style={{ animation: "slideProgress 3s linear infinite" }}
                   />
                 )}
               </button>
