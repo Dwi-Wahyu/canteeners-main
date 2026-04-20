@@ -131,8 +131,7 @@ export default function ShopCartClient({
           if (result.data) {
             setTimeout(() => {
               notificationDialog.hide();
-              // router.push("/order/" + result.data.order_id);
-              router.back();
+              router.push("/order/" + result.data?.order_id);
             }, 2000);
           }
         } else {
