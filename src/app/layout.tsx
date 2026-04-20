@@ -26,6 +26,15 @@ export const metadata: Metadata = {
   title: "Canteeners - Pesan Makanan Kantin Mudah dan Cepat",
   description:
     "Lewati antrean, nikmati makananmu. Platform pemesanan makanan kampus #1 yang menghubungkan mahasiswa dengan kantin favorit mereka.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon1.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
