@@ -31,7 +31,8 @@ export default function ShopSpecializationForm({
     value: cat.id.toString(),
   }));
 
-  const [selectedOptions, setSelectedOptions] = useState<Option[]>(defaultValues);
+  const [selectedOptions, setSelectedOptions] =
+    useState<Option[]>(defaultValues);
 
   const handleSubmit = () => {
     startTransition(async () => {
@@ -41,7 +42,7 @@ export default function ShopSpecializationForm({
       if (result.success) {
         toast.success(result.message);
       } else {
-        toast.error(result.message);
+        toast.error(result.error.message);
       }
     });
   };
@@ -53,8 +54,9 @@ export default function ShopSpecializationForm({
           Pilih Kategori Spesialisasi Kedai
         </label>
         <p className="text-xs text-muted-foreground">
-          Pilih satu atau lebih kategori makanan/minuman yang tersedia di kedai Anda.
-          Hal ini akan memudahkan pelanggan menemukan kedai Anda saat melakukan pencarian.
+          Pilih satu atau lebih kategori makanan/minuman yang tersedia di kedai
+          Anda. Hal ini akan memudahkan pelanggan menemukan kedai Anda saat
+          melakukan pencarian.
         </p>
         <MultipleSelector
           value={selectedOptions}
@@ -69,11 +71,7 @@ export default function ShopSpecializationForm({
         />
       </div>
 
-      <Button
-        onClick={handleSubmit}
-        disabled={isPending}
-        className="w-full"
-      >
+      <Button onClick={handleSubmit} disabled={isPending} className="w-full">
         {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

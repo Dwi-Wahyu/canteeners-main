@@ -158,7 +158,8 @@ export default function UploadPaymentProof({
                                 );
                                 const link = document.createElement("a");
                                 link.href = url;
-                                link.download = `QRIS-${order.shop.name}.png`;
+                                link.download = payment.qr_url as string;
+                                link.target = "_blank";
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
