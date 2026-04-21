@@ -76,7 +76,7 @@ export default function CartItemCard({
             src={getImageUrl("/product/" + cartItem.product.image_url)}
             alt={cartItem.product.name}
             className="rounded-lg object-cover aspect-square w-[100px] h-[100px]"
-            onError={(e) => (e.currentTarget.src = "/placeholder-image.jpg")}
+            onError={(e) => (e.currentTarget.src = "/placeholder-image.webp")}
           />
           <div className="w-full">
             <div className="flex justify-between items-center w-full">

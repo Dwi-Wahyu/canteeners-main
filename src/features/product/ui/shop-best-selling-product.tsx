@@ -40,7 +40,7 @@ export function ShopBestSellingProduct({
                     alt={product?.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.currentTarget.src = "/placeholder-image.jpg"; // fallback image
+                      e.currentTarget.src = "/placeholder-image.webp"; // fallback image
                     }}
                   />
                 </div>
