@@ -36,7 +36,7 @@ export default async function OwnerSettingsPage() {
       <h1 className="mb-2 font-semibold">Personal</h1>
 
       <Item variant="outline" size="sm" className="mb-4" asChild>
-        <Link href="/profil">
+        <Link href="/dashboard-kedai/pengaturan/profile">
           <ItemMedia>
             <User className="size-5" />
           </ItemMedia>
