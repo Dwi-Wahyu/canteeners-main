@@ -26,7 +26,11 @@ import { formatToHour } from "@/helper/hour-helper";
 import { useState } from "react";
 import { GetCustomerOrderDetail } from "../types/order-queries-types";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
-import { CircleAlert, Copy, CopyCheck, Edit, StickyNote } from "lucide-react";
+import {
+  CircleAlert,
+  Edit,
+  StickyNote,
+} from "lucide-react";
 import NavButton from "@/components/nav-button";
 import { getImageUrl } from "@/helper/get-image-url";
 import CashIcon from "@/components/icons/cash-icon";
@@ -40,7 +44,6 @@ export default function CustomerOrderDetailClient({
 }: {
   order: GetCustomerOrderDetail;
 }) {
-  const [copied, setCopied] = useState(false);
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
   const order =
     (orderData as unknown as GetCustomerOrderDetail) || initialOrder;
@@ -168,72 +171,16 @@ export default function CustomerOrderDetailClient({
           <h1>{paymentMethodMapping[order.payment_method]}</h1>
         </div>
 
-        {order.status === "WAITING_PAYMENT" &&
-          order.payment_method === "BANK_TRANSFER" && (
-            <div>
-              <h1 className="font-semibold">Nomor Rekening</h1>
-
-              <div className="flex gap-2 items-center">
-                <h1>
-                  {
-                    order.shop.payments?.filter(
-                      (payment) => payment.method === "BANK_TRANSFER",
-                    )?.[0]?.account_number || "Tidak ada nomor rekening"
-                  }
-                </h1>
-
-                <button
-                  onClick={() => {
-                    const bankTransferPayment = order.shop.payments?.filter(
-                      (payment) => payment.method === "BANK_TRANSFER",
-                    )?.[0]; // Ambil elemen pertama, bisa jadi undefined
-
-                    const accountNumber =
-                      bankTransferPayment?.account_number?.toString();
-
-                    if (accountNumber) {
-                      navigator.clipboard.writeText(accountNumber);
-                      setCopied(true);
-                    } else {
-                      console.error(
-                        "Nomor akun BANK_TRANSFER tidak ditemukan.",
-                      );
-                    }
-                  }}
-                >
-                  {copied ? (
-                    <CopyCheck className="w-4 h-4" />
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
-        {order.status === "WAITING_PAYMENT" &&
-          order.payment_method === "QRIS" && (
-            <div>
-              <h1 className="font-semibold">QRCode QRIS</h1>
-              <div>
-                {order.shop.payments
-                  ?.filter((p) => p.method === "QRIS")
-                  .map((payment, idx) => {
-                    if (!payment.qr_url) {
-                      return <div key={idx}>Belum ada qr code</div>;
-                    }
-
-                    return (
-                      <img
-                        key={idx}
-                        src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
-                        alt="QRIS Code"
-                      />
-                    );
-                  })}
-              </div>
-            </div>
-          )}
+        {(order.status === "WAITING_PAYMENT" ||
+          order.status === "PAYMENT_REJECTED") && (
+          <NavButton
+            href={`/order/${order.id}/pembayaran`}
+            size="lg"
+            className="w-full mb-4"
+          >
+            Bayar Sekarang
+          </NavButton>
+        )}
 
         <div>
           <h1 className="font-semibold">Jenis Order</h1>

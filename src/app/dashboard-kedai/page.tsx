@@ -82,6 +82,7 @@ export default async function DashboardKedai() {
         current_status={shopStatus.status}
         open_time={shopStatus.open_time}
         close_time={shopStatus.close_time}
+        is_auto_accept={shopStatus.is_auto_accept}
       />
 
       <div className="grid gap-4 grid-cols-2">

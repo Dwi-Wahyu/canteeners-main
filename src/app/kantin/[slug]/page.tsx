@@ -5,6 +5,7 @@ import { SearchParams } from "nuqs";
 import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import { auth } from "@/config/auth";
+import { getCategories } from "@/features/category/lib/category-queries";
 
 export default async function CanteenDetailPage({
   params,
@@ -22,7 +23,10 @@ export default async function CanteenDetailPage({
     return notFound();
   }
 
-  const canteen = await getCanteenBySlug(slug, search);
+  const [canteen, categories] = await Promise.all([
+    getCanteenBySlug(slug, search),
+    getCategories(),
+  ]);
 
   if (!canteen) {
     return notFound();
@@ -32,6 +36,7 @@ export default async function CanteenDetailPage({
     <div className="min-h-screen bg-gray-50 pb-32">
       <CanteenClient
         canteen={canteen}
+        categories={categories}
       />
 
       <BottomNav />

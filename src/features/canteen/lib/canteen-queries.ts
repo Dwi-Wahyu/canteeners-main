@@ -52,17 +52,30 @@ export async function getCanteenBySlug(
   }
 
   if (categories.length > 0) {
-    whereClause["products"] = {
-      some: {
-        categories: {
-          every: {
+    whereClause["OR"] = [
+      {
+        products: {
+          some: {
+            categories: {
+              some: {
+                category_id: {
+                  in: categories,
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        specializations: {
+          some: {
             category_id: {
               in: categories,
             },
           },
         },
       },
-    };
+    ];
   }
 
   return await prisma.canteen.findUnique({
@@ -91,6 +104,15 @@ export async function getCanteenBySlug(
           average_rating: true,
           total_ratings: true,
           status: true,
+          specializations: {
+            select: {
+              category: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
           owner: {
             select: {
               user_id: true,

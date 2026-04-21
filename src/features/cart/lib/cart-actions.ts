@@ -8,7 +8,13 @@ import {
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { AddCartItemNoteInput } from "../types/cart-schema";
-import { PaymentMethod, PostOrderType, RewardType, DiscountType } from "@/generated/prisma";
+import {
+  PaymentMethod,
+  PostOrderType,
+  RewardType,
+  DiscountType,
+  OrderStatus,
+} from "@/generated/prisma";
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { formatRupiah } from "@/helper/format-rupiah";
@@ -28,23 +34,22 @@ async function recalculateShopCart(tx: any, shopCartId: string) {
         },
       },
     },
-    orderBy: { id: "asc" }, // Pastikan urutan stabil untuk distribusi komisi
+    orderBy: { id: "asc" },
   });
 
-  let totalQtyProcessed = 0;
+  const totalCartQty = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
   let shopCartTotalPrice = 0;
 
   for (const item of items) {
     const totalOptionsPrice = item.selected_options.reduce(
       (sum: number, opt: any) => sum + (opt.additional_price || 0),
-      0
+      0,
     );
 
     const itemCommission = calculateItemCommission(
       item.quantity,
-      totalQtyProcessed
+      totalCartQty,
     );
-    totalQtyProcessed += item.quantity;
 
     const newItemSubtotal =
       item.quantity * (item.price_at_add + totalOptionsPrice) + itemCommission;
@@ -124,6 +129,7 @@ export async function processShopCart({
               id: true,
               name: true,
               owner_id: true,
+              is_auto_accept: true,
               owner: {
                 select: {
                   user_id: true,
@@ -256,13 +262,44 @@ export async function processShopCart({
         }
       }
 
+      // Tentukan Status Awal Order
+      let initialStatus: OrderStatus = "PENDING_CONFIRMATION";
+      let chatMessage = "Order masuk. Mohon konfirmasi apakah pesanan tersedia";
+      let notificationBody = `Pesanan ${shopCart.items.length} item oleh ${
+        shopCart.cart.customer.user.name
+      } dengan total ${formatRupiah(
+        shopCart.total_price - total_discount_amount,
+      )}, tolong segera ditinjau`;
+
+      if (shopCart.shop.is_auto_accept) {
+        if (paymentMethod === "CASH") {
+          initialStatus = "WAITING_SHOP_CONFIRMATION";
+          chatMessage =
+            "Pesanan otomatis diterima! Silakan lakukan pembayaran tunai di kedai.";
+          notificationBody = `Pesanan otomatis diterima. ${
+            shopCart.cart.customer.user.name
+          } akan membayar tunai sebesar ${formatRupiah(
+            shopCart.total_price - total_discount_amount,
+          )}`;
+        } else {
+          initialStatus = "WAITING_PAYMENT";
+          chatMessage =
+            "Pesanan otomatis diterima! Silakan upload bukti pembayaran agar pesanan segera diproses.";
+          notificationBody = `Pesanan otomatis diterima. Menunggu bukti pembayaran dari ${
+            shopCart.cart.customer.user.name
+          } sebesar ${formatRupiah(
+            shopCart.total_price - total_discount_amount,
+          )}`;
+        }
+      }
+
       // Buat Order Utama
       const order = await tx.order.create({
         data: {
           shop_id: shopCart.shop.id,
           customer_id,
           payment_method: paymentMethod,
-          status: "PENDING_CONFIRMATION",
+          status: initialStatus,
           total_price: shopCart.total_price - total_discount_amount,
           total_discount_amount,
           post_order_type: postOrderType,
@@ -308,8 +345,8 @@ export async function processShopCart({
                 })),
               },
             },
-          })
-        )
+          }),
+        ),
       );
 
       // Link Order ke ShopCart (untuk menandai cart ini sudah jadi order)
@@ -327,7 +364,7 @@ export async function processShopCart({
       // Kirim pesan otomatis
       const messageData = {
         senderId: customer_user_id,
-        text: "Order masuk. Mohon konfirmasi apakah pesanan tersedia",
+        text: chatMessage,
         type: "ORDER",
         order_id,
         attachments: [],
@@ -354,17 +391,16 @@ export async function processShopCart({
         recipientId: owner_user_id,
 
         type: "ORDER",
-        subType: "CREATED",
+        subType: shopCart.shop.is_auto_accept ? "ACCEPTED" : "CREATED",
         resourcePath: "/dashboard-kedai/chat/" + chatId,
         createdAt: FieldValue.serverTimestamp(),
         isRead: false,
 
-        title: "Pesanan Baru Masuk",
-        body: `Pesanan ${shopCart.items.length} item oleh ${
-          shopCart.cart.customer.user.name
-        } dengan total ${formatRupiah(
-          order.total_price
-        )}, tolong segera ditinjau`,
+        title: shopCart.shop.is_auto_accept
+          ? "Pesanan Baru Diterima"
+          : "Pesanan Baru Masuk",
+        body: notificationBody,
+        intent: shopCart.shop.is_auto_accept ? "SUCCESS" : "INFO",
 
         senderInfo: {
           name: shopCart.cart.customer.user.name,
@@ -380,7 +416,7 @@ export async function processShopCart({
 
     return successResponse(
       { conversation_id, order_id },
-      "Berhasil memproses pesanan"
+      "Berhasil memproses pesanan",
     );
   } catch (error) {
     console.error("Error processing shop cart:", error);
@@ -423,7 +459,7 @@ export async function addToCart({
 
       const totalOptionsPrice = selectedOptionsData.reduce(
         (sum, opt) => sum + (opt.additional_price || 0),
-        0
+        0,
       );
 
       // Cari shop cart
@@ -477,7 +513,7 @@ export async function addToCart({
 }
 
 export async function deleteShopCart(
-  shop_cart_id: string
+  shop_cart_id: string,
 ): Promise<ServerActionReturn<void>> {
   try {
     await prisma.$transaction(async (tx) => {
@@ -502,7 +538,7 @@ export async function deleteShopCart(
 }
 
 export async function deleteCartItem(
-  cart_item_id: string
+  cart_item_id: string,
 ): Promise<ServerActionReturn<void>> {
   try {
     await prisma.$transaction(async (tx) => {
@@ -605,7 +641,7 @@ export async function changeCartItemDetails({
 
 export async function removeCartItemOption(
   cart_item_id: string,
-  option_value_id: string
+  option_value_id: string,
 ): Promise<ServerActionReturn<void>> {
   try {
     const shopCartId = await prisma.$transaction(async (tx) => {
@@ -651,7 +687,7 @@ export async function removeCartItemOption(
 }
 
 export async function addCartItemNote(
-  payload: AddCartItemNoteInput
+  payload: AddCartItemNoteInput,
 ): Promise<ServerActionReturn<void>> {
   try {
     await prisma.cartItem.update({

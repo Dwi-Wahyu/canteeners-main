@@ -1,32 +1,26 @@
 /**
  * Menghitung total komisi berdasarkan total kuantitas item.
- * Skema: 1000 per quantity untuk 2 item pertama, 
- * kemudian diskon 50% (500 per quantity) untuk quantity berikutnya.
+ * Skema: 1000 per quantity, jika total quantity > 2 maka total komisi diskon 50%.
  */
 export function calculateCommission(totalQty: number): number {
-  if (totalQty <= 2) {
-    return totalQty * 1000;
+  const baseCommission = totalQty * 1000;
+  if (totalQty > 2) {
+    return baseCommission * 0.5;
   }
-  return 2000 + (totalQty - 2) * 500;
+  return baseCommission;
 }
 
 /**
- * Menghitung komisi untuk suatu item berdasarkan urutan/jumlah yang sudah diproses sebelumnya.
- * Digunakan untuk mendistribusikan komisi bertingkat ke dalam subtotal item secara sequential.
+ * Menghitung komisi untuk suatu item berdasarkan total kuantitas di keranjang.
+ * Digunakan untuk mendistribusikan komisi ke dalam subtotal item secara proporsional.
  */
 export function calculateItemCommission(
-  quantity: number,
-  previousQtyProcessed: number
+  itemQuantity: number,
+  totalCartQty: number,
 ): number {
-  let commission = 0;
-  let currentTotal = previousQtyProcessed;
-  for (let i = 0; i < quantity; i++) {
-    currentTotal++;
-    if (currentTotal <= 2) {
-      commission += 1000;
-    } else {
-      commission += 500;
-    }
-  }
-  return commission;
+  const totalCommission = calculateCommission(totalCartQty);
+  // Distribusi proporsional: (itemQty / totalQty) * totalCommission
+  // Karena rumusnya linear (per unit), kita bisa sederhanakan:
+  const commissionPerUnit = totalCommission / totalCartQty;
+  return itemQuantity * commissionPerUnit;
 }

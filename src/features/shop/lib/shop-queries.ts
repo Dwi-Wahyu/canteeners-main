@@ -205,6 +205,7 @@ export async function getShopStatus(id: string) {
       status: true,
       open_time: true,
       close_time: true,
+      is_auto_accept: true,
     },
   });
 }

@@ -75,13 +75,14 @@ export const authConfig: NextAuthConfig = {
             username: "",
             name,
             role: "CUSTOMER",
-            avatar: "avatars/default-avatar.jpeg",
+            avatar: "default-avatar.jpeg",
             cartId: guestCustomer.customer?.cart?.id,
             customerId: guestCustomer.customer?.id,
             shopId: undefined,
             shopName: undefined,
             ownerId: undefined,
             firebaseToken,
+            firebaseTokenCreatedAt: Math.floor(Date.now() / 1000),
           };
         }
 
@@ -138,22 +139,23 @@ export const authConfig: NextAuthConfig = {
           },
         });
 
-          return {
-            id: user.id,
-            username: user.username ?? "",
-            name: user.name,
-            role: user.role,
-            avatar: user.avatar,
-            // Owner payload
-            ownerId: user.owner?.id,
-            shopId: user.owner?.shop?.id,
-            shopName: user.owner?.shop?.name,
-            // Customer payload
-            customerId: user.customer?.id,
-            cartId: user.customer?.cart?.id || user.customer?.id,
+        return {
+          id: user.id,
+          username: user.username ?? "",
+          name: user.name,
+          role: user.role,
+          avatar: user.avatar,
+          // Owner payload
+          ownerId: user.owner?.id,
+          shopId: user.owner?.shop?.id,
+          shopName: user.owner?.shop?.name,
+          // Customer payload
+          customerId: user.customer?.id,
+          cartId: user.customer?.cart?.id || user.customer?.id,
 
-            firebaseToken,
-          };
+          firebaseToken,
+          firebaseTokenCreatedAt: Math.floor(Date.now() / 1000),
+        };
       },
     }),
     GoogleProvider({
@@ -215,6 +217,8 @@ export const authConfig: NextAuthConfig = {
         session.user.shopId = token.shopId as string;
         session.user.ownerId = token.ownerId as string;
         session.user.firebaseToken = token.firebaseToken as string;
+        session.user.firebaseTokenCreatedAt =
+          token.firebaseTokenCreatedAt as number;
 
         // Customer payload
         session.user.customerId = token.customerId as string;
@@ -235,6 +239,7 @@ export const authConfig: NextAuthConfig = {
         token.shopId = user.shopId;
         token.ownerId = user.ownerId;
         token.firebaseToken = user.firebaseToken;
+        token.firebaseTokenCreatedAt = user.firebaseTokenCreatedAt;
 
         // Customer payload
         token.customerId = user.customerId;
@@ -267,8 +272,26 @@ export const authConfig: NextAuthConfig = {
           token.customerId = dbUser.customer?.id;
           token.cartId = dbUser.customer?.cart?.id;
 
-          const firebaseToken = await getFirebaseToken({ uid: dbUser.id });
-          token.firebaseToken = firebaseToken;
+          if (!token.firebaseToken || !token.firebaseTokenCreatedAt) {
+            const firebaseToken = await getFirebaseToken({ uid: dbUser.id });
+            token.firebaseToken = firebaseToken;
+            token.firebaseTokenCreatedAt = Math.floor(Date.now() / 1000);
+          }
+        }
+      }
+
+      // Refresh Firebase Token if it's older than 50 minutes (3000 seconds)
+      const now = Math.floor(Date.now() / 1000);
+      const tokenCreatedAt = (token.firebaseTokenCreatedAt as number) || 0;
+
+      if (token.id && token.firebaseToken && now - tokenCreatedAt > 3000) {
+        console.log("Refreshing Firebase token for user:", token.id);
+        const newFirebaseToken = await getFirebaseToken({
+          uid: token.id as string,
+        });
+        if (newFirebaseToken) {
+          token.firebaseToken = newFirebaseToken;
+          token.firebaseTokenCreatedAt = now;
         }
       }
 

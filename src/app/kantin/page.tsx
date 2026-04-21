@@ -17,6 +17,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, User } from "lucide-react";
 import { BottomNav } from "@/components/layouts/bottom-nav";
+import { getBanners } from "@/features/banner/lib/banner-queries";
 
 const categoryIconMap: Record<string, string> = {
   "Es Buah": "emoji_food_beverage",
@@ -29,46 +30,38 @@ const categoryIconMap: Record<string, string> = {
   Semua: "apps",
 };
 
-const banners = [
-  {
-    tag: "Promo Spesial",
-    tagBg: "bg-[#DC2626]",
-    img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200&q=80",
-    title: "Diskon 50% Es Buah Segar",
-    desc: "Segarkan harimu dengan es buah aneka rasa. Berlaku hari ini saja!",
-    cta: "Klaim Sekarang",
-  },
-  {
-    tag: "Menu Baru",
-    tagBg: "bg-amber-600",
-    img: "https://images.unsplash.com/photo-1598103442097-8b74394b95c4?w=1200&q=80",
-    title: "Ayam Geprek Level Dewa",
-    desc: "Berani coba pedasnya? Tantang dirimu sekarang juga.",
-    cta: "Coba Sekarang",
-  },
-  {
-    tag: "Gratis Ongkir",
-    tagBg: "bg-[#555f6f]",
-    img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=1200&q=80",
-    title: "Bebas Antri, Langsung Sampai",
-    desc: "Pesan aneka gorengan favoritmu tanpa biaya tambahan antar ke kelas.",
-    cta: "Pesan Disini",
-  },
-];
-
 export default function CanteenPage() {
   const { data: session } = useSession();
   const [activeBanner, setActiveBanner] = useState(0);
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [canteens, setCanteens] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [banners, setBanners] = useState<any[]>([]);
+
+  // Auto-slide banners
+  useEffect(() => {
+    if (banners.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setActiveBanner((prev) => (prev + 1) % banners.length);
+    }, 5000); // Ganti setiap 5 detik
+
+    return () => clearInterval(timer);
+  }, [banners.length]);
 
   useEffect(() => {
     async function fetchData() {
-      const [canteensData, categoriesData] = await Promise.all([
+      const [canteensData, categoriesData, bannersData] = await Promise.all([
         getCanteens(),
         getCategories(),
+        getBanners(),
       ]);
+
+      const mappedBanners = bannersData.map((b) => ({
+        id: b.id,
+        img: getImageUrl("/banners/" + b.file),
+        cta: b.cta_path,
+      }));
 
       const mappedCanteens = canteensData.map((c) => ({
         slug: c.slug || "",
@@ -97,6 +90,7 @@ export default function CanteenPage() {
         },
       ];
 
+      setBanners(mappedBanners);
       setCanteens(mappedCanteens);
       setCategories(mappedCategories);
     }
@@ -162,52 +156,30 @@ export default function CanteenPage() {
         {/* ── Hero Banners ── */}
         <section className="mb-10">
           <div className="relative overflow-hidden rounded-2xl">
-            {banners.map((banner, i) => (
-              <div
-                key={i}
-                className="transition-all duration-500"
-                style={{ display: i === activeBanner ? "block" : "none" }}
-              >
-                <div className="relative rounded-2xl overflow-hidden aspect-[16/7] md:aspect-[21/7]">
-                  <img
-                    src={banner.img}
-                    alt={banner.title}
-                    className="w-full h-full object-cover"
-                    style={{ transition: "transform 0.5s ease" }}
-                  />
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background:
-                        "linear-gradient(to right, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 55%, transparent 100%)",
-                    }}
-                  />
-                  <div className="absolute inset-0 p-6 md:p-10 flex flex-col justify-center w-2/3 md:w-1/2">
-                    <span
-                      className={`inline-block px-3 py-1 ${banner.tagBg} text-white text-[10px] font-bold uppercase tracking-wider rounded-full w-max mb-3`}
-                    >
-                      {banner.tag}
-                    </span>
-                    <h2
-                      className="font-extrabold text-white mb-2 leading-tight"
-                      style={{ fontSize: "clamp(1.2rem, 3vw, 2rem)" }}
-                    >
-                      {banner.title}
-                    </h2>
-                    <p className="text-white/80 text-sm mb-4 line-clamp-2 hidden sm:block">
-                      {banner.desc}
-                    </p>
-                    <Link
-                      href="/kantin/kantin-kudapan"
-                      className="inline-block bg-white px-5 py-2 rounded-full font-bold text-sm w-max transition-all hover:shadow-lg"
-                      style={{ color: "#DC2626" }}
-                    >
-                      {banner.cta}
-                    </Link>
-                  </div>
+            {banners.length > 0 ? (
+              banners.map((banner, i) => (
+                <div
+                  key={banner.id}
+                  className="transition-all duration-500"
+                  style={{ display: i === activeBanner ? "block" : "none" }}
+                >
+                  <Link href={banner.cta || "#"}>
+                    <div className="relative rounded-2xl overflow-hidden aspect-[16/7] md:aspect-[21/7]">
+                      <img
+                        src={banner.img}
+                        alt={`Banner ${i + 1}`}
+                        className="w-full h-full object-cover"
+                        style={{ transition: "transform 0.5s ease" }}
+                      />
+                    </div>
+                  </Link>
                 </div>
+              ))
+            ) : (
+              <div className="relative rounded-2xl overflow-hidden aspect-[16/7] md:aspect-[21/7] bg-gray-200 animate-pulse flex items-center justify-center">
+                <p className="text-gray-400 font-medium">Memuat promo...</p>
               </div>
-            ))}
+            )}
           </div>
 
           {/* Banner Indicators */}
@@ -224,80 +196,6 @@ export default function CanteenPage() {
                 }}
                 aria-label={`Banner ${i + 1}`}
               />
-            ))}
-          </div>
-        </section>
-
-        {/* ── Kategori Pilihan ── */}
-        <section className="mb-12">
-          <div className="flex justify-between items-end mb-5">
-            <div>
-              <h3
-                className="font-extrabold tracking-tight"
-                style={{ color: "#0b1c30", fontSize: "1.2rem" }}
-              >
-                Kategori Pilihan
-              </h3>
-              <p className="text-sm mt-0.5" style={{ color: "#555f6f" }}>
-                Mau makan apa hari ini?
-              </p>
-            </div>
-            <button
-              className="text-sm font-semibold hover:underline transition-colors"
-              style={{ color: "#DC2626" }}
-            >
-              Lihat Semua
-            </button>
-          </div>
-
-          <div className="grid grid-cols-4 md:grid-cols-8 gap-3 md:gap-5">
-            {categories.map((cat) => (
-              <button
-                key={cat.label}
-                onClick={() => setActiveCategory(cat.label)}
-                className="group flex flex-col items-center gap-2 transition-all"
-              >
-                <div
-                  className="w-16 h-16 md:w-18 md:h-18 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:-translate-y-1"
-                  style={{
-                    background:
-                      activeCategory === cat.label
-                        ? "linear-gradient(135deg, #b70011 0%, #dc2626 100%)"
-                        : "#ffffff",
-                    boxShadow:
-                      activeCategory === cat.label
-                        ? "0 8px 24px -4px rgba(220,38,38,0.35)"
-                        : "0 4px 24px rgba(11,28,48,0.06)",
-                  }}
-                >
-                  {cat.img ? (
-                    <img
-                      src={cat.img}
-                      alt={cat.label}
-                      className="w-10 h-10 object-cover rounded-full"
-                    />
-                  ) : (
-                    <span
-                      className="material-symbols-outlined"
-                      style={{
-                        fontSize: 26,
-                        color:
-                          activeCategory === cat.label ? "#fff" : "#DC2626",
-                      }}
-                    >
-                      {cat.icon}
-                    </span>
-                  )}
-                </div>
-                <span
-                  className="text-[11px] font-semibold text-center transition-colors"
-                  style={{
-                    color: activeCategory === cat.label ? "#DC2626" : "#0b1c30",
-                  }}
-                >
-                  {cat.label}
-                </span>
-              </button>
             ))}
           </div>
         </section>

@@ -75,3 +75,29 @@ export async function toggleShopStatus(
     return errorResponse("Terjadi kesalahan");
   }
 }
+
+export async function toggleAutoAccept(
+  id: string,
+  currentValue: boolean
+): Promise<ServerActionReturn<boolean>> {
+  try {
+    const updated = await prisma.shop.update({
+      where: {
+        id,
+      },
+      data: {
+        is_auto_accept: !currentValue,
+      },
+    });
+
+    revalidatePath("/dashboard-kedai");
+
+    return successResponse(
+      updated.is_auto_accept,
+      `Terima pesanan otomatis ${updated.is_auto_accept ? "aktif" : "nonaktif"}`
+    );
+  } catch (error) {
+    console.error("Error toggleAutoAccept:", error);
+    return errorResponse("Terjadi kesalahan");
+  }
+}

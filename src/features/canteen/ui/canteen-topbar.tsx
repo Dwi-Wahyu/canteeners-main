@@ -1,14 +1,22 @@
+"use client";
+
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { ProductFilterDialog } from "./product-filter-dialog";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQueryState } from "nuqs";
 
 export default function CanteenTopbar({
   shopCount,
 }: {
   shopCount: number;
 }) {
+  const [name, setName] = useQueryState("name", {
+    shallow: false,
+    throttleMs: 500,
+  });
+
   return (
     <div className="p-4 flex gap-4 items-center">
       <div className="relative w-full h-10">
@@ -20,6 +28,8 @@ export default function CanteenTopbar({
           type="text"
           placeholder="Cari Kedai"
           className="peer pl-9 h-10"
+          value={name ?? ""}
+          onChange={(e) => setName(e.target.value || null)}
         />
       </div>
 

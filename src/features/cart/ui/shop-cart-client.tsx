@@ -252,7 +252,7 @@ export default function ShopCartClient({
 
           <div className="flex flex-col items-end">
             <h1>Rp 1.000 / item</h1>
-            <span className="text-[10px]">Potongan 50% setelah item ke-2</span>
+            <span className="text-[10px]">Potongan 50% jika total lebih dari 2 item</span>
           </div>
         </div>
 

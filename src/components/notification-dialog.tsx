@@ -4,7 +4,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useNotificationDialogStore } from "@/stores/use-notification-store";
@@ -23,13 +22,13 @@ const icons: Record<NotificationType, JSX.Element> = {
 const colors = {
   // Warna solid untuk icon paling dalam
   solid: {
-    success: "bg-linear-to-br from-[#b70011] to-[#dc2626]",
-    error: "bg-linear-to-br from-destructive to-destructive/80",
-    info: "bg-linear-to-br from-primary to-primary/80",
+    success: "bg-linear-to-br from-green-500 to-green-600",
+    error: "bg-linear-to-br from-destructive to-red-600",
+    info: "bg-linear-to-br from-blue-500 to-blue-600",
   },
   // Warna dengan opasitas ring
   ring: {
-    success: "bg-red-50",
+    success: "bg-green-50",
     error: "bg-red-50",
     info: "bg-blue-50",
   },
@@ -42,13 +41,27 @@ export default function NotificationDialog() {
 
   const type = notification.type;
 
+  // Tentukan warna loading bar berdasarkan tipe
+  const loadingBarColor = {
+    success: "from-green-500 to-green-600",
+    error: "from-red-500 to-red-600",
+    info: "from-blue-500 to-blue-600",
+  }[type];
+
   return (
     <Dialog open={!!notification} onOpenChange={() => hide()}>
-      <DialogContent showCloseButton={false} className="overflow-hidden p-0 max-w-[90vw] sm:max-w-[400px] rounded-3xl border-none shadow-2xl">
+      <DialogContent
+        showCloseButton={false}
+        className="overflow-hidden p-0 max-w-[90vw] sm:max-w-[400px] rounded-3xl border-none shadow-2xl"
+      >
         <div className="flex flex-col items-center p-8 pt-10">
           {/* Simplified Icon Container */}
-          <div className={`size-20 rounded-3xl ${colors.ring[type]} flex items-center justify-center mb-6`}>
-            <div className={`size-14 rounded-2xl ${colors.solid[type]} flex items-center justify-center shadow-lg shadow-primary/20`}>
+          <div
+            className={`size-20 rounded-3xl ${colors.ring[type]} flex items-center justify-center mb-6`}
+          >
+            <div
+              className={`size-14 rounded-2xl ${colors.solid[type]} flex items-center justify-center shadow-lg`}
+            >
               {notification.icon ? notification.icon : icons[type]}
             </div>
           </div>
@@ -73,8 +86,8 @@ export default function NotificationDialog() {
 
         {notification.showLoadingBar && (
           <div className="h-1.5 w-full bg-gray-100/50">
-            <div 
-              className="h-full bg-linear-to-r from-[#b70011] to-[#dc2626] animate-progress"
+            <div
+              className={`h-full bg-linear-to-r ${loadingBarColor} animate-progress`}
               style={{
                 width: "100%",
                 transformOrigin: "left",

@@ -55,3 +55,14 @@ model Faq {
 
   @@map("faqs")
 }
+
+model Banner {
+  id        Int      @id @default(autoincrement())
+  order     Int      @default(0)
+  file      String
+  cta_path  String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("banners")
+}

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import {
   AlertCircle,
+  ChefHat,
   ChevronRight,
   CreditCard,
   FileText,
@@ -74,6 +75,20 @@ export default async function OwnerSettingsPage() {
           </ItemMedia>
           <ItemContent>
             <ItemTitle>Edit Data Kedai</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <ChevronRight className="size-4" />
+          </ItemActions>
+        </Link>
+      </Item>
+
+      <Item variant="outline" size="sm" className="mb-4" asChild>
+        <Link href="/dashboard-kedai/pengaturan/spesialisasi">
+          <ItemMedia>
+            <ChefHat className="size-5" />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>Spesialisasi Kedai</ItemTitle>
           </ItemContent>
           <ItemActions>
             <ChevronRight className="size-4" />

@@ -13,7 +13,7 @@ import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Send } from "lucide-react";
+import { Copy, CopyCheck, Download, Loader2, Send } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -33,6 +33,7 @@ export default function UploadPaymentProof({
   order_id: string;
 }) {
   const [files, setFiles] = useState<File[]>([]);
+  const [copied, setCopied] = useState(false);
 
   const form = useForm<PaymentFormInput>({
     resolver: zodResolver(PaymentFormSchema),
@@ -142,15 +143,37 @@ export default function UploadPaymentProof({
                     .filter((p) => p.method === "QRIS")
                     .map((payment, idx) => {
                       if (!payment.qr_url) {
-                        return <div>Belum ada qr code</div>;
+                        return <div key={idx}>Belum ada qr code</div>;
                       }
 
                       return (
-                        <img
-                          key={idx}
-                          className="rounded-lg"
-                          src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
-                        />
+                        <div key={idx} className="flex flex-col gap-4">
+                          <div className="flex items-center justify-between">
+                            <h1 className="font-semibold">QRCode QRIS</h1>
+
+                            <button
+                              onClick={() => {
+                                const url = getImageUrl(
+                                  "/qris-qrcode/" + payment.qr_url,
+                                );
+                                const link = document.createElement("a");
+                                link.href = url;
+                                link.download = `QRIS-${order.shop.name}.png`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }}
+                              className="p-2 hover:bg-accent rounded-md transition-colors border"
+                              title="Download QR Code"
+                            >
+                              <Download className="w-5 h-5 text-primary" />
+                            </button>
+                          </div>
+                          <img
+                            className="rounded-lg border w-full max-w-[300px] mx-auto"
+                            src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
+                          />
+                        </div>
                       );
                     })}
                 </CardContent>
@@ -160,7 +183,7 @@ export default function UploadPaymentProof({
           {order.payment_method === "BANK_TRANSFER" &&
             order.status === "WAITING_PAYMENT" && (
               <Card>
-                <CardContent>
+                <CardContent className="pt-6">
                   {order.shop.payments
                     .filter((p) => p.method === "BANK_TRANSFER")
                     .map((payment, idx) => {
@@ -169,9 +192,33 @@ export default function UploadPaymentProof({
                       }
 
                       return (
-                        <div key={idx}>
-                          <h1>{payment.note}</h1>
-                          <h1>{payment.account_number}</h1>
+                        <div key={idx} className="space-y-2">
+                          <h1 className="font-semibold text-sm text-muted-foreground">
+                            Nomor Rekening {payment.note}
+                          </h1>
+                          <div className="flex items-center justify-between p-3 border rounded-lg bg-accent/20">
+                            <h1 className="text-xl font-bold tracking-wider">
+                              {payment.account_number}
+                            </h1>
+                            <button
+                              onClick={() => {
+                                if (payment.account_number) {
+                                  navigator.clipboard.writeText(
+                                    payment.account_number,
+                                  );
+                                  setCopied(true);
+                                  setTimeout(() => setCopied(false), 2000);
+                                }
+                              }}
+                              className="p-2 hover:bg-accent rounded-md transition-colors border bg-background"
+                            >
+                              {copied ? (
+                                <CopyCheck className="w-5 h-5 text-green-600" />
+                              ) : (
+                                <Copy className="w-5 h-5 text-primary" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       );
                     })}

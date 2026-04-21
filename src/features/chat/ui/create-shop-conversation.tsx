@@ -50,7 +50,6 @@ export default function CreateShopConversation({
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
-      console.log(currentUser);
       if (!currentUser) setIsLoading(false);
     });
     return () => unsubscribe();

@@ -31,11 +31,27 @@ model Shop {
     average_rating Float @default(0)
     total_ratings  Int   @default(0)
 
+    is_auto_accept Boolean @default(false)
+
     shop_carts ShopCart[]
+    specializations ShopCategory[]
 
     @@index([canteen_id])
     @@index([name])
     @@map("shops")
+}
+
+model ShopCategory {
+    shop    Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+    shop_id String
+
+    category    Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+    category_id Int
+
+    @@id([shop_id, category_id])
+    @@index([category_id])
+    @@index([shop_id])
+    @@map("shop_categories")
 }
 
 model ShopBilling {

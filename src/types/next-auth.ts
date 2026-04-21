@@ -9,6 +9,7 @@ declare module "next-auth" {
       avatar: string;
       role: string;
       firebaseToken?: string;
+      firebaseTokenCreatedAt?: number;
       // Owner payload
       ownerId?: string;
       shopName?: string;
@@ -26,6 +27,7 @@ declare module "next-auth" {
     avatar: string;
     role: string;
     firebaseToken?: string;
+    firebaseTokenCreatedAt?: number;
     // Owner payload
     ownerId?: string;
     shopName?: string;

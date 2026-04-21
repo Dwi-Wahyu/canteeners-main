@@ -30,7 +30,7 @@ export default function CustomerOrderChatBubble({
   });
 
   const lastKnownUpdate = useRef<number>(
-    data?.updated_at.getMilliseconds() ?? 0
+    data?.updated_at.getMilliseconds() ?? 0,
   );
   const isFirstRun = useRef(true);
 
@@ -69,7 +69,7 @@ export default function CustomerOrderChatBubble({
       },
       (err) => {
         console.error("Firestore onSnapshot error:", err);
-      }
+      },
     );
 
     return () => {
@@ -175,7 +175,7 @@ export default function CustomerOrderChatBubble({
               </NavButton>
 
               {data.status === "WAITING_PAYMENT" && (
-                <div className="w-full">
+                <div className="w-full mt-4">
                   <NavButton
                     className="w-full"
                     href={`/order/${data.id}/pembayaran`}

@@ -71,6 +71,7 @@ model Category {
     image_url String
     products  ProductCategory[]
     discounts Discount[]
+    shop_categories ShopCategory[]
 
     @@map("categories")
 }

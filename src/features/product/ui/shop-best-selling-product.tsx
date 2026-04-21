@@ -17,8 +17,8 @@ export function ShopBestSellingProduct({
   return (
     <section className="mt-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-900">Produk Terlaris 🔥</h2>
-        <span className="text-xs font-medium text-orange-600">Bulan Ini</span>
+        <h2 className="text-lg font-bold text-gray-900">Produk Terlaris</h2>
+        <span className="text-xs font-medium">Bulan Ini</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

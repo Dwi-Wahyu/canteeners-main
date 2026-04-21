@@ -59,9 +59,17 @@ export default function useWatchNotification() {
         return;
       }
 
+      if (snapshot.empty) return;
+
       const data = snapshot.docs[0].data() as AppNotification;
 
       if (data.type === "ORDER") {
+        // Bunyikan suara untuk pesanan baru
+        if (data.subType === "CREATED") {
+          const audio = new Audio("/sounds/pesanan-masuk.mp3");
+          audio.play().catch((err) => console.error("Error playing sound:", err));
+        }
+
         toast.custom((id) => (
           <OrderNotificationToast
             notification={data as OrderNotification}

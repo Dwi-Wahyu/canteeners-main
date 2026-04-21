@@ -12,7 +12,7 @@ const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchInterval={1800}>
       <FirebaseAuthSync />
 
       <QueryClientProvider client={queryClient}>
