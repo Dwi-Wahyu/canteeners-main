@@ -36,6 +36,8 @@ import NavButton from "@/components/nav-button";
 import ConfirmPaymentDialog from "./confirm-payment-dialog";
 import RejectPaymentDialog from "./reject-payment-dialog";
 import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
+import OrderEstimationCountDown from "./order-estimation-countdown";
+import { formatToHour } from "@/helper/hour-helper";
 
 export default function ShopOrderDetailClient({
   order: initialOrder,
@@ -189,14 +191,33 @@ export default function ShopOrderDetailClient({
         </div>
       )}
 
-      {/* {order.estimation && (
-        <OrderEstimationSection
-          status={order.status}
-          prev_estimation={order.estimation}
-          processed_at={order.processed_at}
-          order_id={order.id}
-        />
-      )} */}
+      {order.estimation && (
+        <div className="flex flex-col gap-2">
+          <div>
+            <h1 className="font-semibold">Estimasi</h1>
+            <h1>{order.estimation} Menit</h1>
+          </div>
+
+          {order.status === "PROCESSING" && (
+            <>
+              <div>
+                <h1 className="font-semibold">Diproses Pada</h1>
+                <h1>{formatToHour(order.processed_at)}</h1>
+              </div>
+
+              <div>
+                <h1 className="font-semibold">Sisa Waktu</h1>
+                {order.processed_at && order.estimation && (
+                  <OrderEstimationCountDown
+                    estimation={order.estimation}
+                    processed_at={order.processed_at}
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div>
         <h1 className="font-semibold">Jenis Order</h1>
