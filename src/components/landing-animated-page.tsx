@@ -128,7 +128,7 @@ function Particle({ x, y, size, opacity, duration, delay }: {
 /* ── Hero Slides Data ────────────────────────────────────── */
 const heroSlides = [
   {
-    img: "/visual/hero-slide-1.png",
+    img: "/visual/hero-slide-1-baru.png",
     alt: "Kantin kampus dengan tampilan app Canteeners",
     accent: "from-[#DC2626]/30",
     label: "Scan & Pesan",
@@ -289,7 +289,7 @@ export default function LandingAnimatedPage() {
               <img
                 src={slide.img}
                 alt={slide.alt}
-                className="w-full h-full object-cover scale-[1.06] select-none pointer-events-none"
+                className="w-full h-full object-cover select-none pointer-events-none"
                 draggable={false}
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/75 pointer-events-none" />
@@ -304,41 +304,49 @@ export default function LandingAnimatedPage() {
         </div>
 
         {/* Hero Content */}
-        <div className="max-w-4xl mx-auto px-6 relative z-10 text-center text-white">
-          {/* Typing Badge */}
-          <div
-            className="inline-block py-1.5 px-5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-headline text-sm font-semibold mb-7 opacity-0 translate-y-6 min-w-[280px]"
-            style={{ animation: "heroFadeUp 0.7s 0.2s forwards ease-out" }}
-          >
-            <span>{displayed}</span>
-            <span className="animate-pulse ml-0.5 opacity-70">|</span>
+        <div className="max-w-4xl w-full mx-auto px-6 relative z-10 flex flex-col justify-between md:justify-center items-center text-center text-white min-h-[75vh] md:min-h-0 md:gap-8">
+          
+          {/* Top Section (Title) */}
+          <div className="pt-2 md:pt-0 w-full mb-0 md:mb-2">
+            {/* Typing Badge */}
+            <div
+              className="inline-block py-1.5 px-4 md:px-5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-headline text-xs md:text-sm font-semibold mb-6 md:mb-8 opacity-0 translate-y-6 min-w-fit md:min-w-[280px] shadow-sm"
+              style={{ animation: "heroFadeUp 0.7s 0.2s forwards ease-out" }}
+            >
+              <span>{displayed}</span>
+              <span className="animate-pulse ml-0.5 opacity-70">|</span>
+            </div>
+
+            <h1
+              className="font-headline text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.15] md:leading-[1.1] opacity-0 translate-y-6 drop-shadow-2xl"
+              style={{ animation: "heroFadeUp 0.7s 0.4s forwards ease-out" }}
+            >
+              Lewati Antrean,{" "}
+              <br className="hidden sm:block" />
+              <span className="text-[#ffb4ab]">Nikmati Makananmu.</span>
+            </h1>
           </div>
 
-          <h1
-            className="font-headline text-5xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1] opacity-0 translate-y-6"
-            style={{ animation: "heroFadeUp 0.7s 0.4s forwards ease-out" }}
-          >
-            Lewati Antrean,{" "}
-            <br className="hidden sm:block" />
-            <span className="text-[#ffb4ab]">Nikmati Makananmu.</span>
-          </h1>
+          {/* Middle Section (Description Text) */}
+          <div className="flex-1 flex flex-col justify-center w-full md:flex-none md:block my-4 md:my-0">
+            <p
+              className="text-base md:text-lg text-white/90 max-w-2xl mx-auto font-body-inter leading-relaxed opacity-0 translate-y-6 drop-shadow-md"
+              style={{ animation: "heroFadeUp 0.7s 0.6s forwards ease-out" }}
+            >
+              Pesan makanan favoritmu dari kantin kampus tanpa ribet. Bayar mudah,
+              ambil pesanan saat sudah siap. Waktumu berharga, gunakan untuk hal
+              yang lebih penting.
+            </p>
+          </div>
 
-          <p
-            className="text-lg text-white/80 mb-10 max-w-2xl mx-auto font-body-inter leading-relaxed opacity-0 translate-y-6"
-            style={{ animation: "heroFadeUp 0.7s 0.6s forwards ease-out" }}
-          >
-            Pesan makanan favoritmu dari kantin kampus tanpa ribet. Bayar mudah,
-            ambil pesanan saat sudah siap. Waktumu berharga, gunakan untuk hal
-            yang lebih penting.
-          </p>
-
+          {/* Bottom Section (Buttons) */}
           <div
-            className="flex flex-col sm:flex-row gap-4 justify-center opacity-0 translate-y-6"
+            className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center pb-16 md:pb-0 w-full opacity-0 translate-y-6"
             style={{ animation: "heroFadeUp 0.7s 0.8s forwards ease-out" }}
           >
             <Link
               href="/kantin/kantin-kudapan"
-              className="group inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#b91c1c] border border-white/10 text-white rounded-full text-lg px-8 py-4 font-bold transition-all duration-300 shadow-lg shadow-red-600/30 hover:shadow-red-600/50 hover:-translate-y-1 hover:scale-105"
+              className="group inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#b91c1c] border border-white/10 text-white rounded-full text-base md:text-lg px-8 py-3.5 md:py-4 font-bold transition-all duration-300 shadow-lg shadow-red-600/30 hover:shadow-red-600/50 hover:-translate-y-1 hover:scale-105"
             >
               Mulai Pesan
               <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform duration-300">
@@ -347,44 +355,10 @@ export default function LandingAnimatedPage() {
             </Link>
             <Link
               href="/mitra"
-              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-full text-lg px-8 py-4 font-medium transition-all duration-300 backdrop-blur-sm hover:-translate-y-1"
+              className="inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-full text-base md:text-lg px-8 py-3.5 md:py-4 font-medium transition-all duration-300 backdrop-blur-sm hover:-translate-y-1"
             >
               Daftar Mitra
             </Link>
-          </div>
-
-          {/* Social Proof */}
-          <div
-            className="mt-16 flex flex-col items-center justify-center gap-3 opacity-0"
-            style={{ animation: "heroFadeUp 0.7s 1s forwards ease-out" }}
-          >
-            <div className="flex -space-x-3">
-              {[
-                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&q=80",
-                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&q=80",
-                "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&q=80",
-              ].map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt={`Pengguna ${i + 1}`}
-                  className="w-11 h-11 rounded-full border-2 border-black/30 object-cover hover:scale-110 hover:z-10 transition-transform duration-200 cursor-pointer"
-                />
-              ))}
-              <div className="w-11 h-11 rounded-full bg-white/20 backdrop-blur-sm border-2 border-black/30 flex items-center justify-center text-white font-bold text-xs">
-                +2k
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-center gap-0.5 mb-1">
-                {[...Array(5)].map((_, i) => (
-                  <svg key={i} className="w-5 h-5 text-[#ffb4ab] fill-current" viewBox="0 0 24 24">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-sm font-medium text-white/80">4.8/5 dari 2,000+ mahasiswa</p>
-            </div>
           </div>
         </div>
 
