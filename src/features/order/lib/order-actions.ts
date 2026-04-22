@@ -17,6 +17,8 @@ import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { deleteFile } from "@/helper/file-helper";
 import { paymentMethodMapping } from "@/constant/payment-method";
+import { startOfWeek, endOfWeek } from "date-fns";
+import { calculateCommission } from "@/helper/pricing-helper";
 
 // --- Helper untuk Revalidasi (DRY Principle) ---
 function revalidateOrderPaths(orderId: string) {
@@ -285,28 +287,80 @@ export async function completeOrder({
   order_id: string;
 }): Promise<ServerActionReturn<void>> {
   try {
-    const order = await prisma.order.update({
-      where: {
-        id: order_id,
-      },
-      data: {
-        status: "COMPLETED",
-      },
-      select: {
-        customer: {
-          select: {
-            user_id: true,
+    const result = await prisma.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: {
+          id: order_id,
+        },
+        data: {
+          status: "COMPLETED",
+        },
+        select: {
+          customer: {
+            select: {
+              user_id: true,
+            },
+          },
+          shop_id: true,
+          order_items: {
+            select: {
+              quantity: true,
+            },
           },
         },
-        shop_id: true,
-      },
+      });
+
+      // --- LOGIKA BILLING (Tagihan Mingguan) ---
+      const totalQty = order.order_items.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+      );
+      const commission = calculateCommission(totalQty);
+
+      const now = new Date();
+      // Menggunakan weekStartsOn: 1 agar minggu dimulai dari hari Senin
+      const startDate = startOfWeek(now, { weekStartsOn: 1 });
+      const endDate = endOfWeek(now, { weekStartsOn: 1 });
+
+      // Cari atau buat billing untuk minggu ini
+      const existingBilling = await tx.shopBilling.findFirst({
+        where: {
+          shop_id: order.shop_id,
+          start_date: startDate,
+          end_date: endDate,
+        },
+      });
+
+      if (existingBilling) {
+        await tx.shopBilling.update({
+          where: { id: existingBilling.id },
+          data: {
+            subtotal: { increment: commission },
+            total: { increment: commission },
+          },
+        });
+      } else {
+        await tx.shopBilling.create({
+          data: {
+            shop_id: order.shop_id,
+            start_date: startDate,
+            end_date: endDate,
+            subtotal: commission,
+            refund: 0,
+            total: commission,
+            status: "UNPAID",
+          },
+        });
+      }
+
+      return order;
     });
 
     const notificationRef = adminDb.collection("notifications");
 
     // Send notification
     const notificationData = {
-      recipientId: order.customer.user_id,
+      recipientId: result.customer.user_id,
       type: "ORDER",
       subType: "ACCEPTED",
       title: "Order Selesai",
@@ -322,7 +376,7 @@ export async function completeOrder({
     // Update doc order untuk realtime trigger
     const orderRef = adminDb.collection("orders").doc(order_id);
 
-    orderRef.update({
+    await orderRef.update({
       lastUpdatedAt: FieldValue.serverTimestamp(),
     });
 
