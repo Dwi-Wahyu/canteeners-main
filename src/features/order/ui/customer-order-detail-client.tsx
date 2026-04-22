@@ -23,7 +23,6 @@ import CancelOrderDialog from "./cancel-order-dialog";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatToHour } from "@/helper/hour-helper";
-import { useState } from "react";
 import { GetCustomerOrderDetail } from "../types/order-queries-types";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
 import {
@@ -38,6 +37,7 @@ import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
 import OrderReviewSection from "./order-review-section";
 import OrderComplaintSection from "./order-complaint-section";
 import { OrderRefundSection } from "./order-refund-section";
+import OrderEstimationCountDown from "./order-estimation-countdown";
 
 export default function CustomerOrderDetailClient({
   order: initialOrder,
@@ -156,10 +156,12 @@ export default function CustomerOrderDetailClient({
 
                 <div>
                   <h1 className="font-semibold">Sisa Waktu</h1>
-                  {/* <OrderEstimationCountDown
-                  estimation={order.estimation}
-                  processed_at={order.processed_at}
-                /> */}
+                  {order.processed_at && order.estimation && (
+                    <OrderEstimationCountDown
+                      estimation={order.estimation}
+                      processed_at={order.processed_at}
+                    />
+                  )}
                 </div>
               </>
             )}
