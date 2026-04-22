@@ -66,7 +66,7 @@ export default function CartItemClient({
     data.product.options.forEach((opt) => {
       const selectedValuesForThisOption = opt.values
         .filter((val) =>
-          data.selected_options.some((selected) => selected.id === val.id)
+          data.selected_options.some((selected) => selected.id === val.id),
         )
         .map((val) => val.id);
 
@@ -86,14 +86,27 @@ export default function CartItemClient({
   const hasChanges = useMemo(() => {
     const quantityChanged = quantity !== data.quantity;
     const noteChanged = note !== (data.note || "");
-    
+
     // Check if options changed
-    const initialValues = Object.values(initialOptionsState).flat().sort().join(",");
-    const currentValues = Object.values(selectedOptions).flat().sort().join(",");
+    const initialValues = Object.values(initialOptionsState)
+      .flat()
+      .sort()
+      .join(",");
+    const currentValues = Object.values(selectedOptions)
+      .flat()
+      .sort()
+      .join(",");
     const optionsChanged = initialValues !== currentValues;
 
     return quantityChanged || noteChanged || optionsChanged;
-  }, [quantity, data.quantity, note, data.note, initialOptionsState, selectedOptions]);
+  }, [
+    quantity,
+    data.quantity,
+    note,
+    data.note,
+    initialOptionsState,
+    selectedOptions,
+  ]);
 
   const currentSubtotal = useMemo(() => {
     const basePrice = data.price_at_add;
@@ -118,7 +131,7 @@ export default function CartItemClient({
   function handleMultipleChange(
     optionId: string,
     valueId: string,
-    checked: boolean
+    checked: boolean,
   ) {
     setSelectedOptions((prev) => {
       const currentValues = prev[optionId] || [];
@@ -180,23 +193,19 @@ export default function CartItemClient({
 
         {/* Details */}
         <div className="flex-1 flex flex-col gap-2">
-          <h3 className="font-bold text-2xl">
-            {data.product.name}
-          </h3>
-          <p className="text-muted-foreground">
-            {data.product.description}
-          </p>
+          <h3 className="font-bold text-2xl">{data.product.name}</h3>
+
           <div className="mt-2">
-            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Harga Satuan</p>
+            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
+              Harga Satuan
+            </p>
             <p className="font-bold text-xl text-primary">
               {formatRupiah(data.price_at_add)}
             </p>
           </div>
         </div>
       </div>
-
       <hr />
-
       {/* Options Selection */}
       <div className="space-y-4">
         <h4 className="font-bold text-lg flex items-center gap-2">
@@ -205,15 +214,24 @@ export default function CartItemClient({
         </h4>
         <div className="grid gap-4">
           {data.product.options.map((option) => (
-            <div key={option.id} className="rounded-xl border bg-card p-4 shadow-xs">
+            <div
+              key={option.id}
+              className="rounded-xl border bg-card p-4 shadow-xs"
+            >
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-semibold">{option.option}</h4>
                 <div className="flex gap-1 text-xs">
-                  <Badge variant="outline" className="font-normal text-muted-foreground">
+                  <Badge
+                    variant="outline"
+                    className="font-normal text-muted-foreground"
+                  >
                     {productOptionTypeMapping[option.type]}
                   </Badge>
                   {option.is_required && (
-                    <Badge variant="destructive" className="bg-red-50 text-red-600 border-red-100">
+                    <Badge
+                      variant="destructive"
+                      className="bg-red-50 text-red-600 border-red-100"
+                    >
                       Wajib
                     </Badge>
                   )}
@@ -223,15 +241,18 @@ export default function CartItemClient({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {option.values.map((value) => {
                     const isChecked =
-                      selectedOptions[option.id]?.includes(value.id) ||
-                      false;
+                      selectedOptions[option.id]?.includes(value.id) || false;
                     return (
                       <div
                         key={value.id}
                         className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
-                          isChecked ? "bg-primary/5 border-primary" : "hover:bg-muted/50"
+                          isChecked
+                            ? "bg-primary/5 border-primary"
+                            : "hover:bg-muted/50"
                         }`}
-                        onClick={() => handleMultipleChange(option.id, value.id, !isChecked)}
+                        onClick={() =>
+                          handleMultipleChange(option.id, value.id, !isChecked)
+                        }
                       >
                         <Checkbox
                           id={`opt-${value.id}`}
@@ -239,12 +260,15 @@ export default function CartItemClient({
                           onCheckedChange={() => {}} // Handled by div onClick
                         />
                         <div className="flex-1 flex justify-between items-center cursor-pointer">
-                          <span className="text-sm font-medium">{value.value}</span>
-                          {value.additional_price && value.additional_price > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              +{formatRupiah(value.additional_price)}
-                            </span>
-                          )}
+                          <span className="text-sm font-medium">
+                            {value.value}
+                          </span>
+                          {value.additional_price &&
+                            value.additional_price > 0 && (
+                              <span className="text-xs text-muted-foreground">
+                                +{formatRupiah(value.additional_price)}
+                              </span>
+                            )}
                         </div>
                       </div>
                     );
@@ -253,18 +277,19 @@ export default function CartItemClient({
               ) : (
                 <RadioGroup
                   value={selectedOptions[option.id]?.[0] || ""}
-                  onValueChange={(val) =>
-                    handleSingleChange(option.id, val)
-                  }
+                  onValueChange={(val) => handleSingleChange(option.id, val)}
                   className="grid grid-cols-1 sm:grid-cols-2 gap-3"
                 >
                   {option.values.map((value) => {
-                    const isSelected = selectedOptions[option.id]?.[0] === value.id;
+                    const isSelected =
+                      selectedOptions[option.id]?.[0] === value.id;
                     return (
                       <div
                         key={value.id}
                         className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
-                          isSelected ? "bg-primary/5 border-primary" : "hover:bg-muted/50"
+                          isSelected
+                            ? "bg-primary/5 border-primary"
+                            : "hover:bg-muted/50"
                         }`}
                         onClick={() => handleSingleChange(option.id, value.id)}
                       >
@@ -273,12 +298,15 @@ export default function CartItemClient({
                           id={`opt-${value.id}`}
                         />
                         <div className="flex-1 flex justify-between items-center cursor-pointer">
-                          <span className="text-sm font-medium">{value.value}</span>
-                          {value.additional_price && value.additional_price > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              +{formatRupiah(value.additional_price)}
-                            </span>
-                          )}
+                          <span className="text-sm font-medium">
+                            {value.value}
+                          </span>
+                          {value.additional_price &&
+                            value.additional_price > 0 && (
+                              <span className="text-xs text-muted-foreground">
+                                +{formatRupiah(value.additional_price)}
+                              </span>
+                            )}
                         </div>
                       </div>
                     );
@@ -289,10 +317,12 @@ export default function CartItemClient({
           ))}
         </div>
       </div>
-
       {/* Note Section */}
       <div className="space-y-2">
-        <Label htmlFor="item-note" className="font-bold text-lg flex items-center gap-2">
+        <Label
+          htmlFor="item-note"
+          className="font-bold text-lg flex items-center gap-2"
+        >
           <Pencil className="w-5 h-5 text-primary" />
           Catatan Pesanan
         </Label>
@@ -304,9 +334,7 @@ export default function CartItemClient({
           className="min-h-24 rounded-xl resize-none bg-muted/20"
         />
       </div>
-
       <div className="h-24" /> {/* Spacer for sticky button */}
-
       {/* Bottom Sticky Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-20">
         <div className="max-w-md mx-auto flex items-center gap-4">
@@ -339,7 +367,9 @@ export default function CartItemClient({
             disabled={!hasChanges || isPending}
             className="flex-1 h-12 text-lg font-bold rounded-xl shadow-lg shadow-primary/20"
           >
-            {isPending ? "Menyimpan..." : (
+            {isPending ? (
+              "Menyimpan..."
+            ) : (
               <div className="flex justify-between items-center w-full px-2">
                 <span>Simpan</span>
                 <span>{formatRupiah(currentSubtotal)}</span>
@@ -348,7 +378,6 @@ export default function CartItemClient({
           </Button>
         </div>
       </div>
-
       <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

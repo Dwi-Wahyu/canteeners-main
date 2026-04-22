@@ -98,16 +98,19 @@ export default async function ShopDetail({
                   className="w-full flex justify-between items-center bg-primary text-primary-foreground px-6 py-4 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-[0.98]"
                 >
                   <div className="flex gap-3 items-center">
-                    <div className="bg-primary-foreground/20 p-2 rounded-lg">
-                      <ShoppingCart className="w-5 h-5" />
-                    </div>
                     <div className="flex flex-col items-start">
-                      <span className="font-bold text-lg leading-none">Lihat Keranjang</span>
-                      <span className="text-xs opacity-80">{pendingShopCart._count.items} Item pesanan</span>
+                      <span className="font-bold text-lg leading-none">
+                        Lihat Keranjang
+                      </span>
+                      <span className="text-xs opacity-80">
+                        {pendingShopCart._count.items} Item pesanan
+                      </span>
                     </div>
                   </div>
 
-                  <h1 className="text-xl font-bold">{formatRupiah(pendingShopCart.total_price)}</h1>
+                  <h1 className="text-xl font-bold">
+                    {formatRupiah(pendingShopCart.total_price)}
+                  </h1>
                 </Link>
               </div>
             </div>
