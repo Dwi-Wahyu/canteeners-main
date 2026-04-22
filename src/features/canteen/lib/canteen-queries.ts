@@ -114,11 +114,24 @@ export async function getCanteenBySlug(
             },
           },
           products: {
-            select: {
-              id: true,
-              name: true,
-              image_url: true,
-              price: true,
+            include: {
+              _count: {
+                select: {
+                  order_items: {
+                    where: {
+                      order: {
+                        status: "COMPLETED",
+                      },
+                    },
+                  },
+                },
+              },
+              options: {
+                orderBy: { is_required: "desc" },
+                include: {
+                  values: true,
+                },
+              },
             },
           },
           owner: {

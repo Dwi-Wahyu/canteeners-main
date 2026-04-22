@@ -13,22 +13,54 @@ import { GetCanteenBySlug } from "../types/canteen-queries-types";
 import CashIcon from "@/components/icons/cash-icon";
 import { CanteenCategoryFilter } from "./canteen-category-filter";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import AddToCartDialog from "@/features/product/ui/add-to-cart-dialog";
+import { CartSummary } from "@/features/cart/ui/cart-summary";
+import { Session } from "next-auth";
+import { Plus } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function CanteenClient({
   canteen,
   categories,
+  session,
 }: {
   canteen: GetCanteenBySlug;
   categories: any[];
+  session: Session | null;
 }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const currentUrl = encodeURIComponent(
+    `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
+  );
+
   const allProducts = canteen.shops.flatMap((shop) =>
     shop.products.map((product) => ({
       ...product,
       shop_id: shop.id,
       shop_name: shop.name,
-    }))
+    })),
   );
+
+  function handleAddClick(e: React.MouseEvent, product: any) {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedProduct(product);
+    setIsDialogOpen(true);
+  }
+
+  function handleAddToCartSuccess() {
+    queryClient.invalidateQueries({ queryKey: ["cart", session?.user.cartId] });
+  }
 
   return (
     <div>
@@ -38,14 +70,14 @@ export default function CanteenClient({
 
       <CanteenCategoryFilter categories={categories} />
 
-      <Tabs defaultValue="kedai" className="w-full">
+      <Tabs defaultValue="menu" className="w-full">
         <div className="px-5">
           <TabsList className="w-full">
-            <TabsTrigger value="kedai" className="w-full">
-              Kedai
-            </TabsTrigger>
             <TabsTrigger value="menu" className="w-full">
               Menu
+            </TabsTrigger>
+            <TabsTrigger value="kedai" className="w-full">
+              Kedai
             </TabsTrigger>
           </TabsList>
         </div>
@@ -68,7 +100,11 @@ export default function CanteenClient({
               </div>
             ) : (
               canteen.shops.map((shop, idx) => (
-                <Link className="group" href={`/kedai/${shop.id}`} key={idx}>
+                <Link
+                  className="group"
+                  href={`/kedai/${shop.id}?back_url=${currentUrl}`}
+                  key={idx}
+                >
                   <Card>
                     <CardContent className="flex gap-4">
                       <img
@@ -160,41 +196,60 @@ export default function CanteenClient({
               </div>
             ) : (
               allProducts.map((product, idx) => (
-                <Link
-                  className="group"
-                  href={`/kedai/${product.shop_id}/${product.id}`}
-                  key={idx}
-                >
-                  <Card>
-                    <CardContent className="flex gap-4">
-                      <img
-                        src={getImageUrl("/product/" + product.image_url)}
-                        alt=""
-                        className="aspect-square shadow rounded-lg w-1/3 object-cover"
-                      />
+                <div key={idx} className="relative group">
+                  <Link
+                    href={`/kedai/${product.shop_id}/${product.id}?back_url=${currentUrl}`}
+                    className="block"
+                  >
+                    <Card>
+                      <CardContent className="flex gap-4 p-4">
+                        <img
+                          src={getImageUrl("/product/" + product.image_url)}
+                          alt=""
+                          className="aspect-square shadow rounded-lg w-1/3 object-cover"
+                        />
 
-                      <div className="flex flex-col justify-between w-full">
-                        <div>
-                          <h1 className="font-semibold">{product.name}</h1>
-                          <p className="text-sm text-muted-foreground">
-                            {product.shop_name}
-                          </p>
-                        </div>
+                        <div className="flex flex-col justify-between w-full">
+                          <div>
+                            <h1 className="font-semibold">{product.name}</h1>
+                            <p className="text-sm text-muted-foreground">
+                              {product.shop_name}
+                            </p>
+                          </div>
 
-                        <div className="flex justify-between items-center mt-2">
-                          <p className="font-semibold text-primary">
+                          <p className="font-semibold text-primary mt-2">
                             {formatRupiah(product.price)}
                           </p>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                      </CardContent>
+                    </Card>
+                  </Link>
+
+                  <Button
+                    size="icon"
+                    className="h-8 w-8 rounded-full absolute bottom-4 right-4 z-10"
+                    onClick={(e) => handleAddClick(e, product)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               ))
             )}
           </div>
         </TabsContent>
       </Tabs>
+
+      {selectedProduct && (
+        <AddToCartDialog
+          product={selectedProduct}
+          cartId={session?.user.cartId}
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onSuccess={handleAddToCartSuccess}
+        />
+      )}
+
+      {session?.user.cartId && <CartSummary cartId={session.user.cartId} />}
     </div>
   );
 }

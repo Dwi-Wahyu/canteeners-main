@@ -9,13 +9,13 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Check, Dot, Loader, Loader2, Minus, Plus, Star } from "lucide-react";
 import { productOptionTypeMapping } from "@/constant/product-mapping";
-import { notificationDialog } from "@/hooks/use-notification-dialog";
-import Link from "next/link";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { GetProductById } from "../types/product-queries-types";
 import { getImageUrl } from "@/helper/get-image-url";
 import { addToCart } from "@/features/cart/lib/cart-actions";
 import { createGuestSession } from "@/helper/create-guest-session";
+
+import { useRouter } from "next/navigation";
 
 export default function GuestProductDetail({
   data,
@@ -24,11 +24,10 @@ export default function GuestProductDetail({
   data: NonNullable<GetProductById>;
   cartId: string | undefined;
 }) {
+  const router = useRouter();
   // Gunakan State atau Ref untuk menyimpan cartId yang mungkin berubah dan butuh nilainya instan tanpa menunggu re-render untuk logika,
   // tapi useState juga oke jika ingin memicu UI update.
   const activeCartId = useRef(initialCartId);
-
-  const [added, setAdded] = useState(false);
 
   // Update ref jika prop berubah (misal setelah refresh halaman)
   useEffect(() => {
@@ -76,6 +75,7 @@ export default function GuestProductDetail({
 
   // Fungsi Validasi
   function validateOptions(): boolean {
+    if (!data.options) return true;
     for (const option of data.options) {
       if (option.is_required) {
         const selected = selectedOptions[option.id];
@@ -97,10 +97,10 @@ export default function GuestProductDetail({
     const allSelectedIds = Object.values(selectedOptions).flat();
 
     // Cari harga tambahannya
-    const additionalPriceTotal = data.options
-      .flatMap((opt) => opt.values) // Gabungkan semua values dari semua options
-      .filter((val) => allSelectedIds.includes(val.id)) // Ambil yang dipilih saja
-      .reduce((acc, curr) => acc + (curr.additional_price || 0), 0); // Jumlahkan
+    const additionalPriceTotal = (data.options || [])
+      .flatMap((opt) => opt.values)
+      .filter((val) => allSelectedIds.includes(val.id))
+      .reduce((acc, curr) => acc + (curr.additional_price || 0), 0);
 
     return (basePrice + additionalPriceTotal) * quantity;
   }
@@ -136,33 +136,10 @@ export default function GuestProductDetail({
     });
 
     if (result.success) {
-      notificationDialog.success({
-        title: "Sukses!",
-        message: "Mau lanjut belanja atau langsung checkout?",
-        actionButtons: (
-          <div className="flex gap-2 justify-center">
-            <Button onClick={notificationDialog.hide} variant={"outline"}>
-              Lanjut Belanja
-            </Button>
-            <Link
-              className="cursor-pointer"
-              href={"/keranjang/" + result.data?.shopCartId}
-              passHref
-            >
-              <Button variant="default" onClick={notificationDialog.hide}>
-                Lihat Keranjang
-              </Button>
-            </Link>
-          </div>
-        ),
-      });
-
-      setAdded(true);
+      toast.success("Berhasil ditambahkan ke keranjang");
+      router.back();
     } else {
-      notificationDialog.error({
-        title: "Gagal Tambahkan Ke Keranjang",
-        message: "Coba lagi nanti",
-      });
+      toast.error("Gagal menambahkan ke keranjang");
     }
 
     setIsLoading(false);
@@ -181,19 +158,19 @@ export default function GuestProductDetail({
       <div>
         <CardTitle className="text-xl">{data.name}</CardTitle>
         <CardDescription className="text-lg">
-          {data.description}
+          {data.description || ""}
         </CardDescription>
       </div>
 
       <div className="flex gap-2 items-center">
         <h1 className="flex gap-1 items-center">
           <Star className="w-4 h-4" />
-          {data.average_rating}
+          {data.average_rating || 0}
         </h1>
 
         <Dot />
 
-        <h1 className="">Terjual {data._count.order_items}</h1>
+        <h1 className="">Terjual {data._count?.order_items ?? 0}</h1>
 
         <Dot />
 
@@ -201,7 +178,7 @@ export default function GuestProductDetail({
       </div>
 
       {/* Render Options */}
-      {data.options.map((option) => (
+      {data.options?.map((option) => (
         <div
           key={option.id}
           className="rounded-lg p-4 bg-accent/30 border border-accent"
@@ -311,24 +288,15 @@ export default function GuestProductDetail({
       <Button
         className="mt-2 py-6 flex justify-between items-center"
         onClick={handleAddToCart}
-        disabled={isLoading || added}
+        disabled={isLoading}
         size={"lg"}
       >
-        {isLoading && (
+        {isLoading ? (
           <div className="flex items-center gap-2 w-full justify-center">
             <Loader2 className="animate-spin" />
             Menambahkan...
           </div>
-        )}
-
-        {added && (
-          <div className="flex items-center gap-2 justify-center w-full">
-            <Check />
-            <h1>Ditambahkan ke keranjang</h1>
-          </div>
-        )}
-
-        {!added && !isLoading && (
+        ) : (
           <>
             <h1>Tambah Ke Keranjang</h1>
             <h1>Rp{calculateTotalPrice()}</h1>

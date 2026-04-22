@@ -61,21 +61,6 @@ export default function CartItemClient({
   const [quantity, setQuantity] = useState(data.quantity);
   const [note, setNote] = useState(data.note || "");
 
-  // gunakan useMemo agar tidak dihitung ulang setiap render jika data tidak berubah
-  const currentSubtotal = useMemo(() => {
-    // Hitung total harga opsi yang sedang terpilih (dari data awal)
-    const optionsTotal = data.selected_options.reduce(
-      (sum, opt) => sum + (opt.additional_price || 0),
-      0
-    );
-
-    // Hitung Harga Satuan Dasar + Opsi (Tanpa Komisi)
-    const baseUnitPriceTotal = data.price_at_add + optionsTotal;
-
-    // Kalikan dengan Quantity State + Komisi bertingkat (Estimasi)
-    return baseUnitPriceTotal * quantity + calculateCommission(quantity);
-  }, [data.price_at_add, data.selected_options, quantity]);
-
   const initialOptionsState = useMemo(() => {
     const state: Record<string, string[]> = {};
     data.product.options.forEach((opt) => {
@@ -95,11 +80,33 @@ export default function CartItemClient({
   const [selectedOptions, setSelectedOptions] =
     useState<Record<string, string[]>>(initialOptionsState);
 
-  const [isNoteDialogOpen, setIsNoteDialogOpen] = useState(false);
-  const [isOptionDialogOpen, setIsOptionDialogOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  const hasQuantityChanges = quantity !== data.quantity;
+  // Check for any changes
+  const hasChanges = useMemo(() => {
+    const quantityChanged = quantity !== data.quantity;
+    const noteChanged = note !== (data.note || "");
+    
+    // Check if options changed
+    const initialValues = Object.values(initialOptionsState).flat().sort().join(",");
+    const currentValues = Object.values(selectedOptions).flat().sort().join(",");
+    const optionsChanged = initialValues !== currentValues;
+
+    return quantityChanged || noteChanged || optionsChanged;
+  }, [quantity, data.quantity, note, data.note, initialOptionsState, selectedOptions]);
+
+  const currentSubtotal = useMemo(() => {
+    const basePrice = data.price_at_add;
+    const allSelectedIds = Object.values(selectedOptions).flat();
+
+    const additionalPriceTotal = data.product.options
+      .flatMap((opt) => opt.values)
+      .filter((val) => allSelectedIds.includes(val.id))
+      .reduce((acc, curr) => acc + (curr.additional_price || 0), 0);
+
+    const basePriceTotal = (basePrice + additionalPriceTotal) * quantity;
+    return basePriceTotal + calculateCommission(quantity);
+  }, [selectedOptions, data.product.options, data.price_at_add, quantity]);
 
   function handleSingleChange(optionId: string, valueId: string) {
     setSelectedOptions((prev) => ({
@@ -126,54 +133,8 @@ export default function CartItemClient({
     });
   }
 
-  const previewPrice = useMemo(() => {
-    const basePrice = data.price_at_add;
-    const allSelectedIds = Object.values(selectedOptions).flat();
-
-    const additionalPriceTotal = data.product.options
-      .flatMap((opt) => opt.values)
-      .filter((val) => allSelectedIds.includes(val.id))
-      .reduce((acc, curr) => acc + (curr.additional_price || 0), 0);
-
-    const basePriceTotal = (basePrice + additionalPriceTotal) * quantity;
-    return basePriceTotal + calculateCommission(quantity);
-  }, [selectedOptions, data.product.options, data.price_at_add, quantity]);
-
   const handleSaveChanges = async () => {
-    startTransition(async () => {
-      const result = await changeCartItemDetails({
-        id: data.id,
-        quantity: quantity,
-        note: note,
-      });
-
-      if (result.success) {
-        toast.success("Perubahan berhasil disimpan");
-        setIsConfirmOpen(false);
-      } else {
-        toast.error(result.error.message);
-      }
-    });
-  };
-
-  const handleSaveNote = async () => {
-    startTransition(async () => {
-      const result = await changeCartItemDetails({
-        id: data.id,
-        quantity: quantity,
-        note: note,
-      });
-
-      if (result.success) {
-        toast.success("Catatan disimpan");
-        setIsNoteDialogOpen(false);
-      } else {
-        toast.error(result.error.message);
-      }
-    });
-  };
-
-  const handleSaveOptions = async () => {
+    // Validate required options
     for (const option of data.product.options) {
       if (option.is_required) {
         const selected = selectedOptions[option.id];
@@ -195,8 +156,8 @@ export default function CartItemClient({
       });
 
       if (result.success) {
-        toast.success("Pilihan varian berhasil diperbarui");
-        setIsOptionDialogOpen(false);
+        toast.success("Perubahan berhasil disimpan");
+        setIsConfirmOpen(false);
         router.refresh();
       } else {
         toast.error(result.error.message);
@@ -205,273 +166,201 @@ export default function CartItemClient({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Image */}
-      <div className="relative w-full md:w-48 h-48 md:h-auto shrink-0">
-        <Image
-          src={getImageUrl("/product/" + data.product.image_url)}
-          alt={data.product.name}
-          fill
-          className="object-cover shadow rounded-md"
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Image */}
+        <div className="relative w-full md:w-1/3 aspect-square shrink-0">
+          <Image
+            src={getImageUrl("/product/" + data.product.image_url)}
+            alt={data.product.name}
+            fill
+            className="object-cover shadow rounded-xl"
+          />
+        </div>
+
+        {/* Details */}
+        <div className="flex-1 flex flex-col gap-2">
+          <h3 className="font-bold text-2xl">
+            {data.product.name}
+          </h3>
+          <p className="text-muted-foreground">
+            {data.product.description}
+          </p>
+          <div className="mt-2">
+            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Harga Satuan</p>
+            <p className="font-bold text-xl text-primary">
+              {formatRupiah(data.price_at_add)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      {/* Options Selection */}
+      <div className="space-y-4">
+        <h4 className="font-bold text-lg flex items-center gap-2">
+          <Settings2 className="w-5 h-5 text-primary" />
+          Pilihan Varian & Topping
+        </h4>
+        <div className="grid gap-4">
+          {data.product.options.map((option) => (
+            <div key={option.id} className="rounded-xl border bg-card p-4 shadow-xs">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="font-semibold">{option.option}</h4>
+                <div className="flex gap-1 text-xs">
+                  <Badge variant="outline" className="font-normal text-muted-foreground">
+                    {productOptionTypeMapping[option.type]}
+                  </Badge>
+                  {option.is_required && (
+                    <Badge variant="destructive" className="bg-red-50 text-red-600 border-red-100">
+                      Wajib
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              {option.type === "MULTIPLE" ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {option.values.map((value) => {
+                    const isChecked =
+                      selectedOptions[option.id]?.includes(value.id) ||
+                      false;
+                    return (
+                      <div
+                        key={value.id}
+                        className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
+                          isChecked ? "bg-primary/5 border-primary" : "hover:bg-muted/50"
+                        }`}
+                        onClick={() => handleMultipleChange(option.id, value.id, !isChecked)}
+                      >
+                        <Checkbox
+                          id={`opt-${value.id}`}
+                          checked={isChecked}
+                          onCheckedChange={() => {}} // Handled by div onClick
+                        />
+                        <div className="flex-1 flex justify-between items-center cursor-pointer">
+                          <span className="text-sm font-medium">{value.value}</span>
+                          {value.additional_price && value.additional_price > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{formatRupiah(value.additional_price)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <RadioGroup
+                  value={selectedOptions[option.id]?.[0] || ""}
+                  onValueChange={(val) =>
+                    handleSingleChange(option.id, val)
+                  }
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                >
+                  {option.values.map((value) => {
+                    const isSelected = selectedOptions[option.id]?.[0] === value.id;
+                    return (
+                      <div
+                        key={value.id}
+                        className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer ${
+                          isSelected ? "bg-primary/5 border-primary" : "hover:bg-muted/50"
+                        }`}
+                        onClick={() => handleSingleChange(option.id, value.id)}
+                      >
+                        <RadioGroupItem
+                          value={value.id}
+                          id={`opt-${value.id}`}
+                        />
+                        <div className="flex-1 flex justify-between items-center cursor-pointer">
+                          <span className="text-sm font-medium">{value.value}</span>
+                          {value.additional_price && value.additional_price > 0 && (
+                            <span className="text-xs text-muted-foreground">
+                              +{formatRupiah(value.additional_price)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </RadioGroup>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Note Section */}
+      <div className="space-y-2">
+        <Label htmlFor="item-note" className="font-bold text-lg flex items-center gap-2">
+          <Pencil className="w-5 h-5 text-primary" />
+          Catatan Pesanan
+        </Label>
+        <Textarea
+          id="item-note"
+          placeholder="Contoh: Gak pake seledri ya bang..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          className="min-h-24 rounded-xl resize-none bg-muted/20"
         />
       </div>
 
-      {/* Details */}
-      <div className="flex-1 flex flex-col justify-between">
-        <div>
-          <div className="flex justify-between items-start">
-            <h3 className="font-semibold text-lg line-clamp-2">
-              {data.product.name}
-            </h3>
-            {/* --- UPDATE: TAMPILKAN HARGA KALKULASI (currentSubtotal) --- */}
-            <p className="font-bold text-primary">
-              {formatRupiah(currentSubtotal)}
-            </p>
-          </div>
+      <div className="h-24" /> {/* Spacer for sticky button */}
 
-          <p className="text-muted-foreground text-sm mb-2">
-            Harga Dasar: {formatRupiah(data.price_at_add)}
-          </p>
-
-          <div className="flex flex-wrap items-center gap-2 mt-2 mb-3">
-            {data.selected_options.map((opt) => (
-              <Badge
-                key={opt.id}
-                variant="secondary"
-                className="text-xs font-normal"
-              >
-                {opt.value}
-                {opt.additional_price &&
-                  ` (+${formatRupiah(opt.additional_price)})`}
-              </Badge>
-            ))}
-
-            {data.product.options.length && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-6 text-xs gap-1 px-2"
-                onClick={() => setIsOptionDialogOpen(true)}
-              >
-                <Settings2 className="w-3 h-3" />
-                Ubah
-              </Button>
-            )}
-          </div>
-
-          {/* ... (Bagian Notes tetap sama) ... */}
-          <div
-            className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer hover:text-primary transition-colors mt-2 bg-muted/30 p-2 rounded-md border border-dashed"
-            onClick={() => setIsNoteDialogOpen(true)}
-          >
-            <Pencil className="w-3 h-3" />
-            {data.note ? (
-              <span className="italic">"{data.note}"</span>
-            ) : (
-              <span>Tambah catatan pesanan...</span>
-            )}
-          </div>
-        </div>
-
-        {/* Actions Bar */}
-        <div className="flex items-center gap-4 mt-4">
-          <div className="flex flex-1 items-center justify-evenly gap-3 border rounded-lg p-1">
+      {/* Bottom Sticky Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 z-20">
+        <div className="max-w-md mx-auto flex items-center gap-4">
+          <div className="flex items-center gap-3 bg-muted/50 rounded-xl p-1 border">
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-10 w-10 rounded-lg"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               disabled={quantity <= 1 || isPending}
             >
-              <Minus className="h-3 w-3" />
+              <Minus className="h-4 w-4" />
             </Button>
-            <span className="font-medium w-8 text-center text-sm">
+            <span className="font-bold w-6 text-center text-lg">
               {quantity}
             </span>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-10 w-10 rounded-lg"
               onClick={() => setQuantity((q) => q + 1)}
               disabled={isPending}
             >
-              <Plus />
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
 
           <Button
             onClick={() => setIsConfirmOpen(true)}
-            disabled={!hasQuantityChanges}
-            size={"lg"}
-            className="flex-1"
+            disabled={!hasChanges || isPending}
+            className="flex-1 h-12 text-lg font-bold rounded-xl shadow-lg shadow-primary/20"
           >
-            <Save />
-            Simpan
+            {isPending ? "Menyimpan..." : (
+              <div className="flex justify-between items-center w-full px-2">
+                <span>Simpan</span>
+                <span>{formatRupiah(currentSubtotal)}</span>
+              </div>
+            )}
           </Button>
         </div>
       </div>
-
-      <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-start">Catatan Pesanan</DialogTitle>
-            <DialogDescription className="text-start">
-              Tulis catatan untuk item ini
-            </DialogDescription>
-          </DialogHeader>
-          <div className="pb-4">
-            <Textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="min-h-25"
-            />
-          </div>
-          <DialogFooter className="justify-end flex-row">
-            <DialogClose asChild>
-              <Button variant="outline">Batal</Button>
-            </DialogClose>
-            <Button onClick={handleSaveNote} disabled={isPending}>
-              <Save /> Simpan
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isOptionDialogOpen} onOpenChange={setIsOptionDialogOpen}>
-        {/* ... konten dialog opsi (pastikan pakai previewPrice di sini) ... */}
-        <DialogContent className="max-h-[90vh] flex flex-col">
-          {/* ... Header & ScrollArea Loop Options sama ... */}
-          <DialogHeader>
-            <DialogTitle>Ubah Varian & Topping</DialogTitle>
-            <DialogDescription>
-              Sesuaikan pilihan untuk {data.product.name}
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="flex-1 pr-4 -mr-4">
-            <div className="space-y-6 py-2">
-              {data.product.options.map((option) => (
-                <div key={option.id} className="rounded-lg border p-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <h4 className="font-medium">{option.option}</h4>
-                    <div className="flex gap-1 text-xs">
-                      <span className="text-muted-foreground">
-                        {productOptionTypeMapping[option.type]}
-                      </span>
-                      {option.is_required && (
-                        <span className="text-red-500 font-medium">*Wajib</span>
-                      )}
-                    </div>
-                  </div>
-                  {option.type === "MULTIPLE" ? (
-                    <div className="space-y-3">
-                      {option.values.map((value) => {
-                        const isChecked =
-                          selectedOptions[option.id]?.includes(value.id) ||
-                          false;
-                        return (
-                          <div
-                            key={value.id}
-                            className="flex items-center space-x-2"
-                          >
-                            <Checkbox
-                              id={`opt-${value.id}`}
-                              checked={isChecked}
-                              onCheckedChange={(c) =>
-                                handleMultipleChange(
-                                  option.id,
-                                  value.id,
-                                  c as boolean
-                                )
-                              }
-                            />
-                            <Label
-                              htmlFor={`opt-${value.id}`}
-                              className="flex-1 flex justify-between cursor-pointer"
-                            >
-                              <span>{value.value}</span>
-                              {value.additional_price && (
-                                <span className="text-muted-foreground">
-                                  +{formatRupiah(value.additional_price)}
-                                </span>
-                              )}
-                            </Label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <RadioGroup
-                      value={selectedOptions[option.id]?.[0] || ""}
-                      onValueChange={(val) =>
-                        handleSingleChange(option.id, val)
-                      }
-                    >
-                      {option.values.map((value) => (
-                        <div
-                          key={value.id}
-                          className="flex items-center space-x-2"
-                        >
-                          <RadioGroupItem
-                            value={value.id}
-                            id={`opt-${value.id}`}
-                          />
-                          <Label
-                            htmlFor={`opt-${value.id}`}
-                            className="flex-1 flex justify-between cursor-pointer"
-                          >
-                            <span>{value.value}</span>
-                            {value.additional_price && (
-                              <span className="text-muted-foreground">
-                                +{formatRupiah(value.additional_price)}
-                              </span>
-                            )}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                  )}
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            <div className="flex justify-between items-center w-full sm:w-auto sm:flex-1 mr-4">
-              <span className="text-sm text-muted-foreground">
-                Estimasi Total:
-              </span>
-              {/* Preview price di dialog tetap menggunakan logic previewPrice (berdasarkan opsi yg sedang diedit) */}
-              <span className="font-bold text-primary">
-                {formatRupiah(previewPrice)}
-              </span>
-            </div>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <DialogClose asChild className="flex-1 sm:flex-none">
-                <Button variant="outline">Batal</Button>
-              </DialogClose>
-              <Button
-                onClick={handleSaveOptions}
-                disabled={isPending}
-                className="flex-1 sm:flex-none"
-              >
-                {isPending ? "Menyimpan..." : "Simpan Pilihan"}
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-start">
-              Simpan Perubahan Kuantitas?
+              Simpan Perubahan?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-start">
-              Harga akan dikalkulasi ulang.
+              Semua perubahan pada kuantitas, catatan, dan varian akan disimpan.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row justify-end mt-4">
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogFooter className="flex-row justify-end mt-4 gap-2">
+            <AlertDialogCancel className="mt-0">Batal</AlertDialogCancel>
             <AlertDialogAction onClick={handleSaveChanges}>
               Simpan
             </AlertDialogAction>

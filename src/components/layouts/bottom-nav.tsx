@@ -53,42 +53,6 @@ export function BottomNav() {
           pathname === item.href ||
           (item.href !== "/" && pathname.startsWith(item.href));
 
-        if (item.isMain) {
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex flex-col items-center justify-center -mt-10 transition-all active:scale-95"
-              aria-label={item.label}
-            >
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
-                  boxShadow: "0 6px 24px rgba(220,38,38,0.4)",
-                }}
-              >
-                <span
-                  className="material-symbols-outlined text-white"
-                  style={{
-                    fontSize: 26,
-                    fontVariationSettings: isActive ? "'FILL' 1" : "none",
-                  }}
-                >
-                  {item.icon}
-                </span>
-              </div>
-              <span
-                className="text-[10px] font-bold tracking-wide mt-1"
-                style={{ color: "#DC2626" }}
-              >
-                {item.label}
-              </span>
-            </Link>
-          );
-        }
-
         return (
           <Link
             key={item.href}

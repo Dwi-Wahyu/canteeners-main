@@ -9,6 +9,9 @@ export async function getCart(cart_id: string) {
     },
     include: {
       shop_carts: {
+        where: {
+          order_id: null,
+        },
         orderBy: {
           created_at: "desc",
         },

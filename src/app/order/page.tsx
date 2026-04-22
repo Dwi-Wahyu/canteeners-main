@@ -82,7 +82,10 @@ export default async function OrderHistoryPage() {
                         "CANCELLED",
                         "PAYMENT_REJECTED",
                       ]}
-                      outlineValues={["PENDING_CONFIRMATION", "WAITING_PAYMENT"]}
+                      outlineValues={[
+                        "PENDING_CONFIRMATION",
+                        "WAITING_PAYMENT",
+                      ]}
                     >
                       {
                         orderStatusMapping[
@@ -107,9 +110,7 @@ export default async function OrderHistoryPage() {
                         {(order as any).total_discount_amount > 0 && (
                           <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md font-bold">
                             Hemat{" "}
-                            {formatRupiah(
-                              (order as any).total_discount_amount
-                            )}
+                            {formatRupiah((order as any).total_discount_amount)}
                           </span>
                         )}
                       </div>
@@ -124,13 +125,6 @@ export default async function OrderHistoryPage() {
           ))
         )}
       </main>
-
-      <Link
-        href="/chat"
-        className="fixed bottom-24 right-6 size-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 z-40 active:scale-95 transition-all"
-      >
-        <MessageCircle className="size-6" />
-      </Link>
 
       <BottomNav />
     </div>

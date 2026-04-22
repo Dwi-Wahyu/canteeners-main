@@ -5,6 +5,7 @@ import { SearchParams } from "nuqs";
 import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import { getCategories } from "@/features/category/lib/category-queries";
+import { auth } from "@/config/auth";
 
 export default async function CanteenDetailPage({
   params,
@@ -15,6 +16,8 @@ export default async function CanteenDetailPage({
 }) {
   const { slug } = await params;
   const search = await ShopSearchParams.parse(searchParams);
+
+  const session = await auth();
 
   const validSlug = ["kantin-kudapan", "kantin-sosiologi", "kantin-sastra"];
 
@@ -33,7 +36,7 @@ export default async function CanteenDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      <CanteenClient canteen={canteen} categories={categories} />
+      <CanteenClient canteen={canteen} categories={categories} session={session} />
 
       <BottomNav />
     </div>

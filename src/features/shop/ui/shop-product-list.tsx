@@ -1,23 +1,46 @@
 "use client";
 
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import CustomerProductCard from "@/features/product/ui/customer-product-card";
 import NoProductFound from "./no-product-found";
 import { GetShopAndProducts } from "../types/shop-queries-types";
 import { useQueryState } from "nuqs";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import AddToCartDialog from "@/features/product/ui/add-to-cart-dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ShopProductList({
   shop,
+  cartId,
 }: {
   shop: GetShopAndProducts;
+  cartId?: string;
 }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
+
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const currentUrl = encodeURIComponent(`${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`);
+
   const [productName, setProductName] = useQueryState("productName", {
     shallow: false,
     clearOnDefault: true,
     defaultValue: "",
   });
+
+  function handleAddClick(product: any) {
+    setSelectedProduct({ ...product, shop_id: shop.id });
+    setIsDialogOpen(true);
+  }
+
+  function handleAddToCartSuccess() {
+    queryClient.invalidateQueries({ queryKey: ["cart", cartId] });
+  }
 
   return (
     <div className="w-full pb-10">
@@ -40,13 +63,24 @@ export default function ShopProductList({
             <CustomerProductCard
               product={product}
               key={product.id}
-              product_url={`/kedai/${shop.id}/${product.id}`}
+              product_url={`/kedai/${shop.id}/${product.id}?back_url=${currentUrl}`}
+              onAddClick={() => handleAddClick(product)}
             />
           ))}
         </div>
       )}
 
       {shop.products.length === 0 && <NoProductFound />}
+
+      {selectedProduct && (
+        <AddToCartDialog
+          product={selectedProduct}
+          cartId={cartId}
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onSuccess={handleAddToCartSuccess}
+        />
+      )}
     </div>
   );
 }
