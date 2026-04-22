@@ -4,7 +4,6 @@ import { getCanteenBySlug } from "@/features/canteen/lib/canteen-queries";
 import { SearchParams } from "nuqs";
 import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
 import { BottomNav } from "@/components/layouts/bottom-nav";
-import { auth } from "@/config/auth";
 import { getCategories } from "@/features/category/lib/category-queries";
 
 export default async function CanteenDetailPage({
@@ -34,10 +33,7 @@ export default async function CanteenDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      <CanteenClient
-        canteen={canteen}
-        categories={categories}
-      />
+      <CanteenClient canteen={canteen} categories={categories} />
 
       <BottomNav />
     </div>

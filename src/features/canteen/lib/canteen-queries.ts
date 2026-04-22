@@ -113,6 +113,14 @@ export async function getCanteenBySlug(
               },
             },
           },
+          products: {
+            select: {
+              id: true,
+              name: true,
+              image_url: true,
+              price: true,
+            },
+          },
           owner: {
             select: {
               user_id: true,

@@ -9,7 +9,7 @@ import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import Link from "next/link";
 import CustomBadge from "@/components/custom-badge";
-import { ShoppingBag } from "lucide-react";
+import { MessageCircle, ShoppingBag } from "lucide-react";
 
 export default async function OrderHistoryPage() {
   const session = await auth();
@@ -36,13 +36,16 @@ export default async function OrderHistoryPage() {
               <ShoppingBag className="size-12 text-gray-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Belum ada pesanan</h3>
+              <h3 className="text-lg font-bold text-gray-900">
+                Belum ada pesanan
+              </h3>
               <p className="text-sm text-muted-foreground px-10">
-                Sepertinya kamu belum pesan apa-apa. Yuk, cari makanan enak sekarang!
+                Sepertinya kamu belum pesan apa-apa. Yuk, cari makanan enak
+                sekarang!
               </p>
             </div>
-            <Link 
-              href="/kantin" 
+            <Link
+              href="/kantin"
               className="px-6 py-2 bg-primary text-white rounded-full font-bold shadow-lg shadow-primary/20 transition-all active:scale-95"
             >
               Mulai Belanja
@@ -74,18 +77,28 @@ export default async function OrderHistoryPage() {
                     <CustomBadge
                       value={order.status}
                       successValues={["COMPLETED"]}
-                      destructiveValues={["REJECTED", "CANCELLED", "PAYMENT_REJECTED"]}
+                      destructiveValues={[
+                        "REJECTED",
+                        "CANCELLED",
+                        "PAYMENT_REJECTED",
+                      ]}
                       outlineValues={["PENDING_CONFIRMATION", "WAITING_PAYMENT"]}
                     >
-                      {orderStatusMapping[order.status as keyof typeof orderStatusMapping]}
+                      {
+                        orderStatusMapping[
+                          order.status as keyof typeof orderStatusMapping
+                        ]
+                      }
                     </CustomBadge>
                   </div>
 
                   <div className="border-t border-dashed border-gray-100 pt-3 flex justify-between items-end">
                     <div className="space-y-1">
                       <p className="text-xs text-gray-500">
-                        {order.order_items.length} item • {order.order_items[0]?.product.name}
-                        {order.order_items.length > 1 && ` +${order.order_items.length - 1} lainnya`}
+                        {order.order_items.length} item •{" "}
+                        {order.order_items[0]?.product.name}
+                        {order.order_items.length > 1 &&
+                          ` +${order.order_items.length - 1} lainnya`}
                       </p>
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-primary">
@@ -93,7 +106,10 @@ export default async function OrderHistoryPage() {
                         </p>
                         {(order as any).total_discount_amount > 0 && (
                           <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md font-bold">
-                            Hemat {formatRupiah((order as any).total_discount_amount)}
+                            Hemat{" "}
+                            {formatRupiah(
+                              (order as any).total_discount_amount
+                            )}
                           </span>
                         )}
                       </div>
@@ -108,6 +124,13 @@ export default async function OrderHistoryPage() {
           ))
         )}
       </main>
+
+      <Link
+        href="/chat"
+        className="fixed bottom-24 right-6 size-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 z-40 active:scale-95 transition-all"
+      >
+        <MessageCircle className="size-6" />
+      </Link>
 
       <BottomNav />
     </div>

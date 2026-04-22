@@ -26,7 +26,7 @@ export default function CanteenTopbar({
         </div>
         <Input
           type="text"
-          placeholder="Cari Kedai"
+          placeholder="Cari Kedai atau Menu"
           className="peer pl-9 h-10"
           value={name ?? ""}
           onChange={(e) => setName(e.target.value || null)}

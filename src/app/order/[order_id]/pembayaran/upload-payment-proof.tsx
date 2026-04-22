@@ -14,6 +14,7 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Copy, CopyCheck, Download, Loader2, Send } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -32,6 +33,7 @@ export default function UploadPaymentProof({
   order: GetOrderAndPaymentMethod;
   order_id: string;
 }) {
+  const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [copied, setCopied] = useState(false);
 
@@ -82,7 +84,8 @@ export default function UploadPaymentProof({
       if (result.success) {
         notificationDialog.success({
           title: "Sukses",
-          message: "Bukti pembayaran berhasil di kirim",
+          message: "Bukti pembayaran berhasil di kirim, mengalihkan ke detail order...",
+          showLoadingBar: true,
           actionButtons: (
             <div className="">
               <NavButton href={"/chat/" + order.conversation_id}>
@@ -91,6 +94,11 @@ export default function UploadPaymentProof({
             </div>
           ),
         });
+
+        setTimeout(() => {
+          notificationDialog.hide();
+          router.push("/order/" + order_id);
+        }, 2000);
       } else {
         notificationDialog.error({
           title: "Gagal",
