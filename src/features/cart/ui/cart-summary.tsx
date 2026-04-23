@@ -5,8 +5,11 @@ import { getCart } from "../lib/cart-queries";
 import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { formatRupiah } from "@/helper/format-rupiah";
+import { useCartAnimationStore } from "@/stores/use-cart-animation-store";
+import { cn } from "@/lib/utils";
 
 export function CartSummary({ cartId }: { cartId: string }) {
+  const { isShaking } = useCartAnimationStore();
   const { data: cart } = useQuery({
     queryKey: ["cart", cartId],
     queryFn: () => getCart(cartId),
@@ -28,9 +31,25 @@ export function CartSummary({ cartId }: { cartId: string }) {
 
   return (
     <div className="fixed bottom-24 left-0 w-full px-5 z-40">
+      <style jsx global>{`
+        @keyframes cart-shake {
+          0% { transform: scale(1); }
+          25% { transform: scale(1.05) rotate(2deg); }
+          50% { transform: scale(1.05) rotate(-2deg); }
+          75% { transform: scale(1.05) rotate(2deg); }
+          100% { transform: scale(1); }
+        }
+        .animate-cart-shake {
+          animation: cart-shake 0.4s ease-in-out;
+        }
+      `}</style>
       <Link
+        id="cart-summary"
         href="/keranjang"
-        className="flex items-center justify-between bg-primary text-primary-foreground px-6 py-4 rounded-full shadow-lg active:scale-95 transition-transform"
+        className={cn(
+          "flex items-center justify-between bg-primary text-primary-foreground px-6 py-4 rounded-full shadow-lg active:scale-95 transition-transform",
+          isShaking && "animate-cart-shake"
+        )}
       >
         <div className="flex items-center gap-3">
           <div className="relative">

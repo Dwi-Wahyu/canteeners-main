@@ -17,11 +17,28 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import AddToCartDialog from "@/features/product/ui/add-to-cart-dialog";
 import { CartSummary } from "@/features/cart/ui/cart-summary";
 import { Session } from "next-auth";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { addToCart } from "@/features/cart/lib/cart-actions";
+import { createGuestSession } from "@/helper/create-guest-session";
+import { toast } from "sonner";
+import { getCategories } from "@/features/category/lib/category-queries";
+import { useCartAnimationStore } from "@/stores/use-cart-animation-store";
+
+type ProductWithShopInfo =
+  GetCanteenBySlug["shops"][number]["products"][number] & {
+    shop_id: string;
+    shop_name: string;
+  };
+
+interface FlyingImage {
+  id: string;
+  src: string;
+  startPos: { x: number; y: number };
+  targetPos: { x: number; y: number };
+}
 
 export default function CanteenClient({
   canteen,
@@ -29,21 +46,25 @@ export default function CanteenClient({
   session,
 }: {
   canteen: GetCanteenBySlug;
-  categories: any[];
+  categories: Awaited<ReturnType<typeof getCategories>>;
   session: Session | null;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const { triggerShake } = useCartAnimationStore();
 
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loadingProductId, setLoadingProductId] = useState<string | null>(null);
+  const [activeCartId, setActiveCartId] = useState<string | null>(
+    session?.user.cartId || null,
+  );
+  const [flyingImage, setFlyingImage] = useState<FlyingImage | null>(null);
 
   const currentUrl = encodeURIComponent(
     `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`,
   );
 
-  const allProducts = canteen.shops.flatMap((shop) =>
+  const allProducts: ProductWithShopInfo[] = canteen.shops.flatMap((shop) =>
     shop.products.map((product) => ({
       ...product,
       shop_id: shop.id,
@@ -51,19 +72,134 @@ export default function CanteenClient({
     })),
   );
 
-  function handleAddClick(e: React.MouseEvent, product: any) {
+  async function handleAddClick(
+    e: React.MouseEvent,
+    product: ProductWithShopInfo,
+  ) {
     e.preventDefault();
     e.stopPropagation();
-    setSelectedProduct(product);
-    setIsDialogOpen(true);
-  }
 
-  function handleAddToCartSuccess() {
-    queryClient.invalidateQueries({ queryKey: ["cart", session?.user.cartId] });
+    if (loadingProductId) return;
+
+    // Animation logic
+    const imgElement = e.currentTarget.closest(".group")?.querySelector("img");
+    const cartElement = document.getElementById("cart-summary");
+
+    if (imgElement && cartElement) {
+      const imgRect = imgElement.getBoundingClientRect();
+      const cartRect = cartElement.getBoundingClientRect();
+
+      const startPos = {
+        x: imgRect.left + imgRect.width / 2,
+        y: imgRect.top + imgRect.height / 2,
+      };
+
+      const targetPos = {
+        x: cartRect.left + cartRect.width / 2,
+        y: cartRect.top + cartRect.height / 2,
+      };
+
+      setFlyingImage({
+        id: Math.random().toString(),
+        src: getImageUrl("/product/" + product.image_url),
+        startPos,
+        targetPos,
+      });
+
+      // Duration should match CSS animation
+      setTimeout(() => {
+        setFlyingImage(null);
+        triggerShake();
+      }, 600);
+    }
+
+    setLoadingProductId(product.id);
+
+    try {
+      let cartId = activeCartId;
+
+      if (!cartId) {
+        const { cartId: createdCartId } = await createGuestSession({
+          name: "",
+        });
+
+        if (!createdCartId) {
+          toast.error("Gagal membuat sesi tamu, silakan coba lagi");
+          return;
+        }
+        cartId = createdCartId;
+        setActiveCartId(cartId);
+      }
+
+      // Collect required options: use first value for each required option
+      const selected_option_value_ids: string[] = [];
+      if (product.options) {
+        product.options.forEach((option) => {
+          if (option.is_required && option.values && option.values.length > 0) {
+            selected_option_value_ids.push(option.values[0].id);
+          }
+        });
+      }
+
+      const result = await addToCart({
+        cartId: cartId!,
+        shopId: product.shop_id,
+        productId: product.id,
+        quantity: 1,
+        selected_option_value_ids,
+      });
+
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ["cart", cartId] });
+      } else {
+        toast.error(result.error.message || "Gagal menambahkan ke keranjang");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      toast.error("Terjadi kesalahan saat menambahkan ke keranjang");
+    } finally {
+      setLoadingProductId(null);
+    }
   }
 
   return (
     <div>
+      <style jsx global>{`
+        @keyframes fly-to-cart {
+          0% {
+            transform: translate(0, 0) scale(1) rotate(0deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(var(--target-x), var(--target-y)) scale(0.1)
+              rotate(720deg);
+            opacity: 0.5;
+          }
+        }
+        .animate-fly-to-cart {
+          animation: fly-to-cart 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+            forwards;
+          pointer-events: none;
+          z-index: 100;
+        }
+      `}</style>
+
+      {flyingImage && (
+        <img
+          key={flyingImage.id}
+          src={flyingImage.src}
+          alt=""
+          className="fixed w-20 h-20 object-cover rounded-lg animate-fly-to-cart"
+          style={{
+            top: flyingImage.startPos.y - 40,
+            left: flyingImage.startPos.x - 40,
+            // @ts-expect-error - CSS variables in style object
+            "--target-x": `${flyingImage.targetPos.x - flyingImage.startPos.x}px`,
+            "--target-y": `${flyingImage.targetPos.y - flyingImage.startPos.y}px`,
+          }}
+        />
+      )}
+
       <Suspense fallback={<div className="p-4 h-16" />}>
         <CanteenTopbar shopCount={canteen.shops.length} />
       </Suspense>
@@ -202,7 +338,7 @@ export default function CanteenClient({
                     className="block"
                   >
                     <Card>
-                      <CardContent className="flex gap-4 p-4">
+                      <CardContent className="flex gap-4">
                         <img
                           src={getImageUrl("/product/" + product.image_url)}
                           alt=""
@@ -229,8 +365,13 @@ export default function CanteenClient({
                     size="icon"
                     className="h-8 w-8 rounded-full absolute bottom-4 right-4 z-10"
                     onClick={(e) => handleAddClick(e, product)}
+                    disabled={loadingProductId === product.id}
                   >
-                    <Plus className="h-4 w-4" />
+                    {loadingProductId === product.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               ))
@@ -239,17 +380,7 @@ export default function CanteenClient({
         </TabsContent>
       </Tabs>
 
-      {selectedProduct && (
-        <AddToCartDialog
-          product={selectedProduct}
-          cartId={session?.user.cartId}
-          isOpen={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          onSuccess={handleAddToCartSuccess}
-        />
-      )}
-
-      {session?.user.cartId && <CartSummary cartId={session.user.cartId} />}
+      {activeCartId && <CartSummary cartId={activeCartId} />}
     </div>
   );
 }
