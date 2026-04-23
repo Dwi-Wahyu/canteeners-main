@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { GetShopAndProducts } from "@/features/shop/types/shop-queries-types";
 import { getImageUrl } from "@/helper/get-image-url";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/helper/format-rupiah";
@@ -10,10 +10,12 @@ export default function CustomerProductCard({
   product,
   product_url,
   onAddClick,
+  isLoading,
 }: {
   product: GetShopAndProducts["products"][number];
   product_url: string;
   onAddClick?: (e: React.MouseEvent) => void;
+  isLoading?: boolean;
 }) {
   return (
     <div className="relative group">
@@ -59,8 +61,13 @@ export default function CustomerProductCard({
           e.stopPropagation();
           onAddClick?.(e);
         }}
+        disabled={isLoading}
       >
-        <Plus className="h-5 h-5" />
+        {isLoading ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <Plus className="h-5 w-5" />
+        )}
       </Button>
     </div>
   );

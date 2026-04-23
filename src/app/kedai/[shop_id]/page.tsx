@@ -18,6 +18,8 @@ interface IndexPageProps {
   searchParams: Promise<SearchParams>;
 }
 
+import ShopDetailClient from "@/features/shop/ui/shop-detail-client";
+
 export default async function ShopDetail({
   params,
   searchParams,
@@ -88,33 +90,11 @@ export default async function ShopDetail({
 
       <div className="relative z-30 mt-[20vh] w-full bg-background min-h-screen shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
         <div className="p-5">
-          <ShopProductList shop={shop} cartId={session?.user.cartId} />
-
-          {pendingShopCart && pendingShopCart._count.items > 0 && (
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md border-t z-50">
-              <div className="max-w-md mx-auto">
-                <Link
-                  href={"/keranjang/" + pendingShopCart.id}
-                  className="w-full flex justify-between items-center bg-primary text-primary-foreground px-6 py-4 rounded-xl shadow-lg shadow-primary/20 hover:opacity-90 transition-all active:scale-[0.98]"
-                >
-                  <div className="flex gap-3 items-center">
-                    <div className="flex flex-col items-start">
-                      <span className="font-bold text-lg leading-none">
-                        Lihat Keranjang
-                      </span>
-                      <span className="text-xs opacity-80">
-                        {pendingShopCart._count.items} Item pesanan
-                      </span>
-                    </div>
-                  </div>
-
-                  <h1 className="text-xl font-bold">
-                    {formatRupiah(pendingShopCart.total_price)}
-                  </h1>
-                </Link>
-              </div>
-            </div>
-          )}
+          <ShopDetailClient
+            shop={shop}
+            cartId={session?.user.cartId}
+            pendingShopCart={pendingShopCart}
+          />
         </div>
       </div>
     </div>

@@ -9,22 +9,127 @@ import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { formatRupiah } from "@/helper/format-rupiah";
 import SnkCheckoutDialog from "@/features/cart/ui/snk-checkout-dialog";
-import CartItemCard from "@/features/cart/ui/cart-item-card";
 import PostOrderTypeTab from "@/features/cart/ui/post-order-type-tab";
 import { processShopCart } from "@/features/cart/lib/cart-actions";
 import ShopCartPaymentMethod from "@/features/cart/ui/shop-cart-payment-method";
 import NavButton from "@/components/nav-button";
-import { GetShopCartType } from "../types/cart-queries-types";
 import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Store, Loader2 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Store, Loader2, Pencil, StickyNote } from "lucide-react";
 import { formatToHour } from "@/helper/hour-helper";
 import ReferralSection from "./referral-section";
 import { toast } from "sonner";
 import { useRouter } from "nextjs-toploader/app";
 import VoucherSelectionDialog from "./voucher-selection-dialog";
 import { calculateCommission } from "@/helper/pricing-helper";
+import { getImageUrl } from "@/helper/get-image-url";
+import { Input } from "@/components/ui/input";
+import { changeCartItemDetails } from "@/features/cart/lib/cart-actions";
+import {
+  GetShopCartType,
+  GetShopCartItemType,
+} from "../types/cart-queries-types";
+
+function CartItemRow({
+  item,
+  shopCartId,
+  disabled,
+}: {
+  item: GetShopCartItemType;
+  shopCartId: string;
+  disabled: boolean;
+}) {
+  const router = useRouter();
+  const [qty, setQty] = useState(item.quantity);
+  const [isPending, startTransition] = useTransition();
+
+  async function handleChangeQuantity(newQty: number) {
+    if (newQty < 1) return;
+
+    setQty(newQty);
+
+    startTransition(async () => {
+      const result = await changeCartItemDetails({
+        id: item.id,
+        quantity: newQty,
+        note: item.note,
+      });
+
+      if (result.success) {
+        // toast.success("Perubahan disimpan");
+        router.refresh();
+      } else {
+        // toast.error("Gagal menyimpan perubahan");
+        setQty(item.quantity);
+      }
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-2 py-3 border-b last:border-0">
+      <div className="flex justify-between items-start">
+        <div className="flex flex-col gap-1">
+          {item.selected_options.length > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {item.selected_options
+                .map((opt) => `${opt.product_option.option}: ${opt.value}`)
+                .join(", ")}
+            </p>
+          )}
+          {item.note && (
+            <div className="flex gap-1 items-center text-xs text-muted-foreground">
+              <StickyNote className="w-3 h-3" />
+              <p>{item.note}</p>
+            </div>
+          )}
+          <p className="font-medium text-sm">{formatRupiah(item.subtotal)}</p>
+        </div>
+
+        <Link href={`/keranjang/${shopCartId}/${item.id}`}>
+          <Button size="icon" variant="ghost" className="h-8 w-8">
+            <Pencil className="w-4 h-4 text-muted-foreground" />
+          </Button>
+        </Link>
+      </div>
+
+      <div className="flex gap-2 items-center">
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-8 w-8"
+          onClick={() => handleChangeQuantity(qty - 1)}
+          disabled={qty <= 1 || isPending || disabled}
+        >
+          -
+        </Button>
+        <Input
+          type="number"
+          value={qty}
+          onChange={(e) => handleChangeQuantity(Number(e.target.value))}
+          className="w-12 h-8 text-center p-0 text-xs"
+          min={1}
+          disabled={isPending || disabled}
+        />
+        <Button
+          size="icon"
+          variant="outline"
+          className="h-8 w-8"
+          onClick={() => handleChangeQuantity(qty + 1)}
+          disabled={isPending || disabled}
+        >
+          +
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function ShopCartClient({
   userId,
@@ -158,6 +263,18 @@ export default function ShopCartClient({
   // Apakah kedai benar-benar bisa menerima order
   const canOrder = !isNotActive && !isOutsideHours;
 
+  const groupedItems = shopCart.items.reduce(
+    (acc, item) => {
+      const productName = item.product.name;
+      if (!acc[productName]) {
+        acc[productName] = [];
+      }
+      acc[productName].push(item);
+      return acc;
+    },
+    {} as Record<string, GetShopCartItemType[]>,
+  );
+
   return (
     <div className="flex flex-col gap-4">
       {!canOrder && (
@@ -191,16 +308,58 @@ export default function ShopCartClient({
       <div className="">
         <h1 className="font-semibold mb-2">Daftar Pesanan</h1>
 
-        <div className="flex flex-col gap-2">
-          {shopCart.items.map((item, idx) => (
-            <CartItemCard
-              cartItem={item}
-              disabled={shopCart.order_id !== null}
-              disabledDeleteButton={shopCart.items.length === 1}
-              cartItemDetailUrl={`/keranjang/${shopCart.id}/${item.id}`}
-              key={idx}
-            />
-          ))}
+        <div className="flex flex-col pb-1 gap-2">
+          <Accordion type="multiple" className="w-full">
+            {Object.entries(groupedItems).map(([productName, items], idx) => {
+              const firstItem = items[0];
+              const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
+              const totalSubtotal = items.reduce(
+                (sum, i) => sum + i.subtotal,
+                0,
+              );
+
+              return (
+                <AccordionItem
+                  value={`item-${idx}`}
+                  key={idx}
+                  className="border rounded-lg px-4 mb-2 last:border-b"
+                >
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex gap-4 items-center">
+                      <img
+                        src={getImageUrl(
+                          "/product/" + firstItem.product.image_url,
+                        )}
+                        alt={productName}
+                        className="rounded-lg object-cover aspect-square w-16 h-16"
+                        onError={(e) =>
+                          (e.currentTarget.src = "/placeholder-image.webp")
+                        }
+                      />
+                      <div className="flex flex-col text-left">
+                        <h1 className="font-semibold">{productName}</h1>
+                        <p className="text-sm text-muted-foreground">
+                          {totalQty} Item • {formatRupiah(totalSubtotal)}
+                        </p>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex flex-col">
+                      {items.map((item) => (
+                        <CartItemRow
+                          key={item.id}
+                          item={item}
+                          shopCartId={shopCart.id}
+                          disabled={shopCart.order_id !== null}
+                        />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </div>
       </div>
 
@@ -252,7 +411,9 @@ export default function ShopCartClient({
 
           <div className="flex flex-col items-end">
             <h1>Rp 1.000 / item</h1>
-            <span className="text-[10px]">Potongan 50% jika total lebih dari 2 item</span>
+            <span className="text-[10px]">
+              Potongan 50% jika total lebih dari 2 item
+            </span>
           </div>
         </div>
 
@@ -262,8 +423,8 @@ export default function ShopCartClient({
           <h1>
             {formatRupiah(
               calculateCommission(
-                shopCart.items.reduce((sum, item) => sum + item.quantity, 0)
-              )
+                shopCart.items.reduce((sum, item) => sum + item.quantity, 0),
+              ),
             )}
           </h1>
         </div>
