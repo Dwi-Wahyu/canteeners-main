@@ -26,6 +26,7 @@ import { chooseCustomerTable } from "@/features/user/lib/user-actions";
 import NavButton from "@/components/nav-button";
 import { GetCanteenIncludeMaps } from "../types/canteen-queries-types";
 import { getImageUrl } from "@/helper/get-image-url";
+import { ImageLightbox, MapImageButton } from "./image-lightbox";
 
 interface SelectedTable {
   floor: number;
@@ -64,6 +65,7 @@ export default function ChooseTableClient({
   const defaultTab = canteen.maps[0]?.floor.toString() || "1";
 
   const [isLoading, setIsLoading] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const handleTableChange = (floor: number, table_number: number) => {
     setSelectedTable({ floor, table_number });
@@ -136,7 +138,17 @@ export default function ChooseTableClient({
   const isSaveDisabled = selectedTable === null;
 
   return (
-    <form onSubmit={handleSave} className="mt-4 max-w-lg mx-auto">
+    <>
+      {/* Lightbox peta meja */}
+      {lightboxSrc && (
+        <ImageLightbox
+          src={lightboxSrc}
+          alt="Peta Lantai"
+          onClose={() => setLightboxSrc(null)}
+        />
+      )}
+
+      <form onSubmit={handleSave} className="mt-4 max-w-lg mx-auto">
       <div className="flex flex-col">
         <Tabs defaultValue={defaultTab}>
           <TabsList className="w-full py-6">
@@ -155,9 +167,12 @@ export default function ChooseTableClient({
             const floorKey = map.floor.toString();
             return (
               <TabsContent key={i} value={floorKey} className="mt-2">
-                <img
+                <MapImageButton
                   src={getImageUrl("/canteen-map/" + map.image_url)}
-                  className="mb-4 shadow rounded-lg"
+                  alt={`Peta Lantai ${map.floor}`}
+                  onOpen={() =>
+                    setLightboxSrc(getImageUrl("/canteen-map/" + map.image_url))
+                  }
                 />
                 <div className="grid grid-cols-2 gap-4">
                   {Array.from({ length: map.table_count }, (_, i) => i + 1).map(
@@ -240,5 +255,6 @@ export default function ChooseTableClient({
         </Button>
       </div>
     </form>
+    </>
   );
 }

@@ -1,14 +1,15 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertCircle, HandPlatter } from "lucide-react";
+import { AlertTriangle, HandPlatter, MapPin, QrCode } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
 import CustomerPositionBreadcrumb from "./customer-position-breadcrumb";
 import NavButton from "@/components/nav-button";
 import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 import RunIcon from "@/components/icons/run-icon";
 import { PostOrderType } from "@/generated/prisma";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function PostOrderTypeTab({
   postOrderType,
@@ -25,17 +26,14 @@ export default function PostOrderTypeTab({
 }) {
   return (
     <div>
-      <div className="flex justify-between items-center">
-        <h1 className="font-semibold mb-2">Pilih Jenis Order</h1>
-
-        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+      <div className="flex justify-between items-center mb-2">
+        <h1 className="font-semibold">Pilih Jenis Order</h1>
       </div>
 
       <Tabs
         defaultValue={postOrderType}
         value={postOrderType}
         onValueChange={(value) => setPostOrderType(value as PostOrderType)}
-        className=""
       >
         <TabsList>
           <TabsTrigger value="DELIVERY_TO_TABLE">
@@ -47,6 +45,7 @@ export default function PostOrderTypeTab({
             Take Away
           </TabsTrigger>
         </TabsList>
+
         <TabsContent value="DELIVERY_TO_TABLE">
           <Card>
             <CardContent>
@@ -57,30 +56,51 @@ export default function PostOrderTypeTab({
                     floor={customerProfile.floor}
                     table_number={customerProfile.table_number}
                   />
-
                   <NavButton href={selectTablePageUrl} size="lg">
                     Pilih Ulang
                   </NavButton>
                 </div>
               ) : (
-                <>
-                  <h1 className="font-semibold mb-2">
-                    Pesanan diantarkan ke meja kamu
-                  </h1>
-                  <h1 className="text-sm text-muted-foreground">
-                    Belum memilih nomor meja, scan QR Code di meja anda atau{" "}
-                    <Link
-                      href={selectTablePageUrl}
-                      className="underline text-blue-600"
-                    >
-                      Klik disini untuk pilih meja
+                /* === CTA Banner: Belum pilih meja === */
+                <div className="rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600 p-4 flex flex-col items-center gap-3 text-center">
+                  {/* Ikon peringatan */}
+                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                    <AlertTriangle className="w-6 h-6 text-amber-500" />
+                  </div>
+
+                  {/* Teks */}
+                  <div>
+                    <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">
+                      Kamu belum memilih meja!
+                    </p>
+                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-0.5">
+                      Pilih meja agar pesanan bisa diantarkan ke tempatmu
+                    </p>
+                  </div>
+
+                  {/* Tombol utama */}
+                  <Button
+                    asChild
+                    size="sm"
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-white border-0 font-semibold"
+                  >
+                    <Link href={selectTablePageUrl}>
+                      <MapPin className="w-4 h-4" />
+                      Pilih Meja Sekarang
                     </Link>
-                  </h1>
-                </>
+                  </Button>
+
+                  {/* Atau scan QR */}
+                  <div className="flex items-center gap-1.5 text-xs text-amber-700/70 dark:text-amber-400/70">
+                    <QrCode className="w-3 h-3" />
+                    <span>atau scan QR Code di meja kamu</span>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
+
         <TabsContent value="TAKEAWAY">
           <Card>
             <CardContent>
