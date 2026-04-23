@@ -389,7 +389,7 @@ export default function ShopCartClient({
         customerProfile={customerProfile}
         postOrderType={postOrderType}
         setPostOrderType={setPostOrderType}
-        selectTablePageUrl={`/kantin/${shopCart.shop.canteen.slug}/pilih-meja`}
+        selectTablePageUrl={`/kantin/${shopCart.shop.canteen.slug}/pilih-meja?callbackUrl=/keranjang/${shopCart.id}`}
       />
 
       {/* <VoucherSelectionDialog

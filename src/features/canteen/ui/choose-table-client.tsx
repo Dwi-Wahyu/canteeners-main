@@ -45,6 +45,7 @@ export default function ChooseTableClient({
   const params = useSearchParams();
   const floorSearchParams = params.get("floor");
   const tableNumberSearchParams = params.get("table_number");
+  const callbackUrl = params.get("callbackUrl") || "/kantin/" + canteen.slug;
 
   const canteen_id = canteen.id;
 
@@ -92,7 +93,7 @@ export default function ChooseTableClient({
               <Button size="lg" className="w-full max-w-[200px]" asChild>
                 <Link
                   onClick={notificationDialog.hide}
-                  href={"/kantin/" + canteen.slug}
+                  href={callbackUrl}
                 >
                   Mulai Belanja
                 </Link>
@@ -104,7 +105,7 @@ export default function ChooseTableClient({
         // Redirect otomatis setelah 2 detik
         setTimeout(() => {
           notificationDialog.hide();
-          router.back();
+          router.push(callbackUrl);
         }, 2000);
       } else {
         notificationDialog.error({
