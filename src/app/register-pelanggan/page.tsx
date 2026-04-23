@@ -4,43 +4,78 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { LoginSchema, LoginInput } from "@/features/auth/types/auth-schemas";
+import { Loader2, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
+import { RegisterSchema, RegisterInput } from "@/features/auth/types/auth-schemas";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import ContinueWithGoogle from "./continue-with-google";
+import { auth } from "@/lib/firebase/client";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { registerCustomer } from "@/features/auth/lib/auth-actions";
+import { toast } from "sonner";
+import ContinueWithGoogle from "../login-pelanggan/continue-with-google";
 
-export default function LoginPelangganPage() {
+export default function RegisterPelangganPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
-  const form = useForm<LoginInput>({
-    resolver: zodResolver(LoginSchema),
+  const form = useForm<RegisterInput>({
+    resolver: zodResolver(RegisterSchema),
     defaultValues: {
+      name: "",
       username: "",
       password: "",
     },
   });
 
-  async function onSubmit(data: LoginInput) {
-    const res = await signIn("credentials", {
-      username: data.username,
-      password: data.password,
-      redirect: false,
-    });
+  async function onSubmit(data: RegisterInput) {
+    try {
+      // 1. Register to Firebase Auth first
+      // Firebase needs an email, we'll use username@canteeners.local if username is not an email
+      // But looking at the project, username might be intended to be email. 
+      // For now let's assume username is the email.
+      const firebaseEmail = data.username.includes("@") ? data.username : `${data.username}@canteeners.local`;
+      
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        firebaseEmail,
+        data.password
+      );
 
-    if (res?.error) {
-      form.setError("username", {
-        type: "manual",
-        message: "Username atau Password salah",
+      const firebaseUid = userCredential.user.uid;
+
+      // 2. Register to our database
+      const res = await registerCustomer({
+        ...data,
+        firebaseUid,
       });
-      form.setError("password", {
-        type: "manual",
-        message: "Username atau Password salah",
+
+      if (!res.success) {
+        toast.error(res.error.message);
+        return;
+      }
+
+      toast.success("Registrasi berhasil! Silakan masuk.");
+
+      // 3. Auto login after registration
+      const loginRes = await signIn("credentials", {
+        username: data.username,
+        password: data.password,
+        redirect: false,
       });
-    } else {
-      router.push("/dashboard-pelanggan");
+
+      if (loginRes?.error) {
+        router.push("/login-pelanggan");
+      } else {
+        router.push("/kantin");
+      }
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      if (error.code === "auth/email-already-in-use") {
+        form.setError("username", { message: "Email/Username sudah digunakan" });
+      } else {
+        toast.error("Terjadi kesalahan saat mendaftar");
+      }
     }
   }
 
@@ -114,7 +149,7 @@ export default function LoginPelangganPage() {
       </header>
 
       <main className="flex-1 flex flex-col justify-center items-center w-full max-w-md mx-auto px-6 py-8 relative z-10">
-        {/* Glassmorphism Login Card */}
+        {/* Glassmorphism Register Card */}
         <div
           className="w-full p-8 flex flex-col gap-4 relative overflow-hidden rounded-2xl"
           style={{
@@ -130,19 +165,65 @@ export default function LoginPelangganPage() {
               className="font-headline font-bold text-2xl tracking-tight"
               style={{ color: "#0b1c30" }}
             >
-              Selamat Datang
+              Daftar Akun
             </h2>
             <p className="font-body text-sm mt-1" style={{ color: "#555f6f" }}>
-              Masuk untuk menikmati hidangan terbaik.
+              Buat akun untuk mulai memesan makanan.
             </p>
           </div>
 
           {/* Form */}
           <form
-            id="login-pelanggan-form"
-            className="flex flex-col gap-5 w-full"
+            id="register-pelanggan-form"
+            className="flex flex-col gap-4 w-full"
             onSubmit={form.handleSubmit(onSubmit)}
           >
+            {/* Name Field */}
+            <Controller
+              name="name"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="name"
+                    className="text-sm font-semibold ml-1 font-headline"
+                    style={{ color: "#0b1c30" }}
+                  >
+                    Nama Lengkap
+                  </label>
+                  <div className="relative">
+                    <User
+                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                      style={{ color: "#555f6f" }}
+                    />
+                    <input
+                      {...field}
+                      id="name"
+                      type="text"
+                      placeholder="nama lengkap anda"
+                      autoComplete="off"
+                      aria-invalid={fieldState.invalid}
+                      className="w-full rounded-xl py-3 pl-12 pr-4 text-sm transition-all duration-200"
+                      style={{
+                        background: "#ffffff",
+                        border: fieldState.invalid
+                          ? "1px solid #ba1a1a"
+                          : "1px solid rgba(230, 189, 184, 0.3)",
+                        color: "#0b1c30",
+                        outline: "none",
+                        fontFamily: "Inter, sans-serif",
+                      }}
+                    />
+                  </div>
+                  {fieldState.error?.message && (
+                    <p className="text-xs ml-1" style={{ color: "#ba1a1a" }}>
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </div>
+              )}
+            />
+
             {/* Username Field */}
             <Controller
               name="username"
@@ -154,7 +235,7 @@ export default function LoginPelangganPage() {
                     className="text-sm font-semibold ml-1 font-headline"
                     style={{ color: "#0b1c30" }}
                   >
-                    Username
+                    Username / Email
                   </label>
                   <div className="relative">
                     <Mail
@@ -165,10 +246,10 @@ export default function LoginPelangganPage() {
                       {...field}
                       id="username"
                       type="text"
-                      placeholder="username anda"
+                      placeholder="username atau email anda"
                       autoComplete="off"
                       aria-invalid={fieldState.invalid}
-                      className="w-full rounded-xl py-3.5 pl-12 pr-4 text-sm transition-all duration-200"
+                      className="w-full rounded-xl py-3 pl-12 pr-4 text-sm transition-all duration-200"
                       style={{
                         background: "#ffffff",
                         border: fieldState.invalid
@@ -177,20 +258,6 @@ export default function LoginPelangganPage() {
                         color: "#0b1c30",
                         outline: "none",
                         fontFamily: "Inter, sans-serif",
-                      }}
-                      onFocus={(e) => {
-                        if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor = "#b70011";
-                          e.currentTarget.style.boxShadow =
-                            "0 0 0 4px rgba(183, 0, 17, 0.1)";
-                        }
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = "none";
-                        if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor =
-                            "rgba(230, 189, 184, 0.3)";
-                        }
                       }}
                     />
                   </div>
@@ -209,22 +276,13 @@ export default function LoginPelangganPage() {
               control={form.control}
               render={({ field, fieldState }) => (
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center ml-1">
-                    <label
-                      htmlFor="password"
-                      className="text-sm font-semibold font-headline"
-                      style={{ color: "#0b1c30" }}
-                    >
-                      Password
-                    </label>
-                    <a
-                      href="#"
-                      className="text-xs font-semibold transition-colors font-headline"
-                      style={{ color: "#b70011" }}
-                    >
-                      Lupa Password?
-                    </a>
-                  </div>
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-semibold ml-1 font-headline"
+                    style={{ color: "#0b1c30" }}
+                  >
+                    Password
+                  </label>
                   <div className="relative">
                     <Lock
                       className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
@@ -234,10 +292,10 @@ export default function LoginPelangganPage() {
                       {...field}
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
+                      placeholder="min. 8 karakter"
                       autoComplete="off"
                       aria-invalid={fieldState.invalid}
-                      className="w-full rounded-xl py-3.5 pl-12 pr-12 text-sm transition-all duration-200"
+                      className="w-full rounded-xl py-3 pl-12 pr-12 text-sm transition-all duration-200"
                       style={{
                         background: "#ffffff",
                         border: fieldState.invalid
@@ -246,20 +304,6 @@ export default function LoginPelangganPage() {
                         color: "#0b1c30",
                         outline: "none",
                         fontFamily: "Inter, sans-serif",
-                      }}
-                      onFocus={(e) => {
-                        if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor = "#b70011";
-                          e.currentTarget.style.boxShadow =
-                            "0 0 0 4px rgba(183, 0, 17, 0.1)";
-                        }
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = "none";
-                        if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor =
-                            "rgba(230, 189, 184, 0.3)";
-                        }
                       }}
                     />
                     <button
@@ -287,33 +331,21 @@ export default function LoginPelangganPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              form="login-pelanggan-form"
+              form="register-pelanggan-form"
               disabled={form.formState.isSubmitting}
-              className="w-full rounded-full py-4 font-headline font-bold text-base tracking-wide text-white transition-all duration-300 disabled:opacity-70"
+              className="w-full rounded-full py-4 font-headline font-bold text-base tracking-wide text-white transition-all duration-300 disabled:opacity-70 mt-2"
               style={{
                 background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
                 boxShadow: "0 8px 24px -4px rgba(183, 0, 17, 0.25)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                  "0 12px 32px -4px rgba(183, 0, 17, 0.35)";
-                (e.currentTarget as HTMLButtonElement).style.transform =
-                  "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                  "0 8px 24px -4px rgba(183, 0, 17, 0.25)";
-                (e.currentTarget as HTMLButtonElement).style.transform =
-                  "translateY(0)";
               }}
             >
               {form.formState.isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Memuat...
+                  Mendaftar...
                 </span>
               ) : (
-                "Masuk"
+                "Daftar"
               )}
             </button>
           </form>
@@ -322,19 +354,19 @@ export default function LoginPelangganPage() {
 
           <div className="text-center mt-4">
             <p className="text-sm text-gray-500">
-              Belum punya akun?{" "}
+              Sudah punya akun?{" "}
               <Link
-                href="/register-pelanggan"
+                href="/login-pelanggan"
                 className="font-bold text-primary hover:underline"
               >
-                Daftar Sekarang
+                Masuk Sekarang
               </Link>
             </p>
           </div>
         </div>
       </main>
 
-      {/* Visual Spacer to balance header height on desktop for centering */}
+      {/* Visual Spacer */}
       <div
         className="hidden md:block h-32 pointer-events-none"
         aria-hidden="true"

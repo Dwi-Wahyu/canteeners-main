@@ -29,7 +29,7 @@ export default function CartShopCard({
   return (
     <Link href={"/keranjang/" + id}>
       <Card className="overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99]">
-        <CardContent className="p-4">
+        <CardContent>
           {/* Baris atas: nama kedai + harga */}
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex items-center gap-2 min-w-0">

@@ -33,59 +33,62 @@ export const authConfig: NextAuthConfig = {
           return null;
         }
 
+        // 1. Coba parse sebagai Guest Session
         const parsedCreateGuestSession =
           CreateGuestSessionSchema.safeParse(credentials);
-        if (!parsedCreateGuestSession.success) return null;
+        
+        if (parsedCreateGuestSession.success) {
+          const { isGuest, firebaseUid, name } = parsedCreateGuestSession.data;
 
-        const { isGuest, firebaseUid, name } = parsedCreateGuestSession.data;
+          if (isGuest === "true") {
+            if (!firebaseUid) {
+              return null;
+            }
 
-        if (isGuest === "true") {
-          if (!firebaseUid) {
-            return null;
-          }
-
-          const guestCustomer = await prisma.user.findUnique({
-            where: {
-              id: firebaseUid,
-              role: "CUSTOMER",
-            },
-            select: {
-              name: true,
-              customer: {
-                select: {
-                  id: true,
-                  cart: {
-                    select: {
-                      id: true,
+            const guestCustomer = await prisma.user.findUnique({
+              where: {
+                id: firebaseUid,
+                role: "CUSTOMER",
+              },
+              select: {
+                name: true,
+                customer: {
+                  select: {
+                    id: true,
+                    cart: {
+                      select: {
+                        id: true,
+                      },
                     },
                   },
                 },
               },
-            },
-          });
+            });
 
-          if (!guestCustomer) {
-            return null;
+            if (!guestCustomer) {
+              return null;
+            }
+
+            const firebaseToken = await getFirebaseToken({ uid: firebaseUid });
+
+            return {
+              id: firebaseUid,
+              username: "",
+              name,
+              role: "CUSTOMER",
+              avatar: "default-avatar.jpeg",
+              cartId: guestCustomer.customer?.cart?.id,
+              customerId: guestCustomer.customer?.id,
+              shopId: undefined,
+              shopName: undefined,
+              ownerId: undefined,
+              firebaseToken,
+              firebaseTokenCreatedAt: Math.floor(Date.now() / 1000),
+            };
           }
-
-          const firebaseToken = await getFirebaseToken({ uid: firebaseUid });
-
-          return {
-            id: firebaseUid,
-            username: "",
-            name,
-            role: "CUSTOMER",
-            avatar: "default-avatar.jpeg",
-            cartId: guestCustomer.customer?.cart?.id,
-            customerId: guestCustomer.customer?.id,
-            shopId: undefined,
-            shopName: undefined,
-            ownerId: undefined,
-            firebaseToken,
-            firebaseTokenCreatedAt: Math.floor(Date.now() / 1000),
-          };
         }
 
+        // 2. Jika bukan guest, coba parse sebagai Login Normal
         const parsed = LoginSchema.safeParse(credentials);
         if (!parsed.success) return null;
 

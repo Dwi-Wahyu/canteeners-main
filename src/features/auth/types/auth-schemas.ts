@@ -10,16 +10,31 @@ export const LoginSchema = z.object({
   username: z
     .string()
     .min(1, { message: "Username wajib diisi." })
-    .max(50, { message: "Username tidak lebih dari 50 karakter." })
-    .nonempty({ error: "Username wajib diisi" }),
+    .max(50, { message: "Username tidak lebih dari 50 karakter." }),
   password: z
     .string()
     .min(1, { message: "Kata sandi wajib diisi." })
-    .max(100, { message: "Kata sandi tidak lebih dari 100 karakter." })
-    .nonempty({ error: "Kata sandi wajib diisi" }),
+    .max(100, { message: "Kata sandi tidak lebih dari 100 karakter." }),
 });
 
 export type LoginInput = z.infer<typeof LoginSchema>;
+
+export const RegisterSchema = z.object({
+  name: z
+    .string()
+    .min(1, { message: "Nama lengkap wajib diisi." })
+    .max(100, { message: "Nama tidak lebih dari 100 karakter." }),
+  username: z
+    .string()
+    .min(1, { message: "Username wajib diisi." })
+    .max(50, { message: "Username tidak lebih dari 50 karakter." }),
+  password: z
+    .string()
+    .min(8, { message: "Kata sandi minimal 8 karakter." })
+    .max(100, { message: "Kata sandi tidak lebih dari 100 karakter." }),
+});
+
+export type RegisterInput = z.infer<typeof RegisterSchema>;
 
 export const ChangePasswordSchema = z
   .object({

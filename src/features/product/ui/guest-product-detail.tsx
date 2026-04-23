@@ -54,7 +54,7 @@ export default function GuestProductDetail({
   function handleMultipleChange(
     optionId: string,
     valueId: string,
-    checked: boolean
+    checked: boolean,
   ) {
     setSelectedOptions((prev) => {
       const currentValues = prev[optionId] || [];
@@ -136,7 +136,7 @@ export default function GuestProductDetail({
     });
 
     if (result.success) {
-      toast.success("Berhasil ditambahkan ke keranjang");
+      // toast.success("Berhasil ditambahkan ke keranjang");
       router.back();
     } else {
       toast.error("Gagal menambahkan ke keranjang");
@@ -212,7 +212,7 @@ export default function GuestProductDetail({
                         handleMultipleChange(
                           option.id,
                           value.id,
-                          checked as boolean
+                          checked as boolean,
                         )
                       }
                     />
