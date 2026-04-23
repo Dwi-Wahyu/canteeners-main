@@ -18,10 +18,10 @@ export async function getCart(cart_id: string) {
         select: {
           id: true,
           created_at: true,
+          total_price: true,
           shop: {
             select: {
               id: true,
-              image_url: true,
               name: true,
             },
           },
