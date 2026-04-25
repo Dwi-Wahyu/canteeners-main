@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
-import { useWatchChatNotification } from "@/features/notification/hooks/use-watch-chat-notification";
 import { useChatList } from "@/features/chat/hooks/use-chat-list";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,19 +15,13 @@ import {
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "nextjs-toploader/app";
-import LandingTopbar from "@/components/layouts/landing-topbar";
 import NavButton from "@/components/nav-button";
-import useWatchNotification from "@/features/notification/hooks/use-watch-notification";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 
 export default function CustomerChatListPage() {
   const { chats, isLoading, user } = useChatList();
   const router = useRouter();
   const { data: session } = useSession();
-
-  // Watch global chat notification (toast saat ada pesan baru)
-  useWatchChatNotification(user?.uid ?? null);
-  useWatchNotification();
 
   useEffect(() => {
     if (session?.user?.role === "SHOP_OWNER") {

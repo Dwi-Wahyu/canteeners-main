@@ -31,7 +31,7 @@ export function OrderNotificationToast({
     <div
       onClick={handleClick}
       className={cn(
-        "relative w-full overflow-hidden rounded-lg border p-4 shadow-md transition-all hover:shadow-lg cursor-pointer",
+        "relative w-full max-w-[320px] overflow-hidden rounded-lg border p-4 shadow-md transition-all hover:shadow-lg cursor-pointer",
         "bg-white dark:bg-zinc-950"
       )}
       style={{

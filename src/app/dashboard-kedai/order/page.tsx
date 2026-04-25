@@ -3,7 +3,10 @@ import ShopOrderTrackingClient from "./shop-order-tracking-client";
 import { redirect } from "next/navigation";
 import { getOrderTrackingData } from "@/features/order/lib/order-queries";
 import NavButton from "@/components/nav-button";
-import { ChevronLeft, History } from "lucide-react";
+import {
+  ChevronLeft,
+  History,
+} from "lucide-react";
 import Link from "next/link";
 
 export default async function ShopOrderTrackingPage() {
@@ -44,7 +47,7 @@ export default async function ShopOrderTrackingPage() {
 
       <div className="mb-5">
         <h2 className="text-2xl font-medium tracking-tight">Order Tracking</h2>
-        <div className=" text-muted-foreground">
+        <div className=" text-muted-foreground text-sm">
           Lihat daftar pesanan aktif dan pantau estimasi waktu pengerjaan
         </div>
       </div>

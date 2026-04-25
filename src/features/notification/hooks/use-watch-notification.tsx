@@ -13,19 +13,18 @@ import {
 import { useEffect, useRef, useState } from "react";
 import {
   AppNotification,
-  ComplaintNotification,
-  OrderNotification,
-  RefundNotification,
 } from "../types";
-import { toast } from "sonner";
-import { OrderNotificationToast } from "../ui/order-notification-toast";
-import { ComplaintNotificationToast } from "../ui/complaint-notification-toast";
-import { RefundNotificationToast } from "../ui/refund-notification-toast";
+import { useNotificationDialogStore } from "@/stores/use-notification-store";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function useWatchNotification() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isFirstRun = useRef(true);
+  const showNotification = useNotificationDialogStore((state) => state.show);
+  const hideNotification = useNotificationDialogStore((state) => state.hide);
+  const router = useRouter();
 
   // Cek Status Login
   useEffect(() => {
@@ -63,45 +62,37 @@ export default function useWatchNotification() {
 
       const data = snapshot.docs[0].data() as AppNotification;
 
-      if (data.type === "ORDER") {
-        // Bunyikan suara untuk pesanan baru
-        if (data.subType === "CREATED") {
-          const audio = new Audio("/sounds/pesanan-masuk.mp3");
-          audio.play().catch((err) => console.error("Error playing sound:", err));
-        }
-
-        toast.custom((id) => (
-          <OrderNotificationToast
-            notification={data as OrderNotification}
-            onDismiss={() => toast.dismiss(id)}
-          />
-        ));
+      // Handle sound for new orders
+      if (data.type === "ORDER" && data.subType === "CREATED") {
+        const audio = new Audio("/sounds/pesanan-masuk.mp3");
+        audio.play().catch((err) => console.error("Error playing sound:", err));
       }
 
-      if (data.type === "COMPLAINT") {
-        toast.custom((id) => (
-          <ComplaintNotificationToast
-            notification={data as ComplaintNotification}
-            onDismiss={() => toast.dismiss(id)}
-          />
-        ));
-      }
-
-      if (data.type === "REFUND") {
-        toast.custom((id) => (
-          <RefundNotificationToast
-            notification={data as RefundNotification}
-            onDismiss={() => toast.dismiss(id)}
-          />
-        ));
-      }
+      showNotification({
+        title: data.title,
+        message: data.body,
+        type: data.type === "ORDER" ? "success" : data.type === "COMPLAINT" ? "error" : "info",
+        duration: 5000,
+        showLoadingBar: true,
+        actionButtons: (
+          <Button
+            onClick={() => {
+              router.push(data.resourcePath);
+              hideNotification();
+            }}
+            className="w-full"
+          >
+            Lihat Detail
+          </Button>
+        ),
+      });
     });
 
     return () => {
       unsubscribe();
       isFirstRun.current = true;
     };
-  }, [user]);
+  }, [user, showNotification, hideNotification, router]);
 
   return null;
 }

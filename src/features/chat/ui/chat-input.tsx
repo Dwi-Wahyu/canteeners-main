@@ -47,10 +47,12 @@ export function ChatInput({
   chatId,
   currentUserId,
   opponentId,
+  senderName,
 }: {
   chatId: string;
   currentUserId: string;
   opponentId: string;
+  senderName: string;
 }) {
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);

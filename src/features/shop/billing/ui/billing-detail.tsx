@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BillingStatusBadge } from "./billing-status-badge";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { Calendar, Info, Store, Receipt, Minus, FileText } from "lucide-react";
-import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
+import { Info, Receipt, Minus, FileText, ChevronLeft } from "lucide-react";
 import { GetBillingDetail } from "../types/billing-queries-types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { calculateCommission } from "@/helper/pricing-helper";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface BillingDetailProps {
   billing: GetBillingDetail;
@@ -27,10 +27,21 @@ export function BillingDetail({ billing }: BillingDetailProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      <TopbarWithBackButton
-        title="Detail Tagihan"
-        backUrl="/dashboard-kedai/tagihan"
-      />
+      <div className="flex justify-between items-center mb-0">
+        <Link
+          href={"/dashboard-kedai/tagihan"}
+          className="flex gap-1 text-muted-foreground text-sm items-center"
+        >
+          <ChevronLeft className="w-4 h-4" /> Kembali
+        </Link>
+      </div>
+
+      <div className="mb-2">
+        <h2 className="text-2xl font-medium tracking-tight">Detail Tagihan</h2>
+        <div className="text-muted-foreground text-sm">
+          Informasi lengkap mengenai tagihan komisi kedai
+        </div>
+      </div>
 
       <div className="space-y-4">
         {/* Billing Amount Details */}

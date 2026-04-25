@@ -164,6 +164,15 @@ export async function confirmPayment({
           select: { id: true, referral_usage_count: true },
         });
 
+        // Tandai customer ini sudah pernah menggunakan referral dan simpan kodenya
+        await tx.customer.update({
+          where: { id: order.customer_id },
+          data: {
+            has_used_referral: true,
+            used_referral_code: order.referral_code_used,
+          },
+        });
+
         // Pastikan referrer ada dan bukan dirinya sendiri
         if (referrer && referrer.id !== order.customer_id) {
           const newCount = (referrer.referral_usage_count || 0) + 1;

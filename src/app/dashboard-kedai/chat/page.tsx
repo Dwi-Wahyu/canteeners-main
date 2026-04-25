@@ -6,7 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { useWatchChatNotification } from "@/features/notification/hooks/use-watch-chat-notification";
 import { useChatList } from "@/features/chat/hooks/use-chat-list";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,8 +18,6 @@ import { Badge } from "@/components/ui/badge";
 
 export default function OwnerChatListPage() {
   const { chats, isLoading, user } = useChatList();
-
-  useWatchChatNotification(user ? user.uid : null);
 
   if (isLoading) {
     return (

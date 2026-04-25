@@ -30,10 +30,25 @@ export function MessageList({
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isInitialLoad = useRef(true);
+  const mountTime = useRef(Date.now());
 
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [initialMediaIndex, setInitialMediaIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+
+  const playNotification = () => {
+    try {
+      const audio = new Audio("/sounds/chat-notification.mp3");
+      audio.volume = 0.5;
+      audio.play().catch((err) => {
+        // Autoplay may be blocked by browser until user interaction
+        console.warn("Notification sound blocked:", err);
+      });
+    } catch (error) {
+      console.error("Error playing notification sound:", error);
+    }
+  };
 
   // Fetch Pesan Realtime
   useEffect(() => {
@@ -42,21 +57,41 @@ export function MessageList({
 
     const unsubscribe = onSnapshot(
       q,
+      { includeMetadataChanges: true }, // Include metadata changes to track sync status
       (snapshot) => {
         const msgs = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Message[];
 
+        // Skip sound on first load OR if there are pending local writes
+        if (isInitialLoad.current) {
+          isInitialLoad.current = false;
+        } else if (!snapshot.metadata.hasPendingWrites) {
+          // Check for new messages only when synced with server
+          snapshot.docChanges().forEach((change) => {
+            if (change.type === "added") {
+              const msg = change.doc.data() as Message;
+
+              // Only play sound if message is from the opponent 
+              // AND message was created after this component was mounted
+              const msgTime = msg.createdAt?.toMillis() || Date.now();
+              if (msg.senderId !== currentUserId && msgTime > mountTime.current) {
+                playNotification();
+              }
+            }
+          });
+        }
+
         setMessages(msgs);
       },
       (error) => {
         console.warn("Messages listener closed:", error.message);
-      }
+      },
     );
 
     return () => unsubscribe();
-  }, [chatId]);
+  }, [chatId, currentUserId]);
 
   // Listen for Typing Status
   useEffect(() => {

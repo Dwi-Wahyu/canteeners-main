@@ -192,12 +192,6 @@ export default function CustomerProfilePage() {
       description: "Ubah nama, email, dan foto profil",
     },
     {
-      icon: <CreditCard className="size-5 text-green-500" />,
-      label: "Metode Pembayaran",
-      href: "#",
-      description: "Kelola kartu dan e-wallet",
-    },
-    {
       icon: <Bell className="size-5 text-amber-500" />,
       label: "Notifikasi",
       href: "/notifikasi",
@@ -208,12 +202,6 @@ export default function CustomerProfilePage() {
       label: "Keamanan",
       href: "#",
       description: "Ubah kata sandi dan keamanan akun",
-    },
-    {
-      icon: <Settings className="size-5 text-gray-500" />,
-      label: "Pengaturan",
-      href: "#",
-      description: "Pengaturan aplikasi dan lainnya",
     },
   ];
 
@@ -244,7 +232,7 @@ export default function CustomerProfilePage() {
       </div>
 
       {/* Referral Section  */}
-      <div className="max-w-md mx-auto mt-6 px-5">
+      <div className="max-w-md mx-auto mt-4 px-5">
         <ReferralStatusCard
           referralCode={referralStatus?.referral_code || null}
           usageCount={referralStatus?.referral_usage_count || 0}

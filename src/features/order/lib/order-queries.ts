@@ -375,7 +375,7 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
     where: {
       shop_id: shopId,
       status: {
-        notIn: ["COMPLETED", "REJECTED"],
+        notIn: ["COMPLETED", "REJECTED", "CANCELLED"],
       },
     },
     orderBy: {
@@ -386,6 +386,7 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
       status: true,
       post_order_type: true,
       estimation: true,
+      processed_at: true,
       payment_method: true,
       payment_proof_url: true,
       customer: {

@@ -380,7 +380,7 @@ export default function CreateRefundDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Deskripsi (Opsional)</FormLabel>
+                  <FormLabel>Deskripsi</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Jelaskan detail masalah Anda..."
@@ -425,7 +425,7 @@ export default function CreateRefundDialog({
 
             {/* File Upload */}
             <div className="space-y-2">
-              <FormLabel>Bukti (Opsional)</FormLabel>
+              <FormLabel>Bukti</FormLabel>
               <FormDescription>
                 Upload foto sebagai bukti (JPG, PNG, WEBP - Maks 5MB)
               </FormDescription>
