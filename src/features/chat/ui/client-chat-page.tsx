@@ -109,6 +109,7 @@ export default function ClientChatPage({
 
   const opponentId = getOpponentId(chatData, user.uid);
   const opponent = getOpponentInfo(chatData, user.uid);
+  const senderName = chatData.participantsInfo[user.uid]?.name || "Seseorang";
 
   if (!opponentId) {
     return (
@@ -141,6 +142,7 @@ export default function ClientChatPage({
         chatId={chatId}
         currentUserId={user.uid}
         opponentId={opponentId}
+        senderName={senderName}
       />
     </div>
   );

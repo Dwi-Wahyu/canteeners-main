@@ -86,8 +86,8 @@ export function CreateRefundForm({
     defaultValues: {
       order_id: order.id,
       reason: undefined,
-      description: "",
-      complaint_proof_url: "",
+      description: undefined,
+      complaint_proof_url: undefined,
       disbursement_mode: order.shop
         .refund_disbursement_mode as RefundDisbursementMode,
       affected_item_ids: [],
@@ -168,7 +168,7 @@ export function CreateRefundForm({
 
   const removeUploadedFile = () => {
     setUploadedFile(null);
-    form.setValue("complaint_proof_url", "");
+    form.setValue("complaint_proof_url", undefined);
   };
 
   const onSubmit = async (data: RefundRequestInput) => {
@@ -179,6 +179,7 @@ export function CreateRefundForm({
         form.setError("description", {
           message: "Mengandung ujaran kebencian",
         });
+        setIsSubmitting(false);
         return;
       }
     }
@@ -332,8 +333,13 @@ export function CreateRefundForm({
                       placeholder="0"
                       className="pl-10"
                       {...field}
+                      value={field.value ?? ""}
                       onChange={(e) =>
-                        field.onChange(parseFloat(e.target.value) || undefined)
+                        field.onChange(
+                          e.target.value === ""
+                            ? undefined
+                            : parseFloat(e.target.value) || 0
+                        )
                       }
                     />
                   </div>
@@ -353,7 +359,7 @@ export function CreateRefundForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Deskripsi (Opsional)</FormLabel>
+              <FormLabel>Deskripsi</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Jelaskan detail masalah Anda..."
@@ -400,7 +406,7 @@ export function CreateRefundForm({
 
         {/* File Upload */}
         <div className="space-y-2">
-          <FormLabel>Bukti (Opsional)</FormLabel>
+          <FormLabel>Bukti</FormLabel>
           <FormDescription>
             Upload foto sebagai bukti (JPG, PNG, WEBP - Maks 5MB)
           </FormDescription>

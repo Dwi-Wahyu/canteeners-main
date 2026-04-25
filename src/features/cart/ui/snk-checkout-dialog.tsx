@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function SnkCheckoutDialog({
@@ -37,15 +38,27 @@ export default function SnkCheckoutDialog({
       <AlertDialogContent>
         <AlertDialogHeader className="text-start">
           <AlertDialogTitle>Persetujuan Syarat & Ketentuan</AlertDialogTitle>
-          <AlertDialogDescription>
-            Sebelum melanjutkan ke pembayaran, mohon baca dan setujui Syarat dan
-            Ketentuan layanan kami. Persetujuan ini memastikan Anda memahami hak
-            dan kewajiban saat bertransaksi di platform ini. Dengan menyetujui,
-            Anda siap untuk menyelesaikan pembelian dan kami dapat segera
-            memproses pesanan Anda dengan lancar.
+          <AlertDialogDescription className="space-y-3" asChild>
+            <div>
+              <p>
+                Sebelum melanjutkan ke pembayaran, mohon baca dan setujui Syarat
+                dan Ketentuan layanan kami. Persetujuan ini memastikan Anda
+                memahami hak dan kewajiban saat bertransaksi di platform ini.
+                Dengan menyetujui, Anda siap untuk menyelesaikan pembelian dan
+                kami dapat segera memproses pesanan Anda dengan lancar.
+              </p>
+
+              <Link
+                href="/syarat-dan-ketentuan/pelanggan"
+                className="text-primary font-medium hover:underline block"
+                target="_blank"
+              >
+                Baca Syarat & Ketentuan Selengkapnya
+              </Link>
+            </div>
           </AlertDialogDescription>
 
-          <div className="flex gap-2 my-2">
+          <div className="flex gap-2 my-2 pt-2">
             <Checkbox
               checked={checked}
               onCheckedChange={(value) => setChecked(value as boolean)}

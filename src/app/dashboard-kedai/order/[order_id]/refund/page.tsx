@@ -1,17 +1,14 @@
-import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import { auth } from "@/config/auth";
 import { getRefundByOrderId } from "@/features/shop/refund/lib/refund-queries";
 import { RefundDetails } from "@/features/shop/refund/ui/refund-details";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { DollarSign } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import Link from "next/link";
 
 export default async function ShopRefundPage({
   params,
@@ -33,26 +30,35 @@ export default async function ShopRefundPage({
   }
 
   return (
-    <div className="flex flex-col gap-5">
-      <TopbarWithBackButton
-        title="Detail Refund"
-        backUrl={`/dashboard-kedai/order/${order_id}`}
-      />
-
-      <div className="p-5 pt-20">
-        <Card>
-          <CardContent>
-            <RefundDetails
-              refund={refundData as any}
-              userRole="SHOP_OWNER"
-              onRefresh={async () => {
-                "use server";
-                revalidatePath(`/dashboard-kedai/order/${order_id}/refund`);
-              }}
-            />
-          </CardContent>
-        </Card>
+    <div className="space-y-5">
+      <div className="flex justify-between items-center mb-0">
+        <Link
+          href={`/dashboard-kedai/order/${order_id}`}
+          className="flex gap-1 text-muted-foreground text-sm items-center"
+        >
+          <ChevronLeft className="w-4 h-4" /> Kembali
+        </Link>
       </div>
+
+      <div className="mb-2">
+        <h2 className="text-2xl font-medium tracking-tight">Detail Refund</h2>
+        <div className="text-muted-foreground text-sm">
+          Kelola permintaan refund customer untuk pesanan ini
+        </div>
+      </div>
+
+      <Card>
+        <CardContent className="pt-6">
+          <RefundDetails
+            refund={refundData as any}
+            userRole="SHOP_OWNER"
+            onRefresh={async () => {
+              "use server";
+              revalidatePath(`/dashboard-kedai/order/${order_id}/refund`);
+            }}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -34,6 +34,13 @@ export async function getCustomerProfile(id: string) {
       id,
     },
     include: {
+      user: {
+        select: {
+          username: true,
+          name: true,
+          avatar: true,
+        },
+      },
       discounts: {
         where: {
           is_used: false,

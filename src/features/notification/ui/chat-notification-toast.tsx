@@ -28,7 +28,7 @@ export function ChatNotificationToast({
     <Link
       href={"/chat/" + notification.id}
       className={cn(
-        "relative w-full block overflow-hidden rounded-lg border p-4 shadow-md transition-all hover:shadow-lg",
+        "relative w-full max-w-[320px] block overflow-hidden rounded-lg border p-4 shadow-md transition-all hover:shadow-lg",
         "bg-white dark:bg-zinc-950" // Default bg
       )}
       style={{

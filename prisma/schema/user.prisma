@@ -110,6 +110,9 @@ model Customer {
 
     referral_usage_count Int @default(0) // maksimal 3, setelah itu diklaim dan direset 0
 
+    has_used_referral  Boolean @default(false)
+    used_referral_code String?
+
     updated_at DateTime @updatedAt
 
     @@map("customers")

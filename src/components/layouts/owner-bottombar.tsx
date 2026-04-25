@@ -4,9 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { ChartNoAxesCombined, Home, MessageCircle, Settings, UtensilsCrossed } from "lucide-react";
+import { useTotalUnreadChatCount } from "@/features/chat/hooks/use-total-unread-chat-count";
 
 export default function OwnerBottomBar() {
   const currentPathname = usePathname();
+  const unreadCount = useTotalUnreadChatCount();
 
   const navItems = [
     {
@@ -59,6 +61,7 @@ export default function OwnerBottomBar() {
         const isActive = checkActive(item.href, item.exact);
 
         const IconComponent = isActive ? item.activeIcon : item.icon;
+        const isChat = item.label === "Chat";
 
         return (
           <Link
@@ -66,7 +69,7 @@ export default function OwnerBottomBar() {
             href={item.href}
             aria-label={item.label}
             className={`
-              flex flex-col items-center justify-center p-2 transition-all duration-200
+              flex flex-col items-center justify-center p-2 transition-all duration-200 relative
               ${isActive
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -74,6 +77,11 @@ export default function OwnerBottomBar() {
             `}
           >
             <IconComponent className="w-6 h-6" />
+            {isChat && unreadCount > 0 && (
+              <span className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white shadow-sm">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </Link>
         );
       })}

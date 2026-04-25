@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormDescription, FormLabel } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CheckCircle, Loader2, Upload, X } from "lucide-react";
@@ -253,6 +253,11 @@ export function ProcessRefundDialog({
                     </label>
                   </div>
                 )}
+                <FormField
+                  control={form.control}
+                  name="disbursement_proof_url"
+                  render={() => <FormMessage />}
+                />
               </div>
 
               <Alert>
