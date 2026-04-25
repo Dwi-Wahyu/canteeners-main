@@ -43,6 +43,8 @@ export default function ConfirmOrderDialog({
         notificationDialog.success({
           title: "Berhasil",
           message: "Pesanan berhasil diterima",
+          duration: 3000,
+          showLoadingBar: true,
         });
       } else {
         // Handle error dengan UI yang lebih baik daripada console.log

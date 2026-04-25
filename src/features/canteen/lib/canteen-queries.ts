@@ -29,33 +29,12 @@ export async function getCanteenBySlug(
 ) {
   const { name, categories, minimumPrice, maximumPrice } = search;
 
-  type WhereClause = Prisma.ShopWhereInput;
-
-  let whereClause: WhereClause = {};
-
-  if (name) {
-    whereClause["name"] = {
-      contains: name,
-    };
-  }
-
-  if (minimumPrice) {
-    whereClause["maximum_price"] = {
-      gte: minimumPrice, // Shop's highest price is at least the user's minimum
-    };
-  }
-
-  if (maximumPrice) {
-    whereClause["minimum_price"] = {
-      lte: maximumPrice, // Shop's lowest price is at most the user's maximum
-    };
-  }
-
-  if (categories.length > 0) {
-    whereClause["OR"] = [
-      {
-        products: {
-          some: {
+  const productWhere: Prisma.ProductWhereInput = {
+    AND: [
+      minimumPrice ? { price: { gte: minimumPrice } } : {},
+      maximumPrice && maximumPrice > 0 ? { price: { lte: maximumPrice } } : {},
+      categories.length > 0
+        ? {
             categories: {
               some: {
                 category_id: {
@@ -63,26 +42,77 @@ export async function getCanteenBySlug(
                 },
               },
             },
-          },
-        },
-      },
-      {
-        specializations: {
-          some: {
-            category_id: {
-              in: categories,
+          }
+        : {},
+      name
+        ? {
+            OR: [
+              { name: { contains: name, mode: "insensitive" } },
+              { shop: { name: { contains: name, mode: "insensitive" } } },
+            ],
+          }
+        : {},
+    ],
+  };
+
+  const shopWhere: Prisma.ShopWhereInput = {
+    AND: [
+      name
+        ? {
+            OR: [
+              { name: { contains: name, mode: "insensitive" } },
+              {
+                products: {
+                  some: { name: { contains: name, mode: "insensitive" } },
+                },
+              },
+            ],
+          }
+        : {},
+      (minimumPrice || (maximumPrice && maximumPrice > 0))
+        ? {
+            products: {
+              some: {
+                price: {
+                  gte: minimumPrice || undefined,
+                  lte: (maximumPrice && maximumPrice > 0) ? maximumPrice : undefined,
+                },
+              },
             },
-          },
-        },
-      },
-    ];
-  }
+          }
+        : {},
+      categories.length > 0
+        ? {
+            OR: [
+              {
+                products: {
+                  some: {
+                    categories: {
+                      some: {
+                        category_id: { in: categories },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                specializations: {
+                  some: {
+                    category_id: { in: categories },
+                  },
+                },
+              },
+            ],
+          }
+        : {},
+    ],
+  };
 
   return await prisma.canteen.findUnique({
     where: { slug },
     include: {
       shops: {
-        where: whereClause,
+        where: shopWhere,
         select: {
           _count: {
             select: {
@@ -114,6 +144,7 @@ export async function getCanteenBySlug(
             },
           },
           products: {
+            where: productWhere,
             include: {
               _count: {
                 select: {

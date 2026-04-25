@@ -90,18 +90,6 @@ export default function ChooseTableClient({
           title: "Meja Berhasil Dipilih",
           message: `Kamu telah memilih Meja ${table_number} di Lantai ${floor}.`,
           showLoadingBar: true,
-          actionButtons: (
-            <div className="flex justify-center w-full">
-              <Button size="lg" className="w-full max-w-[200px]" asChild>
-                <Link
-                  onClick={notificationDialog.hide}
-                  href={callbackUrl}
-                >
-                  Mulai Belanja
-                </Link>
-              </Button>
-            </div>
-          ),
         });
 
         // Redirect otomatis setelah 2 detik

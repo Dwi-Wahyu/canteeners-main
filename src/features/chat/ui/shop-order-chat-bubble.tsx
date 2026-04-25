@@ -46,7 +46,6 @@ export default function ShopOrderChatBubble({
       orderRef,
       (snapshot) => {
         if (!snapshot.exists()) {
-          toast.error("Order tidak ditemukan di Firestore");
           return;
         }
 
@@ -106,13 +105,39 @@ export default function ShopOrderChatBubble({
 
           <div>
             <div className="mt-1 flex gap-2 flex-col">
-              {data.order_items.map((items, idx) => (
+              {Object.values(
+                data.order_items.reduce(
+                  (acc, item) => {
+                    const productName = item.product.name;
+                    if (!acc[productName]) {
+                      acc[productName] = {
+                        name: productName,
+                        image_url: item.product.image_url,
+                        quantity: 0,
+                        subtotal: 0,
+                      };
+                    }
+                    acc[productName].quantity += item.quantity;
+                    acc[productName].subtotal += item.subtotal;
+                    return acc;
+                  },
+                  {} as Record<
+                    string,
+                    {
+                      name: string;
+                      image_url: string;
+                      quantity: number;
+                      subtotal: number;
+                    }
+                  >,
+                ),
+              ).map((item, idx) => (
                 <div
                   key={`${order_id}-${idx}`}
                   className="flex items-center gap-3"
                 >
                   <Image
-                    src={getImageUrl("/product/" + items.product.image_url)}
+                    src={getImageUrl("/product/" + item.image_url)}
                     width={40}
                     height={40}
                     alt="product image"
@@ -121,9 +146,11 @@ export default function ShopOrderChatBubble({
 
                   <div className="leading-tight">
                     <h1 className="font-medium">
-                      {items.quantity}x {items.product.name}
+                      {item.quantity}x {item.name}
                     </h1>
-                    <h1>{formatRupiah(items.subtotal)}</h1>
+                    <h1 className="text-sm text-muted-foreground">
+                      {formatRupiah(item.subtotal)}
+                    </h1>
                   </div>
                 </div>
               ))}
@@ -183,7 +210,7 @@ export default function ShopOrderChatBubble({
 
             <NavButton
               className="flex justify-between mt-4 items-center"
-              href={"/dashboard-kedai/order/" + order_id}
+              href={"/dashboard-kedai/order/" + order_id + "?back_url=/dashboard-kedai/chat/" + data.conversation_id}
               size="lg"
               variant="outline"
             >

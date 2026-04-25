@@ -6,6 +6,7 @@ import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import { getCategories } from "@/features/category/lib/category-queries";
 import { auth } from "@/config/auth";
+import { CanteenAutoTableSync } from "@/features/canteen/ui/canteen-auto-table-sync";
 
 export default async function CanteenDetailPage({
   params,
@@ -36,7 +37,13 @@ export default async function CanteenDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      <CanteenClient canteen={canteen} categories={categories} session={session} />
+      <CanteenAutoTableSync session={session} canteenId={canteen.id} />
+
+      <CanteenClient
+        canteen={canteen}
+        categories={categories}
+        session={session}
+      />
 
       <BottomNav />
     </div>

@@ -62,12 +62,14 @@ model ShopBilling {
 
     start_date DateTime
     end_date   DateTime
-    // Jumlah komisi yang harus dibayar (Berdasarkan skema komisi bertingkat)
-    subtotal   Float
+    // Jumlah komisi yang harus dibayar kedai ke platform
+    commission_total   Float @default(0)
+    // Jumlah subsidi voucher platform yang harus dibayar platform ke kedai
+    subsidy_total      Float @default(0)
     // Jumlah refund yang di proses
-    refund     Float
-    // Total akhir yang harus dibayar (subtotal - refund)
-    total      Float
+    refund_total     Float @default(0)
+    // Total akhir yang harus diselesaikan (commission_total - subsidy_total - refund_total)
+    net_total      Float @default(0)
     status     ShopBillingStatus @default(UNPAID)
 
     @@map("shop_billings")

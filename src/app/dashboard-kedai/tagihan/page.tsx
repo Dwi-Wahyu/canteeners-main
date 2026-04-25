@@ -3,6 +3,8 @@ import { getShopBillings } from "@/features/shop/billing/lib/billing-queries";
 import { redirect } from "next/navigation";
 import { BillingList } from "@/features/shop/billing/ui/billing-list";
 import { ShopBillingStatus } from "@/generated/prisma";
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
 
 export default async function ShopBillingListPage({
   searchParams,
@@ -27,10 +29,19 @@ export default async function ShopBillingListPage({
   );
 
   return (
-    <div>
+    <div className="space-y-5">
+      <div className="flex justify-between items-center mb-4">
+        <Link
+          href={"/dashboard-kedai"}
+          className="flex gap-1 text-muted-foreground text-sm items-center"
+        >
+          <ChevronLeft className="w-4 h-4" /> Kembali
+        </Link>
+      </div>
+
       <div className="mb-5">
-        <h2 className="text-3xl font-medium tracking-tight">Daftar Tagihan</h2>
-        <div className="text-lg text-muted-foreground">
+        <h2 className="text-2xl font-medium tracking-tight">Daftar Tagihan</h2>
+        <div className=" text-muted-foreground">
           Lihat tagihan komisi untuk toko Anda
         </div>
       </div>

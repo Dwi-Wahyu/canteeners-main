@@ -10,6 +10,7 @@ import { GetBillingDetail } from "../types/billing-queries-types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { calculateCommission } from "@/helper/pricing-helper";
+import { cn } from "@/lib/utils";
 
 interface BillingDetailProps {
   billing: GetBillingDetail;
@@ -58,22 +59,43 @@ export function BillingDetail({ billing }: BillingDetailProps) {
               </span>
             </div>
 
-            {/* Subtotal */}
+            {/* Subtotal / Commission */}
             <div className="flex justify-between items-center py-2">
               <div className="space-y-1">
-                <p className="font-medium">Komisi Order</p>
+                <p className="font-medium">Total Komisi Order</p>
                 <p className="text-xs text-muted-foreground">
                   Berdasarkan skema komisi bertingkat
                 </p>
               </div>
               <span className="font-semibold text-lg">
-                {formatRupiah(billing.subtotal)}
+                {formatRupiah(billing.commission_total)}
               </span>
             </div>
 
+            {/* Subsidy */}
+            {billing.subsidy_total > 0 && (
+              <div className="flex justify-between items-center py-2 border-t border-dashed">
+                <div className="space-y-1">
+                  <p className="font-medium flex items-center gap-1.5 text-blue-600">
+                    Subsidi Voucher Platform
+                    <span className="text-[10px] bg-blue-50 px-1.5 py-0.5 rounded-full font-bold">
+                      Hutang Kami
+                    </span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Potongan harga yang ditanggung platform
+                  </p>
+                </div>
+                <span className="font-semibold text-lg text-blue-600">
+                  <Minus className="inline h-4 w-4" />
+                  {formatRupiah(billing.subsidy_total)}
+                </span>
+              </div>
+            )}
+
             {/* Refund */}
-            {billing.refund > 0 && (
-              <div className="flex justify-between items-center py-2 border-t">
+            {billing.refund_total > 0 && (
+              <div className="flex justify-between items-center py-2 border-t border-dashed">
                 <div className="space-y-1">
                   <p className="font-medium">Pengurangan Refund</p>
                   <p className="text-xs text-muted-foreground">
@@ -82,21 +104,32 @@ export function BillingDetail({ billing }: BillingDetailProps) {
                 </div>
                 <span className="font-semibold text-lg text-red-500">
                   <Minus className="inline h-4 w-4" />
-                  {formatRupiah(billing.refund)}
+                  {formatRupiah(billing.refund_total)}
                 </span>
               </div>
             )}
 
             {/* Total */}
-            <div className="flex justify-between items-center py-3 border-t-2 border-primary/20 bg-muted/30 rounded-lg px-4">
+            <div className="flex justify-between items-center py-4 border-t-2 border-primary/20 bg-muted/30 rounded-2xl px-5 mt-4">
               <div className="space-y-1">
-                <p className="font-bold text-lg">Total Tagihan</p>
+                <p className="font-bold text-lg">
+                  {billing.net_total < 0
+                    ? "Platform Bayar Anda"
+                    : "Total Harus Dibayar"}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  Jumlah yang harus dibayar
+                  {billing.net_total < 0
+                    ? "Kredit yang akan kami transfer ke Anda"
+                    : "Jumlah yang harus disetor ke platform"}
                 </p>
               </div>
-              <span className="font-bold text-2xl text-primary">
-                {formatRupiah(billing.total)}
+              <span
+                className={cn(
+                  "font-bold text-2xl",
+                  billing.net_total < 0 ? "text-green-600" : "text-primary"
+                )}
+              >
+                {formatRupiah(Math.abs(billing.net_total))}
               </span>
             </div>
 

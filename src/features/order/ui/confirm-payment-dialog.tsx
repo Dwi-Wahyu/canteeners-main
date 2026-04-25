@@ -38,6 +38,8 @@ export default function ConfirmPaymentDialog({
         notificationDialog.success({
           title: "Berhasil Konfirmasi Pembayaran",
           message: "Silakan mulai menyiapkan pesanan ini.",
+          duration: 3000,
+          showLoadingBar: true,
           actionButtons: (
             <Button size={"lg"} onClick={notificationDialog.hide}>
               Tutup

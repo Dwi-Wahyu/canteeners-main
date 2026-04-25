@@ -113,6 +113,7 @@ export async function confirmOrder({
 
     const triggerPromise = orderRef.update({
       lastUpdatedAt: FieldValue.serverTimestamp(),
+      status: newStatus,
     });
 
     await Promise.all([notificationPromise, triggerPromise]);
@@ -232,6 +233,7 @@ export async function confirmPayment({
 
       await orderRef.update({
         lastUpdatedAt: FieldValue.serverTimestamp(),
+        status: "PROCESSING",
       });
     });
 
@@ -271,6 +273,7 @@ export async function changeOrderEstimation({
 
     orderRef.update({
       lastUpdatedAt: FieldValue.serverTimestamp(),
+      status: status,
     });
 
     revalidateOrderPaths(order_id);
@@ -307,22 +310,38 @@ export async function completeOrder({
               quantity: true,
             },
           },
+          applied_discounts: {
+            include: {
+              discount: {
+                select: {
+                  shop_id: true,
+                },
+              },
+            },
+          },
         },
       });
 
-      // --- LOGIKA BILLING (Tagihan Mingguan) ---
+      // --- LOGIKA BILLING & SUBSIDI ---
       const totalQty = order.order_items.reduce(
         (sum, item) => sum + item.quantity,
         0,
       );
       const commission = calculateCommission(totalQty);
 
+      // Hitung subsidi: Diskon yang tidak memiliki shop_id (ditanggung platform)
+      const platformSubsidy = order.applied_discounts.reduce((sum, ad) => {
+        // Jika discount_id null atau shop_id pada discount null, berarti subsidi platform
+        if (!ad.discount || ad.discount.shop_id === null) {
+          return sum + ad.amount;
+        }
+        return sum;
+      }, 0);
+
       const now = new Date();
-      // Menggunakan weekStartsOn: 1 agar minggu dimulai dari hari Senin
       const startDate = startOfWeek(now, { weekStartsOn: 1 });
       const endDate = endOfWeek(now, { weekStartsOn: 1 });
 
-      // Cari atau buat billing untuk minggu ini
       const existingBilling = await tx.shopBilling.findFirst({
         where: {
           shop_id: order.shop_id,
@@ -335,8 +354,9 @@ export async function completeOrder({
         await tx.shopBilling.update({
           where: { id: existingBilling.id },
           data: {
-            subtotal: { increment: commission },
-            total: { increment: commission },
+            commission_total: { increment: commission },
+            subsidy_total: { increment: platformSubsidy },
+            net_total: { increment: commission - platformSubsidy },
           },
         });
       } else {
@@ -345,9 +365,10 @@ export async function completeOrder({
             shop_id: order.shop_id,
             start_date: startDate,
             end_date: endDate,
-            subtotal: commission,
-            refund: 0,
-            total: commission,
+            commission_total: commission,
+            subsidy_total: platformSubsidy,
+            refund_total: 0,
+            net_total: commission - platformSubsidy,
             status: "UNPAID",
           },
         });
@@ -373,12 +394,9 @@ export async function completeOrder({
 
     await notificationRef.add(notificationData);
 
-    // Update doc order untuk realtime trigger
+    // Hapus doc order dari tracking aktif
     const orderRef = adminDb.collection("orders").doc(order_id);
-
-    await orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-    });
+    await orderRef.delete();
 
     revalidateOrderPaths(order_id);
 
@@ -432,12 +450,9 @@ export async function rejectOrder({
 
     await notificationRef.add(notificationData);
 
-    // Update doc order untuk realtime trigger
+    // Hapus doc order dari tracking aktif
     const orderRef = adminDb.collection("orders").doc(order_id);
-
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-    });
+    await orderRef.delete();
 
     revalidateOrderPaths(order_id);
 
@@ -496,6 +511,7 @@ export async function rejectPayment({
 
     orderRef.update({
       lastUpdatedAt: FieldValue.serverTimestamp(),
+      status: "PAYMENT_REJECTED",
     });
 
     revalidateOrderPaths(order_id);
@@ -528,6 +544,12 @@ export async function cancelOrder({
         customer: {
           select: {
             user_id: true,
+            user: {
+              select: {
+                name: true,
+                avatar: true,
+              },
+            },
           },
         },
         shop_id: true,
@@ -572,6 +594,10 @@ export async function cancelOrder({
         intent: "ERROR",
         resourcePath: `/dashboard-kedai/order/${order_id}`,
         createdAt: FieldValue.serverTimestamp(),
+        senderInfo: {
+          name: updated.customer.user.name,
+          avatar: updated.customer.user.avatar,
+        },
       };
 
       await notificationRef.add(notificationData);
@@ -591,12 +617,9 @@ export async function cancelOrder({
       await notificationRef.add(notificationData);
     }
 
-    // Update doc order untuk realtime trigger
+    // Hapus doc order dari tracking aktif
     const orderRef = adminDb.collection("orders").doc(order_id);
-
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-    });
+    await orderRef.delete();
 
     revalidateOrderPaths(order_id);
 
@@ -638,6 +661,7 @@ export async function savePaymentProof({
             user: {
               select: {
                 name: true,
+                avatar: true,
               },
             },
           },
@@ -671,6 +695,7 @@ export async function savePaymentProof({
 
     orderRef.update({
       lastUpdatedAt: FieldValue.serverTimestamp(),
+      status: "WAITING_SHOP_CONFIRMATION",
     });
 
     // Send notification
@@ -684,6 +709,10 @@ export async function savePaymentProof({
       intent: "SUCCESS",
       resourcePath: `/dashboard-kedai/order/${order_id}/pembayaran`,
       createdAt: FieldValue.serverTimestamp(),
+      senderInfo: {
+        name: order.customer.user.name,
+        avatar: order.customer.user.avatar,
+      },
     };
 
     await notificationRef.add(notificationData);

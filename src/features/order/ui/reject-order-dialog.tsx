@@ -45,6 +45,8 @@ export default function RejectOrderDialog({ order_id }: { order_id: string }) {
       router.refresh();
       notificationDialog.success({
         title: "Berhasil menolak order",
+        duration: 3000,
+        showLoadingBar: true,
         actionButtons: (
           <Button
             onClick={notificationDialog.hide}

@@ -17,26 +17,40 @@ import { Textarea } from "@/components/ui/textarea";
 
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
-import { Loader } from "lucide-react";
+import { Loader, AlertTriangle, XCircle } from "lucide-react";
 import { cancelOrder } from "../lib/order-actions";
+import { cn } from "@/lib/utils";
 
 export default function CancelOrderDialog({
   order_id,
   user_id,
   order_status,
+  userRole = "CUSTOMER",
+  isLate = false,
+  className,
 }: {
   order_id: string;
   user_id: string;
   order_status: OrderStatus;
+  userRole?: "CUSTOMER" | "SHOP_OWNER";
+  isLate?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
-
   const [isPending, startTransition] = useTransition();
 
-  const CUSTOMER_ALREADY_PAY = order_status === "PROCESSING";
+  const isProcessing = order_status === "PROCESSING";
+  const isOwner = userRole === "SHOP_OWNER";
 
   async function handleConfirm() {
+    if (!reason.trim()) {
+      return notificationDialog.error({
+        title: "Alasan Wajib Diisi",
+        message: "Silakan berikan alasan pembatalan pesanan.",
+      });
+    }
+
     startTransition(async () => {
       const result = await cancelOrder({
         order_id,
@@ -48,79 +62,119 @@ export default function CancelOrderDialog({
       if (result.success) {
         setOpen(false);
         notificationDialog.success({
-          title: "Aksi Berhasil",
+          title: "Pesanan Dibatalkan",
           message: result.message,
+          duration: 3000,
+          showLoadingBar: true,
         });
       } else {
         notificationDialog.error({
-          title: "Terjadi Kesalahan",
+          title: "Gagal Membatalkan",
           message: result.error.message,
         });
       }
     });
   }
 
-  function CancelOrderDialogTitle() {
-    if (CUSTOMER_ALREADY_PAY) {
-      return "Peringatan!";
+  const getDialogLabels = () => {
+    if (isOwner) {
+      if (isProcessing) {
+        return {
+          trigger: "Batalkan & Refund",
+          title: "Batalkan Pesanan & Kembalikan Dana?",
+          description: "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib mengembalikan dana kepada pelanggan secara manual atau melalui sistem refund yang tersedia.",
+          action: "Ya, Batalkan & Refund",
+        };
+      }
+      return {
+        trigger: "Batalkan Pesanan",
+        title: "Batalkan Pesanan Pelanggan?",
+        description: "Berikan alasan yang jelas mengapa Anda perlu membatalkan pesanan ini.",
+        action: "Batalkan Pesanan",
+      };
     }
-    return "Yakin Membatalkan Order?";
-  }
 
-  function CancelOrderDialogDescription() {
-    if (CUSTOMER_ALREADY_PAY) {
-      return "Anda wajib untuk melakukan pengembalian dana. Berikan alasan pembatalan";
+    // Customer Labels
+    if (isProcessing) {
+      return {
+        trigger: "Batalkan & Refund",
+        title: "Batalkan Pesanan Anda?",
+        description: "Pesanan sudah melewati estimasi waktu. Anda dapat membatalkan pesanan dan dana akan dikembalikan.",
+        action: "Ya, Batalkan Sekarang",
+      };
     }
+    return {
+      trigger: "Batalkan Pesanan",
+      title: "Yakin ingin membatalkan?",
+      description: "Pesanan yang dibatalkan tidak dapat dikembalikan. Silakan masukkan alasan pembatalan.",
+      action: "Ya, Batalkan",
+    };
+  };
 
-    return "Berikan alasan pembatalan";
-  }
+  const labels = getDialogLabels();
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button size={"lg"} variant={"destructive"} className="w-full ">
-          Batalkan Order
+        <Button 
+          size={"lg"} 
+          variant={"destructive"} 
+          className={cn("w-full font-bold gap-2", className)}
+          disabled={isPending}
+        >
+          {isProcessing ? <AlertTriangle size={18} /> : <XCircle size={18} />}
+          {labels.trigger}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-[90vw] rounded-2xl">
         <AlertDialogHeader className="text-start">
-          <AlertDialogTitle>{CancelOrderDialogTitle()}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {CancelOrderDialogDescription()}
+          <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle size={20} />
+            {labels.title}
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-sm">
+            {labels.description}
           </AlertDialogDescription>
 
-          <Textarea
-            disabled={isPending}
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder=""
-            className="h-40"
-          />
+          <div className="space-y-1.5 mt-4">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Alasan Pembatalan</label>
+            <Textarea
+              disabled={isPending}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Contoh: Stok habis, Terlalu lama, dll..."
+              className="h-32 rounded-xl bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-destructive"
+            />
+          </div>
 
-          {CUSTOMER_ALREADY_PAY && (
-            <div>
+          {isProcessing && (
+            <div className="mt-2 bg-blue-50 p-3 rounded-xl">
               <Link
-                className="text-blue-500 underline underline-offset-2"
+                className="text-[11px] text-blue-600 font-medium flex items-center gap-1"
                 href={"/syarat-dan-ketentuan"}
               >
-                Baca syarat dan ketentuan
+                Lihat Syarat & Ketentuan Refund
               </Link>
             </div>
           )}
         </AlertDialogHeader>
-        <AlertDialogFooter className="grid grid-cols-2 gap-4">
+        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-3 mt-4">
           <AlertDialogCancel asChild>
-            <Button size={"lg"} variant={"outline"} disabled={isPending}>
-              Ga Jadi Deh
+            <Button variant={"outline"} className="w-full h-12 rounded-xl font-bold" disabled={isPending}>
+              Kembali
             </Button>
           </AlertDialogCancel>
           <Button
-            size={"lg"}
             variant={"destructive"}
+            className="w-full h-12 rounded-xl font-bold"
             onClick={handleConfirm}
-            disabled={isPending}
+            disabled={isPending || !reason.trim()}
           >
-            {isPending ? <Loader className="animate-spin" /> : "Yakin"}
+            {isPending ? (
+              <Loader className="animate-spin mr-2" />
+            ) : (
+              labels.action
+            )}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

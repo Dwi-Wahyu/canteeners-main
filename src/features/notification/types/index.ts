@@ -21,6 +21,10 @@ export type NotificationBase = {
   title: string;
   body: string;
   intent?: NotificationIntent;
+  senderInfo?: {
+    name: string;
+    avatar?: string;
+  };
   metadata?: Record<string, any>;
 };
 
@@ -37,9 +41,6 @@ export type OrderNotificationSubType =
 export interface OrderNotification extends NotificationBase {
   type: "ORDER";
   subType: OrderNotificationSubType;
-  senderInfo?: {
-    name: string;
-  };
 }
 
 // --- REFUND ---

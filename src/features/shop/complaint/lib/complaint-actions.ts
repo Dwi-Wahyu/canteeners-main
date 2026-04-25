@@ -29,6 +29,7 @@ export async function createShopComplaint(payload: ShopComplaintInput) {
                 user: {
                   select: {
                     name: true,
+                    avatar: true,
                   },
                 },
               },
@@ -56,6 +57,10 @@ export async function createShopComplaint(payload: ShopComplaintInput) {
       intent: "WARNING",
       resourcePath: `/dashboard-kedai/order/${created.order_id}`,
       createdAt: FieldValue.serverTimestamp(),
+      senderInfo: {
+        name: created.order.customer.user.name,
+        avatar: created.order.customer.user.avatar,
+      },
     };
 
     await notificationRef.add(notificationData);

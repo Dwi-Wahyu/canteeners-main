@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Home, MessageCircle, Settings, UtensilsCrossed } from "lucide-react";
+import { ChartNoAxesCombined, Home, MessageCircle, Settings, UtensilsCrossed } from "lucide-react";
 
 export default function OwnerBottomBar() {
   const currentPathname = usePathname();
@@ -28,6 +28,13 @@ export default function OwnerBottomBar() {
       icon: UtensilsCrossed,
       activeIcon: UtensilsCrossed,
       label: "Produk",
+      exact: false,
+    },
+    {
+      href: "/dashboard-kedai/performa",
+      icon: ChartNoAxesCombined,
+      activeIcon: ChartNoAxesCombined,
+      label: "Performa",
       exact: false,
     },
     {

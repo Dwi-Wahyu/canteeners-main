@@ -10,6 +10,7 @@ interface Notification {
   actionButtons?: React.ReactNode;
   icon?: ReactNode;
   showLoadingBar?: boolean;
+  duration?: number;
 }
 
 interface NotificationStore {

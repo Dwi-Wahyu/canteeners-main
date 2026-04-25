@@ -24,6 +24,7 @@ import { getCustomerReferralStatus } from "@/features/user/lib/user-queries";
 import { activateReferralCode } from "@/features/user/lib/user-actions";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import ReferralStatusCard from "@/features/user/ui/referral-status-card";
 
 export default function CustomerProfilePage() {
   const { data: session, status } = useSession();
@@ -62,7 +63,7 @@ export default function CustomerProfilePage() {
     setIsActivating(false);
 
     if (res.success) {
-      toast.success(res.message);
+      // toast.success(res.message);
       fetchStatus();
     } else {
       toast.error(res.error.message);
@@ -119,11 +120,17 @@ export default function CustomerProfilePage() {
                 <User className="size-12" />
               </AvatarFallback>
             </Avatar>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Halo, Tamu!</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Halo, Tamu!
+            </h1>
             <p className="text-sm text-muted-foreground mb-8 max-w-[250px]">
-              Masuk untuk menikmati fitur lengkap, kelola pesanan, dan dapatkan promo menarik.
+              Masuk untuk menikmati fitur lengkap, kelola pesanan, dan dapatkan
+              promo menarik.
             </p>
-            <Button asChild className="rounded-full px-10 h-12 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-red-100 transition-all active:scale-95">
+            <Button
+              asChild
+              className="rounded-full px-10 h-12 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-red-100 transition-all active:scale-95"
+            >
               <Link href="/login-pelanggan">Masuk Sekarang</Link>
             </Button>
           </div>
@@ -135,25 +142,43 @@ export default function CustomerProfilePage() {
             Informasi Aplikasi
           </h2>
           <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-            <Link href="/kebijakan-dan-privasi" className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0">
-              <div className="p-2 bg-purple-50 rounded-xl"><ShieldCheck className="size-5 text-purple-500" /></div>
+            <Link
+              href="/kebijakan-dan-privasi"
+              className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+            >
+              <div className="p-2 bg-purple-50 rounded-xl">
+                <ShieldCheck className="size-5 text-purple-500" />
+              </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">Kebijakan Privasi</p>
-                <p className="text-[10px] text-muted-foreground">Pelajari bagaimana kami menjaga data Anda</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  Kebijakan Privasi
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Pelajari bagaimana kami menjaga data Anda
+                </p>
               </div>
               <ChevronRight className="size-4 text-gray-400" />
             </Link>
-            <Link href="/syarat-dan-ketentuan" className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0">
-              <div className="p-2 bg-gray-50 rounded-xl"><AlertCircle className="size-5 text-gray-500" /></div>
+            <Link
+              href="/syarat-dan-ketentuan"
+              className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+            >
+              <div className="p-2 bg-gray-50 rounded-xl">
+                <AlertCircle className="size-5 text-gray-500" />
+              </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">Syarat & Ketentuan</p>
-                <p className="text-[10px] text-muted-foreground">Aturan penggunaan layanan Canteeners</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  Syarat & Ketentuan
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Aturan penggunaan layanan Canteeners
+                </p>
               </div>
               <ChevronRight className="size-4 text-gray-400" />
             </Link>
           </div>
         </div>
-        
+
         <BottomNav />
       </div>
     );
@@ -218,17 +243,16 @@ export default function CustomerProfilePage() {
         </div>
       </div>
 
-      {/* Referral Section (Dihiden sesuai permintaan) */}
-      {/* 
+      {/* Referral Section  */}
       <div className="max-w-md mx-auto mt-6 px-5">
-        <Card className="border-dashed border-2 bg-linear-to-br from-blue-50 to-indigo-50 border-blue-200 overflow-hidden relative">
-          <div className="absolute -right-6 -top-6 bg-blue-100 size-24 rounded-full blur-2xl opacity-50" />
-          <CardContent className="relative">
-             ... (rest of referral logic)
-          </CardContent>
-        </Card>
+        <ReferralStatusCard
+          referralCode={referralStatus?.referral_code || null}
+          usageCount={referralStatus?.referral_usage_count || 0}
+          isEligible={referralStatus?.is_eligible || false}
+          onActivate={handleActivate}
+          isActivating={isActivating}
+        />
       </div>
-      */}
 
       {/* Profile Menu */}
       <div className="max-w-md mx-auto mt-6 px-5 space-y-4">

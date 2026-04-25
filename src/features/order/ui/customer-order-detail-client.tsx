@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
@@ -38,6 +39,13 @@ import OrderReviewSection from "./order-review-section";
 import OrderComplaintSection from "./order-complaint-section";
 import { OrderRefundSection } from "./order-refund-section";
 import OrderEstimationCountDown from "./order-estimation-countdown";
+import { formatRupiah } from "@/helper/format-rupiah";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function CustomerOrderDetailClient({
   order: initialOrder,
@@ -47,6 +55,42 @@ export default function CustomerOrderDetailClient({
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
   const order =
     (orderData as unknown as GetCustomerOrderDetail) || initialOrder;
+
+  const [isLate, setIsLate] = useState(false);
+
+  useEffect(() => {
+    if (order.status === "PROCESSING" && order.processed_at && order.estimation) {
+      const checkLate = () => {
+        const now = new Date().getTime();
+        const endTime = new Date(order.processed_at!).getTime() + order.estimation! * 60000;
+        if (now > endTime) setIsLate(true);
+      };
+      checkLate();
+      const timer = setInterval(checkLate, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [order.status, order.processed_at, order.estimation]);
+
+  const groupedItems = order.order_items.reduce(
+    (acc, item) => {
+      const productName = item.product.name;
+      if (!acc[productName]) {
+        acc[productName] = [];
+      }
+      acc[productName].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof order.order_items>,
+  );
+
+  const canCancel =
+    ![
+      "COMPLETED",
+      "CANCELLED",
+      "REJECTED",
+      "WAITING_CUSTOMER_ESTIMATION_CONFIRMATION",
+    ].includes(order.status) &&
+    (order.status !== "PROCESSING" || isLate);
 
   return (
     <div className="p-5 space-y-5">
@@ -105,39 +149,76 @@ export default function CustomerOrderDetailClient({
           <h1 className="font-semibold mb-1">Pesanan</h1>
 
           <div className="flex flex-col gap-2">
-            {order.order_items.map((item, idx) => (
-              <Item key={idx} variant={"outline"}>
-                <ItemMedia variant={"image"}>
-                  <Image
-                    src={getImageUrl("/product/" + item.product.image_url)}
-                    width={100}
-                    height={100}
-                    alt="product image"
-                  />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle>{item.product.name}</ItemTitle>
-                  <ItemDescription>{item.subtotal}</ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                  <h1 className="text-lg font-semibold mr-1">
-                    {item.quantity}x
-                  </h1>
-                </ItemActions>
-                {item.note && (
-                  <ItemFooter className="flex gap-2 justify-start">
-                    <StickyNote className="w-4 h-4" />
-                    <h1>{item.note}</h1>
-                  </ItemFooter>
-                )}
-              </Item>
-            ))}
+            <Accordion type="multiple" className="w-full">
+              {Object.entries(groupedItems).map(([productName, items], idx) => {
+                const firstItem = items[0];
+                const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
+                const totalSubtotal = items.reduce(
+                  (sum, i) => sum + i.subtotal,
+                  0,
+                );
+
+                return (
+                  <AccordionItem
+                    value={`item-${idx}`}
+                    key={idx}
+                    className="border rounded-lg px-4 mb-2 last:border-b"
+                  >
+                    <AccordionTrigger className="hover:no-underline py-4">
+                      <div className="flex gap-4 items-center">
+                        <img
+                          src={getImageUrl(
+                            "/product/" + firstItem.product.image_url,
+                          )}
+                          alt={productName}
+                          className="rounded-lg object-cover aspect-square w-16 h-16"
+                          onError={(e) =>
+                            (e.currentTarget.src = "/placeholder-image.webp")
+                          }
+                        />
+                        <div className="flex flex-col text-left">
+                          <h1 className="font-semibold">{productName}</h1>
+                          <p className="text-sm text-muted-foreground">
+                            {totalQty} Item • {formatRupiah(totalSubtotal)}
+                          </p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="flex flex-col gap-2">
+                        {items.map((item, itemIdx) => (
+                          <div
+                            key={itemIdx}
+                            className="flex flex-col gap-1 py-2 border-b last:border-0"
+                          >
+                            <div className="flex justify-between items-center">
+                              <h1 className="text-sm font-medium">
+                                {item.quantity}x
+                              </h1>
+                              <h1 className="text-sm font-semibold">
+                                {formatRupiah(item.subtotal)}
+                              </h1>
+                            </div>
+                            {item.note && (
+                              <div className="flex gap-1 items-center text-xs text-muted-foreground">
+                                <StickyNote className="w-3 h-3" />
+                                <p>{item.note}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
           </div>
         </div>
 
         <div>
           <h1 className="font-semibold">Total Harga</h1>
-          <h1>{order.total_price}</h1>
+          <h1>{formatRupiah(order.total_price)}</h1>
         </div>
 
         {order.estimation && (
@@ -160,6 +241,8 @@ export default function CustomerOrderDetailClient({
                     <OrderEstimationCountDown
                       estimation={order.estimation}
                       processed_at={order.processed_at}
+                      userRole="CUSTOMER"
+                      onFinished={() => setIsLate(true)}
                     />
                   )}
                 </div>
@@ -225,16 +308,14 @@ export default function CustomerOrderDetailClient({
           </div>
         </div>
 
-        {![
-          "COMPLETED",
-          "CANCELLED",
-          "REJECTED",
-          "WAITING_CUSTOMER_ESTIMATION_CONFIRMATION",
-        ].includes(order.status) && (
+        {canCancel && (
           <CancelOrderDialog
             order_id={order.id}
             user_id={order.customer_id}
             order_status={order.status}
+            userRole="CUSTOMER"
+            isLate={isLate}
+            className="mt-4"
           />
         )}
       </div>

@@ -95,119 +95,60 @@ export async function processShopCart({
   let order_id;
 
   try {
-    await prisma.$transaction(async (tx) => {
-      // Ambil Data ShopCart
-      const shopCart = await prisma.shopCart.findFirst({
-        where: {
-          id: shopCartId,
-        },
-        select: {
-          id: true,
-          cart: {
-            select: {
-              customer_id: true,
-              customer: {
-                select: {
-                  user: {
-                    select: {
-                      name: true,
-                      avatar: true,
-                    },
-                  },
-                  user_id: true,
-                },
-              },
-            },
-          },
-          post_order_type: true,
-          total_price: true,
-          note: true,
-          payment_method: true,
-          order_id: true,
-          shop: {
-            select: {
-              id: true,
-              name: true,
-              owner_id: true,
-              is_auto_accept: true,
-              owner: {
-                select: {
-                  user_id: true,
-                  user: {
-                    select: {
-                      name: true,
-                      avatar: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          items: {
-            select: {
-              id: true,
-              product_id: true,
-              note: true,
-              price_at_add: true,
-              quantity: true,
-              subtotal: true,
-              selected_options: {
-                select: {
-                  id: true,
-                },
+    // 1. Ambil Data Awal (Gather data first)
+    const shopCartData = await prisma.shopCart.findFirst({
+      where: { id: shopCartId },
+      select: {
+        id: true,
+        cart: {
+          select: {
+            customer_id: true,
+            customer: {
+              select: {
+                user: { select: { name: true, avatar: true } },
+                user_id: true,
               },
             },
           },
         },
-      });
-
-      if (!shopCart) {
-        return errorResponse("Keranjang kedai tidak ditemukan");
-      }
-
-      const { customer_id } = shopCart.cart;
-      const customer_user_id = shopCart.cart.customer.user_id;
-      const owner_user_id = shopCart.shop.owner.user_id;
-
-      // Handle Conversation (Chat)
-      const chatId = `${customer_user_id}_${owner_user_id}`;
-      conversation_id = chatId;
-
-      const chatRef = adminDb.collection("chats").doc(chatId);
-      const chatSnap = await chatRef.get();
-
-      // Buat percakapan jika belum ada
-      if (!chatSnap.exists) {
-        await chatRef.set({
-          id: chatId,
-
-          participantsInfo: {
-            [customer_user_id]: {
-              name: shopCart.cart.customer.user.name,
-              avatar: shopCart.cart.customer.user.avatar,
-              role: "CUSTOMER",
-            },
-            [owner_user_id]: {
-              name: shopCart.shop.owner.user.name,
-              avatar: shopCart.shop.owner.user.avatar,
-              role: "SHOP_OWNER",
+        total_price: true,
+        shop: {
+          select: {
+            id: true,
+            name: true,
+            is_auto_accept: true,
+            owner: {
+              select: {
+                user_id: true,
+                user: { select: { name: true, avatar: true } },
+              },
             },
           },
-
-          participantIds: [customer_user_id, owner_user_id],
-
-          lastMessage: "Order masuk, Mohon konfirmasi apakah pesanan tersedia",
-          lastMessageAt: FieldValue.serverTimestamp(),
-          lastMessageType: "ORDER",
-          lastMessageSenderId: customer_user_id,
-
-          unreadCounts: {
-            [customer_user_id]: 0,
-            [owner_user_id]: 1,
+        },
+        items: {
+          select: {
+            id: true,
+            product_id: true,
+            product: { select: { name: true } },
+            note: true,
+            price_at_add: true,
+            quantity: true,
+            subtotal: true,
+            selected_options: { select: { id: true } },
           },
-        });
-      }
+        },
+      },
+    });
 
+    if (!shopCartData) return errorResponse("Keranjang kedai tidak ditemukan");
+
+    const customer_user_id = shopCartData.cart.customer.user_id;
+    const owner_user_id = shopCartData.shop.owner.user_id;
+    const chatId = `${customer_user_id}_${owner_user_id}`;
+    conversation_id = chatId;
+
+    // 2. Transaksi Database Saja (Prisma Only)
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Hitung Diskon & Handle Referral
       let total_discount_amount = 0;
       const appliedDiscountsData: {
@@ -216,12 +157,11 @@ export async function processShopCart({
         discount_id?: string;
       }[] = [];
 
-      // Handle Vouchers (CustomerDiscount)
       if (appliedCustomerDiscountIds && appliedCustomerDiscountIds.length > 0) {
         const vouchers = await tx.customerDiscount.findMany({
           where: {
             id: { in: appliedCustomerDiscountIds },
-            customer_id,
+            customer_id: shopCartData.cart.customer_id,
             is_used: false,
           },
           include: { discount: true },
@@ -232,19 +172,18 @@ export async function processShopCart({
           if (v.discount.type === DiscountType.FIXED) {
             amount = v.discount.value;
           } else {
-            amount = (shopCart.total_price * v.discount.value) / 100;
+            amount = (shopCartData.total_price * v.discount.value) / 100;
             if (v.discount.max_discount && amount > v.discount.max_discount) {
               amount = v.discount.max_discount;
             }
           }
 
-          // Validasi Sederhana
           if (
             v.discount.min_purchase &&
-            shopCart.total_price < v.discount.min_purchase
+            shopCartData.total_price < v.discount.min_purchase
           )
             continue;
-          if (v.discount.shop_id && v.discount.shop_id !== shopCart.shop.id)
+          if (v.discount.shop_id && v.discount.shop_id !== shopCartData.shop.id)
             continue;
 
           total_discount_amount += amount;
@@ -254,7 +193,6 @@ export async function processShopCart({
             discount_id: v.discount.id,
           });
 
-          // Tandai sudah dipakai
           await tx.customerDiscount.update({
             where: { id: v.id },
             data: { is_used: true, used_at: new Date() },
@@ -262,45 +200,21 @@ export async function processShopCart({
         }
       }
 
-      // Tentukan Status Awal Order
       let initialStatus: OrderStatus = "PENDING_CONFIRMATION";
-      let chatMessage = "Order masuk. Mohon konfirmasi apakah pesanan tersedia";
-      let notificationBody = `Pesanan ${shopCart.items.length} item oleh ${
-        shopCart.cart.customer.user.name
-      } dengan total ${formatRupiah(
-        shopCart.total_price - total_discount_amount,
-      )}, tolong segera ditinjau`;
-
-      if (shopCart.shop.is_auto_accept) {
-        if (paymentMethod === "CASH") {
-          initialStatus = "WAITING_SHOP_CONFIRMATION";
-          chatMessage =
-            "Pesanan otomatis diterima! Silakan lakukan pembayaran tunai di kedai.";
-          notificationBody = `Pesanan otomatis diterima. ${
-            shopCart.cart.customer.user.name
-          } akan membayar tunai sebesar ${formatRupiah(
-            shopCart.total_price - total_discount_amount,
-          )}`;
-        } else {
-          initialStatus = "WAITING_PAYMENT";
-          chatMessage =
-            "Pesanan otomatis diterima! Silakan upload bukti pembayaran agar pesanan segera diproses.";
-          notificationBody = `Pesanan otomatis diterima. Menunggu bukti pembayaran dari ${
-            shopCart.cart.customer.user.name
-          } sebesar ${formatRupiah(
-            shopCart.total_price - total_discount_amount,
-          )}`;
-        }
+      if (shopCartData.shop.is_auto_accept) {
+        initialStatus =
+          paymentMethod === "CASH"
+            ? "WAITING_SHOP_CONFIRMATION"
+            : "WAITING_PAYMENT";
       }
 
-      // Buat Order Utama
       const order = await tx.order.create({
         data: {
-          shop_id: shopCart.shop.id,
-          customer_id,
+          shop_id: shopCartData.shop.id,
+          customer_id: shopCartData.cart.customer_id,
           payment_method: paymentMethod,
           status: initialStatus,
-          total_price: shopCart.total_price - total_discount_amount,
+          total_price: shopCartData.total_price - total_discount_amount,
           total_discount_amount,
           post_order_type: postOrderType,
           note,
@@ -308,7 +222,7 @@ export async function processShopCart({
           table_number:
             postOrderType === "DELIVERY_TO_TABLE" ? table_number : null,
           conversation_id: chatId,
-          referral_code_used: referralCode, // Catat kode referral untuk diproses saat bayar
+          referral_code_used: referralCode,
           applied_discounts: {
             create: appliedDiscountsData.map((d) => ({
               name: d.name,
@@ -319,50 +233,89 @@ export async function processShopCart({
         },
       });
 
-      order_id = order.id;
-
-      // Buat Order Items satu per satu (Looping)
-      // looping menghubungkan 'selected_options' (Relation)
-      // createMany tidak mendukung 'connect' relation.
       await Promise.all(
-        shopCart.items.map((item) =>
+        shopCartData.items.map((item) =>
           tx.orderItem.create({
             data: {
               order_id: order.id,
               product_id: item.product_id,
               quantity: item.quantity,
-
-              // HARGA SNAPSHOT
-              price_at_add: item.price_at_add, // Harga Satuan Dasar
-              subtotal: item.subtotal, // Total Kalkulasi dengan Komisi Bertingkat
-
+              price_at_add: item.price_at_add,
+              subtotal: item.subtotal,
               note: item.note,
-
-              // Hubungkan Opsi yang dipilih
               selected_options: {
-                connect: item.selected_options.map((opt) => ({
-                  id: opt.id,
-                })),
+                connect: item.selected_options.map((opt) => ({ id: opt.id })),
               },
             },
           }),
         ),
       );
 
-      // Link Order ke ShopCart (untuk menandai cart ini sudah jadi order)
       await tx.shopCart.update({
-        where: {
-          id: shopCart.id,
-        },
-        data: {
-          order_id: order.id,
-        },
+        where: { id: shopCartId },
+        data: { order_id: order.id },
       });
 
-      revalidatePath("/keranjang/" + shopCart.id);
+      return {
+        order_id: order.id,
+        total_price: order.total_price,
+        status: order.status,
+      };
+    });
 
-      // Kirim pesan otomatis
-      const messageData = {
+    order_id = result.order_id;
+
+    // 3. Update Firestore (After Commit)
+    const chatRef = adminDb.collection("chats").doc(chatId);
+    const chatSnap = await chatRef.get();
+
+    if (!chatSnap.exists) {
+      await chatRef.set({
+        id: chatId,
+        participantsInfo: {
+          [customer_user_id]: {
+            name: shopCartData.cart.customer.user.name,
+            avatar: shopCartData.cart.customer.user.avatar,
+            role: "CUSTOMER",
+          },
+          [owner_user_id]: {
+            name: shopCartData.shop.owner.user.name,
+            avatar: shopCartData.shop.owner.user.avatar,
+            role: "SHOP_OWNER",
+          },
+        },
+        participantIds: [customer_user_id, owner_user_id],
+        lastMessage: "Order masuk, Mohon konfirmasi apakah pesanan tersedia",
+        lastMessageAt: FieldValue.serverTimestamp(),
+        lastMessageType: "ORDER",
+        lastMessageSenderId: customer_user_id,
+        unreadCounts: { [customer_user_id]: 0, [owner_user_id]: 1 },
+      });
+    }
+
+    let chatMessage = "Order masuk. Mohon konfirmasi apakah pesanan tersedia";
+    let notificationBody = `Pesanan ${shopCartData.items.length} item oleh ${
+      shopCartData.cart.customer.user.name
+    } dengan total ${formatRupiah(result.total_price)}, tolong segera ditinjau`;
+
+    if (shopCartData.shop.is_auto_accept) {
+      if (paymentMethod === "CASH") {
+        chatMessage =
+          "Pesanan otomatis diterima! Silakan lakukan pembayaran tunai di kedai.";
+        notificationBody = `Pesanan otomatis diterima. ${
+          shopCartData.cart.customer.user.name
+        } akan membayar tunai sebesar ${formatRupiah(result.total_price)}`;
+      } else {
+        chatMessage =
+          "Pesanan otomatis diterima! Silakan upload bukti pembayaran agar pesanan segera diproses.";
+        notificationBody = `Pesanan otomatis diterima. Menunggu bukti pembayaran dari ${
+          shopCartData.cart.customer.user.name
+        } sebesar ${formatRupiah(result.total_price)}`;
+      }
+    }
+
+    await Promise.all([
+      chatRef.collection("messages").add({
         senderId: customer_user_id,
         text: chatMessage,
         type: "ORDER",
@@ -370,49 +323,47 @@ export async function processShopCart({
         attachments: [],
         readBy: [customer_user_id],
         createdAt: FieldValue.serverTimestamp(),
-      };
-
-      await chatRef.collection("messages").add(messageData);
-
-      // Buat doc order untuk realtime trigger
-      const orderRef = adminDb.collection("orders").doc(order_id);
-
-      orderRef.set({
-        // wajib ada di setiap lifecycle
+      }),
+      adminDb.collection("orders").doc(order_id).set({
+        id: order_id,
         lastUpdatedAt: FieldValue.serverTimestamp(),
-        shopId: shopCart.shop.id,
-        status: order.status,
-      });
-
-      // Buat doc notification untuk notifikasi realtime pemilik kedai
-      const notificationRef = adminDb.collection("notifications").doc(order_id);
-
-      notificationRef.set({
+        shopId: shopCartData.shop.id,
+        status: result.status,
+        customerName: shopCartData.cart.customer.user.name,
+        totalPrice: result.total_price,
+        items: shopCartData.items.map((item) => ({
+          name: item.product.name,
+          price: item.price_at_add,
+          quantity: item.quantity,
+          subtotal: item.subtotal,
+          note: item.note,
+        })),
+      }),
+      adminDb.collection("notifications").doc(order_id).set({
         recipientId: owner_user_id,
-
         type: "ORDER",
-        subType: shopCart.shop.is_auto_accept ? "ACCEPTED" : "CREATED",
+        subType: shopCartData.shop.is_auto_accept ? "ACCEPTED" : "CREATED",
         resourcePath: "/dashboard-kedai/chat/" + chatId,
         createdAt: FieldValue.serverTimestamp(),
         isRead: false,
-
-        title: shopCart.shop.is_auto_accept
+        title: shopCartData.shop.is_auto_accept
           ? "Pesanan Baru Diterima"
           : "Pesanan Baru Masuk",
         body: notificationBody,
-        intent: shopCart.shop.is_auto_accept ? "SUCCESS" : "INFO",
-
+        intent: shopCartData.shop.is_auto_accept ? "SUCCESS" : "INFO",
         senderInfo: {
-          name: shopCart.cart.customer.user.name,
+          name: shopCartData.cart.customer.user.name,
+          avatar: shopCartData.cart.customer.user.avatar,
         },
-
         metadata: {
           orderId: order_id,
-          itemCount: shopCart.items.length,
-          totalPrice: order.total_price,
+          itemCount: shopCartData.items.length,
+          totalPrice: result.total_price,
         },
-      });
-    });
+      }),
+    ]);
+
+    revalidatePath("/keranjang/" + shopCartId);
 
     return successResponse(
       { conversation_id, order_id },

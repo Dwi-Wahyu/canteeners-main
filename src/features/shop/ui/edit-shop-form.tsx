@@ -199,7 +199,7 @@ export default function EditShopForm({
               <FormItem>
                 <FormLabel>Jam Buka</FormLabel>
                 <FormControl>
-                  <Input type="time" {...field} value={field.value ?? ""} />
+                  <Input placeholder="HH:MM" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -213,7 +213,7 @@ export default function EditShopForm({
               <FormItem>
                 <FormLabel>Jam Tutup</FormLabel>
                 <FormControl>
-                  <Input type="time" {...field} value={field.value ?? ""} />
+                  <Input placeholder="HH:MM" {...field} value={field.value ?? ""} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

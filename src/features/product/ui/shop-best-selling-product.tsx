@@ -23,12 +23,12 @@ export function ShopBestSellingProduct({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {products.map((product, index) => (
-          <Card key={index} className="overflow-hidden">
+          <Card key={index} className="relative">
             <CardContent>
               <div className="flex items-center gap-4">
                 {/* Ranking Badge - posisi absolute di kiri atas */}
                 <div className="absolute -left-2 -top-2 z-10">
-                  <div className="w-10 h-10 bg-orange-500 text-white font-black text-lg rounded-full flex items-center justify-center shadow-lg italic">
+                  <div className="w-10 h-10 bg-primary text-white font-black text-lg rounded-full flex items-center justify-center shadow-lg italic">
                     #{index + 1}
                   </div>
                 </div>

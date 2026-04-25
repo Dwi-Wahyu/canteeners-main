@@ -10,7 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Gift, ChevronDown, ChevronUp, Check, Info } from "lucide-react";
+import {
+  Search,
+  Gift,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  Info,
+} from "lucide-react";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -43,7 +50,7 @@ export default function VoucherSelectionDialog({
   const [isOpen, setIsOpen] = useState(false);
 
   const filteredVouchers = vouchers.filter((v) =>
-    v.discount.name.toLowerCase().includes(search.toLowerCase())
+    v.discount.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -92,37 +99,36 @@ export default function VoucherSelectionDialog({
           <div className="space-y-3">
             {filteredVouchers.length === 0 ? (
               <div className="text-center py-10">
-                <p className="text-sm text-muted-foreground">Voucher tidak ditemukan</p>
+                <p className="text-sm text-muted-foreground">
+                  Voucher tidak ditemukan
+                </p>
               </div>
             ) : (
               filteredVouchers.map((v) => {
                 const isSelected = selectedIds.includes(v.id);
                 const isExpanded = expandedId === v.id;
-                const isInvalid = v.discount.min_purchase ? totalPrice < v.discount.min_purchase : false;
+                const isInvalid = v.discount.min_purchase
+                  ? totalPrice < v.discount.min_purchase
+                  : false;
 
                 return (
                   <div
                     key={v.id}
                     className={cn(
                       "group border rounded-2xl transition-all overflow-hidden bg-white",
-                      isSelected ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-100",
-                      isInvalid && "opacity-60 grayscale"
+                      isSelected
+                        ? "border-blue-500 ring-1 ring-blue-500"
+                        : "border-gray-100",
+                      isInvalid && "opacity-60 grayscale",
                     )}
                   >
                     <div className="p-4 flex items-center gap-4">
-                      <div className={cn(
-                        "size-12 rounded-xl flex items-center justify-center shrink-0 border transition-colors",
-                        isSelected ? "bg-blue-600 border-blue-600" : "bg-blue-50 border-blue-100"
-                      )}>
-                        <Gift className={cn("size-6", isSelected ? "text-white" : "text-blue-600")} />
-                      </div>
-                      
                       <div className="flex-1 min-w-0">
                         <h4 className="font-bold text-sm text-gray-900 leading-tight truncate">
                           {v.discount.name}
                         </h4>
                         <p className="text-[11px] text-blue-600 font-bold mt-0.5">
-                          {v.discount.type === "FIXED" 
+                          {v.discount.type === "FIXED"
                             ? `Potongan ${formatRupiah(v.discount.value)}`
                             : `Diskon ${v.discount.value}%`}
                         </p>
@@ -130,7 +136,9 @@ export default function VoucherSelectionDialog({
 
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => setExpandedId(isExpanded ? null : v.id)}
+                          onClick={() =>
+                            setExpandedId(isExpanded ? null : v.id)
+                          }
                           className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                         >
                           <Info className="size-4 text-gray-400" />
@@ -140,9 +148,9 @@ export default function VoucherSelectionDialog({
                           disabled={isInvalid}
                           className={cn(
                             "h-8 w-20 rounded-lg font-bold text-[10px] transition-all",
-                            isSelected 
-                              ? "bg-green-600 hover:bg-green-700 text-white" 
-                              : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                            isSelected
+                              ? "bg-green-600 hover:bg-green-700 text-white"
+                              : "bg-blue-50 text-blue-700 hover:bg-blue-100",
                           )}
                           onClick={() => onToggle(v.id)}
                         >
@@ -150,7 +158,9 @@ export default function VoucherSelectionDialog({
                             <div className="flex items-center gap-1">
                               <Check className="size-3" /> Terpasang
                             </div>
-                          ) : "Gunakan"}
+                          ) : (
+                            "Gunakan"
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -159,20 +169,29 @@ export default function VoucherSelectionDialog({
                       <div className="px-4 pb-4 pt-0 border-t border-dashed border-gray-100 animate-in slide-in-from-top-2 duration-200">
                         <div className="mt-3 space-y-2">
                           <p className="text-xs text-gray-600 leading-relaxed">
-                            {v.discount.description || "Tidak ada deskripsi tambahan."}
+                            {v.discount.description ||
+                              "Tidak ada deskripsi tambahan."}
                           </p>
                           <div className="grid grid-cols-2 gap-2 pt-2">
                             <div className="bg-gray-50 p-2 rounded-lg">
-                              <p className="text-[9px] text-gray-400 uppercase font-bold">Min. Belanja</p>
+                              <p className="text-[9px] text-gray-400 uppercase font-bold">
+                                Min. Belanja
+                              </p>
                               <p className="text-xs font-bold text-gray-700">
-                                {v.discount.min_purchase ? formatRupiah(v.discount.min_purchase) : "Tanpa Minimum"}
+                                {v.discount.min_purchase
+                                  ? formatRupiah(v.discount.min_purchase)
+                                  : "Tanpa Minimum"}
                               </p>
                             </div>
                             {v.discount.type === "PERCENTAGE" && (
                               <div className="bg-gray-50 p-2 rounded-lg">
-                                <p className="text-[9px] text-gray-400 uppercase font-bold">Maks. Potongan</p>
+                                <p className="text-[9px] text-gray-400 uppercase font-bold">
+                                  Maks. Potongan
+                                </p>
                                 <p className="text-xs font-bold text-gray-700">
-                                  {v.discount.max_discount ? formatRupiah(v.discount.max_discount) : "Tak Terbatas"}
+                                  {v.discount.max_discount
+                                    ? formatRupiah(v.discount.max_discount)
+                                    : "Tak Terbatas"}
                                 </p>
                               </div>
                             )}
@@ -191,10 +210,10 @@ export default function VoucherSelectionDialog({
             )}
           </div>
         </ScrollArea>
-        
+
         <div className="p-5 border-t bg-gray-50/50">
-          <Button 
-            className="w-full h-11 rounded-xl font-bold" 
+          <Button
+            className="w-full h-11 rounded-xl font-bold"
             onClick={() => setIsOpen(false)}
           >
             Selesai

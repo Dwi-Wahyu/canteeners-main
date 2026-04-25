@@ -9,7 +9,7 @@ import {
 import { useNotificationDialogStore } from "@/stores/use-notification-store";
 
 import { AlertCircle, Check, Info } from "lucide-react";
-import { JSX } from "react";
+import { JSX, useEffect } from "react";
 
 type NotificationType = "success" | "error" | "info";
 
@@ -36,6 +36,16 @@ const colors = {
 
 export default function NotificationDialog() {
   const { notification, hide } = useNotificationDialogStore();
+
+  useEffect(() => {
+    if (notification?.duration) {
+      const timer = setTimeout(() => {
+        hide();
+      }, notification.duration);
+
+      return () => clearTimeout(timer);
+    }
+  }, [notification, hide]);
 
   if (!notification) return null;
 
@@ -91,6 +101,7 @@ export default function NotificationDialog() {
               style={{
                 width: "100%",
                 transformOrigin: "left",
+                animationDuration: `${notification.duration || 3000}ms`,
               }}
             />
           </div>

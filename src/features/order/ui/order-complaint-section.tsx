@@ -1,10 +1,10 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getImageUrl } from "@/helper/get-image-url";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, MessageSquareWarning } from "lucide-react";
 import CreateComplaintDialog from "@/features/shop/complaint/ui/create-complaint-dialog";
 import { useRouter } from "next/navigation";
 import { GetCustomerOrderDetail } from "@/features/order/types/order-queries-types";
@@ -44,41 +44,52 @@ export default function OrderComplaintSection({
   }
 
   return (
-    <>
-      {/* File Complaint */}
-      {canFileComplaint && (
-        <div className="mb-5">
-          <h2 className="font-semibold">Komplain</h2>
-          <p className="text-sm text-muted-foreground mb-3">
-            Ada masalah dengan pesanan? Ajukan komplain dan kami akan membantu
-            menyelesaikannya.
-          </p>
-          <CreateComplaintDialog
-            orderId={order.id}
-            onSuccess={handleComplaintSuccess}
-          />
-        </div>
-      )}
+    <Card className="shadow-sm">
+      <CardContent className="space-y-4">
+        {/* File Complaint */}
+        {canFileComplaint && (
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <MessageSquareWarning className="size-4 text-orange-500" />
+                Informasi Komplain
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Ada masalah dengan pesanan? Ajukan komplain dan kami akan membantu
+                menyelesaikannya.
+              </p>
+            </div>
+            <CreateComplaintDialog
+              orderId={order.id}
+              onSuccess={handleComplaintSuccess}
+            />
+          </div>
+        )}
 
-      {/* View Complaint Status */}
-      {hasComplaint && order.complaint && (
-        <div className="mb-5">
-          <h2 className="font-semibold mb-3">Komplain</h2>
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Status Komplain</CardTitle>
-                <Badge
-                  variant={complaintStatusMap[order.complaint.status].variant}
-                >
-                  {complaintStatusMap[order.complaint.status].label}
-                </Badge>
+        {/* View Complaint Status */}
+        {hasComplaint && order.complaint && (
+          <div className="space-y-4">
+            <div className="flex items-start justify-between">
+              <div className="space-y-1">
+                <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                  <MessageSquareWarning className="size-4 text-orange-500" />
+                  Status Komplain
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Komplain Anda sedang kami tinjau.
+                </p>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
+              <Badge
+                variant={complaintStatusMap[order.complaint.status].variant}
+              >
+                {complaintStatusMap[order.complaint.status].label}
+              </Badge>
+            </div>
+
+            <div className="space-y-3 pt-2 border-t border-dashed">
               <div>
                 <p className="text-sm font-medium mb-1">Keluhan:</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {order.complaint.cause}
                 </p>
               </div>
@@ -95,18 +106,18 @@ export default function OrderComplaintSection({
               )}
 
               {order.complaint.feedback && (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Tanggapan dari Pemilik Kedai</AlertTitle>
-                  <AlertDescription>
+                <Alert className="bg-orange-50 border-orange-200">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  <AlertTitle className="text-orange-800">Tanggapan dari Pemilik Kedai</AlertTitle>
+                  <AlertDescription className="text-orange-700/80">
                     {order.complaint.feedback}
                   </AlertDescription>
                 </Alert>
               )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-    </>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

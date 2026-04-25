@@ -29,6 +29,7 @@ export function OrderRefundSection({
   order,
   userRole,
 }: OrderRefundSectionProps) {
+  const isCancelled = order.status === "CANCELLED";
   const canRequestRefund =
     !order.refund && order.status === "COMPLETED" && userRole === "CUSTOMER";
 
@@ -37,49 +38,53 @@ export function OrderRefundSection({
       ? `/order/${order.id}/refund`
       : `/dashboard-kedai/order/${order.id}/refund`;
 
-  // If no refund and can't request, don't show this section
-  if (!order.refund && !canRequestRefund) {
+  // Tampilkan jika sudah ada data refund, atau jika bisa mengajukan (COMPLETED), 
+  // atau jika pesanan dibatalkan (biasanya ada auto-refund)
+  if (!order.refund && !canRequestRefund && !isCancelled) {
     return null;
   }
 
   return (
-    <div>
-      <div>
+    <Card className="shadow-sm">
+      <CardContent className="space-y-4">
         <div className="flex items-start justify-between">
-          <div>
-            <h1 className="font-semibold">Refund</h1>
-            <h1 className="text-muted-foreground mb-3">
+          <div className="space-y-1">
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+              <DollarSign className="size-4 text-green-600" />
+              Informasi Refund
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
               {order.refund
-                ? "Kelola permintaan pengembalian dana"
-                : "Ajukan permintaan pengembalian dana"}
-            </h1>
+                ? "Dana Anda sedang diproses. Silakan cek detail untuk status terbaru."
+                : isCancelled 
+                  ? "Pesanan dibatalkan. Dana Anda akan segera dikembalikan secara otomatis."
+                  : "Klik tombol di bawah jika Anda ingin mengajukan pengembalian dana."}
+            </p>
           </div>
           {order.refund && (
             <RefundStatusBadge status={order.refund.status as any} />
           )}
         </div>
-      </div>
 
-      <div>
         <NavButton
           size="lg"
-          variant="outline"
-          className="w-full"
+          variant={order.refund ? "outline" : "default"}
+          className="w-full font-bold h-12 rounded-xl"
           href={refundPath}
         >
           {order.refund ? (
             <>
-              <ExternalLink className="h-4 w-4" />
-              Lihat Detail Refund
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Lihat Status Refund
             </>
           ) : (
             <>
-              <ExternalLink className="h-4 w-4" />
+              <DollarSign className="mr-2 h-4 w-4" />
               Ajukan Refund
             </>
           )}
         </NavButton>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

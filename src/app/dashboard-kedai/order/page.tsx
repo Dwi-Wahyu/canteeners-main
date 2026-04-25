@@ -23,12 +23,24 @@ export default async function ShopOrderTrackingPage() {
 
   return (
     <div className="space-y-5">
-      <Link
-        href={"/dashboard-kedai/order"}
-        className="flex gap-1 text-muted-foreground text-sm mb-4 items-center"
-      >
-        <ChevronLeft className="w-4 h-4" /> Kembali
-      </Link>
+      <div className="flex justify-between items-center mb-4">
+        <Link
+          href={"/dashboard-kedai"}
+          className="flex gap-1 text-muted-foreground text-sm items-center"
+        >
+          <ChevronLeft className="w-4 h-4" /> Kembali
+        </Link>
+
+        <NavButton
+          href="/dashboard-kedai/order/riwayat"
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground"
+        >
+          <History className="w-4 h-4 mr-2" />
+          Riwayat
+        </NavButton>
+      </div>
 
       <div className="mb-5">
         <h2 className="text-2xl font-medium tracking-tight">Order Tracking</h2>
@@ -36,15 +48,6 @@ export default async function ShopOrderTrackingPage() {
           Lihat daftar pesanan aktif dan pantau estimasi waktu pengerjaan
         </div>
       </div>
-
-      <NavButton
-        href="/dashboard-kedai/order/riwayat"
-        className="w-full h-12"
-        variant="outline"
-      >
-        <History />
-        Lihat Riwayat Order
-      </NavButton>
 
       <ShopOrderTrackingClient
         shopId={session.user.shopId}

@@ -40,14 +40,20 @@ export function MessageList({
     const messagesRef = collection(db, "chats", chatId, "messages");
     const q = query(messagesRef, orderBy("createdAt", "asc"), limit(100));
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Message[];
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const msgs = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Message[];
 
-      setMessages(msgs);
-    });
+        setMessages(msgs);
+      },
+      (error) => {
+        console.warn("Messages listener closed:", error.message);
+      }
+    );
 
     return () => unsubscribe();
   }, [chatId]);

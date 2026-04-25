@@ -2,6 +2,7 @@ import { seedUsers } from "./seed-users";
 import { seedCanteens } from "./seed-canteens";
 import { seedCategories } from "./seed-categories";
 import { prisma } from "@/lib/prisma";
+import { seedShops } from "./seed-shops";
 
 async function main() {
   await prisma.canteenMap.deleteMany();
@@ -21,6 +22,7 @@ async function main() {
   await seedCanteens();
   await seedCategories();
   await seedUsers();
+  await seedShops();
 }
 
 main()

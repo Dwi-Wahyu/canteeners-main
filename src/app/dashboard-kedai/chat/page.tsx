@@ -25,7 +25,7 @@ export default function OwnerChatListPage() {
   if (isLoading) {
     return (
       <div>
-        <h1 className="text-xl mb-4">Chat & Orderan</h1>
+        <h1 className="text-xl mb-4">Chat</h1>
 
         <div className="relative bg-card mb-6">
           <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
@@ -52,7 +52,7 @@ export default function OwnerChatListPage() {
   if (!user) {
     return (
       <div>
-        <h1 className="text-xl mb-4">Chat & Orderan</h1>
+        <h1 className="text-xl mb-4">Chat</h1>
 
         <div className="relative bg-card mb-6">
           <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
@@ -75,9 +75,7 @@ export default function OwnerChatListPage() {
 
   return (
     <div>
-      <h2 className="text-3xl font-medium tracking-tight mb-4">
-        Chat & Orderan
-      </h2>
+      <h2 className="text-3xl font-medium tracking-tight mb-4">Chat</h2>
 
       <div className="relative bg-card mb-6">
         <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
@@ -128,7 +126,9 @@ export default function OwnerChatListPage() {
                   }`}
                 >
                   <Avatar className="size-11 shadow">
-                    <AvatarImage src={getImageUrl("/avatar/" + opponentInfo.avatar)} />
+                    <AvatarImage
+                      src={getImageUrl("/avatar/" + opponentInfo.avatar)}
+                    />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
 
@@ -148,8 +148,8 @@ export default function OwnerChatListPage() {
                           isTyping
                             ? "text-green-600 font-medium italic animate-pulse"
                             : unreadCount > 0
-                            ? "text-gray-900 font-medium"
-                            : "text-gray-500"
+                              ? "text-gray-900 font-medium"
+                              : "text-gray-500"
                         }`}
                       >
                         {isTyping

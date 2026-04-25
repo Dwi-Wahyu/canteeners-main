@@ -71,8 +71,6 @@ export function RefundList({ refunds }: RefundListProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      <TopbarWithBackButton title="Kelola Refund" backUrl="/dashboard-kedai" />
-
       <div className="space-y-4">
         {/* Status Filter */}
         <div className="flex items-center gap-3">

@@ -32,6 +32,7 @@ export async function createRefundRequest(
             user: {
               select: {
                 name: true,
+                avatar: true,
               },
             },
           },
@@ -153,6 +154,10 @@ export async function createRefundRequest(
       intent: "WARNING",
       resourcePath: `/dashboard-kedai/order/${order.id}`,
       createdAt: FieldValue.serverTimestamp(),
+      senderInfo: {
+        name: order.customer.user.name,
+        avatar: order.customer.user.avatar,
+      },
       metadata: {
         refundId: refund.id,
         amount: refundAmount,

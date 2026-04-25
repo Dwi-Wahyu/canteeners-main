@@ -44,7 +44,6 @@ export default function CustomerOrderChatBubble({
       orderRef,
       (snapshot) => {
         if (!snapshot.exists()) {
-          toast.error("Order tidak ditemukan di Firestore");
           return;
         }
 
@@ -104,14 +103,40 @@ export default function CustomerOrderChatBubble({
             </div>
 
             <div>
-              <div className="mt-1">
-                {data.order_items.map((items, idx) => (
+              <div className="mt-1 flex flex-col gap-2">
+                {Object.values(
+                  data.order_items.reduce(
+                    (acc, item) => {
+                      const productName = item.product.name;
+                      if (!acc[productName]) {
+                        acc[productName] = {
+                          name: productName,
+                          image_url: item.product.image_url,
+                          quantity: 0,
+                          subtotal: 0,
+                        };
+                      }
+                      acc[productName].quantity += item.quantity;
+                      acc[productName].subtotal += item.subtotal;
+                      return acc;
+                    },
+                    {} as Record<
+                      string,
+                      {
+                        name: string;
+                        image_url: string;
+                        quantity: number;
+                        subtotal: number;
+                      }
+                    >,
+                  ),
+                ).map((item, idx) => (
                   <div
                     key={`${order_id}-${idx}`}
                     className="flex items-center gap-3"
                   >
                     <Image
-                      src={getImageUrl("/product/" + items.product.image_url)}
+                      src={getImageUrl("/product/" + item.image_url)}
                       width={40}
                       height={40}
                       alt="product image"
@@ -119,9 +144,11 @@ export default function CustomerOrderChatBubble({
                     />
                     <div className="leading-tight">
                       <h1 className="font-medium">
-                        {items.quantity}x {items.product.name}
+                        {item.quantity}x {item.name}
                       </h1>
-                      <h1>{formatRupiah(items.subtotal)}</h1>
+                      <h1 className="text-sm text-muted-foreground">
+                        {formatRupiah(item.subtotal)}
+                      </h1>
                     </div>
                   </div>
                 ))}

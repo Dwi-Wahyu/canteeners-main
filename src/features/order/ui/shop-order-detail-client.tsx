@@ -5,17 +5,6 @@ import { orderStatusMapping } from "@/constant/order-status-mapping";
 import CustomBadge from "@/components/custom-badge";
 import { OrderStatus } from "@/generated/prisma";
 
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemFooter,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
-
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { postOrderTypeMapping } from "@/constant/post-order-type-mapping";
@@ -37,7 +26,16 @@ import ConfirmPaymentDialog from "./confirm-payment-dialog";
 import RejectPaymentDialog from "./reject-payment-dialog";
 import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
 import OrderEstimationCountDown from "./order-estimation-countdown";
+import OrderComplaintSection from "./order-complaint-section";
+import { OrderRefundSection } from "./order-refund-section";
 import { formatToHour } from "@/helper/hour-helper";
+import { formatRupiah } from "@/helper/format-rupiah";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function ShopOrderDetailClient({
   order: initialOrder,
@@ -49,6 +47,18 @@ export default function ShopOrderDetailClient({
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
   const order = (orderData as unknown as GetShopOrderDetail) || initialOrder;
 
+  const groupedItems = order.order_items.reduce(
+    (acc, item) => {
+      const productName = item.product.name;
+      if (!acc[productName]) {
+        acc[productName] = [];
+      }
+      acc[productName].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof order.order_items>,
+  );
+
   async function handleCompleteOrder() {
     startTransition(async () => {
       const result = await completeOrder({
@@ -59,6 +69,8 @@ export default function ShopOrderDetailClient({
         notificationDialog.success({
           title: "Order Telah Selesai !",
           message: "Terima kasih sudah bekerja sama dengan canteeners 😊🙏",
+          duration: 3000,
+          showLoadingBar: true,
         });
       } else {
         notificationDialog.error({
@@ -108,37 +120,76 @@ export default function ShopOrderDetailClient({
         <h1 className="font-semibold mb-1">Pesanan</h1>
 
         <div className="flex flex-col gap-2">
-          {order.order_items.map((item, idx) => (
-            <Item key={idx} variant={"outline"}>
-              <ItemMedia variant={"image"}>
-                <Image
-                  src={getImageUrl("/product/" + item.product.image_url)}
-                  width={100}
-                  height={100}
-                  alt="product image"
-                />
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>{item.product.name}</ItemTitle>
-                <ItemDescription>{item.subtotal}</ItemDescription>
-              </ItemContent>
-              <ItemActions>
-                <h1 className="text-lg font-semibold mr-1">{item.quantity}x</h1>
-              </ItemActions>
-              {item.note && (
-                <ItemFooter className="flex gap-2 justify-start">
-                  <StickyNote className="w-4 h-4" />
-                  <h1>{item.note}</h1>
-                </ItemFooter>
-              )}
-            </Item>
-          ))}
+          <Accordion type="multiple" className="w-full">
+            {Object.entries(groupedItems).map(([productName, items], idx) => {
+              const firstItem = items[0];
+              const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
+              const totalSubtotal = items.reduce(
+                (sum, i) => sum + i.subtotal,
+                0,
+              );
+
+              return (
+                <AccordionItem
+                  value={`item-${idx}`}
+                  key={idx}
+                  className="border rounded-lg px-4 mb-2 last:border-b"
+                >
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex gap-4 items-center">
+                      <img
+                        src={getImageUrl(
+                          "/product/" + firstItem.product.image_url,
+                        )}
+                        alt={productName}
+                        className="rounded-lg object-cover aspect-square w-16 h-16"
+                        onError={(e) =>
+                          (e.currentTarget.src = "/placeholder-image.webp")
+                        }
+                      />
+                      <div className="flex flex-col text-left">
+                        <h1 className="font-semibold">{productName}</h1>
+                        <p className="text-sm text-muted-foreground">
+                          {totalQty} Item • {formatRupiah(totalSubtotal)}
+                        </p>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex flex-col gap-2">
+                      {items.map((item, itemIdx) => (
+                        <div
+                          key={itemIdx}
+                          className="flex flex-col gap-1 py-2 border-b last:border-0"
+                        >
+                          <div className="flex justify-between items-center">
+                            <h1 className="text-sm font-medium">
+                              {item.quantity}x
+                            </h1>
+                            <h1 className="text-sm font-semibold">
+                              {formatRupiah(item.subtotal)}
+                            </h1>
+                          </div>
+                          {item.note && (
+                            <div className="flex gap-1 items-center text-xs text-muted-foreground">
+                              <StickyNote className="w-3 h-3" />
+                              <p>{item.note}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </div>
       </div>
 
       <div>
         <h1 className="font-semibold">Total Harga</h1>
-        <h1>{order.total_price}</h1>
+        <h1>{formatRupiah(order.total_price)}</h1>
       </div>
 
       <div>
@@ -156,6 +207,7 @@ export default function ShopOrderDetailClient({
                 order_id={order.id}
                 order_status={order.status}
                 user_id={order.shop.owner_id}
+                userRole="SHOP_OWNER"
               />
 
               <ConfirmPaymentDialog order_id={order.id} />
@@ -211,6 +263,7 @@ export default function ShopOrderDetailClient({
                   <OrderEstimationCountDown
                     estimation={order.estimation}
                     processed_at={order.processed_at}
+                    userRole="SHOP_OWNER"
                   />
                 )}
               </div>
@@ -285,6 +338,7 @@ export default function ShopOrderDetailClient({
             order_id={order.id}
             order_status={order.status}
             user_id={order.shop.owner_id}
+            userRole="SHOP_OWNER"
           />
 
           <Button
@@ -300,6 +354,10 @@ export default function ShopOrderDetailClient({
           </Button>
         </div>
       )}
+
+      <OrderComplaintSection order={order} />
+
+      <OrderRefundSection order={order as any} userRole="SHOP_OWNER" />
     </div>
   );
 }

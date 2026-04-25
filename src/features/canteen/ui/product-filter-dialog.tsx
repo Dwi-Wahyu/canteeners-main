@@ -13,21 +13,25 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Filter, SlidersHorizontal } from "lucide-react";
-import { useQueryState } from "nuqs";
+import { useQueryState, parseAsInteger } from "nuqs";
 import { useState } from "react";
 
 export function ProductFilterDialog() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const [minPriceQuery, setMinPriceQuery] = useQueryState("minimumPrice", {
-    shallow: false,
-    clearOnDefault: true,
-  });
+  const [minPriceQuery, setMinPriceQuery] = useQueryState("minimumPrice", 
+    parseAsInteger.withDefault(0).withOptions({
+      shallow: false,
+      clearOnDefault: true,
+    })
+  );
 
-  const [maxPriceQuery, setMaxPriceQuery] = useQueryState("maximumPrice", {
-    shallow: false,
-    clearOnDefault: true,
-  });
+  const [maxPriceQuery, setMaxPriceQuery] = useQueryState("maximumPrice",
+    parseAsInteger.withDefault(0).withOptions({
+      shallow: false,
+      clearOnDefault: true,
+    })
+  );
 
   const [localMinPrice, setLocalMinPrice] = useState<string>("");
   const [localMaxPrice, setLocalMaxPrice] = useState<string>("");
@@ -35,14 +39,14 @@ export function ProductFilterDialog() {
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
     if (open) {
-      setLocalMinPrice(minPriceQuery ?? "");
-      setLocalMaxPrice(maxPriceQuery ?? "");
+      setLocalMinPrice(minPriceQuery?.toString() ?? "");
+      setLocalMaxPrice(maxPriceQuery?.toString() ?? "");
     }
   };
 
   const handleSave = async () => {
-    await setMinPriceQuery(localMinPrice || null);
-    await setMaxPriceQuery(localMaxPrice || null);
+    await setMinPriceQuery(parseInt(localMinPrice) || null);
+    await setMaxPriceQuery(parseInt(localMaxPrice) || null);
     setIsOpen(false);
   };
 

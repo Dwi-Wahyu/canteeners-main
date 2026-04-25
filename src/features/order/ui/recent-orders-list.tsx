@@ -34,7 +34,7 @@ export default function RecentOrdersList({ orders }: RecentOrdersListProps) {
             <Link
               key={order.id}
               className="block"
-              href={`/dashboard-kedai/order/${order.id}`}
+              href={`/dashboard-kedai/order/${order.id}?back_url=/dashboard-kedai`}
             >
               <div className="w-full border rounded-lg px-4 py-3">
                 <div className="flex items-center w-full justify-between">

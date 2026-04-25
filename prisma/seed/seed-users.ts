@@ -26,31 +26,6 @@ export async function seedUsers() {
 
     const usersToSeed = [];
 
-    await prisma.user.create({
-      data: {
-        id: process.env.OWNER_FIREBASE_UID,
-        name: "Ahmad Subarjo",
-        username: process.env.OWNER_USERNAME,
-        password: bcrypt.hashSync(process.env.OWNER_PASSWORD!),
-        role: "SHOP_OWNER",
-        owner: {
-          create: {
-            shop: {
-              create: {
-                name: "Kedai Subarjo",
-                image_url: "kedai-subarjo.webp",
-                canteen: {
-                  connect: {
-                    slug: "kantin-kudapan",
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
     usersToSeed.push({
       name: "Administrator",
       username: "admin",

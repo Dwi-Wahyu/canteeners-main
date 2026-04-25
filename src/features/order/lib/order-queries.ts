@@ -2,26 +2,85 @@
 
 import { prisma } from "@/lib/prisma";
 
-export async function getShopOrderHistory(shopId: string) {
-  return await prisma.order.findMany({
-    where: {
-      shop_id: shopId,
-      status: "COMPLETED",
-    },
-    select: {
-      created_at: true,
-      total_price: true,
-      customer: {
-        select: {
-          user: {
-            select: {
-              name: true,
+export async function getShopOrderHistory(
+  shopId: string,
+  filters?: {
+    status?: string;
+    search?: string;
+    startDate?: Date;
+    endDate?: Date;
+    page?: number;
+    limit?: number;
+  },
+) {
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 10;
+  const skip = (page - 1) * limit;
+
+  const where = {
+    shop_id: shopId,
+    status: filters?.status
+      ? (filters.status as any)
+      : { in: ["COMPLETED", "REJECTED", "CANCELLED"] },
+    AND: [
+      filters?.search
+        ? {
+            customer: {
+              user: {
+                name: {
+                  contains: filters.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+          }
+        : {},
+      filters?.startDate || filters?.endDate
+        ? {
+            created_at: {
+              gte: filters.startDate,
+              lte: filters.endDate,
+            },
+          }
+        : {},
+    ],
+  };
+
+  const [data, total] = await Promise.all([
+    prisma.order.findMany({
+      where: where as any,
+      orderBy: {
+        created_at: "desc",
+      },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        created_at: true,
+        total_price: true,
+        status: true,
+        customer: {
+          select: {
+            user: {
+              select: {
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.order.count({
+      where: where as any,
+    }),
+  ]);
+
+  return {
+    data,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  };
 }
 
 export async function getShopOrderDetail(id: string) {
@@ -320,7 +379,7 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
       },
     },
     orderBy: {
-      updated_at: "desc",
+      updated_at: "asc",
     },
     select: {
       id: true,
@@ -340,25 +399,6 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
           },
         },
       },
-    },
-  });
-}
-
-export async function getCustomerOrderHistory(customerId: string) {
-  return await prisma.order.findMany({
-    where: {
-      customer_id: customerId,
-    },
-    orderBy: {
-      created_at: "desc",
-    },
-    include: {
-      shop: {
-        select: {
-          name: true,
-          image_url: true,
-        },
-      },
       order_items: {
         select: {
           quantity: true,
@@ -371,4 +411,71 @@ export async function getCustomerOrderHistory(customerId: string) {
       },
     },
   });
+}
+
+export async function getCustomerOrderHistory(
+  customerId: string,
+  filters?: {
+    startDate?: Date;
+    endDate?: Date;
+    page?: number;
+    limit?: number;
+  }
+) {
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 10;
+  const skip = (page - 1) * limit;
+
+  const where = {
+    customer_id: customerId,
+    AND: [
+      filters?.startDate || filters?.endDate
+        ? {
+            created_at: {
+              gte: filters.startDate,
+              lte: filters.endDate,
+            },
+          }
+        : {},
+    ],
+  };
+
+  const [data, total] = await Promise.all([
+    prisma.order.findMany({
+      where: where as any,
+      orderBy: {
+        created_at: "desc",
+      },
+      skip,
+      take: limit,
+      include: {
+        shop: {
+          select: {
+            name: true,
+            image_url: true,
+          },
+        },
+        order_items: {
+          select: {
+            quantity: true,
+            product: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.order.count({
+      where: where as any,
+    }),
+  ]);
+
+  return {
+    data,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  };
 }

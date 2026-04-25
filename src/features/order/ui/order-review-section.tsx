@@ -73,12 +73,15 @@ export default function OrderReviewSection({
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardContent className="flex flex-col">
         {testimony && (
-          <div>
-            <div className="flex flex-col gap-1">
-              <h1 className="font-semibold">Ulasan Pelanggan</h1>
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h1 className="font-bold text-gray-900 flex items-center gap-2">
+                <StarFilledIcon className="size-4 text-yellow-500" />
+                Ulasan Pelanggan
+              </h1>
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((rate) => (
                   <button key={rate} className="">
@@ -92,27 +95,35 @@ export default function OrderReviewSection({
               </div>
             </div>
 
-            <h1 className="mt-2">{testimony.message}</h1>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {testimony.message}
+            </p>
           </div>
         )}
 
         {!testimony && !isUserCustomer && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <StarIcon />
-              </EmptyMedia>
-              <EmptyTitle>Ulasan & Rating</EmptyTitle>
-              <EmptyDescription>
-                Customer belum menambahkan ulasan atau rating
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <div className="space-y-1">
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">
+              <StarIcon className="size-4 text-gray-400" />
+              Ulasan & Rating
+            </h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Customer belum menambahkan ulasan atau rating
+            </p>
+          </div>
         )}
 
         {!testimony && isUserCustomer && (
           <>
-            <CardTitle className="mb-4">Ulasan & Rating</CardTitle>
+            <div className="space-y-1 mb-4">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <StarIcon className="size-4 text-primary" />
+                Ulasan & Rating
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Bagikan pengalaman Anda memesan di kedai ini.
+              </p>
+            </div>
 
             <div className="flex mb-4 gap-2 items-center">
               {[1, 2, 3, 4, 5].map((rate) => (
@@ -131,10 +142,13 @@ export default function OrderReviewSection({
             </div>
 
             <div className="mb-4">
-              <Label htmlFor="ulasan">Ulasan</Label>
+              <Label htmlFor="ulasan" className="text-xs font-semibold">
+                Ulasan
+              </Label>
               <Textarea
                 id="ulasan"
-                className="mt-2"
+                placeholder="Tulis ulasan Anda di sini..."
+                className="mt-1.5 min-h-[100px] rounded-xl border-gray-200"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
@@ -142,11 +156,11 @@ export default function OrderReviewSection({
 
             <Button
               size={"lg"}
-              className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary"
+              className="w-full font-bold h-12 rounded-xl"
               disabled={isPending}
               onClick={handleSend}
             >
-              Kirim
+              Kirim Ulasan
             </Button>
           </>
         )}

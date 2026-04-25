@@ -47,9 +47,9 @@ export default function PostOrderTypeTab({
         </TabsList>
 
         <TabsContent value="DELIVERY_TO_TABLE">
-          <Card>
-            <CardContent>
-              {customerProfile.floor && customerProfile.table_number ? (
+          {customerProfile.floor && customerProfile.table_number ? (
+            <Card>
+              <CardContent>
                 <div className="flex flex-col w-full items-center gap-4">
                   <CustomerPositionBreadcrumb
                     canteen_name={canteen_name}
@@ -60,45 +60,38 @@ export default function PostOrderTypeTab({
                     Pilih Ulang
                   </NavButton>
                 </div>
-              ) : (
-                /* === CTA Banner: Belum pilih meja === */
-                <div className="rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600 p-4 flex flex-col items-center gap-3 text-center">
-                  {/* Ikon peringatan */}
-                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6 text-amber-500" />
-                  </div>
+              </CardContent>
+            </Card>
+          ) : (
+            /* === CTA Banner: Belum pilih meja === */
+            <div className="rounded-xl border-2 border-dashed border-primary bg-primary/5 dark:bg-primary/10 p-4 flex flex-col items-center gap-3 text-center">
+              {/* Ikon peringatan */}
+              <div className="w-12 h-12 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-primary" />
+              </div>
 
-                  {/* Teks */}
-                  <div>
-                    <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">
-                      Kamu belum memilih meja!
-                    </p>
-                    <p className="text-xs text-amber-700/80 dark:text-amber-400/80 mt-0.5">
-                      Pilih meja agar pesanan bisa diantarkan ke tempatmu
-                    </p>
-                  </div>
+              {/* Teks */}
+              <div>
+                <p className="font-semibold text-sm text-foreground">
+                  Kamu belum memilih meja!
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Pilih meja agar pesanan bisa diantarkan ke tempatmu
+                </p>
+              </div>
 
-                  {/* Tombol utama */}
-                  <Button
-                    asChild
-                    size="sm"
-                    className="w-full bg-amber-500 hover:bg-amber-600 text-white border-0 font-semibold"
-                  >
-                    <Link href={selectTablePageUrl}>
-                      <MapPin className="w-4 h-4" />
-                      Pilih Meja Sekarang
-                    </Link>
-                  </Button>
+              {/* Tombol utama */}
+              <Button asChild size="sm" className="w-full font-semibold">
+                <Link href={selectTablePageUrl}>Pilih Meja Sekarang</Link>
+              </Button>
 
-                  {/* Atau scan QR */}
-                  <div className="flex items-center gap-1.5 text-xs text-amber-700/70 dark:text-amber-400/70">
-                    <QrCode className="w-3 h-3" />
-                    <span>atau scan QR Code di meja kamu</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              {/* Atau scan QR */}
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <QrCode className="w-3 h-3" />
+                <span>atau scan QR Code di meja kamu</span>
+              </div>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="TAKEAWAY">

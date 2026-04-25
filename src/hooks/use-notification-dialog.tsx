@@ -7,6 +7,7 @@ export type NotificationOptions = {
   actionButtons?: React.ReactNode;
   showLoadingBar?: boolean;
   icon?: React.ReactNode;
+  duration?: number;
 };
 
 type NotificationDialog = {

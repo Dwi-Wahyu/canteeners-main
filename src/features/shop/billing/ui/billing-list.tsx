@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -13,20 +12,21 @@ import {
 import { BillingStatusBadge } from "./billing-status-badge";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { Filter, ExternalLink, Calendar, DollarSign } from "lucide-react";
+import { Filter, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import { ShopBillingStatus } from "@/generated/prisma";
+import { cn } from "@/lib/utils";
 
 interface BillingListProps {
   billings: Array<{
     id: string;
     start_date: Date;
     end_date: Date;
-    subtotal: number;
-    refund: number;
-    total: number;
+    commission_total: number;
+    subsidy_total: number;
+    refund_total: number;
+    net_total: number;
     status: ShopBillingStatus;
   }>;
 }
@@ -52,8 +52,6 @@ export function BillingList({ billings }: BillingListProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      <TopbarWithBackButton title="Kelola Tagihan" backUrl="/dashboard-kedai" />
-
       <div className="space-y-4">
         {/* Status Filter */}
         <div className="flex items-center gap-3">
@@ -115,26 +113,55 @@ export function BillingList({ billings }: BillingListProps) {
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">
-                              Komisi
+                              Komisi Transaksi
                             </span>
                             <span className="font-medium">
-                              Rp{billing.subtotal.toLocaleString("id-ID")}
+                              Rp{billing.commission_total.toLocaleString("id-ID")}
                             </span>
                           </div>
-                          {billing.refund > 0 && (
+
+                          {billing.subsidy_total > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground flex items-center gap-1">
+                                Subsidi Voucher Platform
+                                <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">
+                                  Hutang Kami
+                                </span>
+                              </span>
+                              <span className="text-green-600 font-medium">
+                                -Rp{billing.subsidy_total.toLocaleString("id-ID")}
+                              </span>
+                            </div>
+                          )}
+
+                          {billing.refund_total > 0 && (
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-muted-foreground">
                                 Refund
                               </span>
                               <span className="text-red-500 font-medium">
-                                -Rp{billing.refund.toLocaleString("id-ID")}
+                                -Rp{billing.refund_total.toLocaleString("id-ID")}
                               </span>
                             </div>
                           )}
-                          <div className="flex items-center justify-between text-lg pt-1 border-t">
-                            <span className="font-semibold">Total</span>
-                            <span className="font-bold text-primary">
-                              Rp{billing.total.toLocaleString("id-ID")}
+                          <div className="flex items-center justify-between text-lg pt-1 border-t border-dashed">
+                            <span className="font-semibold">
+                              {billing.net_total < 0
+                                ? "Platform Bayar Anda"
+                                : "Total Tagihan"}
+                            </span>
+                            <span
+                              className={cn(
+                                "font-bold",
+                                billing.net_total < 0
+                                  ? "text-green-600"
+                                  : "text-primary"
+                              )}
+                            >
+                              Rp
+                              {Math.abs(billing.net_total).toLocaleString(
+                                "id-ID"
+                              )}
                             </span>
                           </div>
                         </div>

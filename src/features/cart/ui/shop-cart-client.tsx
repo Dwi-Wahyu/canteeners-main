@@ -22,7 +22,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Store, Loader2, Pencil, StickyNote } from "lucide-react";
+import { Store, Loader2, Pencil, StickyNote, Trash2 } from "lucide-react";
 import { formatToHour } from "@/helper/hour-helper";
 import ReferralSection from "./referral-section";
 import { toast } from "sonner";
@@ -31,7 +31,10 @@ import VoucherSelectionDialog from "./voucher-selection-dialog";
 import { calculateCommission } from "@/helper/pricing-helper";
 import { getImageUrl } from "@/helper/get-image-url";
 import { Input } from "@/components/ui/input";
-import { changeCartItemDetails } from "@/features/cart/lib/cart-actions";
+import {
+  changeCartItemDetails,
+  deleteCartItem,
+} from "@/features/cart/lib/cart-actions";
 import {
   GetShopCartType,
   GetShopCartItemType,
@@ -49,6 +52,21 @@ function CartItemRow({
   const router = useRouter();
   const [qty, setQty] = useState(item.quantity);
   const [isPending, startTransition] = useTransition();
+
+  async function handleDeleteItem() {
+    if (disabled) return;
+
+    startTransition(async () => {
+      const result = await deleteCartItem(item.id);
+
+      if (result.success) {
+        // toast.success("Item dihapus");
+        router.refresh();
+      } else {
+        toast.error(result.error.message);
+      }
+    });
+  }
 
   async function handleChangeQuantity(newQty: number) {
     if (newQty < 1) return;
@@ -92,11 +110,32 @@ function CartItemRow({
           <p className="font-medium text-sm">{formatRupiah(item.subtotal)}</p>
         </div>
 
-        <Link href={`/keranjang/${shopCartId}/${item.id}`}>
-          <Button size="icon" variant="ghost" className="h-8 w-8">
-            <Pencil className="w-4 h-4 text-muted-foreground" />
+        <div className="flex gap-1">
+          <Link href={`/keranjang/${shopCartId}/${item.id}`}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              disabled={disabled}
+            >
+              <Pencil className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </Link>
+
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 hover:bg-red-50 group transition-colors"
+            onClick={handleDeleteItem}
+            disabled={disabled || isPending}
+          >
+            {isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Trash2 className="w-4 h-4 text-muted-foreground group-hover:text-red-500" />
+            )}
           </Button>
-        </Link>
+        </div>
       </div>
 
       <div className="flex gap-2 items-center">
@@ -392,18 +431,20 @@ export default function ShopCartClient({
         selectTablePageUrl={`/kantin/${shopCart.shop.canteen.slug}/pilih-meja?callbackUrl=/keranjang/${shopCart.id}`}
       />
 
-      {/* <VoucherSelectionDialog
-        vouchers={(customerProfile.discounts || []).filter((d) => !d.is_used) as any}
-        selectedIds={selectedDiscountIds}
-        onToggle={toggleDiscount}
-        totalPrice={shopCart.total_price}
-      /> */}
-
-      {/* <ReferralSection
+      <ReferralSection
         appliedCode={appliedCode}
         onApply={handleApplyReferral}
         onRemove={removeReferral}
-      /> */}
+      />
+
+      <VoucherSelectionDialog
+        vouchers={
+          (customerProfile.discounts || []).filter((d) => !d.is_used) as any
+        }
+        selectedIds={selectedDiscountIds}
+        onToggle={toggleDiscount}
+        totalPrice={shopCart.total_price}
+      />
 
       <div className="flex flex-col gap-1">
         <div className="flex justify-between items-center text-muted-foreground">

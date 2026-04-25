@@ -5,8 +5,14 @@ import { toast } from "sonner";
 
 export async function createGuestSession({
   name,
+  tableData,
 }: {
   name: string;
+  tableData?: {
+    canteen_id: number;
+    floor: number;
+    table_number: number;
+  };
 }): Promise<{ cartId: string | null; userId: string | null }> {
   const auth = getAuth();
 
@@ -15,6 +21,7 @@ export async function createGuestSession({
   const createGuest = await createGuestCustomer({
     firebaseUserUid: result.user.uid,
     guestName: name,
+    tableData,
   });
 
   if (!createGuest.success) {

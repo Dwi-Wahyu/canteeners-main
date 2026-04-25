@@ -36,7 +36,7 @@ export const authConfig: NextAuthConfig = {
         // 1. Coba parse sebagai Guest Session
         const parsedCreateGuestSession =
           CreateGuestSessionSchema.safeParse(credentials);
-        
+
         if (parsedCreateGuestSession.success) {
           const { isGuest, firebaseUid, name } = parsedCreateGuestSession.data;
 
@@ -288,7 +288,7 @@ export const authConfig: NextAuthConfig = {
       const tokenCreatedAt = (token.firebaseTokenCreatedAt as number) || 0;
 
       if (token.id && token.firebaseToken && now - tokenCreatedAt > 3000) {
-        console.log("Refreshing Firebase token for user:", token.id);
+        // console.log("Refreshing Firebase token for user:", token.id);
         const newFirebaseToken = await getFirebaseToken({
           uid: token.id as string,
         });

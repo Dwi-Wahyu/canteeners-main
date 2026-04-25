@@ -2,7 +2,6 @@
 
 import CustomBadge from "@/components/custom-badge";
 import NavButton from "@/components/nav-button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 import { getOrderTrackingData } from "@/features/order/lib/order-queries";
@@ -34,6 +33,12 @@ import {
 import { Clock, SquareArrowOutUpRight, Trash, UserIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default function ShopOrderTrackingClient({
   shopId,
@@ -59,25 +64,20 @@ export default function ShopOrderTrackingClient({
     const q = query(
       ordersRef,
       where("shopId", "==", shopId),
-      orderBy("lastUpdatedAt", "desc"),
+      orderBy("lastUpdatedAt", "asc"),
     );
 
     let isInitialSnapshot = true;
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      // Abaikan pending writes (perubahan lokal yang belum sync ke server)
       if (querySnapshot.metadata.hasPendingWrites) return;
 
-      // Abaikan snapshot pertama kali load, karena data sudah diambil via initialData (SSR)
-      // Ini mencegah double-fetch saat halaman baru dibuka
       if (isInitialSnapshot) {
         isInitialSnapshot = false;
         return;
       }
 
-      // Jika ada perubahan dokumen di Firestore (add/modify/remove)
       if (!querySnapshot.empty) {
-        // Invalidate query agar React Query mengambil data terbaru dari Database SQL
         queryClient.invalidateQueries({
           queryKey: ["shop-order-tracking", shopId],
         });
@@ -89,19 +89,16 @@ export default function ShopOrderTrackingClient({
     };
   }, [shopId, queryClient]);
 
-  // Jika sedang loading (biasanya tidak terjadi karena ada initialData,
-  // tapi berguna jika key berubah atau cache kosong)
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="w-full h-40" />
+          <Skeleton key={i} className="w-full h-16" />
         ))}
       </div>
     );
   }
 
-  // State Kosong
   if (!orders || orders.length === 0) {
     return (
       <Empty className="border">
@@ -123,135 +120,136 @@ export default function ShopOrderTrackingClient({
     );
   }
 
-  // Render List Pesanan
   return (
-    <div className="flex flex-col gap-4">
-      {orders.map((order) => (
-        <Card key={order.id}>
-          <CardContent className="space-y-2 relative">
-            <NavButton
-              variant="ghost"
-              className="absolute right-4 top-2"
-              href={"/dashboard-kedai/order/" + order.id}
-              size="icon"
-            >
-              <SquareArrowOutUpRight className="w-4 h-4" />
-            </NavButton>
-
-            <div className="flex gap-2 items-center mb-2">
-              <UserIcon className="w-4 h-4 text-muted-foreground" />
-              <h1 className="font-medium text-lg">
-                {order.customer.user.name}
-              </h1>
-            </div>
-
-            <div className="mb-3">
-              <CustomBadge
-                value={order.status}
-                outlineValues={[
-                  OrderStatus.PENDING_CONFIRMATION,
-                  OrderStatus.WAITING_SHOP_CONFIRMATION,
-                ]}
-                destructiveValues={[
-                  OrderStatus.CANCELLED,
-                  OrderStatus.PAYMENT_REJECTED,
-                ]}
-              >
-                {orderStatusMapping[order.status]}
-              </CustomBadge>
-            </div>
-
-            {order.estimation && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>Estimasi: {order.estimation} Menit</span>
-              </div>
-            )}
-
-            {order.post_order_type === "DELIVERY_TO_TABLE" &&
-              order.customer.table_number && (
-                <div className="text-sm bg-muted/50 p-2 rounded-md">
-                  <div className="flex justify-between">
-                    <span>
-                      Meja:{" "}
-                      <span className="font-medium">
-                        {order.customer.table_number}
-                      </span>
-                    </span>
-                    <span>
-                      Lantai:{" "}
-                      <span className="font-medium">
-                        {order.customer.floor}
-                      </span>
-                    </span>
+    <div className="flex flex-col">
+      <Accordion type="multiple" className="w-full">
+        {orders.map((order) => (
+          <AccordionItem key={order.id} value={order.id} className="mb-2">
+            <AccordionTrigger className="hover:no-underline py-3">
+              <div className="flex flex-1 justify-between items-center pr-2">
+                <div className="flex flex-col items-start text-left">
+                  <div className="flex gap-2 items-center">
+                    <UserIcon className="w-3 h-3 text-muted-foreground" />
+                    <h1 className="font-medium">{order.customer.user.name}</h1>
+                  </div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1 max-w-[200px]">
+                    {order.order_items && order.order_items.length > 0 
+                      ? order.order_items.map((item) => `${item.quantity}x ${item.product.name}`).join(", ")
+                      : "Tidak ada item"}
+                  </div>
+                  <div className="mt-1">
+                    <CustomBadge
+                      className="text-[10px] px-1.5 h-5"
+                      value={order.status}
+                      outlineValues={[
+                        OrderStatus.PENDING_CONFIRMATION,
+                        OrderStatus.WAITING_SHOP_CONFIRMATION,
+                      ]}
+                    >
+                      {orderStatusMapping[order.status]}
+                    </CustomBadge>
                   </div>
                 </div>
-              )}
 
-            {/* AREA DIALOG ACTIONS */}
-            <div className="mt-4 pt-2 border-t space-y-3">
-              {order.status === "PROCESSING" && (
-                <CompleteOrderDialog order_id={order.id} />
-              )}
-
-              {order.status === "WAITING_SHOP_CONFIRMATION" &&
-                order.payment_method === "CASH" && (
-                  <ConfirmPaymentDialog order_id={order.id} />
-                )}
-
-              {order.status === "PENDING_CONFIRMATION" && (
-                <div className="grid grid-cols-2 gap-3">
-                  <RejectOrderDialog order_id={order.id} />
-                  <ConfirmOrderDialog
-                    order_id={order.id}
-                    payment_method={order.payment_method}
-                    shop_id={shopId}
-                  />
-                </div>
-              )}
-
-              {order.payment_method !== "CASH" && order.payment_proof_url && (
-                <div className="bg-muted/30 p-3 rounded-lg border">
-                  <h1 className="font-medium text-sm mb-2">
-                    {order.status === "WAITING_SHOP_CONFIRMATION"
-                      ? "Verifikasi Pembayaran"
-                      : "Bukti Pembayaran"}
-                  </h1>
-
-                  <a
-                    href={getImageUrl(
-                      "/payment-proof/" + order.payment_proof_url,
-                    )}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-fit group"
-                  >
-                    <Image
-                      className="rounded border group-hover:opacity-90 transition-opacity"
-                      width={100}
-                      height={100}
-                      alt="Bukti pembayaran"
-                      src={getImageUrl(
-                        "/payment-proof/" + order.payment_proof_url,
-                      )}
-                    />
-                    <span className="text-[10px] text-muted-foreground mt-1 block">
-                      Klik untuk memperbesar
-                    </span>
-                  </a>
-
-                  {order.status === "WAITING_SHOP_CONFIRMATION" && (
-                    <div className="grid grid-cols-2 gap-3 mt-3">
-                      <RejectPaymentDialog order_id={order.id} />
-                      <ConfirmPaymentDialog order_id={order.id} />
+                <div className="flex flex-col items-end text-right">
+                  {order.estimation && (
+                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      <span>{order.estimation} Min</span>
                     </div>
                   )}
+                  {order.post_order_type === "DELIVERY_TO_TABLE" && (
+                    <span className="text-[10px] font-medium bg-muted px-1.5 rounded mt-1">
+                      Meja {order.customer.table_number}
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="pt-2 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-muted-foreground">
+                    Detail Lengkap
+                  </span>
+                  <NavButton
+                    variant="outline"
+                    className="h-8 text-xs"
+                    href={
+                      "/dashboard-kedai/order/" +
+                      order.id +
+                      "?back_url=/dashboard-kedai/order"
+                    }
+                    size="sm"
+                  >
+                    Buka Detail{" "}
+                    <SquareArrowOutUpRight className="ml-2 w-3 h-3" />
+                  </NavButton>
+                </div>
+
+                <div className="space-y-3">
+                  {order.status === "PROCESSING" && (
+                    <CompleteOrderDialog order_id={order.id} />
+                  )}
+
+                  {order.status === "WAITING_SHOP_CONFIRMATION" &&
+                    order.payment_method === "CASH" && (
+                      <ConfirmPaymentDialog order_id={order.id} />
+                    )}
+
+                  {order.status === "PENDING_CONFIRMATION" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <RejectOrderDialog order_id={order.id} />
+                      <ConfirmOrderDialog
+                        order_id={order.id}
+                        payment_method={order.payment_method}
+                        shop_id={shopId}
+                      />
+                    </div>
+                  )}
+
+                  {order.payment_method !== "CASH" &&
+                    order.payment_proof_url && (
+                      <div className="bg-muted/30 p-3 rounded-lg border">
+                        <h1 className="font-medium text-xs mb-2">
+                          {order.status === "WAITING_SHOP_CONFIRMATION"
+                            ? "Verifikasi Pembayaran"
+                            : "Bukti Pembayaran"}
+                        </h1>
+
+                        <a
+                          href={getImageUrl(
+                            "/payment-proof/" + order.payment_proof_url,
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block w-fit group"
+                        >
+                          <Image
+                            className="rounded border group-hover:opacity-90 transition-opacity"
+                            width={80}
+                            height={80}
+                            alt="Bukti pembayaran"
+                            src={getImageUrl(
+                              "/payment-proof/" + order.payment_proof_url,
+                            )}
+                          />
+                        </a>
+
+                        {order.status === "WAITING_SHOP_CONFIRMATION" && (
+                          <div className="grid grid-cols-2 gap-3 mt-3">
+                            <RejectPaymentDialog order_id={order.id} />
+                            <ConfirmPaymentDialog order_id={order.id} />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                </div>
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </div>
   );
 }

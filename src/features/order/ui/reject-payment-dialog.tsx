@@ -41,6 +41,8 @@ export default function RejectPaymentDialog({
         title: "Berhasil Menolak Pembayaran",
         message:
           "Pelanggan akan diminta untuk mengirimkan kembali bukti pembayaran",
+        duration: 3000,
+        showLoadingBar: true,
         actionButtons: (
           <Button size={"lg"} onClick={notificationDialog.hide}>
             Tutup

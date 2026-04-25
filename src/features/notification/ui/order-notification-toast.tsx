@@ -6,6 +6,7 @@ import {
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 
 interface OrderNotificationToastProps {
   notification: OrderNotification;
@@ -16,14 +17,21 @@ export function OrderNotificationToast({
   notification,
   onDismiss,
 }: OrderNotificationToastProps) {
+  const router = useRouter();
   const intent = notification.intent || "INFO";
   const colors = notificationIntentColorMap[intent];
   const typeIcon = notificationTypeIconMapping["ORDER"];
 
+  const handleClick = () => {
+    router.push(notification.resourcePath);
+    if (onDismiss) onDismiss();
+  };
+
   return (
     <div
+      onClick={handleClick}
       className={cn(
-        "relative w-full overflow-hidden rounded-lg border p-4 shadow-md transition-all hover:shadow-lg",
+        "relative w-full overflow-hidden rounded-lg border p-4 shadow-md transition-all hover:shadow-lg cursor-pointer",
         "bg-white dark:bg-zinc-950"
       )}
       style={{

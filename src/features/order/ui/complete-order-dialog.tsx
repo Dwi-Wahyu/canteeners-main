@@ -34,6 +34,8 @@ export default function CompleteOrderDialog({
         notificationDialog.success({
           title: "Order Telah Selesai !",
           message: "Terima kasih sudah bekerja sama dengan canteeners 😊🙏",
+          duration: 3000,
+          showLoadingBar: true,
         });
       } else {
         notificationDialog.error({

@@ -1,6 +1,7 @@
 import { getApps, initializeApp, cert, getApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
+import { getMessaging } from "firebase-admin/messaging"; // Tambahkan ini
 
 function initAdmin() {
   if (getApps().length === 0) {
@@ -8,7 +9,7 @@ function initAdmin() {
 
     if (!privateKey) {
       throw new Error(
-        "FIREBASE_PRIVATE_KEY is not defined in environment variables"
+        "FIREBASE_PRIVATE_KEY is not defined in environment variables",
       );
     }
 
@@ -28,3 +29,4 @@ const adminApp = initAdmin();
 
 export const adminAuth = getAuth(adminApp);
 export const adminDb = getFirestore(adminApp);
+export const adminMessaging = getMessaging(adminApp);

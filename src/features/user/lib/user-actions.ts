@@ -13,9 +13,15 @@ import { revalidatePath } from "next/cache";
 export async function createGuestCustomer({
   firebaseUserUid,
   guestName,
+  tableData,
 }: {
   firebaseUserUid: string;
   guestName: string;
+  tableData?: {
+    canteen_id: number;
+    floor: number;
+    table_number: number;
+  };
 }): Promise<
   ServerActionReturn<{
     user_id: string;
@@ -32,16 +38,6 @@ export async function createGuestCustomer({
       },
       select: {
         id: true,
-        customer: {
-          select: {
-            id: true,
-            cart: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
       },
     });
 
@@ -52,6 +48,12 @@ export async function createGuestCustomer({
     const createdCustomer = await prisma.customer.create({
       data: {
         user_id: createdUser.id,
+        ...(tableData && {
+          canteen_id: tableData.canteen_id,
+          floor: tableData.floor,
+          table_number: tableData.table_number,
+          last_visit_at: new Date(),
+        }),
       },
     });
 
