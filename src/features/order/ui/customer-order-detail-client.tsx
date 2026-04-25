@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
@@ -29,6 +29,7 @@ import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclam
 import {
   CircleAlert,
   Edit,
+  MessageSquareHeart,
   StickyNote,
 } from "lucide-react";
 import NavButton from "@/components/nav-button";
@@ -46,6 +47,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useNotificationDialogStore } from "@/stores/use-notification-store";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function CustomerOrderDetailClient({
   order: initialOrder,
@@ -57,6 +61,33 @@ export default function CustomerOrderDetailClient({
     (orderData as unknown as GetCustomerOrderDetail) || initialOrder;
 
   const [isLate, setIsLate] = useState(false);
+  const showNotification = useNotificationDialogStore((state) => state.show);
+  const prevStatusRef = useRef<OrderStatus>(order.status);
+
+  useEffect(() => {
+    if (
+      prevStatusRef.current !== "COMPLETED" &&
+      order.status === "COMPLETED"
+    ) {
+      showNotification({
+        title: "Pesanan Selesai!",
+        message:
+          "Hore! Pesananmu sudah selesai. Selamat menikmati hidanganmu! 😊",
+        type: "success",
+        actionButtons: (
+          <div className="flex flex-col gap-2 w-full">
+            <Button asChild className="w-full">
+              <Link href="/testimoni">Beri Kritik & Saran</Link>
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => useNotificationDialogStore.getState().hide()}>
+              Tutup
+            </Button>
+          </div>
+        ),
+      });
+    }
+    prevStatusRef.current = order.status;
+  }, [order.status, showNotification]);
 
   useEffect(() => {
     if (order.status === "PROCESSING" && order.processed_at && order.estimation) {
@@ -321,11 +352,32 @@ export default function CustomerOrderDetailClient({
       </div>
 
       {order.status === "COMPLETED" && (
-        <OrderReviewSection
-          isUserCustomer={true}
-          order_id={order.id}
-          prevTestimony={order.testimony}
-        />
+        <div className="space-y-4">
+          <OrderReviewSection
+            isUserCustomer={true}
+            order_id={order.id}
+            prevTestimony={order.testimony}
+          />
+
+          <div className="bg-primary/5 rounded-xl p-6 border border-primary/10 flex flex-col items-center text-center gap-3">
+            <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+              <MessageSquareHeart className="size-6" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-semibold">Bantu Canteeners Jadi Lebih Baik</h3>
+              <p className="text-sm text-muted-foreground">
+                Punya kritik atau saran untuk aplikasi Canteeners? Kami sangat menghargai masukan Anda!
+              </p>
+            </div>
+            <NavButton
+              href="/testimoni"
+              variant="outline"
+              className="mt-2 border-primary/20 hover:bg-primary/10"
+            >
+              Beri Kritik & Saran
+            </NavButton>
+          </div>
+        </div>
       )}
 
       <OrderComplaintSection order={order} />
