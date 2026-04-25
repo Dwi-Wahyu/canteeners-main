@@ -234,6 +234,19 @@ export async function validateReferralCode(
   }
 
   try {
+    const customer = await prisma.customer.findUnique({
+      where: { user_id: session.user.id },
+      select: { id: true, has_used_referral: true },
+    });
+
+    if (!customer) {
+      return errorResponse("Customer tidak ditemukan");
+    }
+
+    if (customer.has_used_referral) {
+      return errorResponse("Anda sudah pernah menggunakan kode referral");
+    }
+
     const referrer = await prisma.customer.findUnique({
       where: { referral_code: code },
       select: {

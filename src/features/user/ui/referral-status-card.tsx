@@ -35,9 +35,9 @@ export default function ReferralStatusCard({
 
   if (!referralCode) {
     return (
-      <Card className="overflow-hidden border-dashed border-2 border-primary/20 bg-primary/[0.02]">
-        <CardContent className="p-0">
-          <div className="flex items-start gap-4 p-5">
+      <Card className="overflow-hidden border-dashed border-2 border-primary/20 bg-primary/2">
+        <CardContent>
+          <div className="flex items-start gap-4">
             <div className="p-3 bg-primary rounded-2xl text-white shadow-lg shadow-primary/20">
               <Gift size={24} />
             </div>

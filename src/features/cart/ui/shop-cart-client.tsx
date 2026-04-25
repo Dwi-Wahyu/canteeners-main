@@ -178,7 +178,10 @@ export default function ShopCartClient({
 }: {
   userId: string;
   shopCart: GetShopCartType;
-  customerProfile: GetCustomerProfileType;
+  customerProfile: GetCustomerProfileType & {
+    user: { username: string | null };
+    has_used_referral: boolean;
+  };
   nameAlreadySet: boolean;
 }) {
   const router = useRouter();
@@ -193,6 +196,8 @@ export default function ShopCartClient({
 
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [selectedDiscountIds, setSelectedDiscountIds] = useState<string[]>([]);
+
+  const isGuest = !customerProfile.user.username;
 
   const handleApplyReferral = (code: string) => {
     setAppliedCode(code);
@@ -431,20 +436,24 @@ export default function ShopCartClient({
         selectTablePageUrl={`/kantin/${shopCart.shop.canteen.slug}/pilih-meja?callbackUrl=/keranjang/${shopCart.id}`}
       />
 
-      <ReferralSection
-        appliedCode={appliedCode}
-        onApply={handleApplyReferral}
-        onRemove={removeReferral}
-      />
+      {!isGuest && !customerProfile.has_used_referral && (
+        <ReferralSection
+          appliedCode={appliedCode}
+          onApply={handleApplyReferral}
+          onRemove={removeReferral}
+        />
+      )}
 
-      <VoucherSelectionDialog
-        vouchers={
-          (customerProfile.discounts || []).filter((d) => !d.is_used) as any
-        }
-        selectedIds={selectedDiscountIds}
-        onToggle={toggleDiscount}
-        totalPrice={shopCart.total_price}
-      />
+      {!isGuest && (
+        <VoucherSelectionDialog
+          vouchers={
+            (customerProfile.discounts || []).filter((d) => !d.is_used) as any
+          }
+          selectedIds={selectedDiscountIds}
+          onToggle={toggleDiscount}
+          totalPrice={shopCart.total_price}
+        />
+      )}
 
       <div className="flex flex-col gap-1">
         <div className="flex justify-between items-center text-muted-foreground">

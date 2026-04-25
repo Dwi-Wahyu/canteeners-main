@@ -3,9 +3,6 @@
 import { usePathname } from "next/navigation";
 import OwnerTopbar from "./owner-topbar";
 import OwnerBottomBar from "./owner-bottombar";
-import { Toaster } from "@/components/ui/sonner";
-import { useWatchChatNotification } from "@/features/notification/hooks/use-watch-chat-notification";
-import useWatchNotification from "@/features/notification/hooks/use-watch-notification";
 
 export default function OwnerLayout({
   children,
@@ -33,16 +30,8 @@ export default function OwnerLayout({
     return excludedPath.some((path) => pathname.includes(path));
   }
 
-  const isChatPage = pathname.includes("/chat/");
-
-  useWatchChatNotification(isChatPage ? null : uid);
-
-  useWatchNotification();
-
   return (
     <div>
-      <Toaster />
-
       {isExcluded() ? (
         <div className="">{children}</div>
       ) : (

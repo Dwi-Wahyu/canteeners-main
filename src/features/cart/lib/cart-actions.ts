@@ -105,8 +105,9 @@ export async function processShopCart({
             customer_id: true,
             customer: {
               select: {
-                user: { select: { name: true, avatar: true } },
+                user: { select: { name: true, avatar: true, username: true } },
                 user_id: true,
+                has_used_referral: true,
               },
             },
           },
@@ -141,6 +142,20 @@ export async function processShopCart({
     });
 
     if (!shopCartData) return errorResponse("Keranjang kedai tidak ditemukan");
+
+    // Validasi Referral
+    if (referralCode) {
+      const customer = shopCartData.cart.customer;
+      const isGuest = !customer.user.username; // Guest has no username in this system
+
+      if (isGuest) {
+        return errorResponse("Pengguna tamu tidak dapat menggunakan kode referral");
+      }
+
+      if (customer.has_used_referral) {
+        return errorResponse("Anda sudah pernah menggunakan kode referral sebelumnya");
+      }
+    }
 
     const customer_user_id = shopCartData.cart.customer.user_id;
     const owner_user_id = shopCartData.shop.owner.user_id;

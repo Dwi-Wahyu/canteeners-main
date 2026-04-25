@@ -57,12 +57,30 @@ export default function CustomerOrderDetailClient({
     (orderData as unknown as GetCustomerOrderDetail) || initialOrder;
 
   const [isLate, setIsLate] = useState(false);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
-    if (order.status === "PROCESSING" && order.processed_at && order.estimation) {
+    const calculateElapsed = () => {
+      const diff = Math.floor(
+        (new Date().getTime() - new Date(order.created_at).getTime()) / 1000,
+      );
+      setElapsedSeconds(diff > 0 ? diff : 0);
+    };
+    calculateElapsed();
+    const timer = setInterval(calculateElapsed, 1000);
+    return () => clearInterval(timer);
+  }, [order.created_at]);
+
+  useEffect(() => {
+    if (
+      order.status === "PROCESSING" &&
+      order.processed_at &&
+      order.estimation
+    ) {
       const checkLate = () => {
         const now = new Date().getTime();
-        const endTime = new Date(order.processed_at!).getTime() + order.estimation! * 60000;
+        const endTime =
+          new Date(order.processed_at!).getTime() + order.estimation! * 60000;
         if (now > endTime) setIsLate(true);
       };
       checkLate();
@@ -83,7 +101,24 @@ export default function CustomerOrderDetailClient({
     {} as Record<string, typeof order.order_items>,
   );
 
-  const canCancel =
+  const isGracePeriod = elapsedSeconds <= 10;
+  const isWaitPeriod = elapsedSeconds > 10 && elapsedSeconds < 600;
+
+  const showWaitResponseAlert =
+    isWaitPeriod &&
+    !isLate &&
+    order.status === "PENDING_CONFIRMATION";
+
+  const formatTime = (seconds: number) => {
+    const totalLeft = Math.max(0, seconds);
+    const minutes = Math.floor(totalLeft / 60);
+    const remainingSeconds = totalLeft % 60;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const baseCanCancel =
     ![
       "COMPLETED",
       "CANCELLED",
@@ -92,25 +127,64 @@ export default function CustomerOrderDetailClient({
     ].includes(order.status) &&
     (order.status !== "PROCESSING" || isLate);
 
+  const canCancel = baseCanCancel && (isGracePeriod || !isWaitPeriod || isLate);
+
   return (
     <div className="p-5 space-y-5">
       <div className="flex flex-col gap-2">
-        <div>
-          <h1 className="font-semibold">Status</h1>
+        {!showWaitResponseAlert && (
+          <div>
+            <h1 className="font-semibold">Status</h1>
 
-          <CustomBadge
-            value={order.status}
-            outlineValues={[
-              OrderStatus.WAITING_SHOP_CONFIRMATION,
-              OrderStatus.WAITING_PAYMENT,
-              OrderStatus.PENDING_CONFIRMATION,
-            ]}
-            successValues={[OrderStatus.COMPLETED]}
-            destructiveValues={[OrderStatus.CANCELLED, OrderStatus.REJECTED]}
-          >
-            {orderStatusMapping[order.status]}
-          </CustomBadge>
-        </div>
+            <CustomBadge
+              value={order.status}
+              outlineValues={[
+                OrderStatus.WAITING_SHOP_CONFIRMATION,
+                OrderStatus.WAITING_PAYMENT,
+                OrderStatus.PENDING_CONFIRMATION,
+              ]}
+              successValues={[OrderStatus.COMPLETED]}
+              destructiveValues={[OrderStatus.CANCELLED, OrderStatus.REJECTED]}
+            >
+              {orderStatusMapping[order.status]}
+            </CustomBadge>
+          </div>
+        )}
+
+        {isGracePeriod &&
+          !["COMPLETED", "CANCELLED", "REJECTED"].includes(order.status) && (
+            <Alert>
+              <CircleAlert className="w-4 h-4" />
+              <AlertTitle>Masa Tenggang Pembatalan</AlertTitle>
+              <AlertDescription>
+                Anda memiliki {10 - elapsedSeconds} detik untuk membatalkan
+                pesanan jika terjadi kesalahan.
+              </AlertDescription>
+            </Alert>
+          )}
+
+        {showWaitResponseAlert && (
+          <Alert className="bg-primary/5 border-primary/20">
+            <CircleAlert className="w-4 h-4 text-primary" />
+            <AlertTitle className="text-primary">
+              Menunggu Respon Kedai
+            </AlertTitle>
+            <AlertDescription className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Pesanan Anda sedang menunggu konfirmasi dari pihak kedai. Mohon
+                tunggu sebentar.
+              </p>
+              <div className="flex items-center gap-2 pt-1">
+                <h1 className="text-lg font-bold text-primary tabular-nums tracking-tight">
+                  {formatTime(600 - elapsedSeconds)}
+                </h1>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase bg-gray-100 px-2 py-0.5 rounded">
+                  Sisa Waktu Tunggu
+                </span>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {order.status === "REJECTED" && (
           <Alert variant={"destructive"}>

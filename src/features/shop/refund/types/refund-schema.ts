@@ -23,8 +23,9 @@ export const RefundRequestSchema = z
       .optional(),
     complaint_proof_url: z
       .string()
-      .url({ message: "URL bukti tidak valid." })
-      .optional(),
+      .max(255, { message: "URL bukti terlalu panjang." })
+      .optional()
+      .or(z.literal("")),
     disbursement_mode: z.enum(["CASH", "TRANSFER"], {
       message: "Mode pengembalian dana tidak valid.",
     }),
@@ -93,8 +94,9 @@ export const ProcessRefundSchema = z.object({
   refund_id: z.string(),
   disbursement_proof_url: z
     .string()
-    .url({ message: "URL bukti tidak valid." })
-    .optional(),
+    .max(255, { message: "URL bukti terlalu panjang." })
+    .optional()
+    .or(z.literal("")),
 });
 
 export type ProcessRefundInput = z.infer<typeof ProcessRefundSchema>;

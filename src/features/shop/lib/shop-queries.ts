@@ -92,39 +92,64 @@ export async function getShopTestimonies(shop_id: string) {
   });
 }
 
-export async function getShopDashboardStats(shopId: string) {
+export async function getShopDashboardStats(
+  shopId: string,
+  period: "today" | "week" | "month" | "all" = "today"
+) {
   const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfDay = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1,
-  );
+  let startDate: Date | undefined;
+  const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
 
-  // Get total revenue today
-  const ordersToday = await prisma.order.findMany({
+  if (period === "today") {
+    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  } else if (period === "week") {
+    startDate = new Date(now);
+    startDate.setDate(now.getDate() - 6);
+    startDate.setHours(0, 0, 0, 0);
+  } else if (period === "month") {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  } else if (period === "all") {
+    startDate = undefined; // No lower bound
+  }
+
+  const dateFilter = startDate ? { gte: startDate, lt: endDate } : { lt: endDate };
+
+  // Get period specific orders with items for net revenue calculation
+  const periodOrders = await prisma.order.findMany({
     where: {
       shop_id: shopId,
-      created_at: {
-        gte: startOfDay,
-        lt: endOfDay,
-      },
+      created_at: dateFilter,
       status: "COMPLETED",
     },
-    select: {
-      total_price: true,
-    },
+    include: {
+      order_items: {
+        include: {
+          selected_options: true
+        }
+      }
+    }
   });
 
-  const totalRevenueToday = ordersToday.reduce(
+  const totalRevenueInPeriod = periodOrders.reduce(
     (acc, order) => acc + order.total_price,
     0,
   );
 
-  // Get total orders today
-  const totalOrdersToday = ordersToday.length;
+  // Net revenue = sum of (price_at_add + options_price) * quantity
+  const totalNetRevenueInPeriod = periodOrders.reduce((acc, order) => {
+    const orderNet = order.order_items.reduce((itemAcc, item) => {
+      const optionsPrice = item.selected_options.reduce((optAcc, opt) => optAcc + (opt.additional_price || 0), 0);
+      return itemAcc + (item.price_at_add + optionsPrice) * item.quantity;
+    }, 0);
+    return acc + orderNet;
+  }, 0);
 
-  // Get pending orders count
+  const totalOrdersInPeriod = periodOrders.length;
+
+  const averageOrderValue =
+    totalOrdersInPeriod > 0 ? totalNetRevenueInPeriod / totalOrdersInPeriod : 0;
+
+  // Get pending orders count (always current)
   const pendingOrdersCount = await prisma.order.count({
     where: {
       shop_id: shopId,
@@ -135,6 +160,17 @@ export async function getShopDashboardStats(shopId: string) {
           "PENDING_CONFIRMATION",
         ],
       },
+    },
+  });
+
+  // Get total refunds in period (PROCESSED status)
+  const totalRefundsInPeriod = await prisma.refund.count({
+    where: {
+      order: {
+        shop_id: shopId,
+      },
+      requested_at: dateFilter,
+      status: "PROCESSED",
     },
   });
 
@@ -149,11 +185,15 @@ export async function getShopDashboardStats(shopId: string) {
       created_at: {
         gte: sevenDaysAgo,
       },
+      status: "COMPLETED"
     },
-    select: {
-      created_at: true,
-      total_price: true,
-    },
+    include: {
+      order_items: {
+        include: {
+          selected_options: true
+        }
+      }
+    }
   });
 
   // Group by date
@@ -161,7 +201,6 @@ export async function getShopDashboardStats(shopId: string) {
   for (let i = 0; i < 7; i++) {
     const d = new Date(sevenDaysAgo);
     d.setDate(d.getDate() + i);
-    const dateStr = d.toISOString().split("T")[0]; // YYYY-MM-DD
     const displayDate = d.toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "short",
@@ -176,23 +215,104 @@ export async function getShopDashboardStats(shopId: string) {
       );
     });
 
+    const dailyNetRevenue = ordersForDay.reduce((acc, order) => {
+      return acc + order.order_items.reduce((itemAcc, item) => {
+        const optionsPrice = item.selected_options.reduce((optAcc, opt) => optAcc + (opt.additional_price || 0), 0);
+        return itemAcc + (item.price_at_add + optionsPrice) * item.quantity;
+      }, 0);
+    }, 0);
+
     chartData.push({
       date: displayDate,
-      fullDate: dateStr,
-      revenue: ordersForDay.reduce((acc, o) => acc + o.total_price, 0),
+      revenue: dailyNetRevenue,
       orders: ordersForDay.length,
     });
   }
 
-  const averageOrderValue =
-    totalOrdersToday > 0 ? totalRevenueToday / totalOrdersToday : 0;
+  // Get total gross revenue & total net revenue (all time)
+  const allCompletedOrders = await prisma.order.findMany({
+    where: {
+      shop_id: shopId,
+      status: "COMPLETED",
+    },
+    include: {
+      order_items: {
+        include: {
+          selected_options: true
+        }
+      }
+    }
+  });
+
+  const totalGrossRevenue = allCompletedOrders.reduce(
+    (acc, order) => acc + order.total_price,
+    0,
+  );
+
+  const totalAllTimeNetRevenue = allCompletedOrders.reduce((acc, order) => {
+    const orderNet = order.order_items.reduce((itemAcc, item) => {
+      const optionsPrice = item.selected_options.reduce((optAcc, opt) => optAcc + (opt.additional_price || 0), 0);
+      return itemAcc + (item.price_at_add + optionsPrice) * item.quantity;
+    }, 0);
+    return acc + orderNet;
+  }, 0);
 
   return {
-    totalRevenueToday,
-    totalOrdersToday,
+    totalRevenueInPeriod, // Gross in period
+    totalNetRevenueInPeriod, // Net in period
+    totalOrdersInPeriod,
     pendingOrdersCount,
+    totalRefundsInPeriod,
     averageOrderValue,
     chartData,
+    totalGrossRevenue, // Total Gross
+    totalAllTimeNetRevenue, // Total Net
+  };
+}
+
+export async function getShopRanking(shopId: string) {
+  const now = new Date();
+  // Get start of this week (Monday)
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+  const startOfWeek = new Date(now.setDate(diff));
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  // Get all completed orders this week across all shops
+  const allCompletedOrders = await prisma.order.findMany({
+    where: {
+      status: "COMPLETED",
+      created_at: {
+        gte: startOfWeek,
+      },
+    },
+    select: {
+      shop_id: true,
+    },
+  });
+
+  // Group and count orders by shop
+  const shopCounts = allCompletedOrders.reduce(
+    (acc, order) => {
+      acc[order.shop_id] = (acc[order.shop_id] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
+  // Convert to array and sort
+  const sortedShops = Object.entries(shopCounts)
+    .map(([id, count]) => ({ id, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // Find rank (1-based)
+  const rank = sortedShops.findIndex((s) => s.id === shopId) + 1;
+  const totalShops = sortedShops.length;
+
+  return {
+    rank: rank > 0 ? rank : null,
+    totalShops,
+    orderCount: shopCounts[shopId] || 0,
   };
 }
 

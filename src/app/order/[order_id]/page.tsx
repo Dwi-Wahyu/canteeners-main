@@ -3,7 +3,7 @@ import { getCustomerOrderDetail } from "@/features/order/lib/order-queries";
 import CustomerOrderDetailClient from "@/features/order/ui/customer-order-detail-client";
 import OrderReviewSection from "@/features/order/ui/order-review-section";
 import OrderComplaintSection from "@/features/order/ui/order-complaint-section";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { OrderRefundSection } from "@/features/order/ui/order-refund-section";
@@ -36,6 +36,10 @@ export default async function OrderDetailPage({
           </Link>
           <h1 className="text-xl font-semibold">Detail Order</h1>
         </div>
+
+        <Link href={"/chat/" + order.conversation_id}>
+          <MessageCircle className="w-6 h-6" />
+        </Link>
       </div>
 
       <CustomerOrderDetailClient order={order} />
