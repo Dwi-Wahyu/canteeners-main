@@ -149,6 +149,30 @@ export async function getShopDashboardStats(
   const averageOrderValue =
     totalOrdersInPeriod > 0 ? totalNetRevenueInPeriod / totalOrdersInPeriod : 0;
 
+  // Calculate average preparation time (in minutes)
+  const completedOrdersWithPrepTime = periodOrders.filter(
+    (o) => o.processed_at && o.status === "COMPLETED"
+  );
+  
+  const totalPrepTime = completedOrdersWithPrepTime.reduce((acc, order) => {
+    const prepDuration = (order.updated_at.getTime() - order.processed_at!.getTime()) / (1000 * 60);
+    return acc + prepDuration;
+  }, 0);
+
+  const avgPrepTime = completedOrdersWithPrepTime.length > 0 
+    ? Math.round(totalPrepTime / completedOrdersWithPrepTime.length) 
+    : 0;
+
+  // Get total complaints in period
+  const totalComplaintsInPeriod = await prisma.shopComplaint.count({
+    where: {
+      order: {
+        shop_id: shopId,
+      },
+      created_at: dateFilter,
+    },
+  });
+
   // Get pending orders count (always current)
   const pendingOrdersCount = await prisma.order.count({
     where: {
@@ -264,6 +288,8 @@ export async function getShopDashboardStats(
     pendingOrdersCount,
     totalRefundsInPeriod,
     averageOrderValue,
+    avgPrepTime,
+    totalComplaintsInPeriod,
     chartData,
     totalGrossRevenue, // Total Gross
     totalAllTimeNetRevenue, // Total Net

@@ -86,11 +86,9 @@ export default function ShopOrderTrackingClient({
         return;
       }
 
-      if (!querySnapshot.empty) {
-        queryClient.invalidateQueries({
-          queryKey: ["shop-order-tracking", shopId],
-        });
-      }
+      queryClient.invalidateQueries({
+        queryKey: ["shop-order-tracking", shopId],
+      });
     });
 
     return () => {

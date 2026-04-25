@@ -25,6 +25,7 @@ import { activateReferralCode } from "@/features/user/lib/user-actions";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import ReferralStatusCard from "@/features/user/ui/referral-status-card";
+import UserVouchersSection from "@/features/user/ui/user-vouchers-section";
 
 export default function CustomerProfilePage() {
   const { data: session, status } = useSession();
@@ -240,6 +241,11 @@ export default function CustomerProfilePage() {
           onActivate={handleActivate}
           isActivating={isActivating}
         />
+      </div>
+
+      {/* Voucher Section */}
+      <div className="max-w-md mx-auto mt-4 px-5">
+        <UserVouchersSection vouchers={referralStatus?.vouchers || []} />
       </div>
 
       {/* Profile Menu */}

@@ -16,6 +16,9 @@ import {
   Clock,
   TrendingUp,
   BarChart3,
+  AlertCircle,
+  RotateCcw,
+  Timer,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -119,13 +122,47 @@ export default function DashboardStats({ stats, period }: DashboardStatsProps) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Refund</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <RotateCcw className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {stats.totalRefundsInPeriod}
             </div>
             <p className="text-xs text-muted-foreground">Refund yang diproses</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Waktu Penyiapan
+            </CardTitle>
+            <Timer className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.avgPrepTime} Menit
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Rata-rata waktu {periodLabels[period].toLowerCase()}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Jumlah Komplain
+            </CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.totalComplaintsInPeriod}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total komplain {periodLabels[period].toLowerCase()}
+            </p>
           </CardContent>
         </Card>
 

@@ -110,6 +110,12 @@ export async function getShopOrderDetail(id: string) {
             select: {
               id: true,
               name: true,
+              maps: {
+                select: {
+                  floor: true,
+                  image_url: true,
+                },
+              },
             },
           },
           name: true,

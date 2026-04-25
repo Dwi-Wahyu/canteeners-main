@@ -10,13 +10,11 @@ export const UpdateShopSchema = z.object({
     order_mode: z.enum(["PREORDER_ONLY", "READY_ONLY", "BOTH"]),
     refund_disbursement_mode: z.enum(["CASH", "TRANSFER"]),
     open_time: z
-        .string()
-        .regex(timeRegex, { message: "Format waktu harus HH:MM yang valid." }) // Tambahkan regex
+        .preprocess((val) => (val === "" ? null : val), z.string().regex(timeRegex, { message: "Format waktu harus HH:MM yang valid." }).nullable())
         .optional()
         .nullable(),
     close_time: z
-        .string()
-        .regex(timeRegex, { message: "Format waktu harus HH:MM yang valid." }) // Tambahkan regex
+        .preprocess((val) => (val === "" ? null : val), z.string().regex(timeRegex, { message: "Format waktu harus HH:MM yang valid." }).nullable())
         .optional()
         .nullable(),
 });

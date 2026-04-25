@@ -44,6 +44,7 @@ export async function updateShop(
 
     revalidatePath("/dashboard-kedai/pengaturan");
     revalidatePath("/dashboard-kedai/pengaturan/edit-kedai");
+    revalidatePath("/");
 
     return successResponse(undefined, "Berhasil update data kedai");
   } catch (error) {

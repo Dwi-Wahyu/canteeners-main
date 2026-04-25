@@ -27,7 +27,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Loader, Save, Plus, Trash2, Loader2 } from "lucide-react";
-import { useRouter } from "nextjs-toploader/app";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FileUploadImage } from "@/components/file-upload-image";
 import NavButton from "@/components/nav-button";
@@ -99,6 +99,7 @@ export default function EditShopForm({
     if (result.success) {
       toast.success(result.message);
       router.refresh();
+      router.push("/dashboard-kedai/pengaturan");
     } else {
       console.log(result.error);
       toast.error(
@@ -147,7 +148,7 @@ export default function EditShopForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Mode Pesanan</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Pilih mode pesanan" />
@@ -172,7 +173,7 @@ export default function EditShopForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Mode Refund</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Pilih mode refund" />
@@ -240,7 +241,7 @@ export default function EditShopForm({
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <NavButton variant="outline" href={"/admin/kedai"}>
+          <NavButton variant="outline" href={"/dashboard-kedai/pengaturan"}>
             Kembali
           </NavButton>
 

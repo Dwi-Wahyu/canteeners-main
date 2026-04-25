@@ -10,7 +10,7 @@ import { paymentMethodMapping } from "@/constant/payment-method";
 import { postOrderTypeMapping } from "@/constant/post-order-type-mapping";
 import CustomerPositionBreadcrumb from "@/features/cart/ui/customer-position-breadcrumb";
 import ConfirmOrderDialog from "./confirm-order-dialog";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 
 import RejectOrderDialog from "./reject-order-dialog";
@@ -26,7 +26,7 @@ import ConfirmPaymentDialog from "./confirm-payment-dialog";
 import RejectPaymentDialog from "./reject-payment-dialog";
 import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
 import OrderEstimationCountDown from "./order-estimation-countdown";
-import OrderComplaintSection from "./order-complaint-section";
+import ShopComplaintSection from "./shop-complaint-section";
 import { OrderRefundSection } from "./order-refund-section";
 import { formatToHour } from "@/helper/hour-helper";
 import { formatRupiah } from "@/helper/format-rupiah";
@@ -36,6 +36,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { ImageLightbox } from "@/features/canteen/ui/image-lightbox";
 
 export default function ShopOrderDetailClient({
   order: initialOrder,
@@ -46,6 +47,8 @@ export default function ShopOrderDetailClient({
 
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
   const order = (orderData as unknown as GetShopOrderDetail) || initialOrder;
+
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const groupedItems = order.order_items.reduce(
     (acc, item) => {
@@ -83,6 +86,14 @@ export default function ShopOrderDetailClient({
 
   return (
     <div className="flex flex-col gap-2 mb-5">
+      {lightboxSrc && (
+        <ImageLightbox
+          src={lightboxSrc}
+          alt={`Denah Lantai ${order.customer.floor}`}
+          onClose={() => setLightboxSrc(null)}
+        />
+      )}
+
       <div>
         <h1 className="font-semibold">Status</h1>
         <CustomBadge
@@ -290,13 +301,23 @@ export default function ShopOrderDetailClient({
                 table_number={order.customer.table_number ?? 1}
               />
               <div className="mt-1">
-                <NavButton
-                  href={`/kantin/${order.shop.canteen.id}/denah`}
+                <Button
+                  variant="outline"
                   size="sm"
+                  onClick={() => {
+                    const floorPlan = order.shop.canteen.maps.find(
+                      (m) => m.floor === order.customer.floor,
+                    );
+                    if (floorPlan) {
+                      setLightboxSrc(
+                        getImageUrl("/canteen-map/" + floorPlan.image_url),
+                      );
+                    }
+                  }}
                 >
-                  <Map />
+                  <Map className="mr-2 w-3 h-3" />
                   Lihat Denah
-                </NavButton>
+                </Button>
               </div>
             </div>
           ) : (
@@ -355,7 +376,7 @@ export default function ShopOrderDetailClient({
         </div>
       )}
 
-      <OrderComplaintSection order={order} />
+      <ShopComplaintSection order={order} />
 
       <OrderRefundSection order={order} userRole="SHOP_OWNER" />
     </div>

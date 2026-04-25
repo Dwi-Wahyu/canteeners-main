@@ -22,7 +22,11 @@ import { calculateCommission } from "@/helper/pricing-helper";
 
 // --- Helper untuk Revalidasi (DRY Principle) ---
 function revalidateOrderPaths(orderId: string) {
-  const paths = [`/order/${orderId}`, `/dashboard-kedai/order/${orderId}`];
+  const paths = [
+    `/order/${orderId}`,
+    `/dashboard-kedai/order/${orderId}`,
+    `/dashboard-kedai/order`,
+  ];
   paths.forEach((path) => revalidatePath(path));
 }
 

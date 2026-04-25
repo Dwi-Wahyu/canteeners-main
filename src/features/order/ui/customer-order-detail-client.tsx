@@ -62,6 +62,7 @@ export default function CustomerOrderDetailClient({
 
   const [isLate, setIsLate] = useState(false);
   const showNotification = useNotificationDialogStore((state) => state.show);
+  const hideNotification = useNotificationDialogStore((state) => state.hide);
   const prevStatusRef = useRef<OrderStatus>(order.status);
 
   useEffect(() => {
@@ -73,13 +74,13 @@ export default function CustomerOrderDetailClient({
         type: "success",
         actionButtons: (
           <div className="flex flex-col gap-2 w-full">
-            <Button asChild className="w-full">
+            <Button asChild className="w-full" onClick={() => hideNotification()}>
               <Link href="/testimoni">Beri Kritik & Saran</Link>
             </Button>
             <Button
               variant="ghost"
               className="w-full"
-              onClick={() => useNotificationDialogStore.getState().hide()}
+              onClick={() => hideNotification()}
             >
               Tutup
             </Button>
@@ -88,7 +89,7 @@ export default function CustomerOrderDetailClient({
       });
     }
     prevStatusRef.current = order.status;
-  }, [order.status, showNotification]);
+  }, [order.status, showNotification, hideNotification]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {

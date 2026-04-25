@@ -17,7 +17,8 @@ export default function LandingTopbar() {
   const navItems = [
     { label: "Home", href: "/", icon: "home" },
     { label: "Belanja", href: "/kantin", icon: "shopping_bag" },
-    { label: "Login", href: "/login-pelanggan", icon: "person" },
+    { label: "Login Pelanggan", href: "/login-pelanggan", icon: "person" },
+    { label: "Login Mitra", href: "/login-kedai", icon: "store" },
   ];
 
   return (
