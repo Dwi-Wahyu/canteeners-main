@@ -3,24 +3,21 @@
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { RefundStatusBadge } from "@/features/shop/refund/ui/refund-status-badge";
 import { DollarSign, ExternalLink } from "lucide-react";
-import Link from "next/link";
 import NavButton from "@/components/nav-button";
+
+import { OrderStatus, RefundStatus } from "@/generated/prisma";
 
 interface OrderRefundSectionProps {
   order: {
     id: string;
-    status: string;
+    status: OrderStatus;
     refund?: {
       id: string;
-      status: string;
-    };
+      status: RefundStatus;
+    } | null;
   };
   userRole: "CUSTOMER" | "SHOP_OWNER";
 }
@@ -62,7 +59,7 @@ export function OrderRefundSection({
             </p>
           </div>
           {order.refund && (
-            <RefundStatusBadge status={order.refund.status as any} />
+            <RefundStatusBadge status={order.refund.status} />
           )}
         </div>
 

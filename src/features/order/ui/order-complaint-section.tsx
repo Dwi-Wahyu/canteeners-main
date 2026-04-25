@@ -7,10 +7,19 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, MessageSquareWarning } from "lucide-react";
 import CreateComplaintDialog from "@/features/shop/complaint/ui/create-complaint-dialog";
 import { useRouter } from "next/navigation";
-import { GetCustomerOrderDetail } from "@/features/order/types/order-queries-types";
+import { OrderStatus } from "@/generated/prisma";
 
 interface OrderComplaintSectionProps {
-  order: GetCustomerOrderDetail;
+  order: {
+    id: string;
+    status: OrderStatus;
+    complaint?: {
+      status: string;
+      cause: string;
+      proof_url: string | null;
+      feedback: string | null;
+    } | null;
+  };
 }
 
 const complaintStatusMap: Record<

@@ -357,7 +357,7 @@ export default function ShopOrderDetailClient({
 
       <OrderComplaintSection order={order} />
 
-      <OrderRefundSection order={order as any} userRole="SHOP_OWNER" />
+      <OrderRefundSection order={order} userRole="SHOP_OWNER" />
     </div>
   );
 }
