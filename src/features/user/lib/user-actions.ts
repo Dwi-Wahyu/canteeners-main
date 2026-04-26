@@ -273,3 +273,52 @@ export async function validateReferralCode(
     return errorResponse("Terjadi kesalahan saat validasi kode referral");
   }
 }
+
+export async function getUnseenVouchers(): Promise<ServerActionReturn<any[]>> {
+  const session = await auth();
+  if (!session || session.user.role !== "CUSTOMER") {
+    return errorResponse("Sesi tidak valid");
+  }
+
+  try {
+    const unseenVouchers = await prisma.customerDiscount.findMany({
+      where: {
+        customer: {
+          user_id: session.user.id,
+        },
+        is_seen: false,
+      },
+      include: {
+        discount: true,
+      },
+    });
+
+    return successResponse(unseenVouchers, "Berhasil mengambil voucher baru");
+  } catch (error) {
+    console.error(error);
+    return errorResponse("Terjadi kesalahan");
+  }
+}
+
+export async function markVouchersAsSeen(
+  voucherIds: string[],
+): Promise<ServerActionReturn<void>> {
+  try {
+    await prisma.customerDiscount.updateMany({
+      where: {
+        id: { in: voucherIds },
+      },
+      data: {
+        is_seen: true,
+      },
+    });
+
+    return successResponse(
+      undefined,
+      "Berhasil menandai voucher sebagai dilihat",
+    );
+  } catch (error) {
+    console.error(error);
+    return errorResponse("Terjadi kesalahan");
+  }
+}

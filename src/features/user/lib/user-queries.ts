@@ -44,6 +44,9 @@ export async function getCustomerProfile(id: string) {
       discounts: {
         where: {
           is_used: false,
+          discount: {
+            status: "ACTIVE",
+          },
         },
         include: {
           discount: true,
@@ -95,7 +98,12 @@ export async function getCustomerReferralStatus(userId: string) {
       referral_code: true,
       referral_usage_count: true,
       discounts: {
-        where: { is_used: false },
+        where: {
+          is_used: false,
+          discount: {
+            status: "ACTIVE",
+          },
+        },
         include: {
           discount: true,
         },
@@ -125,6 +133,7 @@ export async function getCustomerReferralStatus(userId: string) {
       value: cd.discount.value,
       type: cd.discount.type,
       description: cd.discount.description,
+      status: cd.discount.status,
     })),
   };
 }

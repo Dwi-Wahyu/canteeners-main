@@ -31,6 +31,7 @@ interface Voucher {
     type: "FIXED" | "PERCENTAGE";
     max_discount: number | null;
     min_purchase: number | null;
+    status: string;
   };
 }
 
@@ -49,8 +50,10 @@ export default function VoucherSelectionDialog({
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const filteredVouchers = vouchers.filter((v) =>
-    v.discount.name.toLowerCase().includes(search.toLowerCase()),
+  const filteredVouchers = vouchers.filter(
+    (v) =>
+      v.discount.name.toLowerCase().includes(search.toLowerCase()) &&
+      v.discount.status === "ACTIVE",
   );
 
   return (
@@ -58,7 +61,7 @@ export default function VoucherSelectionDialog({
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="w-full justify-between h-12 rounded-2xl border-blue-100 bg-blue-50/30 text-blue-700 hover:bg-blue-50 hover:text-blue-800 transition-all"
+          className="w-full justify-between h-12 rounded-2xl border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary transition-all"
         >
           <div className="flex items-center gap-2">
             <Gift className="size-4" />
@@ -70,7 +73,7 @@ export default function VoucherSelectionDialog({
           </div>
           <div className="flex items-center gap-1">
             {selectedIds.length > 0 && (
-              <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full">
+              <span className="text-[10px] bg-primary text-white px-2 py-0.5 rounded-full">
                 Lihat
               </span>
             )}
@@ -78,7 +81,7 @@ export default function VoucherSelectionDialog({
           </div>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md p-0 overflow-hidden rounded-t-3xl sm:rounded-3xl">
+      <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-3xl border-none">
         <DialogHeader className="p-5 pb-2">
           <DialogTitle className="text-xl font-bold">Voucher Saya</DialogTitle>
         </DialogHeader>
@@ -88,15 +91,15 @@ export default function VoucherSelectionDialog({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
             <Input
               placeholder="Cari voucher..."
-              className="pl-10 rounded-xl bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-blue-500"
+              className="pl-10 rounded-xl bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-primary"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
 
-        <ScrollArea className="h-[400px] px-5 pb-5">
-          <div className="space-y-3">
+        <ScrollArea className="h-[450px] px-5 py-4">
+          <div className="space-y-4">
             {filteredVouchers.length === 0 ? (
               <div className="text-center py-10">
                 <p className="text-sm text-muted-foreground">
@@ -112,72 +115,97 @@ export default function VoucherSelectionDialog({
                   : false;
 
                 return (
-                  <div
-                    key={v.id}
-                    className={cn(
-                      "group border rounded-2xl transition-all overflow-hidden bg-white",
-                      isSelected
-                        ? "border-blue-500 ring-1 ring-blue-500"
-                        : "border-gray-100",
-                      isInvalid && "opacity-60 grayscale",
-                    )}
-                  >
-                    <div className="p-4 flex items-center gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-sm text-gray-900 leading-tight truncate">
-                          {v.discount.name}
-                        </h4>
-                        <p className="text-[11px] text-blue-600 font-bold mt-0.5">
-                          {v.discount.type === "FIXED"
-                            ? `Potongan ${formatRupiah(v.discount.value)}`
-                            : `Diskon ${v.discount.value}%`}
-                        </p>
-                      </div>
+                  <div key={v.id} className="relative flex flex-col">
+                    <div
+                      className={cn(
+                        "relative group flex border border-gray-100 border-l-primary border-r-primary border-l-4 border-r-4 rounded-2xl transition-all bg-white shadow-sm min-h-[100px]",
+                        isInvalid && "opacity-60 grayscale",
+                      )}
+                    >
+                      {/* Left Side (3/4) - Main Info & Button */}
+                      <div className="w-[70%] p-4 pl-7 flex flex-col justify-center rounded-l-2xl gap-3">
+                        <div className="flex flex-col">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-sm text-gray-900 leading-tight line-clamp-1">
+                              {v.discount.name}
+                            </h4>
+                            <button
+                              onClick={() =>
+                                setExpandedId(isExpanded ? null : v.id)
+                              }
+                              className="p-1 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                            >
+                              <Info className="size-3.5 text-gray-400" />
+                            </button>
+                          </div>
 
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() =>
-                            setExpandedId(isExpanded ? null : v.id)
-                          }
-                          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                          <Info className="size-4 text-gray-400" />
-                        </button>
+                          {isInvalid && (
+                            <p className="text-[9px] text-red-500 font-bold mt-1">
+                              Min. {formatRupiah(v.discount.min_purchase!)}
+                            </p>
+                          )}
+                        </div>
+
                         <Button
                           size="sm"
                           disabled={isInvalid}
                           className={cn(
-                            "h-8 w-20 rounded-lg font-bold text-[10px] transition-all",
+                            "h-7 px-4 w-fit rounded-lg font-bold text-[10px] transition-all shadow-sm",
                             isSelected
                               ? "bg-green-600 hover:bg-green-700 text-white"
-                              : "bg-blue-50 text-blue-700 hover:bg-blue-100",
+                              : "bg-primary hover:bg-primary/90 text-white",
                           )}
                           onClick={() => onToggle(v.id)}
                         >
-                          {isSelected ? (
-                            <div className="flex items-center gap-1">
-                              <Check className="size-3" /> Terpasang
-                            </div>
-                          ) : (
-                            "Gunakan"
-                          )}
+                          {isSelected ? "Dipasang" : "Gunakan"}
                         </Button>
                       </div>
+
+                      {/* Vertical Perforation Line (Red Dashed) */}
+                      <div className="relative flex items-center justify-center">
+                        <div className="h-[70%] border-l-2 border-dashed border-red-500/20" />
+                      </div>
+
+                      {/* Right Side (1/4) - Discount Value Only */}
+                      <div className="flex-1 flex flex-col items-center justify-center p-2 text-center rounded-r-2xl">
+                        <div className="flex flex-col items-center">
+                          <p className="text-primary font-black text-xl leading-none">
+                            {v.discount.type === "FIXED"
+                              ? formatRupiah(v.discount.value)
+                                  .replace(",00", "")
+                                  .replace("Rp ", "")
+                              : `${v.discount.value}%`}
+                          </p>
+                          {v.discount.type === "FIXED" && (
+                            <span className="text-[10px] font-black text-primary tracking-tighter">
+                              RIBU
+                            </span>
+                          )}
+                          <span className="text-[8px] font-bold text-gray-400 uppercase mt-1">
+                            OFF
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Ticket decorative notches (Left & Right) */}
+                      <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border-2 border-primary z-20 shadow-none" />
+                      <div className="absolute right-[-16px] top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white border-2 border-primary z-20 shadow-none" />
                     </div>
 
+                    {/* Expansion Area */}
                     {isExpanded && (
-                      <div className="px-4 pb-4 pt-0 border-t border-dashed border-gray-100 animate-in slide-in-from-top-2 duration-200">
-                        <div className="mt-3 space-y-2">
-                          <p className="text-xs text-gray-600 leading-relaxed">
+                      <div className="mx-4 p-4 bg-white border-x border-b shadow rounded-b-xl -mt-2 pt-6 animate-in slide-in-from-top-2 duration-200">
+                        <div className="space-y-2">
+                          <p className="text-[10px] text-gray-600 leading-relaxed">
                             {v.discount.description ||
                               "Tidak ada deskripsi tambahan."}
                           </p>
                           <div className="grid grid-cols-2 gap-2 pt-2">
                             <div className="bg-gray-50 p-2 rounded-lg">
-                              <p className="text-[9px] text-gray-400 uppercase font-bold">
+                              <p className="text-[8px] text-gray-400 uppercase font-bold">
                                 Min. Belanja
                               </p>
-                              <p className="text-xs font-bold text-gray-700">
+                              <p className="text-[10px] font-bold text-gray-700">
                                 {v.discount.min_purchase
                                   ? formatRupiah(v.discount.min_purchase)
                                   : "Tanpa Minimum"}
@@ -185,10 +213,10 @@ export default function VoucherSelectionDialog({
                             </div>
                             {v.discount.type === "PERCENTAGE" && (
                               <div className="bg-gray-50 p-2 rounded-lg">
-                                <p className="text-[9px] text-gray-400 uppercase font-bold">
+                                <p className="text-[8px] text-gray-400 uppercase font-bold">
                                   Maks. Potongan
                                 </p>
-                                <p className="text-xs font-bold text-gray-700">
+                                <p className="text-[10px] font-bold text-gray-700">
                                   {v.discount.max_discount
                                     ? formatRupiah(v.discount.max_discount)
                                     : "Tak Terbatas"}
@@ -196,11 +224,6 @@ export default function VoucherSelectionDialog({
                               </div>
                             )}
                           </div>
-                          {isInvalid && (
-                            <p className="text-[10px] text-red-500 font-bold flex items-center gap-1">
-                              * Belum mencapai minimum belanja
-                            </p>
-                          )}
                         </div>
                       </div>
                     )}
@@ -211,9 +234,9 @@ export default function VoucherSelectionDialog({
           </div>
         </ScrollArea>
 
-        <div className="p-5 border-t bg-gray-50/50">
+        <div className="p-5 border-t bg-white">
           <Button
-            className="w-full h-11 rounded-xl font-bold"
+            className="w-full h-12 rounded-xl font-bold text-base"
             onClick={() => setIsOpen(false)}
           >
             Selesai

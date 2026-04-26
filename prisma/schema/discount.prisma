@@ -61,6 +61,7 @@ model CustomerDiscount {
     discount_id String
 
     is_used     Boolean   @default(false)
+    is_seen     Boolean   @default(false)
     used_at     DateTime?
     acquired_at DateTime  @default(now())
 

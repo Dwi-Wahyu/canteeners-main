@@ -213,14 +213,17 @@ export default function CustomerProfilePage() {
         <div className="max-w-md mx-auto flex flex-col items-center text-center">
           <div className="relative mb-4">
             <Avatar className="size-24 border-4 border-white shadow-xl">
-              <AvatarImage src={getImageUrl(session.user.avatar)} />
+              <AvatarImage
+                src={
+                  session.user.avatar?.startsWith("http")
+                    ? session.user.avatar
+                    : getImageUrl(session.user.avatar)
+                }
+              />
               <AvatarFallback className="bg-red-50 text-red-600 text-2xl font-bold">
                 {session.user.name?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute bottom-0 right-0 bg-white p-1.5 rounded-full shadow-md border">
-              <Settings className="size-4 text-gray-500" />
-            </div>
           </div>
 
           <h1 className="text-xl font-bold text-gray-900">
@@ -250,7 +253,7 @@ export default function CustomerProfilePage() {
 
       {/* Profile Menu */}
       <div className="max-w-md mx-auto mt-6 px-5 space-y-4">
-        <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest px-1">
+        {/* <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest px-1">
           Akun Saya
         </h2>
 
@@ -273,7 +276,7 @@ export default function CustomerProfilePage() {
               <ChevronRight className="size-4 text-gray-400" />
             </Link>
           ))}
-        </div>
+        </div> */}
 
         <Button
           variant="outline"

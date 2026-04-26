@@ -232,10 +232,10 @@ export const authConfig: NextAuthConfig = {
     async jwt({ token, user, trigger, session, account }) {
       if (user) {
         token.id = user.id;
-        token.username = user.username;
+        token.username = user.username || (user as any).email;
         token.name = user.name;
         token.role = user.role;
-        token.avatar = user.avatar;
+        token.avatar = user.avatar || (user as any).image;
 
         // Owner payload
         token.shopName = user.shopName;
@@ -250,9 +250,10 @@ export const authConfig: NextAuthConfig = {
       }
 
       // If social login (Google), fetch role and other data from DB
-      if (account?.provider === "google" && token.email) {
+      const userEmail = token.email || (user as any)?.email;
+      if (account?.provider === "google" && userEmail) {
         const dbUser = await prisma.user.findUnique({
-          where: { username: token.email },
+          where: { username: userEmail },
           include: {
             customer: {
               select: {
@@ -270,6 +271,7 @@ export const authConfig: NextAuthConfig = {
         if (dbUser) {
           token.id = dbUser.id;
           token.name = dbUser.name;
+          token.username = dbUser.username;
           token.role = dbUser.role;
           token.avatar = dbUser.avatar;
           token.customerId = dbUser.customer?.id;

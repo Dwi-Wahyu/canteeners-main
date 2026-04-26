@@ -8,6 +8,7 @@ import NotificationDialog from "@/components/notification-dialog";
 import { FirebaseAuthSync } from "@/hooks/firebase-auth-sync";
 import { NotificationWatcher } from "@/features/notification/ui/notification-watcher";
 import { ToastContainer } from "@/components/ui/custom-toast-container";
+import NewVoucherPopup from "@/components/new-voucher-popup";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           >
             {children}
             <NotificationDialog />
+            <NewVoucherPopup />
             <ToastContainer />
           </ThemeProvider>
         </NuqsAdapter>
