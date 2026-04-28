@@ -7,3 +7,7 @@ export function getImageUrl(path: string): string {
   // Karena sudah di-proxy oleh Nginx ke /uploads,
   return `/uploads${cleanPath}`;
 }
+
+// export function getImageUrl(path: string): string {
+//   return process.env.NEXT_PUBLIC_BACKEND_URL + "/uploads" + path;
+// }
