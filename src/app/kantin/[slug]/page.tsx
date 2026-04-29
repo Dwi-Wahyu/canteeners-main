@@ -36,7 +36,7 @@ export default async function CanteenDetailPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen" style={{ backgroundColor: "#f6faff" }}>
       <CanteenAutoTableSync session={session} canteenId={canteen.id} />
 
       <CanteenClient

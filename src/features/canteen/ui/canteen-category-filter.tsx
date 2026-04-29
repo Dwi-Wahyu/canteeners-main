@@ -28,14 +28,14 @@ export function CanteenCategoryFilter({
 }) {
   const [selectedCategories, setSelectedCategories] = useQueryState(
     "categories",
-    parseAsArrayOf(parseAsInteger).withDefault([])
+    parseAsArrayOf(parseAsInteger).withDefault([]),
   );
 
   const toggleCategory = (categoryId: number) => {
     if (selectedCategories.includes(categoryId)) {
       setSelectedCategories(
         selectedCategories.filter((id) => id !== categoryId),
-        { shallow: false }
+        { shallow: false },
       );
     } else {
       setSelectedCategories([...selectedCategories, categoryId], {
@@ -49,13 +49,16 @@ export function CanteenCategoryFilter({
 
   const clearCategories = () => setSelectedCategories(null, { shallow: false });
 
+  const isAllSelected = selectedCategories.length === 0;
+
   return (
     <section className="mb-2 overflow-visible">
-      <div className="flex justify-between items-end mb-4 px-5">
+      {/* ── Header: "Kategori Pilihan" + "Semua" pill ── */}
+      <div className="flex items-center justify-between px-5 mb-3">
         <div>
           <h3
             className="font-extrabold tracking-tight"
-            style={{ color: "#0b1c30", fontSize: "1.1rem" }}
+            style={{ color: "#0b1c30", fontSize: "1.05rem" }}
           >
             Kategori Pilihan
           </h3>
@@ -63,50 +66,29 @@ export function CanteenCategoryFilter({
             Cari kedai berdasarkan spesialisasinya
           </p>
         </div>
-        {(selectedCategories.length > 0) && (
-          <button
-            onClick={clearCategories}
-            className="text-xs font-semibold hover:underline transition-colors"
-            style={{ color: "#DC2626" }}
-          >
-            Reset
-          </button>
-        )}
-      </div>
 
-      <div className="flex overflow-x-auto pt-2 pb-4 px-5 gap-4 scrollbar-hide">
+        {/* "Semua" pill — always visible, active when nothing selected */}
         <button
           onClick={clearCategories}
-          className="group flex flex-col items-center gap-2 transition-all shrink-0"
+          className={cn(
+            "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-200",
+            isAllSelected
+              ? "bg-gradient-to-r from-[#b70011] to-[#dc2626] text-white shadow-[0_4px_12px_rgba(220,38,38,0.3)]"
+              : "bg-white text-[#dc2626] border border-[#dc2626]/30 hover:border-[#dc2626]/60",
+          )}
         >
-          <div
-            className={cn(
-              "w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:-translate-y-1",
-              selectedCategories.length === 0
-                ? "bg-gradient-to-br from-[#b70011] to-[#dc2626] shadow-[0_8px_24px_-4px_rgba(220,38,38,0.35)]"
-                : "bg-white shadow-[0_4px_24px_rgba(11,28,48,0.06)]"
-            )}
+          {/* <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 14, lineHeight: 1 }}
           >
-            <span
-              className="material-symbols-outlined"
-              style={{
-                fontSize: 24,
-                color: selectedCategories.length === 0 ? "#fff" : "#DC2626",
-              }}
-            >
-              apps
-            </span>
-          </div>
-          <span
-            className={cn(
-              "text-[10px] font-semibold text-center transition-colors",
-              selectedCategories.length === 0 ? "text-[#DC2626]" : "text-[#0b1c30]"
-            )}
-          >
-            Semua
-          </span>
+            apps
+          </span> */}
+          Semua
         </button>
+      </div>
 
+      {/* ── Horizontal scroll: only specific categories ── */}
+      <div className="flex overflow-x-auto pt-1 pb-4 px-5 gap-4 scrollbar-hide">
         {categories.map((cat) => (
           <button
             key={cat.id}
@@ -118,16 +100,14 @@ export function CanteenCategoryFilter({
                 "w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:-translate-y-1",
                 isSelected(cat.id)
                   ? "bg-gradient-to-br from-[#b70011] to-[#dc2626] shadow-[0_8px_24px_-4px_rgba(220,38,38,0.35)]"
-                  : "bg-white shadow-[0_4px_24px_rgba(11,28,48,0.06)]"
+                  : "bg-white shadow-[0_4px_24px_rgba(11,28,48,0.06)]",
               )}
             >
               {cat.image_url ? (
                 <img
                   src={getImageUrl("/category/" + cat.image_url)}
                   alt={cat.name}
-                  className={cn(
-                    "w-9 h-9 object-cover rounded-full"
-                  )}
+                  className="w-9 h-9 object-cover rounded-full"
                 />
               ) : (
                 <span
@@ -144,7 +124,7 @@ export function CanteenCategoryFilter({
             <span
               className={cn(
                 "text-[10px] font-semibold text-center transition-colors",
-                isSelected(cat.id) ? "text-[#DC2626]" : "text-[#0b1c30]"
+                isSelected(cat.id) ? "text-[#DC2626]" : "text-[#0b1c30]",
               )}
             >
               {cat.name}

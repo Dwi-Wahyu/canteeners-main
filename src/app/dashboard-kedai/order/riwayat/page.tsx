@@ -89,7 +89,7 @@ export default async function OrderHistoryPage(props: {
                 href={`/dashboard-kedai/order/${order.id}?back_url=/dashboard-kedai/order/riwayat`}
                 className="block bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
               >
-                <div className="flex justify-between items-start mb-3">
+                <div className="flex justify-between items-start">
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">
                       {formatDate(order.created_at)}
