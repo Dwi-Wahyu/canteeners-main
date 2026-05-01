@@ -22,7 +22,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Store, Loader2, Pencil, StickyNote, Trash2 } from "lucide-react";
+import {
+  Store,
+  Loader2,
+  Pencil,
+  StickyNote,
+  Trash2,
+  CircleAlert,
+} from "lucide-react";
 import { formatToHour } from "@/helper/hour-helper";
 import ReferralSection from "./referral-section";
 import { toast } from "sonner";
@@ -349,6 +356,19 @@ export default function ShopCartClient({
           </AlertDescription>
         </Alert>
       )}
+
+      {postOrderType === "DELIVERY_TO_TABLE" &&
+        customerProfile.table_number === null && (
+          <Alert variant="destructive">
+            <CircleAlert className="h-4 w-4" />
+            <AlertTitle>Meja Belum Dipilih</AlertTitle>
+            <AlertDescription>
+              Anda memilih metode pengantaran ke meja, namun nomor meja belum
+              terdeteksi. Silakan pilih meja terlebih dahulu melalui bagian
+              "Jenis Order" di bawah.
+            </AlertDescription>
+          </Alert>
+        )}
       <div className="">
         <h1 className="font-semibold mb-2">Daftar Pesanan</h1>
 
