@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import {
   AlertCircle,
+  BookCopy,
   ChefHat,
   ChevronRight,
   CreditCard,
@@ -23,7 +24,6 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import LogoutButtonDialog from "@/components/logout-button-dialog";
-import ToggleSettingDarkMode from "@/components/toggle-setting-dark-mode";
 
 export default async function OwnerSettingsPage() {
   const session = await auth();
@@ -154,12 +154,24 @@ export default async function OwnerSettingsPage() {
         </Link>
       </Item>
 
-      <ToggleSettingDarkMode />
+      <Item variant="outline" size="sm" className="mb-4" asChild>
+        <Link href="/syarat-dan-ketentuan/mitra">
+          <ItemMedia>
+            <AlertCircle className="size-5" />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>Syarat & Ketentuan</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <ChevronRight className="size-4" />
+          </ItemActions>
+        </Link>
+      </Item>
 
       <Item variant="outline" size="sm" className="mb-4" asChild>
         <Link href="/versi-aplikasi">
           <ItemMedia>
-            <AlertCircle className="size-5" />
+            <BookCopy className="size-5" />
           </ItemMedia>
           <ItemContent>
             <ItemTitle>Versi Aplikasi</ItemTitle>

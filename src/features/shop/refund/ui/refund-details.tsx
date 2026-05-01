@@ -17,6 +17,10 @@ import { AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { getImageUrl } from "@/helper/get-image-url";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { format } from "date-fns";
+import { id as localeId } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 interface RefundDetailsProps {
   refund: {
@@ -34,6 +38,14 @@ interface RefundDetailsProps {
     processed_at: Date | null;
     affected_items?: Array<{
       order_item_id: string;
+    }>;
+    history?: Array<{
+      id: string;
+      status: string;
+      note: string | null;
+      actor_role?: string | null;
+      actor_name?: string | null;
+      created_at: Date;
     }>;
     order: {
       id: string;
@@ -61,12 +73,48 @@ export function RefundDetails({
   const [escalateDialogOpen, setEscalateDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  const canCancel = refund.status === "PENDING" && userRole === "CUSTOMER";
-  const canRespond = refund.status === "PENDING" && userRole === "SHOP_OWNER";
-  const canProcess = refund.status === "APPROVED" && userRole === "SHOP_OWNER";
-  const canEscalate = !["ESCALATED", "CANCELLED", "PROCESSED"].includes(
-    refund.status
-  );
+  const historyArray = refund.history || [];
+
+  // Deteksi intervensi admin dengan lebih kuat (cek role OR nama aktor)
+  const isAdminAction = (h: any) => {
+    const role = String(h.actor_role || "").toUpperCase();
+    const name = String(h.actor_name || "").toLowerCase();
+    return role === "ADMIN" || name.includes("admin");
+  };
+
+  const hasAdminIntervened = historyArray.some(isAdminAction);
+
+  const lastHistoryEntry = historyArray.length > 0 ? historyArray[0] : null;
+  const isLastActionByAdmin =
+    lastHistoryEntry && isAdminAction(lastHistoryEntry);
+
+  // Status REJECTED menjadi final HANYA JIKA dilakukan oleh admin.
+  // Jika dilakukan oleh kedai, customer masih boleh eskalasi.
+  const isFinalStatus =
+    ["ESCALATED", "CANCELLED", "PROCESSED"].includes(refund.status) ||
+    (refund.status === "REJECTED" && hasAdminIntervened);
+
+  const canCancel =
+    !hasAdminIntervened &&
+    !isLastActionByAdmin &&
+    refund.status === "PENDING" &&
+    userRole === "CUSTOMER";
+
+  const canRespond =
+    !hasAdminIntervened &&
+    !isLastActionByAdmin &&
+    refund.status === "PENDING" &&
+    userRole === "SHOP_OWNER";
+
+  const canProcess =
+    !hasAdminIntervened &&
+    !isLastActionByAdmin &&
+    refund.status === "APPROVED" &&
+    userRole === "SHOP_OWNER";
+
+  // Eskalasi benar-benar ditutup jika ada jejak admin atau status sudah final
+  const canEscalate =
+    !isFinalStatus && !hasAdminIntervened && !isLastActionByAdmin;
 
   // Extract affected item IDs from refund data
   const affectedItemIds =
@@ -75,7 +123,7 @@ export function RefundDetails({
   const affectedItems =
     affectedItemIds.length > 0
       ? refund.order.order_items?.filter((item) =>
-          affectedItemIds.includes(item.id)
+          affectedItemIds.includes(item.id),
         )
       : [];
 
@@ -99,6 +147,17 @@ export function RefundDetails({
 
   return (
     <div className="space-y-4">
+      {/* Admin Intervention Lock Alert */}
+      {hasAdminIntervened && (
+        <Alert className="bg-blue-50 border-blue-200">
+          <AlertTriangle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-900 text-xs font-medium">
+            Keputusan refund ini telah diambil oleh Admin. Status tidak dapat
+            diubah lagi oleh Kedai atau Customer.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header with Status */}
       <div className="flex items-center justify-between">
         <RefundStatusBadge status={refund.status as any} />
@@ -182,7 +241,9 @@ export function RefundDetails({
           <p className="text-sm text-muted-foreground mb-2">Bukti Komplain</p>
           <div className="relative w-full h-48 rounded-lg overflow-hidden border">
             <Image
-              src={getImageUrl("/complaint-proof/" + refund.complaint_proof_url)}
+              src={getImageUrl(
+                "/complaint-proof/" + refund.complaint_proof_url,
+              )}
               alt="Bukti komplain"
               fill
               className="object-contain"
@@ -196,7 +257,9 @@ export function RefundDetails({
           <p className="text-sm text-muted-foreground mb-2">Bukti Transfer</p>
           <div className="relative w-full h-48 rounded-lg overflow-hidden border">
             <Image
-              src={getImageUrl("/disbursement-proof/" + refund.disbursement_proof_url)}
+              src={getImageUrl(
+                "/disbursement-proof/" + refund.disbursement_proof_url,
+              )}
               alt="Bukti transfer"
               fill
               className="object-contain"
@@ -235,6 +298,60 @@ export function RefundDetails({
             Dana refund telah dikembalikan ke customer.
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* History Timeline */}
+      {refund.history && refund.history.length > 0 && (
+        <div className="space-y-4 pt-2">
+          <Label>Riwayat Perubahan</Label>
+          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-muted">
+            {refund.history.map((item, idx) => (
+              <div key={item.id} className="relative flex items-start gap-4">
+                <div
+                  className={`mt-1.5 size-[22px] rounded-full border-4 border-background shadow-sm z-10 ${
+                    idx === 0 ? "bg-primary" : "bg-muted"
+                  }`}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <p
+                        className={`text-sm font-bold ${
+                          idx === 0 ? "text-primary" : "text-foreground"
+                        }`}
+                      >
+                        {item.status.replace(/_/g, " ")}
+                      </p>
+                      {item.actor_role === "ADMIN" && (
+                        <Badge
+                          variant="secondary"
+                          className="h-4 text-[8px] px-1 bg-blue-100 text-blue-700 border-blue-200"
+                        >
+                          ADMIN
+                        </Badge>
+                      )}
+                    </div>
+                    {item.actor_name && (
+                      <p className="text-[10px] text-muted-foreground font-medium">
+                        oleh {item.actor_name}
+                      </p>
+                    )}
+                    <time className="text-[10px] text-muted-foreground whitespace-nowrap">
+                      {format(new Date(item.created_at), "dd MMM yyyy, HH:mm", {
+                        locale: localeId,
+                      })}
+                    </time>
+                  </div>
+                  {item.note && (
+                    <p className="text-sm text-muted-foreground mt-1 italic">
+                      {item.note}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       <Separator />

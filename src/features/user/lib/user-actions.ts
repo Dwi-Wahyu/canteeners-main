@@ -322,3 +322,45 @@ export async function markVouchersAsSeen(
     return errorResponse("Terjadi kesalahan");
   }
 }
+
+import { ChangePasswordSchemaType } from "@/features/auth/types/auth-schemas";
+import { compareSync, hashSync } from "bcryptjs";
+
+export async function changePassword(
+  payload: ChangePasswordSchemaType,
+): Promise<ServerActionReturn<void>> {
+  const session = await auth();
+
+  if (!session || !session.user.id) {
+    return errorResponse("Sesi tidak valid");
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { password: true },
+    });
+
+    if (!user || !user.password) {
+      return errorResponse("User tidak ditemukan atau tidak memiliki password");
+    }
+
+    const isPasswordValid = compareSync(payload.current_password, user.password);
+
+    if (!isPasswordValid) {
+      return errorResponse("Kata sandi saat ini salah");
+    }
+
+    const hashedPassword = hashSync(payload.new_password, 10);
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { password: hashedPassword },
+    });
+
+    return successResponse(undefined, "Kata sandi berhasil diubah");
+  } catch (error) {
+    console.error(error);
+    return errorResponse("Terjadi kesalahan saat mengubah kata sandi");
+  }
+}

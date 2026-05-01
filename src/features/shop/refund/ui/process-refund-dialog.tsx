@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -17,15 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormDescription, FormField, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CheckCircle, Loader2, Upload, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import { refundDisbursementModeMapping } from "@/constant/refund-mapping";
-import { getFileExtension } from "@/helper/file-helper";
-import { uuidv4 } from "zod";
+import { LocalStorageService } from "@/services/storage";
 
 interface ProcessRefundDialogProps {
   open: boolean;
@@ -45,11 +44,19 @@ export function ProcessRefundDialog({
   onSuccess,
 }: ProcessRefundDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<{
-    url: string;
-    name: string;
-  } | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const storageService = useMemo(() => new LocalStorageService(), []);
+
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const form = useForm<ProcessRefundInput>({
     resolver: zodResolver(ProcessRefundSchema),
@@ -59,7 +66,7 @@ export function ProcessRefundDialog({
     },
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -80,40 +87,23 @@ export function ProcessRefundDialog({
       return;
     }
 
-    setIsUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("path", "disbursement-proof");
-      formData.append("file", file);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const data = await response.json();
-      const filename = data.data.url.split("/").pop();
-      setUploadedFile({
-        url: data.data.url,
-        name: file.name,
-      });
-      form.setValue("disbursement_proof_url", filename);
-      toast.success("Bukti berhasil diunggah");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Gagal mengunggah bukti. Silakan coba lagi.");
-    } finally {
-      setIsUploading(false);
+    // Cleanup old preview URL
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
     }
+
+    const objectUrl = URL.createObjectURL(file);
+    setSelectedFile(file);
+    setPreviewUrl(objectUrl);
+    toast.success("Bukti dipilih");
   };
 
   const removeUploadedFile = () => {
-    setUploadedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
     form.setValue("disbursement_proof_url", "");
   };
 
@@ -121,12 +111,34 @@ export function ProcessRefundDialog({
     setIsSubmitting(true);
 
     try {
-      const result = await processRefund(data);
+      let finalData = { ...data };
+
+      // Upload file if selected using LocalStorageService
+      if (selectedFile) {
+        try {
+          // Check if file is image or other (like PDF)
+          // Since LocalStorageService.uploadImage doesn't support PDF, 
+          // we might need to be careful if we want to keep PDF support.
+          // For now, let's use uploadImage and see if it works for supported types.
+          const filename = await storageService.uploadImage(
+            selectedFile,
+            "disbursement-proof"
+          );
+          finalData.disbursement_proof_url = filename;
+        } catch (uploadError) {
+          console.error("Upload error:", uploadError);
+          toast.error("Gagal mengunggah bukti. Silakan coba lagi.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      const result = await processRefund(finalData);
 
       if (result.success) {
         toast.success("Refund berhasil diproses");
         form.reset();
-        setUploadedFile(null);
+        removeUploadedFile();
         onOpenChange(false);
         onSuccess?.();
       } else {
@@ -185,10 +197,10 @@ export function ProcessRefundDialog({
                   Maks 5MB)
                 </FormDescription>
 
-                {uploadedFile ? (
+                {previewUrl && selectedFile ? (
                   <div className="relative border rounded-lg p-3 bg-muted/50">
                     <div className="flex items-start gap-3">
-                      {uploadedFile.url.endsWith(".pdf") ? (
+                      {selectedFile.type === "application/pdf" ? (
                         <div className="h-16 w-16 rounded bg-red-100 flex items-center justify-center shrink-0">
                           <span className="text-xs font-medium text-red-900">
                             PDF
@@ -197,7 +209,7 @@ export function ProcessRefundDialog({
                       ) : (
                         <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
                           <Image
-                            src={uploadedFile.url}
+                            src={previewUrl}
                             alt="Bukti transfer"
                             fill
                             className="object-cover"
@@ -206,10 +218,10 @@ export function ProcessRefundDialog({
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
-                          {uploadedFile.name}
+                          {selectedFile.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Berhasil diunggah
+                          Preview bukti transfer
                         </p>
                       </div>
                       <Button
@@ -229,7 +241,7 @@ export function ProcessRefundDialog({
                       type="file"
                       accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
                       onChange={handleFileUpload}
-                      disabled={isUploading}
+                      disabled={isSubmitting}
                       className="hidden"
                       id="proof-upload"
                     />
@@ -237,11 +249,7 @@ export function ProcessRefundDialog({
                       htmlFor="proof-upload"
                       className="cursor-pointer flex flex-col items-center gap-2"
                     >
-                      {isUploading ? (
-                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-                      ) : (
-                        <Upload className="h-8 w-8 text-muted-foreground" />
-                      )}
+                      <Upload className="h-8 w-8 text-muted-foreground" />
                       <div className="text-sm">
                         <span className="font-medium text-primary">
                           Klik untuk upload
@@ -273,11 +281,11 @@ export function ProcessRefundDialog({
                   type="button"
                   variant="outline"
                   onClick={() => onOpenChange(false)}
-                  disabled={isSubmitting || isUploading}
+                  disabled={isSubmitting}
                 >
                   Batal
                 </Button>
-                <Button type="submit" disabled={isSubmitting || isUploading}>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}

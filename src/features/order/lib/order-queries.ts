@@ -125,7 +125,23 @@ export async function getShopOrderDetail(id: string) {
       },
       testimony: true,
       complaint: true,
-      refund: true,
+      refund: {
+        include: {
+          history: {
+            select: {
+              id: true,
+              status: true,
+              note: true,
+              actor_role: true,
+              actor_name: true,
+              created_at: true,
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+          },
+        },
+      },
       customer: {
         select: {
           table_number: true,
@@ -187,7 +203,23 @@ export async function getCustomerOrderDetail(id: string) {
       },
       complaint: true,
       testimony: true,
-      refund: true,
+      refund: {
+        include: {
+          history: {
+            select: {
+              id: true,
+              status: true,
+              note: true,
+              actor_role: true,
+              actor_name: true,
+              created_at: true,
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+          },
+        },
+      },
       customer: {
         select: {
           user: {
@@ -296,7 +328,23 @@ export async function getOrderDetail(id: string) {
       },
       testimony: true,
       complaint: true,
-      refund: true,
+      refund: {
+        include: {
+          history: {
+            select: {
+              id: true,
+              status: true,
+              note: true,
+              actor_role: true,
+              actor_name: true,
+              created_at: true,
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+          },
+        },
+      },
       customer: {
         select: {
           table_number: true,
@@ -322,6 +370,7 @@ export async function getOrderAndPaymentMethod(order_id: string) {
     select: {
       conversation_id: true,
       status: true,
+      confirmed_at: true,
       payment_method: true,
       payment_proof_url: true,
       total_price: true,
@@ -411,6 +460,7 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
           quantity: true,
           product: {
             select: {
+              image_url: true,
               name: true,
             },
           },

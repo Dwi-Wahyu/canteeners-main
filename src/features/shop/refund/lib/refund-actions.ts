@@ -1,5 +1,6 @@
 "use server";
 
+import { auth } from "@/config/auth";
 import {
   RefundRequestInput,
   UpdateRefundStatusInput,
@@ -7,6 +8,7 @@ import {
   CancelRefundInput,
   EscalateRefundInput,
 } from "@/features/shop/refund/types/refund-schema";
+import { Role } from "@/generated/prisma";
 import {
   errorResponse,
   ServerActionReturn,
@@ -19,9 +21,11 @@ import { endOfWeek, startOfWeek } from "date-fns";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function createRefundRequest(
-  payload: RefundRequestInput
+  payload: RefundRequestInput,
 ): Promise<ServerActionReturn<void>> {
-// ... (rest of createRefundRequest remains same)
+  const session = await auth();
+  if (!session) return errorResponse("Unauthorized");
+
   try {
     // Fetch order with necessary relations
     const order = await prisma.order.findUnique({
@@ -44,6 +48,11 @@ export async function createRefundRequest(
           select: {
             owner_id: true,
             name: true,
+            owner: {
+              select: {
+                user_id: true,
+              },
+            },
           },
         },
         order_items: {
@@ -63,7 +72,7 @@ export async function createRefundRequest(
     // Validate order status
     if (order.status !== "COMPLETED") {
       return errorResponse(
-        "Refund hanya dapat diminta untuk pesanan yang sudah selesai"
+        "Refund hanya dapat diminta untuk pesanan yang sudah selesai",
       );
     }
 
@@ -90,7 +99,7 @@ export async function createRefundRequest(
       }
 
       const affectedItems = order.order_items.filter((item) =>
-        payload.affected_item_ids!.includes(item.id)
+        payload.affected_item_ids!.includes(item.id),
       );
 
       if (affectedItems.length !== payload.affected_item_ids.length) {
@@ -99,7 +108,7 @@ export async function createRefundRequest(
 
       refundAmount = affectedItems.reduce(
         (sum, item) => sum + item.subtotal,
-        0
+        0,
       );
     } else {
       // Use provided amount
@@ -109,7 +118,7 @@ export async function createRefundRequest(
 
       if (payload.amount > order.total_price) {
         return errorResponse(
-          "Jumlah refund tidak boleh melebihi total pesanan"
+          "Jumlah refund tidak boleh melebihi total pesanan",
         );
       }
 
@@ -126,6 +135,15 @@ export async function createRefundRequest(
         complaint_proof_url: payload.complaint_proof_url,
         disbursement_mode: payload.disbursement_mode,
         status: "PENDING",
+        history: {
+          create: {
+            status: "PENDING",
+            note: "Refund diajukan oleh customer",
+            actor_id: session.user.id,
+            actor_name: session.user.name,
+            actor_role: session.user.role as any,
+          },
+        },
       },
     });
 
@@ -146,12 +164,12 @@ export async function createRefundRequest(
     // Send notification to shop owner
     const notificationRef = adminDb.collection("notifications");
     const notificationData = {
-      recipientId: order.shop.owner_id,
+      recipientId: order.shop.owner.user_id,
       type: "REFUND",
       subType: "REQUESTED",
       title: "Permintaan Refund Baru",
       body: `Customer mengajukan refund sebesar Rp ${refundAmount.toLocaleString(
-        "id-ID"
+        "id-ID",
       )} untuk pesanan #${order.id.substring(0, 8)}`,
       isRead: false,
       intent: "WARNING",
@@ -178,14 +196,18 @@ export async function createRefundRequest(
 }
 
 export async function updateRefundStatus(
-  payload: UpdateRefundStatusInput
+  payload: UpdateRefundStatusInput,
 ): Promise<ServerActionReturn<void>> {
+  const session = await auth();
+  if (!session) return errorResponse("Unauthorized");
+
   try {
     const refund = await prisma.refund.findUnique({
       where: {
         id: payload.refund_id,
       },
       include: {
+        history: true,
         order: {
           select: {
             id: true,
@@ -203,9 +225,19 @@ export async function updateRefundStatus(
       return errorResponse("Refund tidak ditemukan");
     }
 
+    // Lock if admin has made a decision
+    const hasAdminIntervened = refund.history.some(
+      (h) => h.actor_role === "ADMIN",
+    );
+    if (hasAdminIntervened) {
+      return errorResponse(
+        "Status refund sudah final karena keputusan admin dan tidak dapat diubah lagi",
+      );
+    }
+
     if (refund.status !== "PENDING") {
       return errorResponse(
-        "Hanya refund dengan status PENDING yang dapat diproses"
+        "Hanya refund dengan status PENDING yang dapat diproses",
       );
     }
 
@@ -219,6 +251,18 @@ export async function updateRefundStatus(
         rejected_reason:
           payload.status === "REJECTED" ? payload.rejected_reason : null,
         processed_at: payload.status === "APPROVED" ? new Date() : null,
+        history: {
+          create: {
+            status: payload.status,
+            note:
+              payload.status === "REJECTED"
+                ? `Refund ditolak: ${payload.rejected_reason}`
+                : "Refund disetujui oleh kedai",
+            actor_id: session.user.id,
+            actor_name: session.user.name,
+            actor_role: session.user.role as any,
+          },
+        },
       },
     });
 
@@ -232,7 +276,7 @@ export async function updateRefundStatus(
     if (payload.status === "APPROVED") {
       notificationTitle = "Refund Disetujui";
       notificationBody = `Permintaan refund Anda sebesar Rp ${refund.amount.toLocaleString(
-        "id-ID"
+        "id-ID",
       )} telah disetujui`;
       notificationIntent = "SUCCESS";
     } else {
@@ -264,7 +308,7 @@ export async function updateRefundStatus(
       undefined,
       payload.status === "APPROVED"
         ? "Refund berhasil disetujui"
-        : "Refund ditolak"
+        : "Refund ditolak",
     );
   } catch (error) {
     console.error("updateRefundStatus Error:", error);
@@ -273,14 +317,18 @@ export async function updateRefundStatus(
 }
 
 export async function processRefund(
-  payload: ProcessRefundInput
+  payload: ProcessRefundInput,
 ): Promise<ServerActionReturn<void>> {
+  const session = await auth();
+  if (!session) return errorResponse("Unauthorized");
+
   try {
     const refund = await prisma.refund.findUnique({
       where: {
         id: payload.refund_id,
       },
       include: {
+        history: true,
         order: {
           select: {
             id: true,
@@ -298,9 +346,19 @@ export async function processRefund(
       return errorResponse("Refund tidak ditemukan");
     }
 
+    // Lock if admin has made a decision
+    const hasAdminIntervened = refund.history.some(
+      (h) => h.actor_role === "ADMIN",
+    );
+    if (hasAdminIntervened) {
+      return errorResponse(
+        "Status refund sudah final karena keputusan admin dan tidak dapat diubah lagi",
+      );
+    }
+
     if (refund.status !== "APPROVED") {
       return errorResponse(
-        "Hanya refund yang sudah disetujui yang dapat diproses"
+        "Hanya refund yang sudah disetujui yang dapat diproses",
       );
     }
 
@@ -312,6 +370,15 @@ export async function processRefund(
       data: {
         status: "PROCESSED",
         disbursement_proof_url: payload.disbursement_proof_url,
+        history: {
+          create: {
+            status: "PROCESSED",
+            note: "Dana refund telah dikirim ke customer",
+            actor_id: session.user.id,
+            actor_name: session.user.name,
+            actor_role: session.user.role as any,
+          },
+        },
       },
     });
 
@@ -323,7 +390,7 @@ export async function processRefund(
       subType: "DISBURSED",
       title: "Dana Refund Telah Dikirim",
       body: `Dana refund sebesar Rp${refund.amount.toLocaleString(
-        "id-ID"
+        "id-ID",
       )} telah dikirim melalui ${
         refund.disbursement_mode === "CASH" ? "tunai" : "transfer"
       }`,
@@ -347,20 +414,29 @@ export async function processRefund(
 }
 
 export async function cancelRefund(
-  payload: CancelRefundInput
+  payload: CancelRefundInput,
 ): Promise<ServerActionReturn<void>> {
+  const session = await auth();
+  if (!session) return errorResponse("Unauthorized");
+
   try {
     const refund = await prisma.refund.findUnique({
       where: {
         id: payload.refund_id,
       },
       include: {
+        history: true,
         order: {
           select: {
             id: true,
             shop: {
               select: {
                 owner_id: true,
+                owner: {
+                  select: {
+                    user_id: true,
+                  },
+                },
               },
             },
           },
@@ -372,9 +448,19 @@ export async function cancelRefund(
       return errorResponse("Refund tidak ditemukan");
     }
 
+    // Lock if admin has made a decision
+    const hasAdminIntervened = refund.history.some(
+      (h) => h.actor_role === "ADMIN",
+    );
+    if (hasAdminIntervened) {
+      return errorResponse(
+        "Status refund sudah final karena keputusan admin dan tidak dapat diubah lagi",
+      );
+    }
+
     if (refund.status !== "PENDING") {
       return errorResponse(
-        "Hanya refund dengan status PENDING yang dapat dibatalkan"
+        "Hanya refund dengan status PENDING yang dapat dibatalkan",
       );
     }
 
@@ -385,13 +471,22 @@ export async function cancelRefund(
       },
       data: {
         status: "CANCELLED",
+        history: {
+          create: {
+            status: "CANCELLED",
+            note: "Refund dibatalkan oleh customer",
+            actor_id: session.user.id,
+            actor_name: session.user.name,
+            actor_role: session.user.role as any,
+          },
+        },
       },
     });
 
     // Send notification to shop owner
     const notificationRef = adminDb.collection("notifications");
     const notificationData = {
-      recipientId: refund.order.shop.owner_id,
+      recipientId: refund.order.shop.owner.user_id,
       type: "REFUND",
       subType: "CANCELLED",
       title: "Refund Dibatalkan",
@@ -412,17 +507,33 @@ export async function cancelRefund(
 }
 
 export async function escalateRefund(
-  payload: EscalateRefundInput
+  payload: EscalateRefundInput,
 ): Promise<ServerActionReturn<void>> {
+  const session = await auth();
+  if (!session) return errorResponse("Unauthorized");
+
   try {
     const refund = await prisma.refund.findUnique({
       where: {
         id: payload.refund_id,
       },
+      include: {
+        history: true,
+      },
     });
 
     if (!refund) {
       return errorResponse("Refund tidak ditemukan");
+    }
+
+    // Lock if admin has made a decision
+    const hasAdminIntervened = refund.history.some(
+      (h) => h.actor_role === "ADMIN",
+    );
+    if (hasAdminIntervened) {
+      return errorResponse(
+        "Status refund sudah final karena keputusan admin dan tidak dapat diubah lagi",
+      );
     }
 
     if (["ESCALATED", "CANCELLED", "PROCESSED"].includes(refund.status)) {
@@ -437,6 +548,15 @@ export async function escalateRefund(
       data: {
         status: "ESCALATED",
         escalated_reason: payload.escalated_reason,
+        history: {
+          create: {
+            status: "ESCALATED",
+            note: payload.escalated_reason,
+            actor_id: session.user.id,
+            actor_name: session.user.name,
+            actor_role: session.user.role as Role,
+          },
+        },
       },
     });
 

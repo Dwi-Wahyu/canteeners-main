@@ -4,6 +4,9 @@ import { RefundDetails } from "@/features/shop/refund/ui/refund-details";
 import {
   Card,
   CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
@@ -31,24 +34,24 @@ export default async function ShopRefundPage({
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-between items-center mb-0">
-        <Link
-          href={`/dashboard-kedai/order/${order_id}`}
-          className="flex gap-1 text-muted-foreground text-sm items-center"
-        >
-          <ChevronLeft className="w-4 h-4" /> Kembali
-        </Link>
-      </div>
-
-      <div className="mb-2">
-        <h2 className="text-2xl font-medium tracking-tight">Detail Refund</h2>
-        <div className="text-muted-foreground text-sm">
-          Kelola permintaan refund customer untuk pesanan ini
-        </div>
-      </div>
-
       <Card>
-        <CardContent className="pt-6">
+        <CardHeader>
+          <div className="flex justify-between items-center mb-4">
+            <Link
+              href={`/dashboard-kedai/order/${order_id}`}
+              className="flex gap-1 text-muted-foreground text-sm items-center"
+            >
+              <ChevronLeft className="w-4 h-4" /> Kembali
+            </Link>
+          </div>
+
+          <CardTitle>Detail Refund</CardTitle>
+          <CardDescription className="text-muted-foreground text-sm">
+            Kelola permintaan refund customer untuk pesanan ini
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent>
           <RefundDetails
             refund={refundData as any}
             userRole="SHOP_OWNER"

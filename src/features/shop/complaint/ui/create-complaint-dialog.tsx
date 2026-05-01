@@ -155,7 +155,6 @@ export default function CreateComplaintDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size={"lg"} className="w-full">
-          <FileText className="h-4 w-4" />
           Ajukan Komplain
         </Button>
       </DialogTrigger>

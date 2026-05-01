@@ -68,6 +68,18 @@ export default function useWatchNotification() {
         audio.play().catch((err) => console.error("Error playing sound:", err));
       }
 
+      // Handle sound for payment proof submission
+      if (data.type === "ORDER" && data.subType === "PAYMENT_PROOF_SUBMITTED") {
+        const audio = new Audio("/sounds/bukti-pembayaran-masuk.mp3");
+        audio.play().catch((err) => console.error("Error playing sound:", err));
+      }
+
+      // Handle sound for refund request
+      if (data.type === "REFUND" && data.subType === "REQUESTED") {
+        const audio = new Audio("/sounds/ada-refund-pelanggan.mp3");
+        audio.play().catch((err) => console.error("Error playing sound:", err));
+      }
+
       showNotification({
         title: data.title,
         message: data.body,

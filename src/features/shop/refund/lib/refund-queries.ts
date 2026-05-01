@@ -1,6 +1,5 @@
 import { RefundStatus } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
-import { cacheLife, cacheTag } from "next/cache";
 
 export async function getRefundByOrderId(orderId: string) {
   try {
@@ -12,6 +11,19 @@ export async function getRefundByOrderId(orderId: string) {
         affected_items: {
           select: {
             order_item_id: true,
+          },
+        },
+        history: {
+          select: {
+            id: true,
+            status: true,
+            note: true,
+            actor_role: true,
+            actor_name: true,
+            created_at: true,
+          },
+          orderBy: {
+            created_at: "desc",
           },
         },
         order: {

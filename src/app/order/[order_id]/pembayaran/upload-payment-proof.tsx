@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import PaymentCountdown from "./payment-countdown";
 
 const PaymentFormSchema = z.object({
   order_id: z.string(),
@@ -84,7 +85,8 @@ export default function UploadPaymentProof({
       if (result.success) {
         notificationDialog.success({
           title: "Sukses",
-          message: "Bukti pembayaran berhasil di kirim, mengalihkan ke detail order...",
+          message:
+            "Bukti pembayaran berhasil di kirim, mengalihkan ke detail order...",
           showLoadingBar: true,
           actionButtons: (
             <div className="">
@@ -110,6 +112,16 @@ export default function UploadPaymentProof({
 
   return (
     <div className="p-5 flex flex-col gap-4">
+      {order.status === "CANCELLED" && (
+        <Alert variant={"destructive"}>
+          <AlertTitle>Pesanan Dibatalkan</AlertTitle>
+          <AlertDescription>
+            Pesanan ini telah dibatalkan. Anda tidak dapat melanjutkan
+            pembayaran.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {order.status === "WAITING_SHOP_CONFIRMATION" && (
         <>
           <Alert>
@@ -136,12 +148,12 @@ export default function UploadPaymentProof({
 
       {order.status === "WAITING_PAYMENT" && (
         <>
-          <Alert variant={"destructive"}>
-            <AlertTitle>Perhatian</AlertTitle>
-            <AlertDescription>
-              Selesaikan pembayaran dalam 10 menit
-            </AlertDescription>
-          </Alert>
+          {order.confirmed_at && (
+            <PaymentCountdown
+              confirmedAt={order.confirmed_at}
+              orderId={order_id}
+            />
+          )}
 
           {order.payment_method === "QRIS" &&
             order.status === "WAITING_PAYMENT" && (

@@ -11,7 +11,7 @@ import { LogOut, Store, Bell, User, Settings } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { getImageUrl } from "@/helper/get-image-url";
-import Image from "next/image";
+import { useUnreadNotificationCount } from "@/features/notification/hooks/use-unread-notification-count";
 
 export default function OwnerTopbar({
   shopName,
@@ -20,6 +20,8 @@ export default function OwnerTopbar({
   shopName: string;
   avatar: string;
 }) {
+  const unreadCount = useUnreadNotificationCount();
+
   function handleLogout() {
     signOut({
       redirectTo: "/login-kedai",
@@ -42,7 +44,7 @@ export default function OwnerTopbar({
       <DropdownMenu>
         <DropdownMenuTrigger className="focus:outline-none">
           <Avatar>
-            <AvatarImage src={getImageUrl("/avatar/" + avatar)} alt={shopName} />
+            <AvatarImage src={getImageUrl(avatar)} alt={shopName} />
             <AvatarFallback>
               {shopName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
@@ -53,7 +55,14 @@ export default function OwnerTopbar({
           <DropdownMenuSeparator />
           <Link href="/dashboard-kedai/notifikasi">
             <DropdownMenuItem className="cursor-pointer">
-              <Bell className="mr-2 h-4 w-4" />
+              <div className="relative mr-2">
+                <Bell className="h-4 w-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-bold text-white shadow-sm">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </div>
               <span>Notifikasi</span>
             </DropdownMenuItem>
           </Link>

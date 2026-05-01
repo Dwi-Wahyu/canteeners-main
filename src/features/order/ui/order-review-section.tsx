@@ -79,16 +79,16 @@ export default function OrderReviewSection({
           <div className="space-y-4">
             <div className="space-y-1">
               <h1 className="font-bold text-gray-900 flex items-center gap-2">
-                <StarFilledIcon className="size-4 text-yellow-500" />
+                <StarFilledIcon className="size-4 text-orange-400" />
                 Ulasan Pelanggan
               </h1>
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((rate) => (
                   <button key={rate} className="">
                     {testimony.rating >= rate ? (
-                      <StarFilledIcon className="w-5 h-5" />
+                      <StarFilledIcon className="w-5 h-5 text-orange-400" />
                     ) : (
-                      <StarIcon className="w-5 h-5" />
+                      <StarIcon className="w-5 h-5 text-muted-foreground" />
                     )}
                   </button>
                 ))}
@@ -117,7 +117,7 @@ export default function OrderReviewSection({
           <>
             <div className="space-y-1 mb-4">
               <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                <StarIcon className="size-4 text-primary" />
+                <StarIcon className="size-4 text-orange-400" />
                 Ulasan & Rating
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -133,9 +133,9 @@ export default function OrderReviewSection({
                   onClick={() => setRating(rate)}
                 >
                   {rating >= rate ? (
-                    <StarFilledIcon className="w-5 h-5" />
+                    <StarFilledIcon className="w-5 h-5 text-orange-400" />
                   ) : (
-                    <StarIcon className="w-5 h-5" />
+                    <StarIcon className="w-5 h-5 text-muted-foreground" />
                   )}
                 </button>
               ))}

@@ -94,7 +94,7 @@ export async function confirmOrder({
 
     await prisma.order.update({
       where: { id: order_id },
-      data: { status: newStatus },
+      data: { status: newStatus, confirmed_at: new Date() },
     });
 
     // Eksekusi Firebase (Notification & Trigger)
@@ -737,5 +737,89 @@ export async function savePaymentProof({
     console.log(error);
 
     return errorResponse("Silakan Hubungi CS, Atau coba lagi nanti");
+  }
+}
+
+export async function timeoutCancelOrder({
+  order_id,
+}: {
+  order_id: string;
+}): Promise<ServerActionReturn<void>> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: order_id },
+      select: {
+        status: true,
+        customer_id: true,
+        customer: { select: { user_id: true } },
+        shop_id: true,
+        payment_method: true,
+        payment_proof_url: true,
+      },
+    });
+
+    if (!order) return errorResponse("Order tidak ditemukan");
+
+    // Validasi apakah order bisa dibatalkan otomatis
+    // 1. Status WAITING_PAYMENT (untuk non-CASH)
+    // 2. Status WAITING_SHOP_CONFIRMATION dengan method CASH (karena belum bayar di kedai)
+    const isWaitingNonCash = order.status === "WAITING_PAYMENT";
+    const isWaitingCash =
+      order.status === "WAITING_SHOP_CONFIRMATION" &&
+      order.payment_method === "CASH" &&
+      !order.payment_proof_url;
+
+    if (!isWaitingNonCash && !isWaitingCash) {
+      return errorResponse("Order tidak bisa dibatalkan otomatis");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Update Status Order
+      await tx.order.update({
+        where: { id: order_id },
+        data: {
+          status: "CANCELLED",
+          cancelled_reason: "Batas waktu pembayaran berakhir (15 menit)",
+          cancelled_by_id: "SYSTEM",
+        },
+      });
+
+      // Catat Pelanggaran
+      await tx.customerViolation.create({
+        data: {
+          customer_id: order.customer_id,
+          order_id: order_id,
+          timestamp: new Date(),
+          type: "ORDER_CANCEL_WITHOUT_PAY",
+        },
+      });
+    });
+
+    // Firebase Cleanup
+    const orderRef = adminDb.collection("orders").doc(order_id);
+    await orderRef.delete();
+
+    const notificationRef = adminDb.collection("notifications");
+    await notificationRef.add({
+      recipientId: order.customer.user_id,
+      type: "ORDER",
+      subType: "CANCELLED",
+      title: "Pesanan Dibatalkan Otomatis",
+      body: "Batas waktu pembayaran 15 menit telah berakhir",
+      isRead: false,
+      intent: "ERROR",
+      resourcePath: "/order/" + order_id,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    revalidateOrderPaths(order_id);
+
+    return successResponse(
+      undefined,
+      "Pesanan dibatalkan otomatis karena timeout",
+    );
+  } catch (error) {
+    console.error("Timeout Cancel Order Error:", error);
+    return errorResponse("Terjadi kesalahan saat membatalkan order otomatis");
   }
 }

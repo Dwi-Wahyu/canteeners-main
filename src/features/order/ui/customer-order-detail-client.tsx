@@ -50,6 +50,7 @@ import {
 import { useNotificationDialogStore } from "@/stores/use-notification-store";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import PaymentCountdown from "@/app/order/[order_id]/pembayaran/payment-countdown";
 
 export default function CustomerOrderDetailClient({
   order: initialOrder,
@@ -244,11 +245,27 @@ export default function CustomerOrderDetailClient({
 
         {order.status === "WAITING_SHOP_CONFIRMATION" &&
           order.payment_method === "CASH" && (
-            <Alert variant="default">
-              <CashIcon />
-              <AlertTitle>Silakan lakukan pembayaran di kedai</AlertTitle>
-            </Alert>
+            <>
+              <Alert variant="default">
+                <CashIcon />
+                <AlertTitle>Silakan lakukan pembayaran di kedai</AlertTitle>
+              </Alert>
+
+              {order.confirmed_at && (
+                <PaymentCountdown
+                  confirmedAt={order.confirmed_at}
+                  orderId={order.id}
+                />
+              )}
+            </>
           )}
+
+        {order.status === "WAITING_PAYMENT" && order.confirmed_at && (
+          <PaymentCountdown
+            confirmedAt={order.confirmed_at}
+            orderId={order.id}
+          />
+        )}
 
         <div>
           <h1 className="font-semibold mb-1">Pesanan</h1>

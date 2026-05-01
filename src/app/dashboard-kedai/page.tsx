@@ -1,7 +1,5 @@
 import { auth } from "@/config/auth";
-import {
-  getShopStatus,
-} from "@/features/shop/lib/shop-queries";
+import { getShopStatus } from "@/features/shop/lib/shop-queries";
 import { getRecentOrdersByShop } from "@/features/order/lib/order-queries";
 import { redirect } from "next/navigation";
 import RecentOrdersList from "@/features/order/ui/recent-orders-list";
@@ -57,6 +55,31 @@ export default async function DashboardKedai() {
     },
   });
 
+  const pendingRefundsCount = await prisma.refund.count({
+    where: {
+      order: {
+        shop_id: session.user.shopId,
+      },
+      status: "PENDING",
+    },
+  });
+
+  const pendingComplaintsCount = await prisma.shopComplaint.count({
+    where: {
+      order: {
+        shop_id: session.user.shopId,
+      },
+      status: "PENDING",
+    },
+  });
+
+  const pendingConfirmationOrdersCount = await prisma.order.count({
+    where: {
+      shop_id: session.user.shopId,
+      status: "PENDING_CONFIRMATION",
+    },
+  });
+
   return (
     <div className="space-y-5">
       <div className="mb-5">
@@ -76,31 +99,46 @@ export default async function DashboardKedai() {
         <NavButton
           href="/dashboard-kedai/order"
           size="lg"
-          className="h-14 focus:scale-105"
+          className="h-14 focus:scale-105 relative"
           variant="outline"
         >
           <ClipboardClock />
           Order Tracking
+          {pendingConfirmationOrdersCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm animate-bounce">
+              {pendingConfirmationOrdersCount}
+            </span>
+          )}
         </NavButton>
 
         <NavButton
           href="/dashboard-kedai/komplain"
           size="lg"
-          className="h-14 focus:scale-105"
+          className="h-14 focus:scale-105 relative"
           variant="outline"
         >
           <MessageSquareWarning />
           Komplain
+          {pendingComplaintsCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ">
+              {pendingComplaintsCount}
+            </span>
+          )}
         </NavButton>
 
         <NavButton
           href="/dashboard-kedai/refund"
           size="lg"
-          className="h-14 col-span-2 focus:scale-105"
+          className="h-14 col-span-2 focus:scale-105 relative"
           variant="outline"
         >
           <BanknoteX />
           Pengajuan Refund
+          {pendingRefundsCount > 0 && (
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ">
+              {pendingRefundsCount}
+            </span>
+          )}
         </NavButton>
       </div>
 
