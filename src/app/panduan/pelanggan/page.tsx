@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  DollarSign,
 } from "lucide-react";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import {
@@ -56,9 +57,19 @@ export default function PanduanPelangganPage() {
     { id: "pelacakan", label: "Pelacakan Order", icon: <Clock size={18} /> },
     { id: "chat", label: "Fitur Chat", icon: <MessageSquare size={18} /> },
     { id: "fitur", label: "Rating & Ulasan", icon: <Star size={18} /> },
+    {
+      id: "refund",
+      label: "Refund & Pengembalian",
+      icon: <DollarSign size={18} />,
+    },
   ];
 
   const scrollToSection = (id: string) => {
+    if (id === "refund") {
+      window.location.href =
+        "/panduan/pelanggan/refund?back_url=/panduan/pelanggan";
+      return;
+    }
     const element = document.getElementById(id);
     if (element) {
       const topbarHeight = 80;
@@ -129,7 +140,7 @@ export default function PanduanPelangganPage() {
         {/* Hero Section */}
         <section id="hero" className="space-y-2 scroll-mt-24">
           <Badge variant="secondary" className="px-3 py-1">
-            Bantuan & Panduan
+            Pelanggan Kantiners
           </Badge>
           <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             Cara Menggunakan Canteeners
@@ -379,7 +390,7 @@ export default function PanduanPelangganPage() {
                     <span className="text-[10px] font-medium">Tunai</span>
                   </div>
                 </div>
-                <p className="mt-4 text-xs text-muted-foreground p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+                <p className="mt-4 text-xs rounded-lg text-muted-foreground p-3 bg-blue-50 border-l-4 border-blue-400">
                   <strong>Penting:</strong> Untuk metode QRIS dan Transfer, Anda
                   wajib mengunggah foto bukti pembayaran yang sah melalui
                   aplikasi agar pesanan dapat segera diverifikasi oleh kedai.
@@ -457,11 +468,10 @@ export default function PanduanPelangganPage() {
           <Card className="card-shadow">
             <CardContent className="space-y-4">
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-green-500/10 text-green-600 rounded-xl">
-                  <MessageSquare size={24} />
-                </div>
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">Komunikasi Real-time</CardTitle>
+                  <CardTitle className="text-lg">
+                    Komunikasi Real-time
+                  </CardTitle>
                   <CardDescription>
                     Ada kendala atau ingin bertanya? Anda dapat mengirim pesan
                     teks maupun gambar langsung ke pemilik kedai.
@@ -471,9 +481,6 @@ export default function PanduanPelangganPage() {
 
               <div className="p-4 bg-muted/50 rounded-lg border-l-4 border-primary">
                 <div className="flex items-start gap-3">
-                  <div className="mt-0.5 text-primary">
-                    <Clock size={16} />
-                  </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     <strong>Kebijakan Penyimpanan:</strong> Demi kenyamanan dan
                     efisiensi penyimpanan, riwayat pesan yang berusia lebih dari{" "}
@@ -496,18 +503,63 @@ export default function PanduanPelangganPage() {
           <Card className="card-shadow">
             <CardContent>
               <div className="flex items-start gap-4">
-                <div className="p-3 bg-yellow-500/10 text-yellow-600 rounded-xl">
-                  <Star size={24} />
-                </div>
                 <div className="space-y-1">
                   <CardTitle className="text-lg">Berikan Feedback-mu</CardTitle>
                   <CardDescription>
                     Setelah pesanan selesai, jangan lupa berikan ulasan dan
-                    rating bintang 1-5. Kontribusimu sangat berarti untuk membantu
-                    kami menjaga kualitas layanan mitra kedai.
+                    rating bintang 1-5. Kontribusimu sangat berarti untuk
+                    membantu kami menjaga kualitas layanan mitra kedai.
                   </CardDescription>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* 6. Refund & Pengembalian */}
+        <section id="refund" className="space-y-4 scroll-mt-24">
+          <div className="flex items-center gap-2">
+            <h3 className="text-2xl font-bold tracking-tight">
+              Refund & Pengembalian
+            </h3>
+          </div>
+
+          <Card className="card-shadow border-primary/20 bg-primary/5">
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg">
+                    Dana Aman & Terjamin
+                  </CardTitle>
+                  <CardDescription>
+                    Jika pesananmu bermasalah (rusak, salah, atau tidak datang),
+                    kamu bisa mengajukan pengembalian dana (refund) dengan
+                    mudah.
+                  </CardDescription>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 size={16} className="text-green-500" />
+                  <span>Proses Transparan</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 size={16} className="text-green-500" />
+                  <span>Bantuan CS</span>
+                </div>
+              </div>
+
+              <Button
+                className="w-full group"
+                onClick={() =>
+                  (window.location.href =
+                    "/panduan/pelanggan/refund?back_url=/panduan/pelanggan")
+                }
+              >
+                Baca Panduan Refund Lengkap
+                <ChevronRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+              </Button>
             </CardContent>
           </Card>
         </section>

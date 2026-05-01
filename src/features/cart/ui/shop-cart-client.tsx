@@ -357,18 +357,6 @@ export default function ShopCartClient({
         </Alert>
       )}
 
-      {postOrderType === "DELIVERY_TO_TABLE" &&
-        customerProfile.table_number === null && (
-          <Alert variant="destructive">
-            <CircleAlert className="h-4 w-4" />
-            <AlertTitle>Meja Belum Dipilih</AlertTitle>
-            <AlertDescription>
-              Anda memilih metode pengantaran ke meja, namun nomor meja belum
-              terdeteksi. Silakan pilih meja terlebih dahulu melalui bagian
-              "Jenis Order" di bawah.
-            </AlertDescription>
-          </Alert>
-        )}
       <div className="">
         <h1 className="font-semibold mb-2">Daftar Pesanan</h1>
 
@@ -547,7 +535,13 @@ export default function ShopCartClient({
           className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
           size={"lg"}
           onClick={handleClickCheckout}
-          disabled={customerProfile.suspend_until !== null || !canOrder}
+          disabled={
+            customerProfile.suspend_until !== null ||
+            !canOrder ||
+            isPending ||
+            (postOrderType === "DELIVERY_TO_TABLE" &&
+              customerProfile.table_number === null)
+          }
         >
           <h1>{shopCart.items.length} Item</h1>
 

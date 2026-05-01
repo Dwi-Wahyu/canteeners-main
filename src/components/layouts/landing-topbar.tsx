@@ -24,7 +24,7 @@ export default function LandingTopbar() {
   return (
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        scrolled ? "landing-nav-glass shadow-sm" : "bg-transparent"
+        scrolled || menuOpen ? "bg-background shadow-sm" : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -42,10 +42,10 @@ export default function LandingTopbar() {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex items-center gap-1.5 transition-colors duration-300 ${
+              className={`flex items-center gap-1.5 transition-colors duration-100 ${
                 i === 0
                   ? "text-[#DC2626] border-b-2 border-[#DC2626] pb-1"
-                  : scrolled
+                  : scrolled || menuOpen
                     ? "text-slate-600 hover:text-[#DC2626]"
                     : "text-white/90 hover:text-white"
               }`}
@@ -84,7 +84,7 @@ export default function LandingTopbar() {
         {/* Mobile hamburger */}
         <button
           className={`md:hidden p-2 rounded-lg transition-colors ${
-            scrolled ? "text-slate-700" : "text-white"
+            scrolled || menuOpen ? "text-slate-700" : "text-white"
           }`}
           onClick={() => setMenuOpen((prev) => !prev)}
           aria-label="Toggle menu"
@@ -99,7 +99,7 @@ export default function LandingTopbar() {
           menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <nav className="flex flex-col px-6 pb-6 pt-2 space-y-3 landing-nav-glass border-t border-white/10">
+        <nav className="flex flex-col px-6 pb-6 pt-2 space-y-3 bg-background border-t border-white/10">
           {navItems.map((item) => (
             <Link
               key={item.label}

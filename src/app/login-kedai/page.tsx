@@ -92,33 +92,28 @@ export default function LoginKedaiPage() {
         }}
       />
 
-      {/* Brand Header */}
-      <header className="md:relative absolute top-0 left-0 w-full pt-10 px-6 z-20 text-center pointer-events-none">
+      {/* 1. Header Area - Top Aligned */}
+      <header className="w-full flex absolute justify-center pt-4 md:pt-12 z-10 shrink-0">
         <Link
           href="/"
-          className="inline-flex flex-row items-center gap-3 pointer-events-auto"
+          className="flex items-center gap-2 text-center group transition-transform duration-300 hover:scale-105"
         >
-          <div className="relative w-10 h-10">
+          <div className="relative w-8 h-8 md:w-24 md:h-24 drop-shadow-2xl">
             <Image
-              src="/app-logo.svg"
+              src="/logo.png"
               alt="Canteeners Logo"
               fill
               className="object-contain"
+              priority
             />
           </div>
           <h1
-            className="font-headline font-extrabold text-2xl md:text-3xl tracking-tight"
+            className="font-headline font-extrabold text-3xl md:text-4xl tracking-tighter"
             style={{ color: "#0b1c30" }}
           >
-            Can<span style={{ color: "#b70011" }}>teen</span>eers
+            Can<span style={{ color: "#b70011" }}>teeners</span>
           </h1>
         </Link>
-        <p
-          className="font-body text-xs font-semibold uppercase tracking-widest mt-2 pointer-events-auto"
-          style={{ color: "#555f6f" }}
-        >
-          Portal Kedai
-        </p>
       </header>
 
       <main className="flex-1 flex flex-col justify-center items-center w-full max-w-md mx-auto px-6 py-8 relative z-10">
@@ -133,6 +128,9 @@ export default function LoginKedaiPage() {
             boxShadow: "0 32px 64px -12px rgba(11, 28, 48, 0.08)",
           }}
         >
+          <p className="font-body self-center text-xs text-center border border-primary w-fit px-2 py-1 rounded-lg text-primary font-semibold uppercase tracking-widest mt-2 pointer-events-auto">
+            Portal Kedai
+          </p>
           <div className="text-center mb-2">
             <h2
               className="font-headline font-bold text-2xl tracking-tight"
@@ -140,6 +138,7 @@ export default function LoginKedaiPage() {
             >
               Selamat Datang
             </h2>
+
             <p className="font-body text-sm mt-1" style={{ color: "#555f6f" }}>
               Kelola usaha Anda dan layani pelanggan terbaik.
             </p>
@@ -321,36 +320,10 @@ export default function LoginKedaiPage() {
                   Memuat...
                 </span>
               ) : (
-                "Masuk ke Kedai"
+                "Masuk"
               )}
             </button>
           </form>
-
-          {/* Switch to Pelanggan */}
-          <div className="flex flex-col gap-3 pt-2">
-            <div className="flex items-center gap-4">
-              <div className="h-px flex-1" style={{ background: "#d3e4fe" }} />
-              <span
-                className="font-headline text-[10px] font-bold uppercase tracking-widest"
-                style={{ color: "#555f6f" }}
-              >
-                Bukan Pemilik Kedai?
-              </span>
-              <div className="h-px flex-1" style={{ background: "#d3e4fe" }} />
-            </div>
-            <Link
-              href="/login-pelanggan"
-              className="w-full rounded-full py-3 flex items-center justify-center gap-3 transition-all duration-200 font-headline font-semibold text-sm border hover:bg-white/50"
-              style={{
-                background: "#ffffff",
-                borderColor: "rgba(230, 189, 184, 0.2)",
-                color: "#0b1c30",
-                boxShadow: "0 1px 4px rgba(11, 28, 48, 0.05)",
-              }}
-            >
-              <span>Masuk sebagai Pelanggan</span>
-            </Link>
-          </div>
         </div>
 
         {/* Footer Link */}
@@ -358,7 +331,7 @@ export default function LoginKedaiPage() {
           className="font-body text-sm mt-8 text-center"
           style={{ color: "#555f6f" }}
         >
-          Ingin bergabung sebagai mitra?{" "}
+          Ingin bergabung sebagai mitra? <br />
           <Link
             href="/mitra"
             className="font-headline font-bold transition-colors"

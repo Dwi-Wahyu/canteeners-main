@@ -1,23 +1,11 @@
-"use client";
-
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { getCanteens } from "@/features/canteen/lib/canteen-queries";
 import { getCategories } from "@/features/category/lib/category-queries";
 import { getImageUrl } from "@/helper/get-image-url";
-import { useSession, signOut } from "next-auth/react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, User } from "lucide-react";
+import { auth } from "@/config/auth";
+
 import { BottomNav } from "@/components/layouts/bottom-nav";
-import { getBanners } from "@/features/banner/lib/banner-queries";
+import CanteenBanner from "@/features/banner/ui/canteen-banner";
 
 const categoryIconMap: Record<string, string> = {
   "Es Buah": "emoji_food_beverage",
@@ -30,73 +18,40 @@ const categoryIconMap: Record<string, string> = {
   Semua: "apps",
 };
 
-export default function CanteenPage() {
-  const { data: session } = useSession();
-  const [activeBanner, setActiveBanner] = useState(0);
-  const [activeCategory, setActiveCategory] = useState("Semua");
-  const [canteens, setCanteens] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [banners, setBanners] = useState<any[]>([]);
+export default async function CanteenPage() {
+  const session = await auth();
 
-  // Auto-slide banners
-  useEffect(() => {
-    if (banners.length <= 1) return;
+  const [canteensData, categoriesData] = await Promise.all([
+    getCanteens(),
+    getCategories(),
+  ]);
 
-    const timer = setInterval(() => {
-      setActiveBanner((prev) => (prev + 1) % banners.length);
-    }, 5000); // Ganti setiap 5 detik
+  const mappedCanteens = canteensData.map((c) => ({
+    slug: c.slug || "",
+    image_url: getImageUrl("/canteen/" + c.image_url),
+    name: c.name,
+    description: c.shops.map((s) => s.name).join(", ") || "Aneka Menu",
+    location: c.maps.length > 0 ? `Lantai ${c.maps[0].floor}` : "Kantin",
+    rating: (
+      c.shops.reduce((acc, s) => acc + s.average_rating, 0) /
+        c.shops.length || 0
+    ).toFixed(1),
+    deliveryTime: "15-20 mnt",
+    deliveryFee: "Rp 0 (Promo)",
+  }));
 
-    return () => clearInterval(timer);
-  }, [banners.length]);
-
-  useEffect(() => {
-    async function fetchData() {
-      const [canteensData, categoriesData, bannersData] = await Promise.all([
-        getCanteens(),
-        getCategories(),
-        getBanners(),
-      ]);
-
-      const mappedBanners = bannersData.map((b) => ({
-        id: b.id,
-        img: getImageUrl("/banners/" + b.file),
-        cta: b.cta_path,
-      }));
-
-      const mappedCanteens = canteensData.map((c) => ({
-        slug: c.slug || "",
-        image_url: getImageUrl("/canteen/" + c.image_url),
-        name: c.name,
-        description: c.shops.map((s) => s.name).join(", ") || "Aneka Menu",
-        location: c.maps.length > 0 ? `Lantai ${c.maps[0].floor}` : "Kantin",
-        rating: (
-          c.shops.reduce((acc, s) => acc + s.average_rating, 0) /
-            c.shops.length || 0
-        ).toFixed(1),
-        deliveryTime: "15-20 mnt",
-        deliveryFee: "Rp 0 (Promo)",
-      }));
-
-      const mappedCategories = [
-        ...categoriesData.map((cat) => ({
-          label: cat.name,
-          icon: categoryIconMap[cat.name] || "restaurant",
-          img: getImageUrl("/category/" + cat.image_url),
-        })),
-        {
-          label: "Semua",
-          icon: "apps",
-          img: null,
-        },
-      ];
-
-      setBanners(mappedBanners);
-      setCanteens(mappedCanteens);
-      setCategories(mappedCategories);
-    }
-
-    fetchData();
-  }, []);
+  // const mappedCategories = [
+  //   ...categoriesData.map((cat) => ({
+  //     label: cat.name,
+  //     icon: categoryIconMap[cat.name] || "restaurant",
+  //     img: getImageUrl("/category/" + cat.image_url),
+  //   })),
+  //   {
+  //     label: "Semua",
+  //     icon: "apps",
+  //     img: null,
+  //   },
+  // ];
 
   return (
     <div
@@ -154,51 +109,7 @@ export default function CanteenPage() {
 
       <main className="md:pt-28 pt-4 pb-6 max-w-7xl mx-auto px-4 md:px-6">
         {/* ── Hero Banners ── */}
-        <section className="mb-10">
-          <div className="relative overflow-hidden rounded-2xl">
-            {banners.length > 0 ? (
-              banners.map((banner, i) => (
-                <div
-                  key={banner.id}
-                  className="transition-all duration-500"
-                  style={{ display: i === activeBanner ? "block" : "none" }}
-                >
-                  <Link href={banner.cta || "#"}>
-                    <div className="relative rounded-2xl overflow-hidden aspect-[16/7] md:aspect-[21/7]">
-                      <img
-                        src={banner.img}
-                        alt={`Banner ${i + 1}`}
-                        className="w-full h-full object-cover"
-                        style={{ transition: "transform 0.5s ease" }}
-                      />
-                    </div>
-                  </Link>
-                </div>
-              ))
-            ) : (
-              <div className="relative rounded-2xl overflow-hidden aspect-[16/7] md:aspect-[21/7] bg-gray-200 animate-pulse flex items-center justify-center">
-                <p className="text-gray-400 font-medium">Memuat promo...</p>
-              </div>
-            )}
-          </div>
-
-          {/* Banner Indicators */}
-          <div className="flex justify-center gap-2 mt-3">
-            {banners.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveBanner(i)}
-                className="rounded-full transition-all duration-300"
-                style={{
-                  width: i === activeBanner ? 24 : 8,
-                  height: 8,
-                  background: i === activeBanner ? "#DC2626" : "#dce9ff",
-                }}
-                aria-label={`Banner ${i + 1}`}
-              />
-            ))}
-          </div>
-        </section>
+        <CanteenBanner />
 
         {/* ── Kantin Populer ── */}
         <section>
@@ -217,7 +128,7 @@ export default function CanteenPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {canteens.map((canteen, idx) => (
+            {mappedCanteens.map((canteen, idx) => (
               <Link href={"/kantin/" + canteen.slug} key={idx}>
                 <article
                   className="group rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1"

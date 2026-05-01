@@ -108,6 +108,12 @@ export function ProcessRefundDialog({
   };
 
   const onSubmit = async (data: ProcessRefundInput) => {
+    // Validate proof for transfer
+    if (refund.disbursement_mode === "TRANSFER" && !selectedFile) {
+      toast.error("Bukti transfer wajib diunggah untuk metode transfer.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -191,9 +197,12 @@ export function ProcessRefundDialog({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* File Upload */}
               <div className="space-y-2">
-                <FormLabel>Bukti Transfer (Opsional)</FormLabel>
+                <FormLabel>
+                  Bukti {refund.disbursement_mode === "TRANSFER" ? "Transfer" : "Pembayaran"}{" "}
+                  {refund.disbursement_mode === "TRANSFER" ? "(Wajib)" : "(Opsional)"}
+                </FormLabel>
                 <FormDescription>
-                  Upload bukti transfer atau pembayaran (JPG, PNG, WEBP, PDF -
+                  Upload bukti {refund.disbursement_mode === "TRANSFER" ? "transfer" : "pembayaran"} (JPG, PNG, WEBP, PDF -
                   Maks 5MB)
                 </FormDescription>
 

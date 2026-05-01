@@ -16,6 +16,8 @@ firebase-debug.log
 
 src/generated/prisma
 
+env-documentation.md
+
 # testing
 /coverage
 

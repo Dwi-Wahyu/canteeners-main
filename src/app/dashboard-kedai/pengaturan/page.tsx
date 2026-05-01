@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import {
   AlertCircle,
   BookCopy,
+  BookOpen,
   ChefHat,
   ChevronRight,
   CreditCard,
@@ -169,6 +170,20 @@ export default async function OwnerSettingsPage() {
       </Item>
 
       <Item variant="outline" size="sm" className="mb-4" asChild>
+        <Link href="/panduan/mitra">
+          <ItemMedia>
+            <BookOpen className="size-5" />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>Panduan Mitra</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <ChevronRight className="size-4" />
+          </ItemActions>
+        </Link>
+      </Item>
+
+      <Item variant="outline" size="sm" className="mb-4" asChild>
         <Link href="/versi-aplikasi">
           <ItemMedia>
             <BookCopy className="size-5" />
@@ -183,7 +198,7 @@ export default async function OwnerSettingsPage() {
       </Item>
 
       <Item variant="outline" size="sm" className="mb-4" asChild>
-        <Link href="/pusat-bantuan">
+        <Link href="/pusat-bantuan?back_url=/dashboard-kedai/pengaturan">
           <ItemMedia>
             <MessageCircleQuestionMark className="size-5" />
           </ItemMedia>

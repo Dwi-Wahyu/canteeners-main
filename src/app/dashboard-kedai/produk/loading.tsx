@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function LoadingProductsPage() {
   return (
-    <div>
+    <div className="p-4">
       <div className="flex justify-between items-center">
         <Skeleton className="w-36 h-7" />
 

@@ -22,7 +22,12 @@ export default function OwnerChatListPage() {
   if (isLoading) {
     return (
       <div>
-        <h1 className="text-xl mb-4">Chat</h1>
+        <div className="mb-4">
+          <h1 className="text-2xl ">Chat</h1>
+          <div className="text-muted-foreground">
+            Memuat percakapan dengan pelanggan...
+          </div>
+        </div>
 
         <div className="relative bg-card mb-6">
           <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
@@ -49,7 +54,12 @@ export default function OwnerChatListPage() {
   if (!user) {
     return (
       <div>
-        <h1 className="text-xl mb-4">Chat</h1>
+        <div className="mb-4">
+          <h1 className="text-2xl ">Chat</h1>
+          <div className="text-muted-foreground">
+            Silahkan relogin jika masalah berlanjut
+          </div>
+        </div>
 
         <div className="relative bg-card mb-6">
           <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
@@ -72,7 +82,12 @@ export default function OwnerChatListPage() {
 
   return (
     <div>
-      <h2 className="text-3xl font-medium tracking-tight mb-4">Chat</h2>
+      <div className="mb-4">
+        <h2 className="text-2xl font-medium tracking-tight">Chat</h2>
+        <div className="text-muted-foreground">
+          Lihat percakapan dengan pelanggan
+        </div>
+      </div>
 
       <div className="relative bg-card mb-6">
         <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">

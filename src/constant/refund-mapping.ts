@@ -10,7 +10,8 @@ export const refundStatusMapping = {
   PENDING: "Menunggu Konfirmasi Kedai",
   APPROVED: "Disetujui",
   REJECTED: "Ditolak",
-  PROCESSED: "Selesai Diproses",
+  PROCESSED: "Dana Dikirim",
+  COMPLETED: "Selesai",
   CANCELLED: "Dibatalkan Pengguna",
   ESCALATED: "Dieskalasi ke Admin",
 };

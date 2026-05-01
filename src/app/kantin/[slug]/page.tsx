@@ -4,9 +4,9 @@ import { getCanteenBySlug } from "@/features/canteen/lib/canteen-queries";
 import { SearchParams } from "nuqs";
 import { ShopSearchParams } from "@/features/shop/types/shop-search-params";
 import { BottomNav } from "@/components/layouts/bottom-nav";
-import { getCategories } from "@/features/category/lib/category-queries";
 import { auth } from "@/config/auth";
 import { CanteenAutoTableSync } from "@/features/canteen/ui/canteen-auto-table-sync";
+import { CanteenCategoryFilter } from "@/features/canteen/ui/canteen-category-filter";
 
 export default async function CanteenDetailPage({
   params,
@@ -26,10 +26,7 @@ export default async function CanteenDetailPage({
     return notFound();
   }
 
-  const [canteen, categories] = await Promise.all([
-    getCanteenBySlug(slug, search),
-    getCategories(),
-  ]);
+  const canteen = await getCanteenBySlug(slug, search);
 
   if (!canteen) {
     return notFound();
@@ -41,7 +38,7 @@ export default async function CanteenDetailPage({
 
       <CanteenClient
         canteen={canteen}
-        categories={categories}
+        categoryFilter={<CanteenCategoryFilter />}
         session={session}
       />
 

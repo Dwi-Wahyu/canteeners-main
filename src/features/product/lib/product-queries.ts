@@ -3,7 +3,17 @@
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
-export async function getShopProducts(shop_id: string, name: string | null) {
+export async function getShopProducts(
+  shop_id: string,
+  params: {
+    name?: string | null;
+    categoryId?: number | null;
+    isAvailable?: boolean | null;
+    sortBy?: string | null;
+  },
+) {
+  const { name, categoryId, isAvailable, sortBy } = params;
+
   type WhereClause = Prisma.ProductWhereInput;
   let whereClause: WhereClause = {
     shop_id,
@@ -16,12 +26,50 @@ export async function getShopProducts(shop_id: string, name: string | null) {
     };
   }
 
+  if (categoryId) {
+    whereClause["categories"] = {
+      some: {
+        category_id: categoryId,
+      },
+    };
+  }
+
+  if (isAvailable !== undefined && isAvailable !== null) {
+    whereClause["is_available"] = isAvailable;
+  }
+
+  let orderBy: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[] = {
+    created_at: "desc",
+  };
+
+  if (sortBy === "best_selling") {
+    orderBy = {
+      order_items: {
+        _count: "desc",
+      },
+    };
+  } else if (sortBy === "price_asc") {
+    orderBy = {
+      price: "asc",
+    };
+  } else if (sortBy === "price_desc") {
+    orderBy = {
+      price: "desc",
+    };
+  }
+
   return await prisma.product.findMany({
     where: whereClause,
+    orderBy,
     include: {
       options: {
         select: {
           option: true,
+        },
+      },
+      _count: {
+        select: {
+          order_items: true,
         },
       },
     },

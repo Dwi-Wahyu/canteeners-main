@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { GetCanteenBySlug } from "../types/canteen-queries-types";
-import { CanteenCategoryFilter } from "./canteen-category-filter";
 import { Badge } from "@/components/ui/badge";
 import { usePathname, useSearchParams } from "next/navigation";
 import { CartSummary } from "@/features/cart/ui/cart-summary";
@@ -23,7 +22,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { addToCart } from "@/features/cart/lib/cart-actions";
 import { createGuestSession } from "@/helper/create-guest-session";
 import { toast } from "sonner";
-import { getCategories } from "@/features/category/lib/category-queries";
 import { useCartAnimationStore } from "@/stores/use-cart-animation-store";
 import { ProductFilterDialogInline } from "./product-filter-dialog";
 import { useQueryState } from "nuqs";
@@ -49,11 +47,11 @@ type ActiveTab = "menu" | "kedai";
 
 /* ─── Inline styles ────────────────────────────────────────────── */
 const STYLES = `
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+  // @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-  .cc-root * {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
+  // .cc-root * {
+  //   font-family: 'Plus Jakarta Sans', sans-serif;
+  // }
 
   /* Fly-to-cart animation */
   @keyframes fly-to-cart {
@@ -112,11 +110,11 @@ const STYLES = `
 /* ─── Main Component ───────────────────────────────────────────── */
 export default function CanteenClient({
   canteen,
-  categories,
+  categoryFilter,
   session,
 }: {
   canteen: GetCanteenBySlug;
-  categories: Awaited<ReturnType<typeof getCategories>>;
+  categoryFilter: React.ReactNode;
   session: Session | null;
 }) {
   const pathname = usePathname();
@@ -156,7 +154,9 @@ export default function CanteenClient({
     e.stopPropagation();
     if (loadingProductId) return;
 
-    const imgElement = e.currentTarget.closest(".cc-product-card")?.querySelector("img");
+    const imgElement = e.currentTarget
+      .closest(".cc-product-card")
+      ?.querySelector("img");
     const cartElement = document.getElementById("cart-summary");
 
     if (imgElement && cartElement) {
@@ -165,18 +165,32 @@ export default function CanteenClient({
       setFlyingImage({
         id: Math.random().toString(),
         src: getImageUrl("/product/" + product.image_url),
-        startPos: { x: imgRect.left + imgRect.width / 2, y: imgRect.top + imgRect.height / 2 },
-        targetPos: { x: cartRect.left + cartRect.width / 2, y: cartRect.top + cartRect.height / 2 },
+        startPos: {
+          x: imgRect.left + imgRect.width / 2,
+          y: imgRect.top + imgRect.height / 2,
+        },
+        targetPos: {
+          x: cartRect.left + cartRect.width / 2,
+          y: cartRect.top + cartRect.height / 2,
+        },
       });
-      setTimeout(() => { setFlyingImage(null); triggerShake(); }, 600);
+      setTimeout(() => {
+        setFlyingImage(null);
+        triggerShake();
+      }, 600);
     }
 
     setLoadingProductId(product.id);
     try {
       let cartId = activeCartId;
       if (!cartId) {
-        const { cartId: createdCartId } = await createGuestSession({ name: "" });
-        if (!createdCartId) { toast.error("Gagal membuat sesi tamu, silakan coba lagi"); return; }
+        const { cartId: createdCartId } = await createGuestSession({
+          name: "",
+        });
+        if (!createdCartId) {
+          toast.error("Gagal membuat sesi tamu, silakan coba lagi");
+          return;
+        }
         cartId = createdCartId;
         setActiveCartId(cartId);
       }
@@ -233,9 +247,7 @@ export default function CanteenClient({
 
       {/* ── Sticky Search Bar ─────────────────────── */}
       <div className="sticky top-0 z-30 bg-[#f6faff]/92 backdrop-blur-md px-4 pt-4 pb-3">
-        <div
-          className="flex items-center bg-[#e6eff8] rounded-2xl px-4 py-3 gap-3 transition-all focus-within:ring-2 focus-within:ring-[#bb0004]/20 focus-within:bg-white"
-        >
+        <div className="flex items-center bg-[#e6eff8] rounded-2xl px-4 py-3 gap-3 transition-all focus-within:ring-2 focus-within:ring-[#bb0004]/20 focus-within:bg-white">
           {/* Search icon */}
           <Search className="size-4 text-[#926f69] flex-shrink-0" />
 
@@ -261,18 +273,29 @@ export default function CanteenClient({
           <div className="w-px h-5 bg-[#c8d4e0] flex-shrink-0" />
 
           {/* Fork & Knife filter icon */}
-          <Suspense fallback={
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 32 32" className="opacity-30">
-              <path fill="#E4272A" d="M11 5C9.363 5 8.137 6.21 7.312 7.563C6.489 8.913 6 10.515 6 12c0 2.582 1.781 4.465 4 4.906V28h2V16.906c2.219-.441 4-2.324 4-4.906c0-1.484-.488-3.086-1.313-4.438C13.864 6.212 12.637 5 11 5m7 0v7c0 1.852 1.281 3.398 3 3.844V28h2V15.844c1.719-.446 3-1.992 3-3.844V5h-2v7c0 1.117-.883 2-2 2s-2-.883-2-2V5zm3 0v7c0 .55.45 1 1 1s1-.45 1-1V5zM11 7c.574 0 1.344.566 1.969 1.594C13.594 9.62 14 10.996 14 12c0 2.004-1.25 3-3 3s-3-.996-3-3c0-1.004.406-2.379 1.031-3.406S10.426 7 11 7"/>
-            </svg>
-          }>
+          <Suspense
+            fallback={
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 32 32"
+                className="opacity-30"
+              >
+                <path
+                  fill="#E4272A"
+                  d="M11 5C9.363 5 8.137 6.21 7.312 7.563C6.489 8.913 6 10.515 6 12c0 2.582 1.781 4.465 4 4.906V28h2V16.906c2.219-.441 4-2.324 4-4.906c0-1.484-.488-3.086-1.313-4.438C13.864 6.212 12.637 5 11 5m7 0v7c0 1.852 1.281 3.398 3 3.844V28h2V15.844c1.719-.446 3-1.992 3-3.844V5h-2v7c0 1.117-.883 2-2 2s-2-.883-2-2V5zm3 0v7c0 .55.45 1 1 1s1-.45 1-1V5zM11 7c.574 0 1.344.566 1.969 1.594C13.594 9.62 14 10.996 14 12c0 2.004-1.25 3-3 3s-3-.996-3-3c0-1.004.406-2.379 1.031-3.406S10.426 7 11 7"
+                />
+              </svg>
+            }
+          >
             <ProductFilterDialogInline />
           </Suspense>
         </div>
       </div>
 
       {/* ── Category Filter ───────────────────────── */}
-      <CanteenCategoryFilter categories={categories} />
+      {categoryFilter}
 
       {/* ── Segmented Tab (Menu / Kedai) ──────────── */}
       <div className="px-4 mb-5">
@@ -280,7 +303,12 @@ export default function CanteenClient({
           {/* sliding pill */}
           <div
             className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-sm transition-transform duration-250 ease-out"
-            style={{ transform: activeTab === "kedai" ? "translateX(calc(100% + 8px))" : "translateX(0)" }}
+            style={{
+              transform:
+                activeTab === "kedai"
+                  ? "translateX(calc(100% + 8px))"
+                  : "translateX(0)",
+            }}
           />
           <button
             onClick={() => setActiveTab("menu")}
@@ -319,7 +347,9 @@ export default function CanteenClient({
                 <Store className="size-7 text-[#926f69]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[#141d23] text-sm">Menu Tidak Ditemukan</h3>
+                <h3 className="font-semibold text-[#141d23] text-sm">
+                  Menu Tidak Ditemukan
+                </h3>
                 <p className="text-xs text-[#926f69] mt-1 max-w-[200px] mx-auto">
                   Coba ubah kata kunci pencarian atau hapus filter kategori.
                 </p>
@@ -341,13 +371,6 @@ export default function CanteenClient({
                           alt={product.name}
                           className="w-full h-full object-cover cc-img-zoom"
                         />
-                        {/* Rating badge */}
-                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                          <Star className="size-3 text-[#bb0004] fill-[#bb0004]" />
-                          <span className="text-[10px] font-bold text-[#141d23]">
-                            {product.shop_name ? "4.8" : "—"}
-                          </span>
-                        </div>
                       </div>
 
                       {/* Product Info */}
@@ -403,7 +426,9 @@ export default function CanteenClient({
                 <Store className="size-7 text-[#926f69]" />
               </div>
               <div>
-                <h3 className="font-semibold text-[#141d23] text-sm">Kedai Tidak Ditemukan</h3>
+                <h3 className="font-semibold text-[#141d23] text-sm">
+                  Kedai Tidak Ditemukan
+                </h3>
                 <p className="text-xs text-[#926f69] mt-1 max-w-[200px] mx-auto">
                   Coba ubah kata kunci atau hapus filter.
                 </p>
@@ -440,7 +465,9 @@ export default function CanteenClient({
                             outlineValues={["INACTIVE"]}
                             destructiveValues={["SUSPENDED"]}
                           >
-                            <span className="text-[9px]">{shopStatusMapping[shop.status]}</span>
+                            <span className="text-[9px]">
+                              {shopStatusMapping[shop.status]}
+                            </span>
                           </CustomBadge>
                         </div>
 
@@ -448,24 +475,28 @@ export default function CanteenClient({
                           <div className="flex items-center gap-1 mt-1">
                             <CashIcon className="w-3.5 h-3.5 text-[#926f69]" />
                             <span className="text-[11px] text-[#5d3f3b]">
-                              {formatRupiah(shop.minimum_price)} – {formatRupiah(shop.maximum_price)}
+                              {formatRupiah(shop.minimum_price)} –{" "}
+                              {formatRupiah(shop.maximum_price)}
                             </span>
                           </div>
                         )}
 
-                        {shop.specializations && shop.specializations.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {shop.specializations.slice(0, 3).map((spec, i) => (
-                              <Badge
-                                key={i}
-                                variant="secondary"
-                                className="bg-red-50 text-[9px] text-[#bb0004] border-red-100 font-medium py-0 px-1.5 rounded-full"
-                              >
-                                {spec.category.name}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+                        {shop.specializations &&
+                          shop.specializations.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {shop.specializations
+                                .slice(0, 3)
+                                .map((spec, i) => (
+                                  <Badge
+                                    key={i}
+                                    variant="secondary"
+                                    className="bg-red-50 text-[9px] text-[#bb0004] border-red-100 font-medium py-0 px-1.5 rounded-full"
+                                  >
+                                    {spec.category.name}
+                                  </Badge>
+                                ))}
+                            </div>
+                          )}
                       </div>
 
                       <div className="flex items-center gap-3 mt-2">

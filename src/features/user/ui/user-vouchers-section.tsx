@@ -131,7 +131,7 @@ export default function UserVouchersSection({
 
   if (!activeVouchers || activeVouchers.length === 0) {
     return (
-      <div className="bg-white/80 backdrop-blur rounded-2xl p-4 border border-gray-100 flex items-center gap-4 shadow-sm">
+      <div className="bg-card backdrop-blur rounded-xl p-4 border border-gray-100 flex items-center gap-4 shadow-sm">
         <div className="w-11 h-11 bg-gray-50 rounded-xl flex items-center justify-center flex-shrink-0">
           <Ticket className="size-5 text-gray-300" />
         </div>
@@ -178,8 +178,7 @@ export default function UserVouchersSection({
               <span
                 className="text-[10px] font-black text-white px-2 py-0.5 rounded-full leading-none"
                 style={{
-                  background:
-                    "linear-gradient(135deg, #e3242b, #c9181f)",
+                  background: "linear-gradient(135deg, #e3242b, #c9181f)",
                   boxShadow: "0 2px 6px rgba(195,24,31,0.35)",
                 }}
               >
@@ -218,8 +217,7 @@ export default function UserVouchersSection({
               <span
                 className="font-black text-sm"
                 style={{
-                  background:
-                    "linear-gradient(90deg, #c9181f, #e3242b)",
+                  background: "linear-gradient(90deg, #c9181f, #e3242b)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -255,7 +253,6 @@ export default function UserVouchersSection({
             {/* Modal */}
             <DialogContent className="p-0 overflow-hidden rounded-[28px] border-none shadow-[0_32px_64px_rgba(0,0,0,0.2)] max-w-md w-full flex flex-col max-h-[88dvh] outline-none">
               <div className="uvs-liquid-bg flex flex-col flex-1 min-h-0">
-
                 {/* Header */}
                 <DialogHeader className="relative z-50 flex-shrink-0">
                   <div

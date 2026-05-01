@@ -3,19 +3,15 @@
 import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { getImageUrl } from "@/helper/get-image-url";
 import {
   User,
-  Settings,
-  Bell,
   ShieldCheck,
   LogOut,
   ChevronRight,
-  CreditCard,
-  Gift,
-  Copy,
   AlertCircle,
+  HelpCircle,
+  BookOpen,
 } from "lucide-react";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import Link from "next/link";
@@ -142,7 +138,7 @@ export default function CustomerProfilePage() {
           <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">
             Informasi Aplikasi
           </h2>
-          <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+          <div className="bg-white rounded-xl shadow border border-muted border overflow-hidden">
             <Link
               href="/kebijakan-dan-privasi"
               className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
@@ -177,6 +173,23 @@ export default function CustomerProfilePage() {
               </div>
               <ChevronRight className="size-4 text-gray-400" />
             </Link>
+            <Link
+              href="/pusat-bantuan?back_url=/profil"
+              className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+            >
+              <div className="p-2 bg-blue-50 rounded-xl">
+                <HelpCircle className="size-5 text-blue-500" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-gray-900">
+                  Pusat Bantuan
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Butuh bantuan? Hubungi tim kami
+                </p>
+              </div>
+              <ChevronRight className="size-4 text-gray-400" />
+            </Link>
           </div>
         </div>
 
@@ -184,27 +197,6 @@ export default function CustomerProfilePage() {
       </div>
     );
   }
-
-  const profileMenu = [
-    {
-      icon: <User className="size-5 text-blue-500" />,
-      label: "Edit Profil",
-      href: "/dashboard-pelanggan/edit",
-      description: "Ubah nama, email, dan foto profil",
-    },
-    {
-      icon: <Bell className="size-5 text-amber-500" />,
-      label: "Notifikasi",
-      href: "/notifikasi",
-      description: "Atur preferensi notifikasi Anda",
-    },
-    {
-      icon: <ShieldCheck className="size-5 text-purple-500" />,
-      label: "Keamanan",
-      href: "#",
-      description: "Ubah kata sandi dan keamanan akun",
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
@@ -253,30 +245,65 @@ export default function CustomerProfilePage() {
 
       {/* Profile Menu */}
       <div className="max-w-md mx-auto mt-6 px-5 space-y-4">
-        {/* <h2 className="text-sm font-bold text-gray-500 uppercase tracking-widest px-1">
-          Akun Saya
-        </h2>
+        <div className="bg-white rounded-xl shadow border border-muted overflow-hidden">
+          <Link
+            href="/syarat-dan-ketentuan/pelanggan?back_url=/profil"
+            className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+          >
+            <div className="p-2 bg-blue-50 rounded-xl">
+              <AlertCircle className="size-5 text-blue-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-900">
+                Syarat & Ketentuan
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Aturan penggunaan layanan
+              </p>
+            </div>
+            <ChevronRight className="size-4 text-gray-400" />
+          </Link>
+        </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
-          {profileMenu.map((item, idx) => (
-            <Link
-              key={idx}
-              href={item.href}
-              className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
-            >
-              <div className="p-2 bg-gray-50 rounded-xl">{item.icon}</div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">
-                  {item.label}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {item.description}
-                </p>
-              </div>
-              <ChevronRight className="size-4 text-gray-400" />
-            </Link>
-          ))}
-        </div> */}
+        <div className="bg-white rounded-xl shadow border border-muted overflow-hidden">
+          <Link
+            href="/pusat-bantuan?back_url=/profil"
+            className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+          >
+            <div className="p-2 bg-blue-50 rounded-xl">
+              <BookOpen className="size-5 text-blue-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-900">
+                Panduan Pengguna
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Pelajari cara menggunakan aplikasi
+              </p>
+            </div>
+            <ChevronRight className="size-4 text-gray-400" />
+          </Link>
+        </div>
+
+        <div className="bg-white rounded-xl shadow border border-muted overflow-hidden">
+          <Link
+            href="/pusat-bantuan?back_url=/profil"
+            className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+          >
+            <div className="p-2 bg-blue-50 rounded-xl">
+              <HelpCircle className="size-5 text-blue-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-900">
+                Pusat Bantuan
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Butuh bantuan? Hubungi tim kami
+              </p>
+            </div>
+            <ChevronRight className="size-4 text-gray-400" />
+          </Link>
+        </div>
 
         <Button
           variant="outline"

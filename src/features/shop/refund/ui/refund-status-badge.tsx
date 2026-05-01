@@ -31,9 +31,14 @@ const statusConfig: Record<
     className: "",
   },
   PROCESSED: {
-    label: "Dana Sudah Dikembalikan",
+    label: "Dana Dikirim",
     variant: "outline",
     className: "bg-green-50 text-green-700 border-green-300",
+  },
+  COMPLETED: {
+    label: "Selesai",
+    variant: "outline",
+    className: "bg-green-100 text-green-800 border-green-400",
   },
   CANCELLED: {
     label: "Dibatalkan",

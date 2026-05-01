@@ -11,6 +11,11 @@ import { id as localeId } from "date-fns/locale";
 
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { completeRefund } from "@/features/shop/refund/lib/refund-actions";
+import { toast } from "sonner";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 interface OrderRefundSectionProps {
   order: {
@@ -36,6 +41,7 @@ export function OrderRefundSection({
   order,
   userRole,
 }: OrderRefundSectionProps) {
+  const [isCompleting, setIsCompleting] = useState(false);
   const isCancelled = order.status === "CANCELLED";
   const canRequestRefund =
     !order.refund && order.status === "COMPLETED" && userRole === "CUSTOMER";
@@ -45,11 +51,34 @@ export function OrderRefundSection({
       ? `/order/${order.id}/refund`
       : `/dashboard-kedai/order/${order.id}/refund`;
 
+  const handleCompleteRefund = async () => {
+    if (!order.refund) return;
+
+    setIsCompleting(true);
+    try {
+      const result = await completeRefund({ refund_id: order.refund.id });
+      if (result.success) {
+        toast.success("Refund berhasil diselesaikan");
+        // We might want to refresh the page or trigger a re-fetch
+        window.location.reload();
+      } else {
+        toast.error(result.error.message || "Gagal menyelesaikan refund");
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan");
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
   // Tampilkan jika sudah ada data refund, atau jika bisa mengajukan (COMPLETED),
   // atau jika pesanan dibatalkan (biasanya ada auto-refund)
   if (!order.refund && !canRequestRefund && !isCancelled) {
     return null;
   }
+
+  const isProcessed = order.refund?.status === "PROCESSED";
+  const isCustomer = userRole === "CUSTOMER";
 
   return (
     <Card className="shadow-sm">
@@ -62,7 +91,9 @@ export function OrderRefundSection({
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
               {order.refund
-                ? "Dana Anda sedang diproses. Silakan cek detail untuk status terbaru."
+                ? order.refund.status === "PROCESSED" && isCustomer
+                  ? "Dana telah dikirim. Harap konfirmasi jika Anda sudah menerimanya."
+                  : "Dana Anda sedang diproses. Silakan cek detail untuk status terbaru."
                 : isCancelled
                   ? "Pesanan dibatalkan. Dana Anda akan segera dikembalikan secara otomatis."
                   : "Klik tombol di bawah jika Anda ingin mengajukan pengembalian dana."}
@@ -122,21 +153,37 @@ export function OrderRefundSection({
           </div>
         )}
 
-        <NavButton
-          size="lg"
-          variant={"outline"}
-          className="w-full"
-          href={refundPath}
-        >
-          {order.refund ? (
-            <>
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Lihat Status Refund
-            </>
-          ) : (
-            <>Ajukan Refund</>
+        <div className="space-y-2">
+          {isProcessed && isCustomer && (
+            <Button
+              className="w-full"
+              variant="default"
+              onClick={handleCompleteRefund}
+              disabled={isCompleting}
+            >
+              {isCompleting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Konfirmasi Dana Diterima
+            </Button>
           )}
-        </NavButton>
+
+          <NavButton
+            size="lg"
+            variant={"outline"}
+            className="w-full"
+            href={refundPath}
+          >
+            {order.refund ? (
+              <>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Lihat Status Refund
+              </>
+            ) : (
+              <>Ajukan Refund</>
+            )}
+          </NavButton>
+        </div>
       </CardContent>
     </Card>
   );

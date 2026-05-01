@@ -24,8 +24,13 @@ export default function LandingFooter() {
             {[
               { label: "Tentang Kami", href: "#" },
               { label: "Kebijakan Privasi", href: "/kebijakan-dan-privasi" },
-              { label: "Syarat & Ketentuan", href: "/syarat-dan-ketentuan/pelanggan" },
-              { label: "Hubungi Kami", href: "https://wa.me/6289643144013" },
+              {
+                label: "Syarat & Ketentuan",
+                href: "/syarat-dan-ketentuan/pelanggan",
+              },
+              { label: "Hubungi Kami", href: "/hubungi-kami" },
+              { label: "Panduan Pelanggan", href: "/panduan/pelanggan" },
+              { label: "Panduan Mitra", href: "/panduan/mitra" },
             ].map((link) => (
               <a
                 key={link.label}

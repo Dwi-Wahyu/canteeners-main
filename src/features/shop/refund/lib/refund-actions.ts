@@ -7,6 +7,7 @@ import {
   ProcessRefundInput,
   CancelRefundInput,
   EscalateRefundInput,
+  CompleteRefundInput,
 } from "@/features/shop/refund/types/refund-schema";
 import { Role } from "@/generated/prisma";
 import {
@@ -566,5 +567,91 @@ export async function escalateRefund(
   } catch (error) {
     console.error("escalateRefund Error:", error);
     return errorResponse("Terjadi kesalahan saat mengeskalasi refund");
+  }
+}
+
+export async function completeRefund(
+  payload: CompleteRefundInput,
+): Promise<ServerActionReturn<void>> {
+  const session = await auth();
+  if (!session) return errorResponse("Unauthorized");
+
+  try {
+    const refund = await prisma.refund.findUnique({
+      where: {
+        id: payload.refund_id,
+      },
+      include: {
+        history: true,
+        order: {
+          select: {
+            id: true,
+            shop: {
+              select: {
+                owner_id: true,
+                owner: {
+                  select: {
+                    user_id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!refund) {
+      return errorResponse("Refund tidak ditemukan");
+    }
+
+    if (refund.status !== "PROCESSED") {
+      return errorResponse(
+        "Hanya refund dengan status PROCESSED yang dapat dikonfirmasi",
+      );
+    }
+
+    // Update to COMPLETED status
+    await prisma.refund.update({
+      where: {
+        id: payload.refund_id,
+      },
+      data: {
+        status: "COMPLETED" as any, // Cast as any because schema update might be pending
+        history: {
+          create: {
+            status: "COMPLETED" as any,
+            note: "Customer mengonfirmasi bahwa dana refund telah diterima",
+            actor_id: session.user.id,
+            actor_name: session.user.name,
+            actor_role: session.user.role as any,
+          },
+        },
+      },
+    });
+
+    // Send notification to shop owner
+    const notificationRef = adminDb.collection("notifications");
+    const notificationData = {
+      recipientId: refund.order.shop.owner.user_id,
+      type: "REFUND",
+      subType: "COMPLETED",
+      title: "Refund Selesai",
+      body: `Customer telah mengonfirmasi penerimaan dana refund untuk pesanan #${refund.order.id.substring(
+        0,
+        8,
+      )}`,
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath: `/dashboard-kedai/order/${refund.order_id}`,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    await notificationRef.add(notificationData);
+
+    return successResponse(undefined, "Refund berhasil diselesaikan");
+  } catch (error) {
+    console.error("completeRefund Error:", error);
+    return errorResponse("Terjadi kesalahan saat menyelesaikan refund");
   }
 }

@@ -36,8 +36,9 @@ export default function OwnerLayout({
         <div className="">{children}</div>
       ) : (
         <div className="relative">
-          <OwnerTopbar avatar={avatar} shopName={shopName} />
-          <div className="p-5 pt-20 pb-24">{children}</div>
+          {/* <OwnerTopbar avatar={avatar} shopName={shopName} /> */}
+
+          <div className="p-5 pb-24">{children}</div>
 
           <OwnerBottomBar />
         </div>

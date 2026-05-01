@@ -75,10 +75,10 @@ export function CustomerRefundPageClient({
                       <li>Refund akan ditinjau oleh pemilik kedai</li>
                     </ul>
                     <Link
-                      href="/syarat-ketentuan-refund"
+                      href={`/panduan/pelanggan/refund?back_url=/order/${orderId}/refund`}
                       className="text-primary hover:underline text-sm mt-2 inline-block"
                     >
-                      Baca Syarat dan Ketentuan →
+                      Baca Panduan Refund Lengkap →
                     </Link>
                   </AlertDescription>
                 </Alert>

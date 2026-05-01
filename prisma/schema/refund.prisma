@@ -72,6 +72,7 @@ enum RefundStatus {
   APPROVED // disetujui
   REJECTED // ditolak
   PROCESSED // uang sudah dikembalikan (butuh konfirmasi user)
+  COMPLETED // refund selesai (sudah dikonfirmasi user)
   CANCELLED // dibatalkan user
   ESCALATED // dieskalasi ke admin karena deteksi fraud
 }

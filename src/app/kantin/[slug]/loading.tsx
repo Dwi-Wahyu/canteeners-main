@@ -1,61 +1,65 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { CanteenTopbarSkeleton } from "@/features/canteen/ui/canteen-topbar-skeleton";
 import { BottomNav } from "@/components/layouts/bottom-nav";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default function LoadingCanteenPage() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
-      {/* Search Bar */}
-      <CanteenTopbarSkeleton />
-
-      {/* Category Filter Skeleton */}
-      <section className="mb-2 overflow-visible mt-2">
-        <div className="flex justify-between items-end mb-4 px-5">
-          <div>
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-3 w-48 mt-1.5" />
-          </div>
-        </div>
-
-        <div className="flex overflow-x-auto pt-2 pb-4 px-5 gap-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex flex-col items-center gap-2 shrink-0">
-              <Skeleton className="w-14 h-14 rounded-xl" />
-              <Skeleton className="h-3 w-10" />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Tabs Skeleton */}
-      <div className="px-5 mb-4">
-        <div className="flex p-1 bg-muted rounded-lg w-full">
-          <div className="h-9 w-1/2 bg-background rounded-md shadow-sm border" />
-          <div className="h-9 w-1/2" />
+    <div className="min-h-screen bg-[#f6faff] pb-32">
+      {/* ── Sticky Search Bar Skeleton ── */}
+      <div className="sticky top-0 z-30 bg-[#f6faff]/92 backdrop-blur-md px-4 pt-4 pb-3">
+        <div className="flex items-center bg-[#e6eff8] rounded-2xl px-4 py-3 gap-3">
+          <Skeleton className="size-4 rounded-full" />
+          <Skeleton className="h-4 flex-1" />
+          <div className="w-px h-5 bg-[#c8d4e0]" />
+          <Skeleton className="size-5 rounded-md" />
         </div>
       </div>
 
-      {/* Product List Skeleton (Default Tab: Menu) */}
-      <div className="flex flex-col gap-5 p-5">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="relative">
-            <Card>
-              <CardContent className="flex gap-4 p-4">
-                <Skeleton className="aspect-square w-1/3 rounded-lg" />
-
-                <div className="flex flex-col justify-between w-full">
-                  <div>
-                    <Skeleton className="h-5 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                  <Skeleton className="h-5 w-24 mt-2" />
-                </div>
-              </CardContent>
-            </Card>
-            <Skeleton className="h-8 w-8 rounded-full absolute bottom-4 right-4" />
+      {/* ── Category Filter Skeleton ── */}
+      <div className="flex overflow-x-auto py-2 px-4 gap-4 no-scrollbar">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex flex-col items-center gap-2 shrink-0">
+            <Skeleton className="w-14 h-14 rounded-xl" />
+            <Skeleton className="h-3 w-10" />
           </div>
         ))}
+      </div>
+
+      {/* ── Segmented Tab Skeleton ── */}
+      <div className="px-4 mb-5 mt-4">
+        <div className="flex bg-[#e6eff8] rounded-2xl p-1 gap-2">
+          <Skeleton className="h-10 flex-1 rounded-xl" />
+          <Skeleton className="h-10 flex-1 rounded-xl" />
+        </div>
+      </div>
+
+      {/* ── Tab Content: Menu Skeleton ── */}
+      <div className="px-4">
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col"
+            >
+              {/* Product Image Skeleton */}
+              <Skeleton className="h-32 w-full" />
+
+              {/* Product Info Skeleton */}
+              <div className="p-3 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+                <div className="flex items-center justify-between mt-2">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="size-8 rounded-full" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <BottomNav />
