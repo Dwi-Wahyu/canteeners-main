@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   CircleDollarSign,
@@ -28,6 +29,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 export default function PanduanKomisiMitraPage() {
+  return (
+    <Suspense>
+      <PanduanKomisiMitraContent />
+    </Suspense>
+  );
+}
+
+function PanduanKomisiMitraContent() {
   const searchParams = useSearchParams();
   const backUrl = searchParams.get("back_url") || "/panduan/mitra";
 

@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/layouts/bottom-nav";
 import { auth } from "@/config/auth";
 import { CanteenAutoTableSync } from "@/features/canteen/ui/canteen-auto-table-sync";
 import { CanteenCategoryFilter } from "@/features/canteen/ui/canteen-category-filter";
+import { Suspense } from "react";
 
 export default async function CanteenDetailPage({
   params,
@@ -34,13 +35,15 @@ export default async function CanteenDetailPage({
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f6faff" }}>
-      <CanteenAutoTableSync session={session} canteenId={canteen.id} />
+      <Suspense>
+        <CanteenAutoTableSync session={session} canteenId={canteen.id} />
 
-      <CanteenClient
-        canteen={canteen}
-        categoryFilter={<CanteenCategoryFilter />}
-        session={session}
-      />
+        <CanteenClient
+          canteen={canteen}
+          categoryFilter={<CanteenCategoryFilter />}
+          session={session}
+        />
+      </Suspense>
 
       <BottomNav />
     </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   CheckCircle,
@@ -17,6 +18,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 export default function PanduanRefundPelangganPage() {
+  return (
+    <Suspense>
+      <PanduanRefundPelangganContent />
+    </Suspense>
+  );
+}
+
+function PanduanRefundPelangganContent() {
   const searchParams = useSearchParams();
   const backUrl = searchParams.get("back_url") || "/panduan/pelanggan";
 

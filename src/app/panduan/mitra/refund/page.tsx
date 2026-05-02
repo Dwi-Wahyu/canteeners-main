@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle, XCircle, Clock, Lightbulb } from "lucide-react";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
@@ -8,6 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 export default function PanduanRefundMitraPage() {
+  return (
+    <Suspense>
+      <PanduanRefundMitraContent />
+    </Suspense>
+  );
+}
+
+function PanduanRefundMitraContent() {
   const searchParams = useSearchParams();
   const backUrl = searchParams.get("back_url") || "/panduan/mitra";
 

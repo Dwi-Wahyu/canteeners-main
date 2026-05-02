@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
@@ -40,6 +40,14 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export default function PanduanMitraPage() {
+  return (
+    <Suspense>
+      <PanduanMitraContent />
+    </Suspense>
+  );
+}
+
+function PanduanMitraContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const searchParams = useSearchParams();
   const backUrl = searchParams.get("back_url") || "/";

@@ -116,3 +116,9 @@ export const EscalateRefundSchema = z.object({
 });
 
 export type EscalateRefundInput = z.infer<typeof EscalateRefundSchema>;
+
+export const CompleteRefundSchema = z.object({
+  refund_id: z.string(),
+});
+
+export type CompleteRefundInput = z.infer<typeof CompleteRefundSchema>;
