@@ -290,6 +290,19 @@ export function RefundDetails({
         </Alert>
       )}
 
+      {/* Cash Refund Alert for Customer */}
+      {userRole === "CUSTOMER" &&
+        refund.status === "APPROVED" &&
+        refund.disbursement_mode === "CASH" && (
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <CheckCircle2 className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-900">
+              <span className="font-semibold">Refund Disetujui!</span> Silakan
+              ambil dana refund Anda secara tunai di kedai.
+            </AlertDescription>
+          </Alert>
+        )}
+
       {/* Processed Success */}
       {refund.status === "PROCESSED" && (
         <Alert className="border-green-200 bg-green-50">

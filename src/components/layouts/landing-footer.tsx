@@ -71,8 +71,12 @@ export default function LandingFooter() {
               { label: "Tentang Kami", href: "#" },
               { label: "Kebijakan Privasi", href: "/kebijakan-dan-privasi" },
               {
-                label: "Syarat & Ketentuan",
+                label: "Syarat & Ketentuan Pelanggan",
                 href: "/syarat-dan-ketentuan/pelanggan",
+              },
+              {
+                label: "Syarat & Ketentuan Mitra",
+                href: "/syarat-dan-ketentuan/mitra",
               },
               { label: "Hubungi Kami", href: "/hubungi-kami" },
               { label: "Panduan Pelanggan", href: "/panduan/pelanggan" },
