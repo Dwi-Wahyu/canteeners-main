@@ -61,9 +61,9 @@ export default function CustomerChatListPage() {
 
   return (
     <div className="p-5 ">
-      <div>
-        <h1 className="text-xl mb-4">Chat & Orderan</h1>
-        <div className="text-muted-foreground">
+      <div className="mb-4">
+        <h1 className="text-xl font-bold text-gray-900">Chat & Orderan</h1>
+        <div className="text-sm text-gray-500">
           Lihat percakapan dengan kedai
         </div>
       </div>

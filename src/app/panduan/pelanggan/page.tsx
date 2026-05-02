@@ -18,6 +18,8 @@ import {
   X,
   ChevronRight,
   DollarSign,
+  Users,
+  Ticket,
 } from "lucide-react";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import {
@@ -48,6 +50,11 @@ export default function PanduanPelangganPage() {
       id: "keranjang",
       label: "Keranjang & Biaya",
       icon: <ShoppingCart size={18} />,
+    },
+    {
+      id: "referral",
+      label: "Sistem Referral",
+      icon: <Users size={18} />,
     },
     {
       id: "pembayaran",
@@ -105,7 +112,7 @@ export default function PanduanPelangganPage() {
       {/* Navigation Menu Dropdown */}
       <div
         className={cn(
-          "fixed top-[60px] left-0 w-full bg-background border-b z-50 shadow-lg transition-all duration-300 ease-in-out transform origin-top",
+          "fixed top-15 left-0 w-full bg-background border-b z-50 shadow-lg transition-all duration-300 ease-in-out transform origin-top",
           isMenuOpen
             ? "scale-y-100 opacity-100"
             : "scale-y-0 opacity-0 pointer-events-none",
@@ -145,7 +152,7 @@ export default function PanduanPelangganPage() {
           <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             Cara Menggunakan Canteeners
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-lg mx-auto">
             Temukan kemudahan memesan makanan di kantin kampus favoritmu dengan
             mengikuti panduan praktis berikut ini.
           </p>
@@ -353,7 +360,86 @@ export default function PanduanPelangganPage() {
           </Card>
         </section>
 
-        {/* 3. Pembayaran */}
+        {/* 3. Sistem Referral */}
+        <section id="referral" className="space-y-4 scroll-mt-24">
+          <div className="flex items-center gap-2">
+            <h3 className="text-2xl font-bold tracking-tight">
+              Sistem Referral
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="card-shadow border-primary/20">
+              <CardContent>
+                <div className="flex flex-row items-center gap-4 pb-2">
+                  <CardTitle className="text-lg">
+                    Bagi Kode, Dapat Untung
+                  </CardTitle>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Setelah Anda menyelesaikan <strong>2 pesanan</strong>, Anda
+                  berhak mendapatkan kode referral unik. Bagikan kode ini ke
+                  teman Anda yang belum pernah memesan di Canteeners yang telah
+                  registrasi.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="card-shadow border-primary/20">
+              <CardContent>
+                <div className="flex flex-row items-center gap-4 pb-2">
+                  <CardTitle className="text-lg">Hadiah Voucher</CardTitle>
+                </div>
+                <p className="text-muted-foreground text-sm">
+                  Setiap kali kode Anda digunakan minimal oleh{" "}
+                  <strong>3 pelanggan baru</strong>, Anda akan otomatis
+                  mendapatkan <strong>Voucher Cashback Rp10.000</strong> yang
+                  bisa digunakan untuk pesanan berikutnya.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="md:col-span-2 card-shadow">
+              <CardContent>
+                <div className="flex flex-row items-center gap-4 pb-2">
+                  <CardTitle className="text-lg">
+                    Cara Menggunakan Kode
+                  </CardTitle>
+                </div>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    Bagi pelanggan baru, Anda bisa menggunakan kode referral
+                    teman Anda di halaman <strong>Keranjang (Checkout)</strong>:
+                  </p>
+                  <ol className="list-decimal pl-5 space-y-1">
+                    <li>
+                      Pilih menu dari kedai favoritmu dan masuk ke halaman
+                      Keranjang.
+                    </li>
+                    <li>
+                      Cari bagian <strong>"Punya Kode Referral?"</strong> di
+                      bawah detail pesanan.
+                    </li>
+                    <li>
+                      Masukkan kode referral temanmu dan klik{" "}
+                      <strong>"Gunakan"</strong>.
+                    </li>
+                    <li>
+                      Potongan atau keuntungan referral akan langsung diterapkan
+                      pada pesanan pertamamu!
+                    </li>
+                  </ol>
+                  <p className="text-[10px] italic">
+                    *Kode referral hanya dapat digunakan satu kali untuk
+                    pengguna yang belum pernah melakukan transaksi.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* 4. Pembayaran */}
         <section id="pembayaran" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2">
             <h3 className="text-2xl font-bold tracking-tight">Pembayaran</h3>
@@ -457,7 +543,7 @@ export default function PanduanPelangganPage() {
           </div>
         </section>
 
-        {/* 4. Fitur Chat */}
+        {/* 5. Fitur Chat */}
         <section id="chat" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2">
             <h3 className="text-2xl font-bold tracking-tight">
@@ -492,7 +578,7 @@ export default function PanduanPelangganPage() {
           </Card>
         </section>
 
-        {/* 5. Rating & Ulasan */}
+        {/* 6. Rating & Ulasan */}
         <section id="fitur" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2">
             <h3 className="text-2xl font-bold tracking-tight">
@@ -516,7 +602,7 @@ export default function PanduanPelangganPage() {
           </Card>
         </section>
 
-        {/* 6. Refund & Pengembalian */}
+        {/* 7. Refund & Pengembalian */}
         <section id="refund" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2">
             <h3 className="text-2xl font-bold tracking-tight">

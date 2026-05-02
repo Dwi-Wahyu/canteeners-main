@@ -49,7 +49,11 @@ export default async function OrderHistoryPage(props: {
     startDate = startOfMonth(new Date());
   }
 
-  const { data: orderHistory, totalPages, currentPage } = await getShopOrderHistory(session.user.shopId, {
+  const {
+    data: orderHistory,
+    totalPages,
+    currentPage,
+  } = await getShopOrderHistory(session.user.shopId, {
     status,
     search,
     startDate,
@@ -67,11 +71,9 @@ export default async function OrderHistoryPage(props: {
         <ChevronLeft className="w-4 h-4" /> Kembali
       </Link>
 
-      <div className="mb-5">
+      <div className="mb-4">
         <h1 className="text-xl font-bold text-gray-900">Riwayat Order</h1>
-        <p className="text-sm text-gray-500">
-          Daftar transaksi kedai Anda
-        </p>
+        <p className="text-sm text-gray-500">Daftar transaksi kedai Anda</p>
       </div>
 
       <OrderHistoryFilters />
@@ -101,7 +103,10 @@ export default async function OrderHistoryPage(props: {
                   <CustomBadge
                     value={order.status}
                     successValues={[OrderStatus.COMPLETED]}
-                    destructiveValues={[OrderStatus.CANCELLED, OrderStatus.REJECTED]}
+                    destructiveValues={[
+                      OrderStatus.CANCELLED,
+                      OrderStatus.REJECTED,
+                    ]}
                     className="text-[10px] uppercase font-bold px-2 py-1 h-fit"
                   >
                     {orderStatusMapping[order.status]}
@@ -109,7 +114,9 @@ export default async function OrderHistoryPage(props: {
                 </div>
 
                 <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Total Pembayaran</span>
+                  <span className="text-sm text-gray-600">
+                    Total Pembayaran
+                  </span>
                   <span className="text-lg font-bold text-orange-600">
                     {formatRupiah(order.total_price)}
                   </span>
@@ -118,7 +125,10 @@ export default async function OrderHistoryPage(props: {
             ))}
           </div>
 
-          <OrderHistoryPagination totalPages={totalPages} currentPage={currentPage} />
+          <OrderHistoryPagination
+            totalPages={totalPages}
+            currentPage={currentPage}
+          />
         </>
       )}
     </div>

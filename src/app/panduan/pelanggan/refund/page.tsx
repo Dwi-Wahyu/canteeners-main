@@ -168,8 +168,6 @@ export default function PanduanRefundPelangganPage() {
           </p>
         </div>
 
-        <Separator />
-
         {/* Introduction */}
         <section className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex gap-4">
           <div className="space-y-1">

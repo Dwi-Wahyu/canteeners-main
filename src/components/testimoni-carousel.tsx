@@ -4,45 +4,6 @@ import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback } from "react";
 
-const testimonials = [
-  {
-    name: "Sarah J.",
-    role: "Mahasiswi Manajemen",
-    avatar:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&q=80",
-    stars: 5,
-    review:
-      '"Sangat membantu! Saya sering ada kelas beruntun, sekarang bisa pesan makanan pas dosen lagi break, dan ambil pas turun ke kantin. Gak perlu takut kehabisan."',
-  },
-  {
-    name: "Budi S.",
-    role: "Mahasiswa Teknik",
-    avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&q=80",
-    stars: 4,
-    review:
-      '"UI-nya gampang dimengerti. Waktu proses pesanannya juga cukup akurat. Saran aja, mungkin bisa ditambah fitur pesanan bareng teman."',
-  },
-  {
-    name: "Ibu Siti",
-    role: "Pemilik Warung Nasi",
-    avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80",
-    stars: 5,
-    review:
-      '"Semenjak pakai aplikasi ini, omset naik karena anak-anak gak malas lagi turun ke kantin. Sistem kasirnya juga mempermudah hitung-hitungan harian."',
-  },
-  {
-    name: "Dinda A.",
-    role: "Mahasiswi Kedokteran",
-    avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80",
-    stars: 5,
-    review:
-      '"Jadwal kuliah padat banget, aplikasi ini beneran nolong. Bisa pesan dari perpustakaan, tinggal ambil waktu mau makan. Praktis banget!"',
-  },
-];
-
 function StarRating({ count, half = false }: { count: number; half?: boolean }) {
   return (
     <div className="flex items-center gap-0.5 mb-4">
@@ -67,32 +28,36 @@ function StarRating({ count, half = false }: { count: number; half?: boolean }) 
   );
 }
 
-function TestimoniCard({ t }: { t: (typeof testimonials)[0] }) {
+function TestimoniCard({ t }: { t: any }) {
   return (
     <div className="bg-white p-7 rounded-xl card-shadow border border-[#e6bdb8]/15 h-full flex flex-col">
       <div className="flex items-center gap-4 mb-5">
         <img
-          src={t.avatar}
-          alt={t.name}
+          src={`https://api.dicebear.com/9.x/initials/svg?seed=${t.from}`}
+          alt={t.from}
           className="w-13 h-13 rounded-full object-cover flex-shrink-0"
           style={{ width: 52, height: 52 }}
         />
         <div>
           <h4 className="font-headline font-bold text-[#0b1c30] text-base">
-            {t.name}
+            {t.from}
           </h4>
-          <p className="text-sm text-[#0b1c30]/55 mt-0.5">{t.role}</p>
+          <p className="text-sm text-[#0b1c30]/55 mt-0.5">{t.role || "Pengguna"}</p>
         </div>
       </div>
-      <StarRating count={t.stars} half={t.stars < 5} />
+      <StarRating count={t.rating} half={t.rating < 5} />
       <p className="text-[#0b1c30]/70 font-body-inter text-sm leading-relaxed flex-1">
-        {t.review}
+        "{t.message}"
       </p>
     </div>
   );
 }
 
-export default function TestimoniCarousel() {
+export default function TestimoniCarousel({
+  testimonies,
+}: {
+  testimonies: any[];
+}) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "start",
@@ -102,14 +67,16 @@ export default function TestimoniCarousel() {
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
+  if (!testimonies || testimonies.length === 0) return null;
+
   return (
     <>
       {/* Mobile: Embla Carousel horizontal scroll */}
       <div className="md:hidden">
         <div className="overflow-hidden -mx-6" ref={emblaRef}>
           <div className="flex gap-4 px-6">
-            {testimonials.map((t) => (
-              <div key={t.name} className="flex-none w-[80vw] max-w-sm">
+            {testimonies.map((t, idx) => (
+              <div key={idx} className="flex-none w-[80vw] max-w-sm">
                 <TestimoniCard t={t} />
               </div>
             ))}
@@ -137,8 +104,8 @@ export default function TestimoniCarousel() {
 
       {/* Desktop: Grid 3 kolom */}
       <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {testimonials.map((t) => (
-          <TestimoniCard key={t.name} t={t} />
+        {testimonies.map((t, idx) => (
+          <TestimoniCard key={idx} t={t} />
         ))}
       </div>
     </>

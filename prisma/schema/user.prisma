@@ -55,6 +55,7 @@ enum FcmPlatform {
 }
 
 enum Role {
+    SUPERADMIN
     ADMIN
     CUSTOMER
     SHOP_OWNER
@@ -106,12 +107,12 @@ model Customer {
     table_number  Int?
     last_visit_at DateTime?
 
+    has_used_referral  Boolean @default(false)
+    used_referral_code String?
+
     referral_code String? @unique
 
     referral_usage_count Int @default(0) // maksimal 3, setelah itu diklaim dan direset 0
-
-    has_used_referral  Boolean @default(false)
-    used_referral_code String?
 
     updated_at DateTime @updatedAt
 

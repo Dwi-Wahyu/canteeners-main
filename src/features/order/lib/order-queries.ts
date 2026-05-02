@@ -310,6 +310,12 @@ export async function getOrderDetail(id: string) {
               id: true,
               slug: true,
               name: true,
+              maps: {
+                select: {
+                  floor: true,
+                  image_url: true,
+                },
+              },
             },
           },
           name: true,

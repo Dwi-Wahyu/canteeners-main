@@ -612,22 +612,110 @@ export async function completeRefund(
     }
 
     // Update to COMPLETED status
-    await prisma.refund.update({
-      where: {
-        id: payload.refund_id,
-      },
-      data: {
-        status: "COMPLETED" as any, // Cast as any because schema update might be pending
-        history: {
-          create: {
-            status: "COMPLETED" as any,
-            note: "Customer mengonfirmasi bahwa dana refund telah diterima",
-            actor_id: session.user.id,
-            actor_name: session.user.name,
-            actor_role: session.user.role as any,
+    await prisma.$transaction(async (tx) => {
+      await tx.refund.update({
+        where: {
+          id: payload.refund_id,
+        },
+        data: {
+          status: "COMPLETED" as any,
+          history: {
+            create: {
+              status: "COMPLETED" as any,
+              note: "Customer mengonfirmasi bahwa dana refund telah diterima",
+              actor_id: session.user.id,
+              actor_name: session.user.name,
+              actor_role: session.user.role as any,
+            },
           },
         },
-      },
+      });
+
+      // --- LOGIKA BILLING: PENGURANGAN KOMISI KARENA REFUND ---
+      // Ambil detail refund untuk menghitung qty yang dikurangi
+      const refundDetail = await tx.refund.findUnique({
+        where: { id: payload.refund_id },
+        include: {
+          order: {
+            include: {
+              order_items: {
+                select: {
+                  quantity: true,
+                },
+              },
+            },
+          },
+          affected_items: {
+            include: {
+              order_item: {
+                select: {
+                  quantity: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (refundDetail) {
+        const totalOriginalQty = refundDetail.order.order_items.reduce(
+          (sum, i) => sum + i.quantity,
+          0,
+        );
+        const refundedQty = refundDetail.affected_items.reduce(
+          (sum, i) => sum + i.order_item.quantity,
+          0,
+        );
+
+        // Jika alasan refund adalah keterlambatan (LATE_DELIVERY) atau alasan global lainnya 
+        // yang tidak memilih item spesifik (affected_items kosong), 
+        // maka kita anggap refund proporsional terhadap amount? 
+        // Namun instruksi user: "pengurangan sesuai jumlah qty item yang direfund"
+        
+        if (refundedQty > 0) {
+          const originalCommission = calculateCommission(totalOriginalQty);
+          const remainingCommission = calculateCommission(
+            Math.max(0, totalOriginalQty - refundedQty),
+          );
+          const commissionToRefund = originalCommission - remainingCommission;
+
+          const now = new Date();
+          const startDate = startOfWeek(now, { weekStartsOn: 1 });
+          const endDate = endOfWeek(now, { weekStartsOn: 1 });
+
+          const existingBilling = await tx.shopBilling.findFirst({
+            where: {
+              shop_id: refundDetail.order.shop_id,
+              start_date: startDate,
+              end_date: endDate,
+            },
+          });
+
+          if (existingBilling) {
+            await tx.shopBilling.update({
+              where: { id: existingBilling.id },
+              data: {
+                refund_total: { increment: commissionToRefund },
+                net_total: { decrement: commissionToRefund },
+              },
+            });
+          } else {
+            // Jika belum ada billing di minggu ini (kasus jarang), buat baru
+            await tx.shopBilling.create({
+              data: {
+                shop_id: refundDetail.order.shop_id,
+                start_date: startDate,
+                end_date: endDate,
+                commission_total: 0,
+                subsidy_total: 0,
+                refund_total: commissionToRefund,
+                net_total: -commissionToRefund,
+                status: "UNPAID",
+              },
+            });
+          }
+        }
+      }
     });
 
     // Send notification to shop owner

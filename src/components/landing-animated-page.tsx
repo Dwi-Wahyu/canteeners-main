@@ -142,7 +142,11 @@ const heroSlides = [
 ];
 
 /* ── Main Component ───────────────────────────────────────── */
-export default function LandingAnimatedPage() {
+export default function LandingAnimatedPage({
+  testimonies,
+}: {
+  testimonies: any[];
+}) {
   /* Hero Slider */
   const [slideIdx, setSlideIdx] = useState(0);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -626,7 +630,7 @@ export default function LandingAnimatedPage() {
             </p>
           </Reveal>
           <Reveal direction="up" delay={150}>
-            <TestimoniCarousel />
+            <TestimoniCarousel testimonies={testimonies} />
           </Reveal>
         </div>
       </section>

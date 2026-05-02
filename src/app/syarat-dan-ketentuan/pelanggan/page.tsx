@@ -1,231 +1,276 @@
+import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
+
 export default function SyaratDanKetentuanPelanggan() {
   return (
-    <div className="max-w-4xl mx-auto p-8 text-gray-800 leading-relaxed">
-      <header className="mb-8 border-b pb-4">
-        <h1 className="text-3xl font-bold uppercase mb-2">
-          Syarat & Ketentuan Pengguna Layanan
-        </h1>
+    <div className="min-h-screen bg-background pb-10">
+      <TopbarWithBackButton title="S&K Pengguna (Pelanggan)" backUrl="/" />
 
-        <h2 className="text-2xl font-semibold text-blue-600">Canteeners</h2>
-      </header>
+      <div className="max-w-4xl mx-auto px-5 pt-24 space-y-8 text-gray-800 leading-relaxed text-justify">
+        <header>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl uppercase mb-2">
+            SYARAT & KETENTUAN PENGGUNA
+          </h1>
+          <h2 className="text-2xl font-semibold text-blue-600 mb-1">
+            Layanan Kantiners
+          </h2>
+          <p className="text-sm text-gray-500">
+            Versi 1.1 | Berlaku mulai: [Tanggal Berlaku]
+          </p>
+          <div className="mt-6 text-gray-600 space-y-4">
+            <p>
+              Selamat datang di Kantiners. Dengan mendaftar dan menggunakan platform
+              kami, Anda (&quot;Pengguna&quot;) dianggap telah membaca, memahami, dan
+              menyetujui seluruh isi Syarat dan Ketentuan (&quot;S&K&quot;) ini. Harap baca
+              dengan seksama sebelum menggunakan layanan.
+            </p>
+            <p className="italic">
+              S&K ini merupakan perjanjian yang mengikat secara hukum antara
+              Pengguna dan Pihak Kantiners berdasarkan hukum yang berlaku di
+              Republik Indonesia.
+            </p>
+          </div>
+        </header>
 
-      <section className="mb-8">
-        <p className="mb-4 italic">
-          Selamat datang di Canteeners. Dengan mendaftar dan menggunakan
-          platform kami, Anda ("Pengguna") dianggap telah membaca, memahami, dan
-          menyetujui seluruh isi Syarat dan Ketentuan ("S&K") ini.
-        </p>
-      </section>
+        {/* 0. Definisi */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            0. Definisi
+          </h3>
+          <p className="mb-3">
+            Untuk menghindari ambiguitas, istilah-istilah berikut digunakan secara
+            konsisten dalam S&K ini:
+          </p>
+          <ul className="list-disc pl-10 space-y-2">
+            <li>
+              <strong>&quot;Pengguna&quot;</strong> adalah individu yang mendaftar dan
+              menggunakan layanan Kantiners.
+            </li>
+            <li>
+              <strong>&quot;Kedai&quot;</strong> atau <strong>&quot;Mitra&quot;</strong> adalah pelaku
+              usaha makanan/minuman yang bergabung dengan platform Kantiners
+              sebagai mitra independen.
+            </li>
+            <li>
+              <strong>&quot;Platform&quot;</strong> adalah aplikasi mobile dan/atau web
+              Kantiners beserta seluruh fiturnya.
+            </li>
+            <li>
+              <strong>&quot;CS&quot;</strong> adalah Customer Service resmi Kantiners yang
+              dapat dihubungi melalui WhatsApp Bisnis resmi.
+            </li>
+            <li>
+              <strong>&quot;Pesanan&quot;</strong> adalah permintaan pembelian produk yang
+              dilakukan Pengguna melalui Platform.
+            </li>
+            <li>
+              <strong>&quot;Hari Kerja&quot;</strong> adalah Senin s.d. Jumat, pukul
+              08.00–17.00 WIB, kecuali hari libur nasional.
+            </li>
+          </ul>
+        </section>
 
-      {/* 1. Akun Pengguna */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3">1. Akun Pengguna</h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Pendaftaran:</strong> Layanan Canteeners terbuka untuk umum.
-            Pengguna wajib memberikan data yang benar dan akurat saat
-            pendaftaran.
-          </li>
+        {/* 1. Akun Pengguna */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            1. Akun Pengguna
+          </h3>
+          <div className="space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+              <h4 className="font-bold mb-2 text-blue-900">1.1 Pendaftaran</h4>
+              <p className="text-sm">
+                Layanan Kantiners terbuka bagi seluruh lapisan masyarakat. Pendaftaran 
+                akun dilakukan secara eksklusif menggunakan alamat email aktif. 
+                Pengguna bertanggung jawab penuh memastikan email tersebut berada 
+                di bawah kendali pribadi guna keperluan verifikasi dan keamanan.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold mb-2">1.2 Tanggung Jawab Akun</h4>
+              <ul className="list-disc pl-5 space-y-2 text-sm">
+                <li>
+                  Pengguna bertanggung jawab penuh atas semua aktivitas yang terjadi
+                  di dalam akunnya.
+                </li>
+                <li>
+                  Pengguna wajib menjaga kerahasiaan akses dan tidak membagikannya
+                  kepada pihak lain.
+                </li>
+                <li>
+                  Kantiners tidak bertanggung jawab atas kerugian akibat
+                  penyalahgunaan akun oleh pihak yang tidak berwenang.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
 
-          <li>
-            <strong>Tanggung Jawab:</strong> Pengguna bertanggung jawab penuh
-            atas semua aktivitas yang terjadi di dalam akunnya, termasuk menjaga
-            kerahasiaan kata sandi.
-          </li>
+        {/* 2. Proses Pemesanan & Pembayaran */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            2. Proses Pemesanan & Pembayaran
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-bold mb-2">2.1 Mekanisme Pembayaran</h4>
+              <p className="text-sm">
+                Pembayaran pesanan dilakukan secara langsung ke rekening milik Kedai 
+                (Mitra). Kantiners tidak memproses atau menahan dana pembayaran.
+              </p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h4 className="font-bold mb-2">2.2 Bukti Pembayaran</h4>
+              <p className="text-sm">
+                Pengguna wajib mengunggah bukti pembayaran yang sah dalam waktu 
+                maksimal <strong>15 menit</strong> setelah menekan tombol &quot;Pesan&quot;. 
+                Keterlambatan dapat mengakibatkan pembatalan otomatis oleh sistem.
+              </p>
+            </div>
+            <div>
+              <h4 className="font-bold mb-2">2.3 Pengantaran Pesanan</h4>
+              <p className="text-sm">
+                Kedai mengantarkan pesanan ke meja yang diinput sebanyak satu kali. 
+                Jika Pengguna tidak di lokasi, Pengguna wajib mengonfirmasi via chat 
+                atau mengambil pesanan langsung ke Kedai.
+              </p>
+            </div>
+          </div>
+        </section>
 
-          <li>
-            <strong>Data Tidak Akurat:</strong> Jika ditemukan Pengguna
-            memberikan data yang tidak benar atau palsu, Tim Canteeners berhak
-            melakukan evaluasi dan memberikan sanksi penangguhan (suspend) akun.
-          </li>
+        {/* 3. Sanksi Pembatalan oleh Pengguna */}
+        <section className="mb-8 bg-red-50 p-6 rounded-xl border border-red-100 shadow-sm">
+          <h3 className="text-xl font-bold mb-3 text-red-900">
+            3. Sanksi Pembatalan oleh Pengguna
+          </h3>
+          <div className="space-y-3 text-red-800 text-sm">
+            <p>
+              <strong>Definisi:</strong> Sanksi berlaku jika Pengguna menekan tombol 
+              &quot;Pesan&quot; namun tidak mengunggah bukti bayar hingga batas waktu habis.
+            </p>
+            <p>
+              <strong>Aturan:</strong> Pembatalan sebanyak <strong>3 kali</strong> dalam satu hari 
+              akan mengakibatkan akun dinonaktifkan sementara secara otomatis.
+            </p>
+            <p className="font-semibold italic">
+              Akun akan aktif kembali pada pukul 00.00 hari berikutnya.
+            </p>
+          </div>
+        </section>
 
-          <li>
-            <strong>Penutupan Akun:</strong> Pengguna yang ingin menghapus
-            akunnya secara permanen dapat mengajukan permohonan kepada tim kami
-            melalui kontak Customer Service (CS).
-          </li>
-        </ul>
-      </section>
+        {/* 4. Pembatalan pesanan & Proses Refund */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            4. Pembatalan pesanan & Proses Refund
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-bold mb-2">4.1 Hak Refund Pengguna</h4>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                <li>Kedai membatalkan pesanan (stok habis, dsb).</li>
+                <li>Keterlambatan antar melebihi estimasi waktu.</li>
+                <li>Pesanan tidak sesuai atau dalam kondisi rusak.</li>
+              </ul>
+            </div>
+            <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+              <h4 className="font-bold mb-2 text-primary">4.2 Mekanisme Refund</h4>
+              <p className="text-sm">
+                Pengajuan refund dilakukan via platform. Mitra Kedai wajib mengembalikan 
+                dana maksimal <strong>1x24 jam</strong>. Jika sengketa berlanjut, 
+                Pengguna dapat melakukan eskalasi ke CS Kantiners sebagai mediator.
+              </p>
+            </div>
+          </div>
+        </section>
 
-      {/* 2. Proses Pemesanan & Pembayaran */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3">
-          2. Proses Pemesanan & Pembayaran
-        </h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Mekanisme:</strong> Pembayaran pesanan dilakukan secara
-            langsung oleh Pengguna ke rekening milik Kedai (Mitra).
-          </li>
+        {/* 5. Penanganan Gangguan Sistem & Sengketa */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            5. Penanganan Gangguan Sistem & Sengketa
+          </h3>
+          <p className="text-sm">
+            Jika Platform mengalami gangguan (down), pemesanan manual diizinkan dengan 
+            menunjukkan bukti bayar sah. Layanan CS tetap aktif pada Hari Kerja untuk 
+            membantu mediasi sengketa pembayaran.
+          </p>
+        </section>
 
-          <li>
-            <strong>Bukti Pembayaran:</strong> Pengguna wajib mengunggah bukti
-            pembayaran (misalnya, tangkapan layar/screenshot) yang jelas dan sah
-            untuk setiap transaksi.
-          </li>
+        {/* 6. Aturan Ulasan (Review) Pengguna */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            6. Aturan Ulasan (Review) Pengguna
+          </h3>
+          <div className="space-y-4">
+            <p className="text-sm">
+              Ulasan dilarang mengandung kata kasar, SARA, fitnah, atau spam. 
+              Pelanggaran diproses bertahap: Peringatan → Pencabutan fitur review → Pemblokiran akun.
+            </p>
+          </div>
+        </section>
 
-          <li>
-            <strong>Pesanan Ditinggal:</strong> Kedai hanya berkewajiban
-            mengantarkan pesanan ke meja yang diinput sebanyak satu kali. Jika
-            Pengguna tidak berada di meja tersebut, menjadi tanggung jawab
-            Pengguna untuk mengonfirmasi ulang (melalui fitur chat) atau
-            mengambil pesanannya langsung ke Kedai.
-          </li>
-        </ul>
-      </section>
+        {/* 7. Larangan Umum & Perlindungan Aset */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            7. Larangan Umum & Perlindungan Aset
+          </h3>
+          <p className="text-sm mb-4">
+            Dilarang keras melakukan peretasan, reverse engineering, atau pemalsuan 
+            bukti pembayaran. Pelanggaran teknis berakibat pemblokiran permanen 
+            dan jalur hukum.
+          </p>
+        </section>
 
-      {/* 3. Sanksi Pembatalan */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3">
-          3. Sanksi Pembatalan oleh Pengguna
-        </h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Definisi Pembatalan:</strong> Sanksi ini berlaku untuk
-            Pengguna yang telah menekan tombol "Pesan" namun tidak menyelesaikan
-            proses pembayaran hingga batas waktu habis ("cancel sebelum bayar").
-          </li>
+        {/* 8. Perlindungan Data Pribadi */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            8. Perlindungan Data Pribadi
+          </h3>
+          <p className="text-sm">
+            Kantiners mengumpulkan email dan data transaksi untuk operasional. 
+            Kami berkomitmen menjaga keamanan data sesuai Kebijakan Privasi yang 
+            berlaku.
+          </p>
+        </section>
 
-          <li>
-            <strong>Aturan Sanksi:</strong> Pengguna yang melakukan pembatalan
-            seperti definisi di atas sebanyak 3 (tiga) kali dalam satu hari yang
-            sama, akan dinonaktifkan sementara.
-          </li>
+        {/* 9. Batasan Tanggung Jawab */}
+        <section className="mb-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
+          <h3 className="text-xl font-bold mb-3">9. Batasan Tanggung Jawab</h3>
+          <ul className="list-disc pl-5 space-y-2 text-sm text-gray-600">
+            <li>Kantiners tidak bertanggung jawab atas kualitas/keamanan produk kedai.</li>
+            <li>Kantiners tidak bertanggung jawab atas kerugian akibat force majeure.</li>
+            <li>Kantiners berperan sebagai mediator, bukan penjamin dana transaksi.</li>
+          </ul>
+        </section>
 
-          <li>
-            <strong>Konsekuensi Sanksi:</strong> Akun yang dinonaktifkan
-            sementara tidak dapat melakukan pemesanan kembali selama sisa hari
-            tersebut dan baru dapat memesan lagi di hari berikutnya.
-          </li>
-        </ul>
-      </section>
+        {/* 10. Yurisdiksi & Penyelesaian Sengketa */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            10. Yurisdiksi & Penyelesaian Sengketa
+          </h3>
+          <p className="text-sm">
+            Tunduk pada hukum Republik Indonesia. Penyelesaian sengketa diutamakan 
+            melalui musyawarah mufakat (30 hari) sebelum ke Pengadilan Negeri.
+          </p>
+        </section>
 
-      {/* 4. Pembatalan oleh Kedai & Refund */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3">
-          4. Pembatalan oleh Kedai & Proses Refund
-        </h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Hak Refund Pelanggan:</strong> Pengguna berhak mendapatkan
-            pengembalian dana (refund) jika Kedai membatalkan pesanan setelah
-            pembayaran dilakukan (stok habis) atau jika Kedai terlambat
-            mengantar pesanan melebihi estimasi waktu.
-          </li>
+        {/* 11. Ketentuan Penutup */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            11. Ketentuan Penutup
+          </h3>
+          <p className="text-sm">
+            Kantiners berhak mengubah S&K ini dengan pemberitahuan 7 hari sebelumnya. 
+            Layanan dukungan tersedia via WhatsApp Bisnis pada Hari Kerja.
+          </p>
+        </section>
 
-          <li>
-            <strong>Mekanisme Refund:</strong> Pihak Kedai memiliki fitur untuk
-            mengajukan refund dan berkewajiban untuk mentransfer dana
-            pengembalian secara langsung ke Pengguna.
-          </li>
-
-          <li>
-            <strong>Peran Advokasi CS:</strong> Jika terjadi perselisihan atau
-            keterlambatan dalam proses refund dari Kedai, Pengguna dapat
-            menghubungi CS. Tim Canteeners akan bertindak sebagai mediator dan
-            mengadvokasi Pengguna untuk memastikan pengembalian dana
-            diselesaikan oleh Kedai.
-          </li>
-        </ul>
-      </section>
-
-      {/* 5. Penanganan Gangguan Sistem */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3">
-          5. Penanganan Gangguan Sistem & Sengketa
-        </h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Sistem Error (Down):</strong> Jika terjadi gangguan pada
-            aplikasi Canteeners (server down, error massal), Pengguna diizinkan
-            melakukan pemesanan secara manual langsung ke Kedai.
-          </li>
-
-          <li>
-            <strong>Proses Manual:</strong> Dalam proses manual tersebut,
-            Pengguna wajib menunjukkan bukti pembayaran kepada Kedai untuk
-            verifikasi.
-          </li>
-
-          <li>
-            <strong>Peran CS saat Error:</strong> Meskipun aplikasi error,
-            layanan CS melalui WhatsApp akan tetap aktif untuk menjadi penengah
-            dan membantu mediasi antara Pengguna dan Kedai.
-          </li>
-
-          <li>
-            <strong>Sengketa Pembayaran:</strong> Untuk sengketa pembayaran, CS
-            Canteeners akan bertindak sebagai mediator aktif dan menghubungi
-            pihak Kedai secara langsung untuk menyelesaikan masalah.
-          </li>
-        </ul>
-      </section>
-
-      {/* 6. Aturan Ulasan */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3">
-          6. Aturan Ulasan (Review) Pengguna
-        </h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Konten Dilarang:</strong> Pengguna dilarang menulis ulasan
-            yang mengandung kata-kata kasar (vulgar), unsur SARA, fitnah, spam,
-            atau promosi pribadi.
-          </li>
-
-          <li>
-            <strong>Sanksi Ulasan:</strong> Pengguna yang melanggar aturan
-            konten ulasan akan mendapatkan peringatan. Jika pelanggaran
-            berlanjut, tim Canteeners berhak untuk mencabut fitur review dari
-            akun atau banned Pengguna tersebut.
-          </li>
-        </ul>
-      </section>
-
-      {/* 7. Larangan Umum */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3">
-          7. Larangan Umum & Perlindungan Aset
-        </h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Larangan Keras:</strong> Pengguna dilarang keras melakukan
-            upaya peretasan (hacking), reverse engineering, atau tindakan teknis
-            lainnya yang bertujuan merusak sistem Canteeners. Sanksi untuk
-            pelanggaran ini adalah pemblokiran (ban) permanen secara langsung
-            atau penyelesaian melalui jalur hukum.
-          </li>
-
-          <li>
-            <strong>Properti Intelektual:</strong> Pengguna dilarang menggunakan
-            nama, logo, poster, atau aset merek ("Canteeners") lainnya untuk
-            kepentingan komersial atau pribadi tanpa izin tertulis.
-          </li>
-        </ul>
-      </section>
-
-      {/* 8. Ketentuan Penutup */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3">8. Ketentuan Penutup</h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Layanan Pelanggan (CS):</strong> Dukungan penuh, mediasi,
-            dan advokasi disediakan melalui saluran Customer Service resmi via
-            WhatsApp Bisnis.
-          </li>
-          <li>
-            <strong>Perubahan S&K:</strong> Canteeners berhak mengubah S&K ini
-            sewaktu-waktu. Perubahan akan dianggap berlaku efektif setelah
-            diposting di platform kami.
-          </li>
-
-          <li>
-            <strong>Kaitan dengan Kebijakan Privasi:</strong> Dengan menyetujui
-            S&K ini, Pengguna juga menyatakan telah membaca dan menyetujui
-            Kebijakan Privasi Canteeners.
-          </li>
-        </ul>
-      </section>
+        <footer className="mt-12 pt-8 border-t text-sm text-gray-600 text-center space-y-1">
+          <p className="font-semibold tracking-tight uppercase text-[10px] text-gray-400">
+            Kantiners • Layanan Customer Service: [Nomor WhatsApp Bisnis]
+          </p>
+          <p className="italic text-xs">
+            Dokumen ini berlaku sejak [Tanggal Berlaku] • Versi 1.1
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }

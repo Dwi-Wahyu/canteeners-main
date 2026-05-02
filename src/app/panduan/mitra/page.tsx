@@ -21,6 +21,7 @@ import {
   Zap,
   PackagePlus,
   CircleDollarSign,
+  Settings2,
   Star,
   History,
   FileText,
@@ -60,7 +61,12 @@ export default function PanduanMitraPage() {
       label: "Manajemen Pesanan",
       icon: <ClipboardList size={18} />,
     },
-    { id: "keuangan", label: "Keuangan & Tagihan", icon: <Wallet size={18} /> },
+    {
+      id: "keuangan",
+      label: "Komisi Platform",
+      icon: <Wallet size={18} />,
+    },
+
     {
       id: "interaksi",
       label: "Interaksi Pelanggan",
@@ -257,16 +263,18 @@ export default function PanduanMitraPage() {
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="card-shadow">
               <CardContent>
                 <div className="flex flex-row items-center gap-4 pb-2">
                   <div className="p-2 bg-indigo-500/10 text-indigo-600 rounded-full">
                     <PackagePlus size={20} />
                   </div>
-                  <CardTitle className="text-lg">Kelola Menu</CardTitle>
+                  <CardTitle className="text-lg text-sm sm:text-base">
+                    Kelola Menu
+                  </CardTitle>
                 </div>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-xs">
                   Tambah produk baru dengan foto menarik. Matikan status aktif
                   jika stok kosong untuk menyembunyikan menu dari pelanggan.
                 </p>
@@ -279,11 +287,30 @@ export default function PanduanMitraPage() {
                   <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-full">
                     <CircleDollarSign size={20} />
                   </div>
-                  <CardTitle className="text-lg">Harga & Modal</CardTitle>
+                  <CardTitle className="text-lg text-sm sm:text-base">
+                    Harga & Modal
+                  </CardTitle>
                 </div>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-muted-foreground text-xs">
                   Masukkan Harga Jual dan Harga Modal. Sistem akan menghitung
                   estimasi margin keuntungan bersih secara otomatis.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="card-shadow">
+              <CardContent>
+                <div className="flex flex-row items-center gap-4 pb-2">
+                  <div className="p-2 bg-amber-500/10 text-amber-600 rounded-full">
+                    <Settings2 size={20} />
+                  </div>
+                  <CardTitle className="text-lg text-sm sm:text-base">
+                    Varian & Opsi
+                  </CardTitle>
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  Atur pilihan tambahan (Level Pedas, Topping). Pilih tipe "Satu
+                  Pilihan" atau "Banyak" dan tentukan harga tambahan jika ada.
                 </p>
               </CardContent>
             </Card>
@@ -346,7 +373,7 @@ export default function PanduanMitraPage() {
         <section id="keuangan" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2">
             <h3 className="text-2xl font-bold tracking-tight">
-              Keuangan & Komisi
+              Komisi Platform
             </h3>
           </div>
 
@@ -354,12 +381,10 @@ export default function PanduanMitraPage() {
             <CardContent className="space-y-4">
               <div className="flex items-start gap-4">
                 <div className="space-y-1">
-                  <CardTitle className="text-lg">
-                    Metode Pembayaran & Billing
-                  </CardTitle>
+                  <CardTitle className="text-lg">Skema Komisi</CardTitle>
                   <CardDescription>
-                    Atur metode Tunai atau unggah QRIS/Rekening Bank di menu
-                    Pengaturan.
+                    Sistem pemotongan komisi yang transparan untuk setiap
+                    pesanan yang berhasil.
                   </CardDescription>
                 </div>
               </div>
@@ -367,12 +392,12 @@ export default function PanduanMitraPage() {
               <div className="p-4 bg-muted/50 rounded-lg border-l-4 border-primary space-y-2">
                 <h4 className="text-sm font-bold flex items-center gap-2">
                   <CircleDollarSign size={16} className="text-primary" />
-                  Sistem Tagihan
+                  Transparansi Biaya
                 </h4>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Setiap pesanan dikenakan biaya layanan (komisi). Tagihan
-                  terkumpul di menu <strong>"Tagihan"</strong>. Wajib dibayarkan
-                  secara berkala ke pengelola agar kedai tetap aktif.
+                  Setiap pesanan dikenakan biaya layanan (komisi) berdasarkan
+                  jumlah item. Anda dapat memantau detail potongan, subsidi
+                  platform, dan penyesuaian refund secara real-time.
                 </p>
               </div>
 
@@ -380,22 +405,33 @@ export default function PanduanMitraPage() {
                 <div className="p-3 border rounded-lg bg-background">
                   <History size={16} className="text-primary mb-2" />
                   <h5 className="font-bold text-xs uppercase tracking-wider">
-                    Riwayat
+                    Tagihan Mingguan
                   </h5>
                   <p className="text-[10px] text-muted-foreground">
-                    Lihat data pendapatan per hari, minggu, atau bulan.
+                    Lihat rekapitulasi komisi dan subsidi di menu Tagihan.
                   </p>
                 </div>
                 <div className="p-3 border rounded-lg bg-background">
                   <Star size={16} className="text-yellow-500 mb-2" />
                   <h5 className="font-bold text-xs uppercase tracking-wider">
-                    Performa
+                    Subsidi Voucher
                   </h5>
                   <p className="text-[10px] text-muted-foreground">
-                    Pantau produk terlaris dan peringkat kedai Anda.
+                    Platform menanggung potongan harga untuk voucher tertentu.
                   </p>
                 </div>
               </div>
+
+              <Button
+                className="w-full group"
+                onClick={() =>
+                  (window.location.href =
+                    "/panduan/mitra/komisi?back_url=/panduan/mitra")
+                }
+              >
+                Pelajari Detail Komisi & Billing
+                <ChevronRight className="ml-2 size-4 transition-transform group-hover:translate-x-1" />
+              </Button>
             </CardContent>
           </Card>
         </section>
