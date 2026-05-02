@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:superadmin": "bun run prisma/seed/seed-superadmin.ts"
   },
   "prisma": {
     "seed": "bun run prisma/seed",
