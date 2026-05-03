@@ -72,21 +72,24 @@ export default function EditProductForm({
         const formData = new FormData();
         formData.append("path", "product");
         formData.append("file", file);
-
         const uploadResponse = await fetch("/api/upload", {
           method: "POST",
           body: formData,
         });
 
+        const uploadData = await uploadResponse.json();
+
         if (!uploadResponse.ok) {
           form.setError("image_url", {
-            message: "Gagal mengunggah file melalui API.",
+            message:
+              uploadData.message ||
+              uploadData.error ||
+              "Gagal mengunggah file melalui API.",
           });
           return;
         }
 
-        const uploadData = await uploadResponse.json();
-        payload.image_url = uploadData.data.url.split("/").pop(); // Get filename from returned URL if needed, or adjust based on API response
+        payload.image_url = uploadData.data.url.split("/").pop(); // Get filename from returned URL
       }
 
       if (payload.image_url === "") {
@@ -111,7 +114,7 @@ export default function EditProductForm({
       const result = await updateProduct(
         payload,
         isUpdatingImage,
-        product.image_url
+        product.image_url,
       );
 
       if (result.success) {

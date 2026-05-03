@@ -328,7 +328,6 @@ function VoucherCard({
         {isSelected ? (
           /* Applied green value */
           <>
-            <CheckCircle2 className="size-5 text-emerald-500 fill-emerald-500 mb-1" />
             <span
               className="font-black text-emerald-600 leading-none"
               style={{ fontSize: valueFontSize(d), letterSpacing: "-0.03em" }}
@@ -384,9 +383,7 @@ export default function VoucherSelectionDialog({
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const activeVouchers = vouchers.filter(
-    (v) => v.discount.status === "ACTIVE",
-  );
+  const activeVouchers = vouchers.filter((v) => v.discount.status === "ACTIVE");
   const filteredVouchers = activeVouchers.filter((v) =>
     v.discount.name.toLowerCase().includes(search.toLowerCase()),
   );
@@ -458,7 +455,6 @@ export default function VoucherSelectionDialog({
         {/* ── Modal ─────────────────────────────────── */}
         <DialogContent className="p-0 overflow-hidden rounded-[28px] border-none shadow-[0_32px_64px_rgba(0,0,0,0.2)] max-w-md w-full flex flex-col max-h-[88dvh] outline-none">
           <div className="vd-liquid-bg flex flex-col flex-1 min-h-0">
-
             {/* Header */}
             <DialogHeader className="relative z-50 flex-shrink-0">
               <div
@@ -501,9 +497,7 @@ export default function VoucherSelectionDialog({
 
             {/* Count summary strip */}
             {hasSelected && (
-              <div
-                className="relative z-10 mx-5 -mb-1 mt-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2"
-              >
+              <div className="relative z-10 mx-5 -mb-1 mt-4 flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
                 <CheckCircle2 className="size-4 text-emerald-500 flex-shrink-0" />
                 <p className="text-[11px] font-bold text-emerald-700">
                   {selectedIds.length} voucher aktif terpasang
@@ -580,10 +574,7 @@ export default function VoucherSelectionDialog({
                       ? totalPrice < v.discount.min_purchase
                       : false;
                     return (
-                      <div
-                        key={v.id}
-                        style={{ animationDelay: `${i * 60}ms` }}
-                      >
+                      <div key={v.id} style={{ animationDelay: `${i * 60}ms` }}>
                         <VoucherCard
                           v={v}
                           isSelected={isSelected}

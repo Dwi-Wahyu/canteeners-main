@@ -123,7 +123,7 @@ export default function OwnerChatListPage() {
 
               if (!opponentInfo) {
                 return (
-                  <div>
+                  <div key={chat.id}>
                     <h1>Pesan tidak valid</h1>
                   </div>
                 );

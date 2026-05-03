@@ -9,10 +9,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Gift, ChevronRight, Ticket, X, Tag, Sparkles } from "lucide-react";
+import { Gift, ChevronRight, Ticket, X, Tag, Sparkles, Info, Calendar } from "lucide-react";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 
 interface UserVoucher {
   id: string;
@@ -21,6 +23,9 @@ interface UserVoucher {
   type: "FIXED" | "PERCENTAGE";
   description: string | null;
   status: string;
+  min_purchase?: number | null;
+  max_discount?: number | null;
+  end_date?: Date | null;
 }
 
 function formatValue(v: UserVoucher): string {
@@ -212,6 +217,11 @@ export default function UserVouchersSection({
               <span className="text-xs font-bold text-gray-800 truncate max-w-[150px] block">
                 {previewVoucher.name}
               </span>
+              {previewVoucher.min_purchase ? (
+                <p className="text-[9px] text-gray-400 font-medium">
+                  Min. Belanja {formatRupiah(previewVoucher.min_purchase)}
+                </p>
+              ) : null}
             </div>
             <div className="text-right">
               <span
@@ -315,6 +325,29 @@ export default function UserVouchersSection({
                               {v.description}
                             </p>
                           )}
+
+                          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                            {v.min_purchase ? (
+                              <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
+                                <Info className="size-2.5" />
+                                <span>Min. {formatRupiah(v.min_purchase)}</span>
+                              </div>
+                            ) : null}
+                            {v.type === "PERCENTAGE" && v.max_discount ? (
+                              <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
+                                <Info className="size-2.5" />
+                                <span>Maks. {formatRupiah(v.max_discount)}</span>
+                              </div>
+                            ) : null}
+                            {v.end_date ? (
+                              <div className="flex items-center gap-1 text-[10px] text-red-400 font-bold">
+                                <Calendar className="size-2.5" />
+                                <span>
+                                  S/D {format(new Date(v.end_date), "dd MMM yyyy", { locale: id })}
+                                </span>
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
 
                         {/* Perforation */}

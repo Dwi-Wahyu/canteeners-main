@@ -130,11 +130,12 @@ export function ChatInput({
               body: formData,
             });
 
+            const blob = await res.json();
+
             if (!res.ok) {
-              throw new Error("Upload failed");
+              throw new Error(blob.message || blob.error || "Upload failed");
             }
 
-            const blob = await res.json();
             // Store the relative path (filename) in blobResult if needed by other components,
             // but usually components want the URL. The blobResult now has the backend response.
             // We ensure we have the filename for the backend.

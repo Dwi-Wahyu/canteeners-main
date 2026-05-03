@@ -222,18 +222,35 @@ export default function ShopCartClient({
     }
   };
 
+  const totalQty = shopCart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalCommission = calculateCommission(totalQty);
+  const itemsOnlyTotal = shopCart.total_price - totalCommission;
+
+  const ITEM_ONLY_DISCOUNT_CODES = ["EVENT_REWARD_VOUCHER"];
+
   // Hitung total potongan dari voucher yang dipilih
   const finalDiscount = (customerProfile.discounts || [])
     .filter((cd) => selectedDiscountIds.includes(cd.id))
     .reduce((sum, cd: any) => {
-      if (cd.discount.type === "FIXED") return sum + cd.discount.value;
-      const pct = (shopCart.total_price * cd.discount.value) / 100;
-      return (
-        sum +
-        (cd.discount.max_discount
+      const isItemOnly = cd.discount.code && ITEM_ONLY_DISCOUNT_CODES.includes(cd.discount.code);
+      const discountBase = isItemOnly ? itemsOnlyTotal : shopCart.total_price;
+
+      let amount = 0;
+      if (cd.discount.type === "FIXED") {
+        amount = cd.discount.value;
+      } else {
+        const pct = (discountBase * cd.discount.value) / 100;
+        amount = cd.discount.max_discount
           ? Math.min(pct, cd.discount.max_discount)
-          : pct)
-      );
+          : pct;
+      }
+
+      // Cap discount by base to protect commission for item-only vouchers
+      if (isItemOnly && amount > itemsOnlyTotal) {
+        amount = itemsOnlyTotal;
+      }
+
+      return sum + amount;
     }, 0);
 
   const [postOrderType, setPostOrderType] = useState<PostOrderType>(
@@ -463,51 +480,34 @@ export default function ShopCartClient({
         />
       )}
 
-      <div className="flex flex-col gap-1">
-        <div className="flex justify-between items-center text-muted-foreground">
-          <h1>Biaya Tambahan</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="font-semibold text-sm">Ringkasan Harga</h1>
+        
+        <div className="flex justify-between items-center text-sm text-muted-foreground">
+          <h1>Total Harga Menu ({totalQty} Item)</h1>
+          <h1>{formatRupiah(itemsOnlyTotal)}</h1>
+        </div>
 
-          <div className="flex flex-col items-end">
-            <h1>Rp 1.000 / item</h1>
+        <div className="flex justify-between items-center text-sm text-muted-foreground">
+          <div className="flex flex-col">
+            <h1>Total Biaya Layanan</h1>
             <span className="text-[10px]">
               Potongan 50% jika total lebih dari 2 item
             </span>
           </div>
-        </div>
-
-        <div className="flex justify-between items-center text-muted-foreground">
-          <h1>Total Biaya Tambahan</h1>
-
-          <h1>
-            {formatRupiah(
-              calculateCommission(
-                shopCart.items.reduce((sum, item) => sum + item.quantity, 0),
-              ),
-            )}
-          </h1>
-        </div>
-
-        <div className="flex justify-between items-center text-muted-foreground">
-          <h1>Subtotal</h1>
-
-          <h1>{formatRupiah(shopCart.total_price)}</h1>
+          <h1>{formatRupiah(totalCommission)}</h1>
         </div>
 
         {finalDiscount > 0 && (
-          <div className="flex justify-between items-center text-blue-600 font-semibold animate-in slide-in-from-right-2 duration-300">
+          <div className="flex justify-between items-center text-sm text-blue-600 font-semibold animate-in slide-in-from-right-2 duration-300">
             <h1>Total Potongan</h1>
             <h1>-{formatRupiah(finalDiscount)}</h1>
           </div>
         )}
 
-        <div className="flex font-semibold justify-between items-center text-muted-foreground mt-2 border-t pt-2">
-          <h1>
-            Total Harga{" "}
-            {shopCart.items.reduce((sum, item) => sum + item.quantity, 0) * 1}{" "}
-            Item
-          </h1>
-
-          <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
+        <div className="flex font-bold justify-between items-center text-gray-900 mt-1 border-t pt-3">
+          <h1>Total Pembayaran</h1>
+          <h1 className="text-lg text-primary">{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
         </div>
       </div>
 

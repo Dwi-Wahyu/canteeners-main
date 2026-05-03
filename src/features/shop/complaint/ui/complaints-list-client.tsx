@@ -85,9 +85,14 @@ export default function ComplaintsListClient({
                     <div className="relative h-10 w-10 rounded-full overflow-hidden bg-muted shrink-0">
                       {complaint.order.customer.user.avatar ? (
                         <Image
-                          src={getImageUrl(
-                            "/avatar/" + complaint.order.customer.user.avatar
-                          )}
+                          src={
+                            complaint.order.customer.user.avatar.includes("http")
+                              ? complaint.order.customer.user.avatar
+                              : getImageUrl(
+                                  "/avatar/" +
+                                    complaint.order.customer.user.avatar
+                                )
+                          }
                           alt={complaint.order.customer.user.name}
                           fill
                           className="object-cover"

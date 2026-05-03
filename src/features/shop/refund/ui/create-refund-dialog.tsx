@@ -152,11 +152,12 @@ export default function CreateRefundDialog({
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Upload failed");
+        throw new Error(data.message || data.error || "Upload failed");
       }
 
-      const data = await response.json();
       const filename = data.data.url.split("/").pop();
       setUploadedFile({
         url: data.data.url,

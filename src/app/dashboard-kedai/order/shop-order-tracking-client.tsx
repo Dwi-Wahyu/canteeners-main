@@ -48,6 +48,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import OrderEstimationCountDown from "@/features/order/ui/order-estimation-countdown";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function ShopOrderTrackingClient({
   shopId,
@@ -218,7 +223,7 @@ export default function ShopOrderTrackingClient({
                   )}
                   {order.post_order_type === "DELIVERY_TO_TABLE" && (
                     <span className="text-[10px] font-medium bg-muted px-1.5 rounded mt-1">
-                      Meja {order.customer.table_number}
+                      Lt {order.customer.floor} - Meja {order.customer.table_number}
                     </span>
                   )}
                 </div>
@@ -275,24 +280,32 @@ export default function ShopOrderTrackingClient({
                             : "Bukti Pembayaran"}
                         </h1>
 
-                        <a
-                          href={getImageUrl(
-                            "/payment-proof/" + order.payment_proof_url,
-                          )}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block w-fit group"
-                        >
-                          <Image
-                            className="rounded border group-hover:opacity-90 transition-opacity"
-                            width={80}
-                            height={80}
-                            alt="Bukti pembayaran"
-                            src={getImageUrl(
-                              "/payment-proof/" + order.payment_proof_url,
-                            )}
-                          />
-                        </a>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <button className="block w-fit group">
+                              <Image
+                                className="rounded border group-hover:opacity-90 transition-opacity"
+                                width={80}
+                                height={80}
+                                alt="Bukti pembayaran"
+                                src={getImageUrl(
+                                  "/payment-proof/" + order.payment_proof_url,
+                                )}
+                              />
+                            </button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-3xl p-1 bg-transparent border-none">
+                            <div className="relative w-full aspect-auto flex items-center justify-center">
+                              <img
+                                src={getImageUrl(
+                                  "/payment-proof/" + order.payment_proof_url,
+                                )}
+                                alt="Bukti pembayaran full"
+                                className="max-h-[90vh] w-auto rounded-lg shadow-2xl"
+                              />
+                            </div>
+                          </DialogContent>
+                        </Dialog>
 
                         {order.status === "WAITING_SHOP_CONFIRMATION" && (
                           <div className="grid grid-cols-2 gap-3 mt-3">

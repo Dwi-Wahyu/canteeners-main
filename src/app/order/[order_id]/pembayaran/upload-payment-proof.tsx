@@ -61,14 +61,15 @@ export default function UploadPaymentProof({
           body: formData,
         });
 
+        const uploadData = await uploadResponse.json();
+
         if (!uploadResponse.ok) {
           form.setError("image_url", {
-            message: "Gagal mengunggah file melalui API.",
+            message: uploadData.message || uploadData.error || "Gagal mengunggah file melalui API.",
           });
           return;
         }
 
-        const uploadData = await uploadResponse.json();
         payload.image_url = uploadData.data.url.split("/").pop();
       }
 

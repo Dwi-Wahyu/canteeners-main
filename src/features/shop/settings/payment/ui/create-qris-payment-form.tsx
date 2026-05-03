@@ -63,6 +63,8 @@ export default function InputQrisPaymentForm({
   });
 
   const onSubmit = async (values: PaymentSchemaInput) => {
+    let payload = values;
+
     if (files.length > 0) {
       try {
         const file = files[0];
@@ -75,19 +77,22 @@ export default function InputQrisPaymentForm({
           body: formData,
         });
 
+        const uploadData = await uploadResponse.json();
+
         if (!uploadResponse.ok) {
           form.setError("qr_url", {
-            message: "Gagal mengunggah file melalui API.",
+            message:
+              uploadData.message ||
+              uploadData.error ||
+              "Gagal mengunggah file melalui API.",
           });
           return;
         }
 
-        const uploadData = await uploadResponse.json();
-        values.qr_url = uploadData.data.url.split("/").pop();
-      } catch (error: any) {
-        toast.error(error.message || "Gagal mengunggah gambar");
+        payload.qr_url = uploadData.data.url.split("/").pop(); // Get filename from returned URL
+      } catch (error) {
         form.setError("qr_url", {
-          message: error.message || "Gagal mengunggah gambar",
+          message: (error as any).message || "Gagal mengunggah gambar",
         });
         return;
       }

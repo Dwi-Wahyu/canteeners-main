@@ -70,26 +70,39 @@ export default function EditQrisPaymentForm({
   });
 
   const onSubmit = async (values: PaymentSchemaInput) => {
+    let payload = values;
+
     if (files.length > 0) {
-      const file = files[0];
-      const formData = new FormData();
-      formData.append("path", "qris-qrcode");
-      formData.append("file", file);
+      try {
+        const file = files[0];
+        const formData = new FormData();
+        formData.append("path", "qris-qrcode");
+        formData.append("file", file);
 
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+        const uploadResponse = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
 
-      if (!uploadResponse.ok) {
+        const uploadData = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          form.setError("qr_url", {
+            message:
+              uploadData.message ||
+              uploadData.error ||
+              "Gagal mengunggah file melalui API.",
+          });
+          return;
+        }
+
+        payload.qr_url = uploadData.data.url.split("/").pop(); // Get filename from returned URL
+      } catch (error) {
         form.setError("qr_url", {
-          message: "Gagal mengunggah file melalui API.",
+          message: (error as any).message || "Gagal mengunggah gambar",
         });
         return;
       }
-
-      const uploadData = await uploadResponse.json();
-      values.qr_url = uploadData.data.url.split("/").pop();
     }
 
     if (values.qr_url === "") {

@@ -130,3 +130,47 @@ export async function processEventParticipation(
     return errorResponse("Failed to process event participation");
   }
 }
+
+export async function getActiveEventSlot(
+  userId?: string,
+): Promise<ServerActionReturn<any>> {
+  const now = new Date();
+
+  try {
+    const event = await prisma.event.findFirst({
+      where: { is_active: true },
+    });
+
+    if (!event) {
+      return errorResponse("Event is currently inactive");
+    }
+
+    const slot = await prisma.eventSlot.findFirst({
+      where: {
+        event_id: event.id,
+        start_time: { lte: now },
+        end_time: { gte: now },
+      },
+    });
+
+    if (!slot) {
+      return errorResponse("No active event slot for this time");
+    }
+
+    let hasParticipated = false;
+    if (userId) {
+      const usage = await prisma.eventUsage.findUnique({
+        where: { user_id: userId },
+      });
+      hasParticipated = !!usage;
+    }
+
+    return successResponse({
+      slot,
+      hasParticipated,
+    });
+  } catch (error) {
+    console.error("Error in getActiveEventSlot:", error);
+    return errorResponse("Failed to fetch active event slot");
+  }
+}

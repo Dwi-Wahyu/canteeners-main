@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useTransition, useEffect, useState } from "react";
+import { useTransition, useEffect, useState, useCallback } from "react";
 import { Search, Loader2 } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 
@@ -19,28 +19,33 @@ export default function OrderHistoryFilters() {
   const searchParams = useSearchParams();
 
   const [isPending, startTransition] = useTransition();
-  const [searchValue, setSearchValue] = useState(searchParams.get("search") || "");
+  const [searchValue, setSearchValue] = useState(
+    searchParams.get("search") || ""
+  );
   const [debouncedSearchValue] = useDebounce(searchValue, 500);
 
   const currentStatus = searchParams.get("status") || "ALL";
   const currentDateFilter = searchParams.get("date") || "ALL";
 
+  const handleFilter = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value && value !== "ALL") {
+        params.set(name, value);
+      } else {
+        params.delete(name);
+      }
+
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`);
+      });
+    },
+    [pathname, router, searchParams]
+  );
+
   useEffect(() => {
     handleFilter("search", debouncedSearchValue);
-  }, [debouncedSearchValue]);
-
-  function handleFilter(name: string, value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value && value !== "ALL") {
-      params.set(name, value);
-    } else {
-      params.delete(name);
-    }
-    
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`);
-    });
-  }
+  }, [debouncedSearchValue, handleFilter]);
 
   return (
     <div className="space-y-4 mb-6">
@@ -59,28 +64,31 @@ export default function OrderHistoryFilters() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-wrap gap-2">
         <Select
           value={currentStatus}
-          onValueChange={(val) => handleFilter("status", val)}
+          onValueChange={(value) => handleFilter("status", value)}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Status" />
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Semua Status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Semua Status</SelectItem>
+            <SelectItem value="PENDING">Menunggu</SelectItem>
+            <SelectItem value="CONFIRMED">Dikonfirmasi</SelectItem>
+            <SelectItem value="PROCESSING">Diproses</SelectItem>
+            <SelectItem value="READY">Siap Diambil</SelectItem>
             <SelectItem value="COMPLETED">Selesai</SelectItem>
-            <SelectItem value="REJECTED">Ditolak</SelectItem>
             <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
           </SelectContent>
         </Select>
 
         <Select
           value={currentDateFilter}
-          onValueChange={(val) => handleFilter("date", val)}
+          onValueChange={(value) => handleFilter("date", value)}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Waktu" />
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Semua Waktu" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">Semua Waktu</SelectItem>

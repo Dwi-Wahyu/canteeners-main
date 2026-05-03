@@ -18,7 +18,7 @@ import {
 import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { formatRupiah } from "@/helper/format-rupiah";
-import { calculateItemCommission } from "@/helper/pricing-helper";
+import { calculateItemCommission, calculateCommission } from "@/helper/pricing-helper";
 
 /**
  * Helper internal untuk menghitung ulang semua subtotal item dan total harga keranjang
@@ -135,13 +135,25 @@ export async function processShopCart({
             price_at_add: true,
             quantity: true,
             subtotal: true,
-            selected_options: { select: { id: true } },
+            selected_options: { 
+              select: { 
+                id: true,
+                additional_price: true 
+              } 
+            },
           },
         },
       },
     });
 
     if (!shopCartData) return errorResponse("Keranjang kedai tidak ditemukan");
+
+    // Skema voucher yang hanya memotong harga menu (tidak memotong komisi)
+    const ITEM_ONLY_DISCOUNT_CODES = ["EVENT_REWARD_VOUCHER"];
+
+    const totalQty = shopCartData.items.reduce((sum, item) => sum + item.quantity, 0);
+    const totalCommission = calculateCommission(totalQty);
+    const itemsOnlyTotal = shopCartData.total_price - totalCommission;
 
     // Validasi Referral
     if (referralCode) {
@@ -183,11 +195,14 @@ export async function processShopCart({
         });
 
         for (const v of vouchers) {
+          const isItemOnly = v.discount.code && ITEM_ONLY_DISCOUNT_CODES.includes(v.discount.code);
+          const discountBase = isItemOnly ? itemsOnlyTotal : shopCartData.total_price;
+
           let amount = 0;
           if (v.discount.type === DiscountType.FIXED) {
             amount = v.discount.value;
           } else {
-            amount = (shopCartData.total_price * v.discount.value) / 100;
+            amount = (discountBase * v.discount.value) / 100;
             if (v.discount.max_discount && amount > v.discount.max_discount) {
               amount = v.discount.max_discount;
             }
@@ -200,6 +215,11 @@ export async function processShopCart({
             continue;
           if (v.discount.shop_id && v.discount.shop_id !== shopCartData.shop.id)
             continue;
+
+          // Jika item-only, pastikan tidak memotong melebihi harga menu
+          if (isItemOnly && amount > itemsOnlyTotal) {
+            amount = itemsOnlyTotal;
+          }
 
           total_discount_amount += amount;
           appliedDiscountsData.push({

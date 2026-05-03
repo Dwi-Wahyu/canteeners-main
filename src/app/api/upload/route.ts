@@ -41,9 +41,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: (error as Error).message },
       { status: 500 },
     );
   }

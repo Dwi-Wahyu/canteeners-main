@@ -134,6 +134,9 @@ export async function getCustomerReferralStatus(userId: string) {
       type: cd.discount.type,
       description: cd.discount.description,
       status: cd.discount.status,
+      min_purchase: cd.discount.min_purchase,
+      max_discount: cd.discount.max_discount,
+      end_date: cd.discount.end_date,
     })),
   };
 }
