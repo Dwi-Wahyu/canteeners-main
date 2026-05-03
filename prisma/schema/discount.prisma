@@ -65,6 +65,8 @@ model CustomerDiscount {
     used_at     DateTime?
     acquired_at DateTime  @default(now())
 
+    event_usage EventUsage?
+
     @@index([customer_id])
     @@index([discount_id])
     @@map("customer_discounts")

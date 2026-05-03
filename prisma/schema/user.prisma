@@ -22,6 +22,8 @@ model User {
     received_reports UserReport[] @relation("ReceivedReports")
 
     fcm_tokens UserFcmToken[]
+    
+    event_usage EventUsage?
 
     @@index([last_login])
     @@index([role])

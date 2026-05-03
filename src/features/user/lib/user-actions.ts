@@ -290,10 +290,28 @@ export async function getUnseenVouchers(): Promise<ServerActionReturn<any[]>> {
       },
       include: {
         discount: true,
+        event_usage: true,
       },
     });
 
-    return successResponse(unseenVouchers, "Berhasil mengambil voucher baru");
+    const unseenEventResults = await prisma.eventUsage.findMany({
+      where: {
+        user_id: session.user.id,
+        is_seen: false,
+        customer_discount_id: null,
+      },
+    });
+
+    const combined = [
+      ...unseenVouchers.map((v) => ({ ...v, popupType: "VOUCHER" })),
+      ...unseenEventResults.map((e) => ({
+        id: e.id,
+        event_usage: e,
+        popupType: "EVENT_LOST",
+      })),
+    ];
+
+    return successResponse(combined, "Berhasil mengambil voucher baru");
   } catch (error) {
     console.error(error);
     return errorResponse("Terjadi kesalahan");
@@ -301,17 +319,47 @@ export async function getUnseenVouchers(): Promise<ServerActionReturn<any[]>> {
 }
 
 export async function markVouchersAsSeen(
-  voucherIds: string[],
+  ids: { voucherIds: string[]; eventUsageIds: string[] },
 ): Promise<ServerActionReturn<void>> {
   try {
-    await prisma.customerDiscount.updateMany({
-      where: {
-        id: { in: voucherIds },
-      },
-      data: {
-        is_seen: true,
-      },
+    if (ids.voucherIds.length > 0) {
+      await prisma.customerDiscount.updateMany({
+        where: {
+          id: { in: ids.voucherIds },
+        },
+        data: {
+          is_seen: true,
+        },
+      });
+    }
+
+    if (ids.eventUsageIds.length > 0) {
+      await prisma.eventUsage.updateMany({
+        where: {
+          id: { in: ids.eventUsageIds },
+        },
+        data: {
+          is_seen: true,
+        },
+      });
+    }
+
+    // Juga tandai event_usage yang terhubung dengan voucher
+    const vouchersWithEvent = await prisma.customerDiscount.findMany({
+      where: { id: { in: ids.voucherIds } },
+      select: { event_usage: { select: { id: true } } },
     });
+
+    const linkedEventUsageIds = vouchersWithEvent
+      .map((v) => v.event_usage?.id)
+      .filter(Boolean) as string[];
+
+    if (linkedEventUsageIds.length > 0) {
+      await prisma.eventUsage.updateMany({
+        where: { id: { in: linkedEventUsageIds } },
+        data: { is_seen: true },
+      });
+    }
 
     return successResponse(
       undefined,

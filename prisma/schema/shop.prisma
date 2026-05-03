@@ -15,7 +15,7 @@ model Shop {
     products Product[]
     orders   Order[]
     discounts Discount[]
-    owner    Owner     @relation(fields: [owner_id], references: [id])
+    owner    Owner     @relation(fields: [owner_id], references: [id], onDelete: Cascade)
     owner_id String    @unique
 
     order_mode               ShopOrderMode          @default(READY_ONLY) // metode menyiapkan order    
@@ -57,7 +57,7 @@ model ShopCategory {
 model ShopBilling {
     id String @id @default(nanoid())
 
-    shop    Shop   @relation(fields: [shop_id], references: [id])
+    shop    Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
     shop_id String
 
     start_date DateTime
@@ -128,7 +128,7 @@ model Payment {
     additional_price Float?
     active           Boolean       @default(true)
 
-    shop    Shop   @relation(fields: [shop_id], references: [id])
+    shop    Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
     shop_id String
 
     @@unique([shop_id, method])

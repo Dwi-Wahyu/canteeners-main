@@ -3,10 +3,10 @@ model Order {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  customer    Customer @relation(fields: [customer_id], references: [id])
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
   customer_id String
 
-  shop              Shop      @relation(fields: [shop_id], references: [id])
+  shop              Shop      @relation(fields: [shop_id], references: [id], onDelete: Cascade)
   shop_id           String
   estimation        Int? // dalam menit
   payment_proof_url String?

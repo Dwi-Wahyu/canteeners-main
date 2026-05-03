@@ -8,9 +8,68 @@ import {
 import { prisma } from "@/lib/prisma";
 import { adminAuth } from "@/lib/firebase/admin";
 import GoogleProvider from "next-auth/providers/google";
+import { processEventParticipation } from "@/features/user/lib/event-actions";
 
-async function getFirebaseToken({ uid }: { uid: string }) {
+async function getFirebaseToken({
+  uid,
+  email,
+  displayName,
+  photoURL,
+}: {
+  uid: string;
+  email?: string;
+  displayName?: string;
+  photoURL?: string;
+}) {
   try {
+    const updateData: any = {};
+
+    // Validate email format
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      updateData.email = email;
+      updateData.emailVerified = true; // Google and regular logins in this app are considered verified
+    }
+
+    if (displayName && displayName.trim() !== "") {
+      updateData.displayName = displayName;
+    }
+
+    // Validate photoURL (must be an absolute URL)
+    if (photoURL && photoURL.startsWith("http")) {
+      updateData.photoURL = photoURL;
+    }
+
+    // Sync user profile to Firebase Auth if we have valid data
+    if (Object.keys(updateData).length > 0) {
+      try {
+        await adminAuth.updateUser(uid, updateData);
+      } catch (error: any) {
+        if (error.code === "auth/user-not-found") {
+          try {
+            await adminAuth.createUser({
+              uid,
+              ...updateData,
+            });
+          } catch (createError) {
+            console.error("Error creating firebase user:", createError);
+          }
+        } else if (error.code === "auth/email-already-exists") {
+          // If email belongs to another UID, we skip updating email but still try to generate token
+          console.warn(`Email ${email} already exists for another UID in Firebase.`);
+          // Optionally update displayName/photoURL without email
+          const { email: _, emailVerified: __, ...otherData } = updateData;
+          if (Object.keys(otherData).length > 0) {
+             try {
+               await adminAuth.updateUser(uid, otherData);
+             } catch (e) {
+               console.error("Error updating user without email:", e);
+             }
+          }
+        } else {
+          console.error("Error updating firebase user:", error);
+        }
+      }
+    }
     return await adminAuth.createCustomToken(uid);
   } catch (error) {
     console.error("Error creating firebase token:", error);
@@ -131,7 +190,12 @@ export const authConfig: NextAuthConfig = {
           return null;
         }
 
-        const firebaseToken = await getFirebaseToken({ uid: user.id });
+        const firebaseToken = await getFirebaseToken({
+          uid: user.id,
+          email: user.username ?? undefined,
+          displayName: user.name,
+          photoURL: user.avatar,
+        });
 
         await prisma.user.update({
           where: {
@@ -197,6 +261,13 @@ export const authConfig: NextAuthConfig = {
               },
             },
           });
+
+          // Pemicu event participation untuk user baru
+          try {
+            await processEventParticipation(user.id as string);
+          } catch (error) {
+            console.error("Error triggering event participation:", error);
+          }
         } else if (!existingUser.name || existingUser.name === "") {
           // Update nama jika kosong di database
           await prisma.user.update({
@@ -278,7 +349,12 @@ export const authConfig: NextAuthConfig = {
           token.cartId = dbUser.customer?.cart?.id;
 
           if (!token.firebaseToken || !token.firebaseTokenCreatedAt) {
-            const firebaseToken = await getFirebaseToken({ uid: dbUser.id });
+            const firebaseToken = await getFirebaseToken({
+              uid: dbUser.id,
+              email: dbUser.username ?? undefined,
+              displayName: dbUser.name,
+              photoURL: dbUser.avatar,
+            });
             token.firebaseToken = firebaseToken;
             token.firebaseTokenCreatedAt = Math.floor(Date.now() / 1000);
           }
@@ -293,6 +369,9 @@ export const authConfig: NextAuthConfig = {
         // console.log("Refreshing Firebase token for user:", token.id);
         const newFirebaseToken = await getFirebaseToken({
           uid: token.id as string,
+          email: token.username as string,
+          displayName: token.name as string,
+          photoURL: token.avatar as string,
         });
         if (newFirebaseToken) {
           token.firebaseToken = newFirebaseToken;

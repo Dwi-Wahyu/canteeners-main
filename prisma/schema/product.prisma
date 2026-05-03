@@ -9,7 +9,7 @@ model Product {
     image_url   String
     price       Float
     cost        Float?
-    shop        Shop    @relation(fields: [shop_id], references: [id])
+    shop        Shop    @relation(fields: [shop_id], references: [id], onDelete: Cascade)
     shop_id     String
 
     options     ProductOption[]
