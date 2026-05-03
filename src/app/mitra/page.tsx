@@ -6,6 +6,7 @@ import CanteenScrollSection from "@/components/canteen-scroll-section";
 import { getJoinedShops } from "@/features/canteen/lib/mitra-queries";
 import { getImageUrl } from "@/helper/get-image-url";
 import { MapPin } from "lucide-react";
+import MitraHero from "@/components/mitra-hero";
 
 
 const benefits = [
@@ -49,70 +50,7 @@ export default async function MitraRegistrationPage() {
       <LandingTopbar />
 
       {/* ── Hero Section ── */}
-      <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1920&q=80"
-            alt="Dapur kantin profesional"
-            className="w-full h-full object-cover"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(11,28,48,0.45) 0%, rgba(11,28,48,0.82) 100%)",
-            }}
-          />
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white pt-24 pb-16">
-          <div
-            className="inline-block py-1.5 px-5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white font-headline text-sm font-semibold mb-7 opacity-0 translate-y-6"
-            style={{ animation: "heroFadeUp 0.7s 0.2s forwards ease-out" }}
-          >
-            Mitra Canteeners
-          </div>
-
-          <h1
-            className="font-headline text-5xl md:text-7xl font-extrabold tracking-tight mb-6 leading-tight opacity-0 translate-y-6"
-            style={{ animation: "heroFadeUp 0.7s 0.4s forwards ease-out" }}
-          >
-            Jadilah Bagian dari{" "}
-            <br />
-            <span className="text-[#ffb4ab]">Revolusi Kantin</span>
-          </h1>
-
-          <p
-            className="text-lg md:text-xl font-body-inter text-white/75 mb-10 max-w-2xl mx-auto font-light leading-relaxed opacity-0 translate-y-6"
-            style={{ animation: "heroFadeUp 0.7s 0.6s forwards ease-out" }}
-          >
-            Tingkatkan efisiensi, capai lebih banyak pelanggan, dan kembangkan
-            bisnis kuliner Anda bersama ekosistem Canteeners.
-          </p>
-
-          <div
-            className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 translate-y-6"
-            style={{ animation: "heroFadeUp 0.7s 0.8s forwards ease-out" }}
-          >
-            <a
-              href="https://wa.me/6289643144013?text=Saya%20ingin%20mendaftarkan%20kedai%20saya"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary-landing text-base font-bold px-8 py-4 w-full sm:w-auto text-center"
-            >
-              Daftar Sekarang
-            </a>
-            <Link
-              href="/syarat-dan-ketentuan/mitra"
-              className="bg-white/15 hover:bg-white/25 backdrop-blur-md text-white border border-white/30 rounded-full px-8 py-4 text-base font-semibold w-full sm:w-auto text-center transition-all"
-            >
-              Pelajari Lebih Lanjut
-            </Link>
-          </div>
-        </div>
-      </section>
+      <MitraHero />
 
       {/* ── Mengapa Memilih ── */}
       <section className="py-24 bg-[#f8f9ff] px-6">
@@ -328,13 +266,6 @@ export default async function MitraRegistrationPage() {
 
       <LandingFooter />
 
-      {/* Hero keyframe */}
-      <style>{`
-        @keyframes heroFadeUp {
-          from { opacity: 0; transform: translateY(24px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

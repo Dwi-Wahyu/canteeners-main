@@ -8,7 +8,7 @@ const canteens = [
     name: "Kantin Kudapan",
     visitors: 1200,
     icon: "restaurant",
-    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900&q=80",
+    image: "/visual/kantin-kudapan.jpg",
     badge: "Fase 1 — Lokasi Utama",
     desc: "Kantin terbesar di lingkungan Unhas dengan ratusan mahasiswa setiap harinya.",
   },
