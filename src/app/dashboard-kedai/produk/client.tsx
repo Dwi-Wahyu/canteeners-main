@@ -80,8 +80,8 @@ export default function ProductClientPage({
   return (
     <div className="min-h-screen pb-20">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Daftar Produk</h1>
-        <div className="text-muted-foreground text-sm">
+        <h2 className="text-2xl font-medium tracking-tight">Daftar Produk</h2>
+        <div className="text-muted-foreground">
           Manajemen produk yang tersedia di kedai Anda
         </div>
       </div>
