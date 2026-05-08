@@ -8,6 +8,7 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { MapPin } from "lucide-react";
 import MitraHero from "@/components/mitra-hero";
 
+export const dynamic = "force-dynamic";
 
 const benefits = [
   {
@@ -66,11 +67,7 @@ export default async function MitraRegistrationPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map((b, i) => (
-              <AnimateOnScroll
-                key={b.title}
-                animation="fade-up"
-                delay={i * 80}
-              >
+              <AnimateOnScroll key={b.title} animation="fade-up" delay={i * 80}>
                 <div className="bg-white p-8 rounded-xl flex gap-6 hover:shadow-[0_20px_40px_-15px_rgba(11,28,48,0.08)] transition-all duration-300 group h-full">
                   <div className="flex-shrink-0 w-14 h-14 bg-[#eff4ff] rounded-full flex items-center justify-center text-[#DC2626] group-hover:bg-[#DC2626] transition-colors duration-300">
                     <span
@@ -113,8 +110,8 @@ export default async function MitraRegistrationPage() {
                 Telah Bergabung Bersama Kami
               </h2>
               <p className="text-[#5c403c] text-lg">
-                Bergabunglah dengan pemilik kedai yang telah mendigitalisasi bisnis
-                mereka di Canteeners.
+                Bergabunglah dengan pemilik kedai yang telah mendigitalisasi
+                bisnis mereka di Canteeners.
               </p>
             </AnimateOnScroll>
 
@@ -136,7 +133,8 @@ export default async function MitraRegistrationPage() {
                           >
                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                           </svg>
-                          {shop.average_rating.toFixed(1)} ({shop.total_ratings})
+                          {shop.average_rating.toFixed(1)} ({shop.total_ratings}
+                          )
                         </span>
                       </div>
                     </div>
@@ -149,7 +147,8 @@ export default async function MitraRegistrationPage() {
                         <span>{shop.canteen.name}</span>
                       </div>
                       <p className="text-sm text-[#5c403c]/80 line-clamp-2 font-body-inter">
-                        {shop.description || "Menyediakan hidangan terbaik untuk mahasiswa Unhas."}
+                        {shop.description ||
+                          "Menyediakan hidangan terbaik untuk mahasiswa Unhas."}
                       </p>
                     </div>
                   </div>
@@ -223,14 +222,18 @@ export default async function MitraRegistrationPage() {
       </section>
 
       {/* ── CTA Siap Bergabung ── */}
-      <section className="py-24 px-6 text-white text-center relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)" }}
+      <section
+        className="py-24 px-6 text-white text-center relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
+        }}
       >
         {/* Dot pattern */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
-            backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+            backgroundImage:
+              "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
             backgroundSize: "24px 24px",
           }}
         />
@@ -241,7 +244,8 @@ export default async function MitraRegistrationPage() {
               Siap Bergabung?
             </h2>
             <p className="text-[#ffdad6] text-lg mb-10 font-body-inter">
-              Tim kami siap membantu proses pendaftaran dan onboarding kedai Anda.
+              Tim kami siap membantu proses pendaftaran dan onboarding kedai
+              Anda.
             </p>
             <a
               href="https://wa.me/6289643144013?text=Halo%20Admin%2C%20saya%20tertarik%20mendaftarkan%20kedai%20saya"
@@ -258,14 +262,14 @@ export default async function MitraRegistrationPage() {
               Hubungi via WhatsApp
             </a>
             <p className="text-xs text-white/55 mt-6 italic">
-              *Dengan mendaftar, Anda menyetujui Syarat &amp; Ketentuan Mitra Canteeners.
+              *Dengan mendaftar, Anda menyetujui Syarat &amp; Ketentuan Mitra
+              Canteeners.
             </p>
           </AnimateOnScroll>
         </div>
       </section>
 
       <LandingFooter />
-
     </div>
   );
 }
