@@ -29,10 +29,13 @@ export default function LandingTopbar() {
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
+        
         <Link
           href="/"
-          className="text-2xl font-black tracking-tighter text-[#DC2626] font-headline"
+          className="text-2xl font-black tracking-tighter text-[#DC2626] font-headline flex items-center"
         >
+          <img src="/logo.png" alt="Canteeners" className="w-8 h-8 object-contain" />
+          
           Canteeners
         </Link>
 

@@ -31,6 +31,7 @@ export default function LandingFooter() {
               height={40}
               className="rounded-lg"
             />
+            Canteeners
           </a>
 
           <p className="font-body-inter text-sm text-slate-500 max-w-xs mt-3 leading-relaxed">
