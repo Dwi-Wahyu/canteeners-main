@@ -7,7 +7,7 @@ WORKDIR /app
 
 COPY package.json bun.lock* ./
 
-COPY prisma ./
+COPY prisma ./prisma/
 
 RUN bun install --frozen-lockfile
 
