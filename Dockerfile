@@ -15,6 +15,16 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Declare dan export build args sebagai env
+ARG FIREBASE_PRIVATE_KEY
+ARG FIREBASE_CLIENT_EMAIL
+ARG DATABASE_URL
+
+ENV FIREBASE_PRIVATE_KEY=$FIREBASE_PRIVATE_KEY
+ENV FIREBASE_CLIENT_EMAIL=$FIREBASE_CLIENT_EMAIL
+ENV DATABASE_URL=$DATABASE_URL
+
+
 # Generate Prisma Client if schema exists
 RUN if [ -d "prisma" ]; then bunx prisma generate; fi
 
