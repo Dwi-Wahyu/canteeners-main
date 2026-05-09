@@ -1,4 +1,4 @@
-FROM oven/bun:1-alpine AS base
+FROM oven/bun:1.3.13 AS base
 
 # 1. Install dependencies
 FROM base AS deps
@@ -39,12 +39,12 @@ ENV FIREBASE_API_KEY=placeholder
 ENV FIREBASE_CLIENT_EMAIL=placeholder@placeholder.com
 ENV FIREBASE_PROJECT_ID=placeholder
 
-# ✅ Path eksplisit untuk prisma v7 multi-schema
+# Path eksplisit untuk prisma v7 multi-schema
 RUN if [ -d "prisma/schema" ]; then bunx prisma generate --schema ./prisma/schema; fi
 
 RUN bun run build
 
-# ✅ Stage migrator — full deps untuk migrate & seed
+# Stage migrator — full deps untuk migrate & seed
 FROM base AS migrator
 WORKDIR /app
 
@@ -59,7 +59,7 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 # Tidak ada CMD — dijalankan dengan perintah eksplisit di workflow
 
-# ✅ Production image — tetap ringan
+# Production image — tetap ringan
 FROM base AS runner
 WORKDIR /app
 
@@ -71,7 +71,7 @@ COPY --from=builder /app/.next/static ./.next/static
 
 # Prisma untuk runtime query (bukan migrate)
 COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
-# ✅ Copy node_modules dari deps agar @prisma/adapter-pg tersedia
+# Copy node_modules dari deps agar @prisma/adapter-pg tersedia
 COPY --from=deps /app/node_modules ./node_modules
 
 EXPOSE 3000
