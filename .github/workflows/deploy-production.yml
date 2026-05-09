@@ -7,6 +7,7 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - uses: actions/checkout@v3
 
@@ -17,23 +18,39 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/dwi-wahyu/canteeners-main:latest
-          # Kirim rahasia dari GitHub ke Dockerfile
-          build-args: |
-            FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-            FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
-            FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+      # - name: Build and Push
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: ghcr.io/dwi-wahyu/canteeners-main:latest
+      #     # Kirim rahasia dari GitHub ke Dockerfile
+      #     build-args: |
+      #       FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      #       FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      #       FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
+      #       DATABASE_URL=${{ secrets.DATABASE_URL }}
+      #       NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+            --build-arg FIREBASE_PRIVATE_KEY="${{ secrets.FIREBASE_PRIVATE_KEY }}" \
+            --build-arg FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}" \
+            --build-arg FIREBASE_CLIENT_EMAIL="${{ secrets.FIREBASE_CLIENT_EMAIL }}" \
+            --build-arg NEXTAUTH_SECRET="${{ secrets.NEXTAUTH_SECRET }}" \
+            --build-arg DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            --build-arg NEXTAUTH_URL="${{ secrets.NEXTAUTH_URL }}" \
+            -t canteeners-app .
+
+      - name: Tag and Push
+        run: |
+          docker push ghcr.io/dwi-wahyu/canteeners-main:latest
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment: Production
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
