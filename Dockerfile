@@ -6,7 +6,6 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json bun.lock* ./
-
 RUN bun install --frozen-lockfile
 
 # 2. Build the application
@@ -15,7 +14,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# NEXT_PUBLIC_* harus ada saat build (embed ke client bundle)
 ARG NEXT_PUBLIC_FIREBASE_API_KEY
 ARG NEXT_PUBLIC_FIREBASE_APP_ID
 ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
@@ -34,8 +32,6 @@ ENV NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=$NEXT_PUBLIC_FIREBASE_MESSAGING_SEN
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
 ENV NEXTAUTH_URL=$NEXTAUTH_URL
 
-# Sensitive vars: dummy value, hanya agar build tidak crash
-# Nilai asli diinject saat runtime via docker-compose
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost/placeholder
 ENV NEXTAUTH_SECRET=placeholder-secret-minimum-32-characters-here
 ENV FIREBASE_PRIVATE_KEY=placeholder
@@ -43,37 +39,43 @@ ENV FIREBASE_API_KEY=placeholder
 ENV FIREBASE_CLIENT_EMAIL=placeholder@placeholder.com
 ENV FIREBASE_PROJECT_ID=placeholder
 
-# Generate Prisma Client if schema exists
-RUN if [ -d "prisma" ]; then bunx prisma generate; fi
+# ✅ Path eksplisit untuk prisma v7 multi-schema
+RUN if [ -d "prisma/schema" ]; then bunx prisma generate --schema ./prisma/schema; fi
 
 RUN bun run build
 
-# 3. Production image
+# ✅ Stage migrator — full deps untuk migrate & seed
+FROM base AS migrator
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
+COPY --from=builder /app/src/lib ./src/lib
+COPY --from=builder /app/src/helper ./src/helper
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+
+# Tidak ada CMD — dijalankan dengan perintah eksplisit di workflow
+
+# ✅ Production image — tetap ringan
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Copy standalone build and static files
 COPY --from=builder /app/public ./public
-
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
-COPY --from=builder /app/src/lib ./src/lib
-COPY --from=builder /app/src/helper ./src/helper
-
-RUN bun add prisma@7 --dev
+# Prisma untuk runtime query (bukan migrate)
+COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
+# ✅ Copy node_modules dari deps agar @prisma/adapter-pg tersedia
+COPY --from=deps /app/node_modules ./node_modules
 
 EXPOSE 3000
-
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Next.js standalone output uses a server.js file
 CMD ["bun", "server.js"]

@@ -21,13 +21,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Build and Push
+      # Build image app (target: runner)
+      - name: Build and Push App
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
+          target: runner
           tags: ghcr.io/dwi-wahyu/canteeners-main:latest
-          # Hanya NEXT_PUBLIC_* yang boleh masuk build-arg
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
@@ -37,7 +38,16 @@ jobs:
             NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
             NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
-            # Sensitive vars TIDAK dipass di sini
+
+      # Build image migrator (target: migrator)*
+      - name: Build and Push Migrator
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          target: migrator
+          tags: ghcr.io/dwi-wahyu/canteeners-migrator:latest
+
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
@@ -50,28 +60,24 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # Ganti dengan path folder root project Anda di server
-            cd /var/www/canteeners 
+            cd /var/www/canteeners
 
-            # Pull image terbaru
             docker pull ghcr.io/dwi-wahyu/canteeners-main:latest
+            docker pull ghcr.io/dwi-wahyu/canteeners-migrator:latest
 
-            # Jalankan migrate — gunakan image yang sama, lalu hapus container setelah selesai
-            # docker run --rm \
-            #   --network canteeners_default \
-            #   --env DATABASE_URL="${DATABASE_URL}" \
-            #   --env-file .env.production \
-            #   ghcr.io/dwi-wahyu/canteeners-main:latest \
-            #   bunx prisma migrate deploy --schema ./prisma/schema
+            # Migrate pakai image migrator
+            docker run --rm \
+              --network canteeners_default \
+              --env-file .env.production \
+              ghcr.io/dwi-wahyu/canteeners-migrator:latest \
+              bunx prisma migrate deploy
 
-            # Jalankan seed — hanya jika diperlukan
-            # Hapus/comment baris ini jika seed tidak boleh diulang setiap deploy
-            # docker run --rm \
-            #   --network canteeners_default \
-            #   --env-file .env.production \
-            #   ghcr.io/dwi-wahyu/canteeners-main:latest \
-            #   bun run prisma/seed
+            # Seed pakai image migrator
+            docker run --rm \
+              --network canteeners_default \
+              --env-file .env.production \
+              ghcr.io/dwi-wahyu/canteeners-migrator:latest \
+              bunx prisma db seed
 
-
-            # Restart service main production saja
+            # Deploy app
             docker compose up -d main
