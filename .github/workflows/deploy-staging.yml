@@ -8,6 +8,9 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     environment: Staging
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
 
