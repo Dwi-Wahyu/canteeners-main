@@ -56,5 +56,22 @@ jobs:
             # Pull image terbaru
             docker pull ghcr.io/dwi-wahyu/canteeners-main:latest
 
+            # Jalankan migrate — gunakan image yang sama, lalu hapus container setelah selesai
+            # docker run --rm \
+            #   --network canteeners_default \
+            #   --env DATABASE_URL="${DATABASE_URL}" \
+            #   --env-file .env.production \
+            #   ghcr.io/dwi-wahyu/canteeners-main:latest \
+            #   bunx prisma migrate deploy --schema ./prisma/schema
+
+            # Jalankan seed — hanya jika diperlukan
+            # Hapus/comment baris ini jika seed tidak boleh diulang setiap deploy
+            # docker run --rm \
+            #   --network canteeners_default \
+            #   --env-file .env.production \
+            #   ghcr.io/dwi-wahyu/canteeners-main:latest \
+            #   bun run prisma/seed
+
+
             # Restart service main production saja
             docker compose up -d main
