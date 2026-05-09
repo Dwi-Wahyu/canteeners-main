@@ -39,6 +39,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default function PanduanMitraPage() {
   return (
     <Suspense>

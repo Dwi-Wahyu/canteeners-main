@@ -6,7 +6,8 @@ import { CheckCircle, XCircle, Clock, Lightbulb } from "lucide-react";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+
+export const dynamic = "force-dynamic";
 
 export default function PanduanRefundMitraPage() {
   return (
