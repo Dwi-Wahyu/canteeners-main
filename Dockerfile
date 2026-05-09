@@ -66,6 +66,7 @@ COPY --from=builder /app/.next/static ./.next/static
 
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 COPY --from=builder /app/src/lib ./src/lib
+COPY --from=builder /app/src/helper ./src/helper
 
 RUN bun add prisma@7 --dev
 
