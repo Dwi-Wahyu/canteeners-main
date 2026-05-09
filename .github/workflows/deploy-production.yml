@@ -17,12 +17,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/dwi-wahyu/canteeners-main:latest
+      - name: Build Image
+        run: docker build . -t ghcr.io/dwi-wahyu/canteeners-main:latest
+
+      - name: Push Image
+        run: docker push ghcr.io/dwi-wahyu/canteeners-main:latest
+
+      # - name: Build and Push
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: ghcr.io/dwi-wahyu/canteeners-main:latest
 
   deploy:
     needs: build-and-push
