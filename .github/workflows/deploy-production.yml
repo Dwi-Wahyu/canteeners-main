@@ -74,19 +74,19 @@ jobs:
             docker pull ghcr.io/dwi-wahyu/canteeners-main:latest
             docker pull ghcr.io/dwi-wahyu/canteeners-migrator:latest
 
-            # Migrate pakai image migrator
-            docker run --rm \
-              --network canteeners_default \
-              --env-file .env.production \
-              ghcr.io/dwi-wahyu/canteeners-migrator:latest \
-              bunx prisma migrate deploy
+            # # Migrate pakai image migrator
+            # docker run --rm \
+            #   --network canteeners_default \
+            #   --env-file .env.production \
+            #   ghcr.io/dwi-wahyu/canteeners-migrator:latest \
+            #   bunx prisma migrate deploy
 
-            # Seed pakai image migrator
-            docker run --rm \
-              --network canteeners_default \
-              --env-file .env.production \
-              ghcr.io/dwi-wahyu/canteeners-migrator:latest \
-              bunx prisma db seed
+            # # Seed pakai image migrator
+            # docker run --rm \
+            #   --network canteeners_default \
+            #   --env-file .env.production \
+            #   ghcr.io/dwi-wahyu/canteeners-migrator:latest \
+            #   bunx prisma db seed
 
             # Deploy app
             docker compose up -d main
