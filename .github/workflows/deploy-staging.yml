@@ -7,6 +7,10 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: Staging
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v3
 
@@ -15,18 +19,29 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and Push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: ghcr.io/dwi-wahyu/canteeners-main:latest
-
+          tags: ghcr.io/dwi-wahyu/canteeners-main:staging
+          # Hanya NEXT_PUBLIC_* yang boleh masuk build-arg
+          build-args: |
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+            NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            # Sensitive vars TIDAK dipass di sini
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    environment: Staging
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@master
@@ -39,7 +54,23 @@ jobs:
             cd /var/www/canteeners 
 
             # Pull image terbaru
-            docker pull ghcr.io/dwi-wahyu/canteeners-main:latest
+            docker pull ghcr.io/dwi-wahyu/canteeners-main:staging
 
-            # Restart service admin production saja
-            docker-compose up -d admin
+            # Jalankan migrate — gunakan image yang sama, lalu hapus container setelah selesai
+            # docker run --rm \
+            #   --network canteeners_default \
+            #   --env DATABASE_URL="${DATABASE_URL}" \
+            #   --env-file .env.production \
+            #   ghcr.io/dwi-wahyu/canteeners-main:latest \
+            #   bunx prisma migrate deploy --schema ./prisma/schema
+
+            # Jalankan seed — hanya jika diperlukan
+            # Hapus/comment baris ini jika seed tidak boleh diulang setiap deploy
+            # docker run --rm \
+            #   --network canteeners_default \
+            #   --env-file .env.production \
+            #   ghcr.io/dwi-wahyu/canteeners-main:latest \
+            #   bun run prisma/seed
+
+            # Restart service main production saja
+            docker compose up -d main

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import LandingTopbar from "@/components/layouts/landing-topbar";
 import LandingFooter from "@/components/layouts/landing-footer";
 import AnimateOnScroll from "@/components/animate-on-scroll";
@@ -69,7 +68,7 @@ export default async function MitraRegistrationPage() {
             {benefits.map((b, i) => (
               <AnimateOnScroll key={b.title} animation="fade-up" delay={i * 80}>
                 <div className="bg-white p-8 rounded-xl flex gap-6 hover:shadow-[0_20px_40px_-15px_rgba(11,28,48,0.08)] transition-all duration-300 group h-full">
-                  <div className="flex-shrink-0 w-14 h-14 bg-[#eff4ff] rounded-full flex items-center justify-center text-[#DC2626] group-hover:bg-[#DC2626] transition-colors duration-300">
+                  <div className="shrink-0 w-14 h-14 bg-[#eff4ff] rounded-full flex items-center justify-center text-[#DC2626] group-hover:bg-[#DC2626] transition-colors duration-300">
                     <span
                       className="material-symbols-outlined text-2xl group-hover:text-white transition-colors duration-300"
                       style={{ fontVariationSettings: "'FILL' 1" }}
@@ -143,7 +142,7 @@ export default async function MitraRegistrationPage() {
                         {shop.name}
                       </h3>
                       <div className="flex items-center text-[#5c403c] text-sm mb-2">
-                        <MapPin className="w-3.5 h-3.5 mr-1 flex-shrink-0" />
+                        <MapPin className="w-3.5 h-3.5 mr-1 shrink-0" />
                         <span>{shop.canteen.name}</span>
                       </div>
                       <p className="text-sm text-[#5c403c]/80 line-clamp-2 font-body-inter">

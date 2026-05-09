@@ -1,5 +1,7 @@
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 
+export const dynamic = "force-dynamic";
+
 export default function KebijakanPrivasi() {
   return (
     <div className="min-h-screen bg-background pb-10">

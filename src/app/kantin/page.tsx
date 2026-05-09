@@ -7,16 +7,7 @@ import { auth } from "@/config/auth";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import CanteenBanner from "@/features/banner/ui/canteen-banner";
 
-const categoryIconMap: Record<string, string> = {
-  "Es Buah": "emoji_food_beverage",
-  Ayam: "restaurant",
-  Gorengan: "local_fire_department",
-  Mie: "ramen_dining",
-  Minuman: "local_cafe",
-  Nasi: "rice_bowl",
-  Bakso: "soup_kitchen",
-  Semua: "apps",
-};
+export const dynamic = "force-dynamic";
 
 export default async function CanteenPage() {
   const session = await auth();
@@ -33,8 +24,8 @@ export default async function CanteenPage() {
     description: c.shops.map((s) => s.name).join(", ") || "Aneka Menu",
     location: c.maps.length > 0 ? `Lantai ${c.maps[0].floor}` : "Kantin",
     rating: (
-      c.shops.reduce((acc, s) => acc + s.average_rating, 0) /
-        c.shops.length || 0
+      c.shops.reduce((acc, s) => acc + s.average_rating, 0) / c.shops.length ||
+      0
     ).toFixed(1),
     deliveryTime: "15-20 mnt",
     deliveryFee: "Rp 0 (Promo)",
