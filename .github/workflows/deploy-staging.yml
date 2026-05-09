@@ -57,4 +57,4 @@ jobs:
             docker pull ghcr.io/dwi-wahyu/canteeners-main:staging
 
             # Restart service main production saja
-            docker-compose up -d main
+            docker compose up -d main
