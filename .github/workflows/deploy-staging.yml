@@ -38,6 +38,25 @@ jobs:
             NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
             # Sensitive vars TIDAK dipass di sini
+
+      # Build image migrator (target: migrator)*
+      - name: Build and Push Migrator
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          target: migrator
+          tags: ghcr.io/dwi-wahyu/canteeners-migrator:staging
+          build-args: |
+            NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+            NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+            NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
@@ -73,4 +92,4 @@ jobs:
             #   bun run prisma/seed
 
             # Restart service main staging saja
-            docker compose -f docker-compose.staging.yml --env-file .env.staging up -d main
+            docker compose -f docker-compose.staging.yml --env-file .env.staging up -d main-staging
