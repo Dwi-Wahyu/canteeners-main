@@ -17,18 +17,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Image
-        run: docker build . -t ghcr.io/dwi-wahyu/canteeners-main:latest
-
-      - name: Push Image
-        run: docker push ghcr.io/dwi-wahyu/canteeners-main:latest
-
-      # - name: Build and Push
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: ghcr.io/dwi-wahyu/canteeners-main:latest
+      - name: Build and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/dwi-wahyu/canteeners-main:latest
+          # Kirim rahasia dari GitHub ke Dockerfile
+          build-args: |
+            FIREBASE_SERVICE_ACCOUNT=${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+            FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
+            FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
 
   deploy:
     needs: build-and-push

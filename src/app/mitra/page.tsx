@@ -8,8 +8,6 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { MapPin } from "lucide-react";
 import MitraHero from "@/components/mitra-hero";
 
-export const dynamic = "force-dynamic";
-
 const benefits = [
   {
     icon: "trending_up",

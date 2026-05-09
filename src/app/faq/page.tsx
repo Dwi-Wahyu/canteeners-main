@@ -6,8 +6,6 @@ import {
 } from "@/components/ui/accordion";
 import { prisma } from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
-
 export default async function FAQ() {
   const faqs = await prisma.faq.findMany();
 

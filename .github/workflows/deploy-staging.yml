@@ -17,18 +17,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Image
-        run: docker build . -t ghcr.io/dwi-wahyu/canteeners-main:staging
-
-      - name: Push Image
-        run: docker push ghcr.io/dwi-wahyu/canteeners-main:staging
-
-      # - name: Build and Push
-      #   uses: docker/build-push-action@v4
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: ghcr.io/dwi-wahyu/canteeners-main:latest
+      - name: Build and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/dwi-wahyu/canteeners-main:latest
+          build-args: |
+            FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY_STAGING }}
+            DATABASE_URL=${{ secrets.DATABASE_URL_STAGING }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET_STAGING }}
 
   deploy:
     needs: build-and-push
