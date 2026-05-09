@@ -2,7 +2,7 @@ FROM oven/bun:1.3.13 AS base
 
 # 1. Install dependencies
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
 
 COPY package.json bun.lock* ./
