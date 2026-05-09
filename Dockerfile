@@ -64,6 +64,8 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
+RUN bun add prisma@7 --dev
+
 EXPOSE 3000
 
 ENV PORT=3000
