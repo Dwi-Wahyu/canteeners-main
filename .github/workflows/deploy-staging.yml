@@ -72,5 +72,5 @@ jobs:
             #   ghcr.io/dwi-wahyu/canteeners-main:latest \
             #   bun run prisma/seed
 
-            # Restart service main production saja
-            docker compose up -d main
+            # Restart service main staging saja
+            docker compose -f docker-compose.staging.yml --env-file .env.staging up -d main
