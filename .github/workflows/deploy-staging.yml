@@ -21,13 +21,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Build and Push
+      - name: Build and Push App
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
+          target: runner
           tags: ghcr.io/dwi-wahyu/canteeners-main:staging
-          # Hanya NEXT_PUBLIC_* yang boleh masuk build-arg
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
@@ -37,9 +37,7 @@ jobs:
             NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
             NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
-            # Sensitive vars TIDAK dipass di sini
 
-      # Build image migrator (target: migrator)*
       - name: Build and Push Migrator
         uses: docker/build-push-action@v5
         with:
@@ -69,11 +67,22 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            # Ganti dengan path folder root project Anda di server
-            cd /var/www/canteeners 
+            export XDG_RUNTIME_DIR=/run/user/$(id -u)
 
-            # Pull image terbaru menggunakan Podman
+            # Pull images terbaru
             podman pull ghcr.io/dwi-wahyu/canteeners-main:staging
+            podman pull ghcr.io/dwi-wahyu/canteeners-migrator:staging
 
-            # Restart Staging Pod menggunakan native kube play
-            podman kube play podman/staging/pod.yaml
+            # Restart pod dengan image terbaru
+            podman kube down /var/www/canteeners/podman/staging/pod.yaml
+            podman kube play /var/www/canteeners/podman/staging/pod.yaml
+
+            # Tunggu DB siap
+            sleep 10
+
+            # Jalankan migration
+            podman run --rm \
+              --pod canteeners-staging-pod \
+              -e DATABASE_URL=postgresql://canteeners_staging:canteeners_staging123@localhost:5432/canteeners_staging \
+              ghcr.io/dwi-wahyu/canteeners-migrator:staging \
+              bunx prisma migrate deploy
