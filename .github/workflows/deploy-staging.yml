@@ -72,24 +72,8 @@ jobs:
             # Ganti dengan path folder root project Anda di server
             cd /var/www/canteeners 
 
-            # Pull image terbaru
-            docker pull ghcr.io/dwi-wahyu/canteeners-main:staging
+            # Pull image terbaru menggunakan Podman
+            podman pull ghcr.io/dwi-wahyu/canteeners-main:staging
 
-            # Jalankan migrate — gunakan image yang sama, lalu hapus container setelah selesai
-            # docker run --rm \
-            #   --network canteeners_default \
-            #   --env DATABASE_URL="${DATABASE_URL}" \
-            #   --env-file .env.production \
-            #   ghcr.io/dwi-wahyu/canteeners-main:latest \
-            #   bunx prisma migrate deploy --schema ./prisma/schema
-
-            # Jalankan seed — hanya jika diperlukan
-            # Hapus/comment baris ini jika seed tidak boleh diulang setiap deploy
-            # docker run --rm \
-            #   --network canteeners_default \
-            #   --env-file .env.production \
-            #   ghcr.io/dwi-wahyu/canteeners-main:latest \
-            #   bun run prisma/seed
-
-            # Restart service main staging saja
-            docker compose -f docker-compose.staging.yml --env-file .env.staging up -d main-staging
+            # Restart Staging Pod menggunakan native kube play
+            podman kube play podman/staging/pod.yaml

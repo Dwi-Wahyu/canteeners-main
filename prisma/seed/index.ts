@@ -6,6 +6,14 @@ import { seedShops } from "./seed-shops";
 import { seedSuperAdmin } from "./seed-superadmin";
 
 async function main() {
+  // Guard: Cek apakah database sudah berisi data (berdasarkan jumlah user)
+  const userCount = await prisma.user.count();
+  if (userCount > 0) {
+    console.log("⚠️  Database sudah memiliki data. Seeding dibatalkan untuk mencegah kehilangan data.");
+    return;
+  }
+
+  console.log("🌱 Memulai proses seeding database...");
   await prisma.canteenMap.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.shopTestimony.deleteMany();
@@ -25,6 +33,7 @@ async function main() {
   await seedUsers();
   await seedSuperAdmin();
   await seedShops();
+  console.log("✅ Seeding selesai dengan sukses.");
 }
 
 main()
