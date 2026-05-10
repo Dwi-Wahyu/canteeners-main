@@ -76,4 +76,4 @@ jobs:
             podman pull ghcr.io/dwi-wahyu/canteeners-migrator:latest
 
             # Restart service main production menggunakan native systemd (Quadlets)
-            systemctl --user restart main.service
+            systemctl --user restart canteeners-main.service
