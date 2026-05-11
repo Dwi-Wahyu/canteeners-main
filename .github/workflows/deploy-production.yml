@@ -71,6 +71,8 @@ jobs:
           script: |
             cd /var/www/canteeners
 
+            podman login ghcr.io -u dwi-wahyu -p ${{ secrets.GHCR_TOKEN }}
+
             # Pull images using Podman
             podman pull ghcr.io/dwi-wahyu/canteeners-main:latest
             podman pull ghcr.io/dwi-wahyu/canteeners-migrator:latest

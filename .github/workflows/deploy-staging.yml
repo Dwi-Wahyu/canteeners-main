@@ -69,6 +69,8 @@ jobs:
           script: |
             export XDG_RUNTIME_DIR=/run/user/$(id -u)
 
+            podman login ghcr.io -u dwi-wahyu -p ${{ secrets.GHCR_TOKEN }}
+
             # Pull images terbaru
             podman pull ghcr.io/dwi-wahyu/canteeners-main:staging
             podman pull ghcr.io/dwi-wahyu/canteeners-migrator:staging
