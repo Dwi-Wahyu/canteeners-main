@@ -155,10 +155,9 @@ export default function ToggleShopStatus({
             </div>
 
             <NavButton
-              variant="ghost"
+              variant="outline"
               size="sm"
               href={"/dashboard-kedai/pengaturan/edit-kedai"}
-              className="text-primary hover:text-primary hover:bg-primary/10"
             >
               Ubah
             </NavButton>

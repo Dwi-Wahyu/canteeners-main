@@ -195,10 +195,7 @@ export default function CartItemClient({
         <div className="flex-1 flex flex-col gap-2">
           <h3 className="font-bold text-2xl">{data.product.name}</h3>
 
-          <div className="mt-2">
-            <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-              Harga Satuan
-            </p>
+          <div className="mt-">
             <p className="font-bold text-xl text-primary">
               {formatRupiah(data.price_at_add)}
             </p>
@@ -208,16 +205,9 @@ export default function CartItemClient({
       <hr />
       {/* Options Selection */}
       <div className="space-y-4">
-        <h4 className="font-bold text-lg flex items-center gap-2">
-          <Settings2 className="w-5 h-5 text-primary" />
-          Pilihan Varian & Topping
-        </h4>
         <div className="grid gap-4">
           {data.product.options.map((option) => (
-            <div
-              key={option.id}
-              className="rounded-xl border bg-card p-4 shadow-xs"
-            >
+            <div key={option.id}>
               <div className="flex justify-between items-center mb-3">
                 <h4 className="font-semibold">{option.option}</h4>
                 <div className="flex gap-1 text-xs">
@@ -319,13 +309,7 @@ export default function CartItemClient({
       </div>
       {/* Note Section */}
       <div className="space-y-2">
-        <Label
-          htmlFor="item-note"
-          className="font-bold text-lg flex items-center gap-2"
-        >
-          <Pencil className="w-5 h-5 text-primary" />
-          Catatan Pesanan
-        </Label>
+        <Label htmlFor="item-note">Catatan Pesanan</Label>
         <Textarea
           id="item-note"
           placeholder="Contoh: Gak pake seledri ya bang..."

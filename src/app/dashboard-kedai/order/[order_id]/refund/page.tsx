@@ -58,6 +58,8 @@ export default async function ShopRefundPage({
             onRefresh={async () => {
               "use server";
               revalidatePath(`/dashboard-kedai/order/${order_id}/refund`);
+              revalidatePath(`/order/${order_id}/refund`);
+              revalidatePath(`/order/${order_id}`);
             }}
           />
         </CardContent>

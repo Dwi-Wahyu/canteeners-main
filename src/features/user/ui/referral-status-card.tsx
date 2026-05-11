@@ -42,23 +42,21 @@ export default function ReferralStatusCard({
               <Gift size={24} />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-gray-900 text-sm">
-                Program Referral
-              </h3>
-              <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+              <h3 className="font-bold">Program Referral</h3>
+              <p className="text-muted-foreground mt-1 text-sm">
                 Aktifkan kode referral Anda dan dapatkan voucher diskon setiap
                 ada 3 teman yang bergabung!
               </p>
               <Button
                 size="sm"
-                className="mt-3 rounded-xl font-bold px-5 h-9 bg-primary hover:bg-primary/90 shadow-md transition-all active:scale-95"
                 onClick={onActivate}
                 disabled={!isEligible || isActivating}
+                className="mt-2"
               >
                 {isActivating ? (
-                  <Loader2 className="size-3.5 animate-spin mr-2" />
+                  <Loader2 className=" animate-spin" />
                 ) : (
-                  <Gift className="size-3.5 mr-2" />
+                  <Gift className="" />
                 )}
                 Aktifkan Kode
               </Button>

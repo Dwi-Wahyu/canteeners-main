@@ -7,6 +7,20 @@ export function formatToHour(date: Date | null | undefined) {
   return format(date, "HH:mm");
 }
 
+export function isTimeWithinRange(now: Date, start: Date, end: Date): boolean {
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const startMinutes = start.getHours() * 60 + start.getMinutes();
+  const endMinutes = end.getHours() * 60 + end.getMinutes();
+
+  if (startMinutes <= endMinutes) {
+    // Normal case (e.g., 08:00 - 17:00)
+    return nowMinutes >= startMinutes && nowMinutes <= endMinutes;
+  } else {
+    // Crosses midnight (e.g., 22:00 - 02:00)
+    return nowMinutes >= startMinutes || nowMinutes <= endMinutes;
+  }
+}
+
 export function formatToDatetimeHour(timeString: string | null) {
   if (!timeString) {
     return null;

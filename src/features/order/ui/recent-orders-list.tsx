@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -10,8 +9,9 @@ import {
 import { getRecentOrdersByShop } from "@/features/order/lib/order-queries";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
-import { getImageUrl } from "@/helper/get-image-url";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { formatToHour } from "@/helper/hour-helper";
 
 type RecentOrdersListProps = {
   orders: Awaited<ReturnType<typeof getRecentOrdersByShop>>;
@@ -36,38 +36,43 @@ export default function RecentOrdersList({ orders }: RecentOrdersListProps) {
               className="block"
               href={`/dashboard-kedai/order/${order.id}?back_url=/dashboard-kedai`}
             >
-              <div className="w-full border rounded-lg px-4 py-3">
-                <div className="flex items-center w-full justify-between">
-                  {/* <div className="flex items-center">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage
-                        src={getImageUrl("/avatar/" + order.customer.user.avatar)}
-                        alt="Avatar"
-                      />
-                      <AvatarFallback>
-                        {order.customer.user.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="ml-2">
-                      <p className="font-medium leading-none">
-                        {order.customer.user.name}
-                      </p>
-                      {formatRupiah(order.total_price)}
-                    </div>
-                  </div> */}
+              <div
+                className={cn(
+                  "w-full border rounded-lg px-4 py-3 transition-colors",
+                  order.status === "COMPLETED"
+                    ? "bg-green-100 border-green-200 dark:bg-green-900/40 dark:border-green-800"
+                    : "bg-card",
+                )}
+              >
+                <div className="flex items-start w-full justify-between">
+                  {/* ... (avatar comment remains unchanged) */}
 
-                  <div>
+                  <div className="space-y-1">
                     <p className="font-medium leading-none">
                       {order.customer.user.name}
                     </p>
-                    {formatRupiah(order.total_price)}
+                    <span className="text-[10px] text-muted-foreground">
+                      {formatToHour(order.created_at)}
+                    </span>
                   </div>
 
-                  <Badge>
-                    {orderStatusMapping[
-                      order.status as keyof typeof orderStatusMapping
-                    ] || order.status}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1.5">
+                    <div
+                      className={cn(
+                        "font-medium text-sm",
+                        order.status === "COMPLETED" &&
+                          "text-green-600 dark:text-green-400",
+                      )}
+                    >
+                      {order.status === "COMPLETED" && "+"}
+                      {formatRupiah(order.total_price)}
+                    </div>
+                    <Badge className="w-fit text-[10px] h-5 py-0">
+                      {orderStatusMapping[
+                        order.status as keyof typeof orderStatusMapping
+                      ] || order.status}
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </Link>

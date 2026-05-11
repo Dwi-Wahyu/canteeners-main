@@ -75,7 +75,11 @@ export default function CustomerOrderDetailClient({
         type: "success",
         actionButtons: (
           <div className="flex flex-col gap-2 w-full">
-            <Button asChild className="w-full" onClick={() => hideNotification()}>
+            <Button
+              asChild
+              className="w-full"
+              onClick={() => hideNotification()}
+            >
               <Link href="/testimoni">Beri Kritik & Saran</Link>
             </Button>
             <Button
@@ -135,8 +139,8 @@ export default function CustomerOrderDetailClient({
     {} as Record<string, typeof order.order_items>,
   );
 
-  const isGracePeriod = elapsedSeconds <= 10;
-  const isWaitPeriod = elapsedSeconds > 10 && elapsedSeconds < 600;
+  const isGracePeriod = elapsedSeconds <= 15;
+  const isWaitPeriod = elapsedSeconds > 15 && elapsedSeconds < 600;
 
   const showWaitResponseAlert =
     isWaitPeriod && !isLate && order.status === "PENDING_CONFIRMATION";
@@ -185,12 +189,22 @@ export default function CustomerOrderDetailClient({
 
         {isGracePeriod &&
           !["COMPLETED", "CANCELLED", "REJECTED"].includes(order.status) && (
-            <Alert>
-              <CircleAlert className="w-4 h-4" />
-              <AlertTitle>Masa Tenggang Pembatalan</AlertTitle>
-              <AlertDescription>
-                Anda memiliki {10 - elapsedSeconds} detik untuk membatalkan
-                pesanan jika terjadi kesalahan.
+            <Alert variant="destructive" className="bg-destructive/5 border-destructive/20">
+              <CircleAlert className="w-4 h-4 text-destructive" />
+              <AlertTitle className="text-destructive">Masa Tenggang Pembatalan</AlertTitle>
+              <AlertDescription className="space-y-3">
+                <p>
+                  Anda memiliki {15 - elapsedSeconds} detik untuk membatalkan
+                  pesanan jika terjadi kesalahan.
+                </p>
+                <CancelOrderDialog
+                  order_id={order.id}
+                  user_id={order.customer_id}
+                  order_status={order.status}
+                  userRole="CUSTOMER"
+                  isLate={isLate}
+                  className="mt-2"
+                />
               </AlertDescription>
             </Alert>
           )}
@@ -430,7 +444,7 @@ export default function CustomerOrderDetailClient({
           </div>
         </div>
 
-        {canCancel && (
+        {canCancel && !isGracePeriod && (
           <CancelOrderDialog
             order_id={order.id}
             user_id={order.customer_id}
@@ -450,9 +464,9 @@ export default function CustomerOrderDetailClient({
             prevTestimony={order.testimony}
           />
 
-          <div className="bg-primary/5 rounded-xl p-6 border border-primary/10 flex flex-col items-center text-center gap-3">
-            <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <MessageSquareHeart className="size-6" />
+          <div className="bg-primary/5 rounded-xl p-6 border border-primary/10 flex flex-col items-center text-center gap-4">
+            <div className="size-12 rounded-full flex items-center justify-center text-primary">
+              <img src="/logo.png" alt="Testimonial" />
             </div>
             <div className="space-y-1">
               <h3 className="font-semibold">

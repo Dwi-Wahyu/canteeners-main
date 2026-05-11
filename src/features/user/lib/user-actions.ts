@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { ReportUserInput } from "../types/user-schema";
 import { auth } from "@/config/auth";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 export async function createGuestCustomer({
   firebaseUserUid,
@@ -71,6 +72,16 @@ export async function createGuestCustomer({
     if (!createdCart) {
       return errorResponse("Terjadi kesalahan saat membuat keranjang");
     }
+
+    // Set guestId cookie for migration during login
+    const cookieStore = await cookies();
+    cookieStore.set("guestId", createdUser.id, {
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    });
 
     return successResponse(
       {

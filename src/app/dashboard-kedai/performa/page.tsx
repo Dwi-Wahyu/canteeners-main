@@ -1,11 +1,15 @@
 import { auth } from "@/config/auth";
-import { getShopDashboardStats, getShopRanking } from "@/features/shop/lib/shop-queries";
+import {
+  getShopDashboardStats,
+  getShopRanking,
+} from "@/features/shop/lib/shop-queries";
 import { getBestSellingProducts } from "@/features/product/lib/product-queries";
 import { redirect } from "next/navigation";
 import DashboardStats from "@/features/shop/ui/dashboard-stats";
 import { ShopBestSellingProduct } from "@/features/product/ui/shop-best-selling-product";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trophy, TrendingUp } from "lucide-react";
+import { unstable_cache } from "next/cache";
 
 export default async function PerformaKedaiPage({
   searchParams,
@@ -19,13 +23,33 @@ export default async function PerformaKedaiPage({
     redirect("/login-kedai");
   }
 
+  const shopId = session.user.shopId;
+
   const [stats, bestSellerProducts, ranking] = await Promise.all([
-    getShopDashboardStats(
-      session.user.shopId,
-      period as "today" | "week" | "month" | "all",
-    ),
-    getBestSellingProducts(session.user.shopId, 5),
-    getShopRanking(session.user.shopId),
+    unstable_cache(
+      async () =>
+        getShopDashboardStats(
+          shopId,
+          period as "today" | "week" | "month" | "all",
+        ),
+      ["shop-dashboard-stats", shopId, period],
+      {
+        revalidate: 3600,
+        tags: ["orders", `shop-stats-${shopId}`],
+      },
+    )(),
+    unstable_cache(
+      async () => getBestSellingProducts(shopId, 5),
+      ["best-selling-products", shopId],
+      {
+        revalidate: 3600,
+        tags: ["orders", `shop-products-${shopId}`],
+      },
+    )(),
+    unstable_cache(async () => getShopRanking(shopId), ["shop-ranking", shopId], {
+      revalidate: 3600,
+      tags: ["orders", `shop-ranking-${shopId}`],
+    })(),
   ]);
 
   return (

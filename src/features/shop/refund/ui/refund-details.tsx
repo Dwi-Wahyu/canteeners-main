@@ -7,7 +7,10 @@ import { RefundStatusBadge } from "@/features/shop/refund/ui/refund-status-badge
 import { RespondRefundDialog } from "@/features/shop/refund/ui/respond-refund-dialog";
 import { ProcessRefundDialog } from "@/features/shop/refund/ui/process-refund-dialog";
 import { EscalateRefundDialog } from "@/features/shop/refund/ui/escalate-refund-dialog";
-import { cancelRefund } from "@/features/shop/refund/lib/refund-actions";
+import {
+  cancelRefund,
+  completeRefund,
+} from "@/features/shop/refund/lib/refund-actions";
 import {
   refundReasonMapping,
   refundDisbursementModeMapping,
@@ -72,6 +75,7 @@ export function RefundDetails({
   const [processDialogOpen, setProcessDialogOpen] = useState(false);
   const [escalateDialogOpen, setEscalateDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const historyArray = refund.history || [];
 
@@ -91,7 +95,9 @@ export function RefundDetails({
   // Status REJECTED menjadi final HANYA JIKA dilakukan oleh admin.
   // Jika dilakukan oleh kedai, customer masih boleh eskalasi.
   const isFinalStatus =
-    ["ESCALATED", "CANCELLED", "PROCESSED"].includes(refund.status) ||
+    ["ESCALATED", "CANCELLED", "PROCESSED", "COMPLETED"].includes(
+      refund.status,
+    ) ||
     (refund.status === "REJECTED" && hasAdminIntervened);
 
   const canCancel =
@@ -111,6 +117,8 @@ export function RefundDetails({
     !isLastActionByAdmin &&
     refund.status === "APPROVED" &&
     userRole === "SHOP_OWNER";
+
+  const canComplete = refund.status === "PROCESSED" && userRole === "CUSTOMER";
 
   // Eskalasi benar-benar ditutup jika ada jejak admin atau status sudah final
   const canEscalate =
@@ -142,6 +150,24 @@ export function RefundDetails({
       toast.error("Terjadi kesalahan");
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handleComplete = async () => {
+    setIsCompleting(true);
+    try {
+      const result = await completeRefund({ refund_id: refund.id });
+
+      if (result.success) {
+        toast.success("Refund berhasil diselesaikan");
+        onRefresh?.();
+      } else {
+        toast.error(result.error.message || "Gagal menyelesaikan refund");
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan");
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -304,7 +330,7 @@ export function RefundDetails({
         )}
 
       {/* Processed Success */}
-      {refund.status === "PROCESSED" && (
+      {refund.status === "COMPLETED" && (
         <Alert className="border-green-200 bg-green-50">
           <CheckCircle2 className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-900">
@@ -381,6 +407,19 @@ export function RefundDetails({
             {isCancelling && <Loader2 className="h-4 w-4 animate-spin" />}
             <X className="h-4 w-4" />
             Batalkan Refund
+          </Button>
+        )}
+
+        {canComplete && (
+          <Button
+            variant="default"
+            onClick={handleComplete}
+            disabled={isCompleting}
+            className="w-full sm:w-auto"
+          >
+            {isCompleting && <Loader2 className="h-4 w-4 animate-spin" />}
+            <CheckCircle2 className="h-4 w-4" />
+            Konfirmasi Dana Diterima
           </Button>
         )}
 

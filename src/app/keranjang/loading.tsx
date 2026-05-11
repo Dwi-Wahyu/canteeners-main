@@ -9,8 +9,7 @@ export default function LoadingShopCart() {
       <div className="flex-1 p-5 pb-24">
         {/* Header Skeleton */}
         <div className="flex items-center gap-2 mb-6">
-          <ShoppingCart className="w-5 h-5 text-primary/50" />
-          <h1 className="text-lg font-semibold">Keranjang</h1>
+          <h1 className="text-xl font-semibold">Keranjang</h1>
           <Skeleton className="ml-auto w-16 h-6" />
         </div>
 

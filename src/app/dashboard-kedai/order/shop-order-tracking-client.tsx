@@ -30,14 +30,14 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { 
-  Clock, 
-  SquareArrowOutUpRight, 
-  Trash, 
-  UserIcon, 
-  ClipboardCheck, 
-  Wallet, 
-  AlertCircle 
+import {
+  Clock,
+  SquareArrowOutUpRight,
+  Trash,
+  UserIcon,
+  ClipboardCheck,
+  Wallet,
+  AlertCircle,
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
@@ -48,11 +48,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import OrderEstimationCountDown from "@/features/order/ui/order-estimation-countdown";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 export default function ShopOrderTrackingClient({
   shopId,
@@ -115,19 +111,11 @@ export default function ShopOrderTrackingClient({
     return (
       <Empty className="border">
         <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Trash />
-          </EmptyMedia>
           <EmptyTitle>Belum Ada Pesanan</EmptyTitle>
           <EmptyDescription>
             Belum ada pesanan terbaru saat ini
           </EmptyDescription>
         </EmptyHeader>
-        <EmptyContent>
-          <NavButton href="/dashboard-kedai/order/riwayat">
-            Lihat Riwayat Pesanan
-          </NavButton>
-        </EmptyContent>
       </Empty>
     );
   }
@@ -142,8 +130,7 @@ export default function ShopOrderTrackingClient({
     late: orders.filter((o) => {
       if (o.status !== "PROCESSING" || !o.processed_at || !o.estimation)
         return false;
-      const endTime =
-        new Date(o.processed_at).getTime() + o.estimation * 60000;
+      const endTime = new Date(o.processed_at).getTime() + o.estimation * 60000;
       return now > endTime;
     }).length,
   };
@@ -170,9 +157,15 @@ export default function ShopOrderTrackingClient({
         </div>
 
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg border bg-card text-card-foreground shadow-xs">
-          <AlertCircle className={`w-3.5 h-3.5 ${stats.late > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+          <AlertCircle
+            className={`w-3.5 h-3.5 ${stats.late > 0 ? "text-destructive" : "text-muted-foreground"}`}
+          />
           <span className="text-xs font-medium">Terlambat:</span>
-          <span className={`text-sm font-bold ${stats.late > 0 ? "text-destructive" : ""}`}>{stats.late}</span>
+          <span
+            className={`text-sm font-bold ${stats.late > 0 ? "text-destructive" : ""}`}
+          >
+            {stats.late}
+          </span>
         </div>
       </div>
 
@@ -184,8 +177,12 @@ export default function ShopOrderTrackingClient({
                 <div className="flex flex-col items-start text-left">
                   <h1 className="font-medium">{order.customer.user.name}</h1>
                   <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1 max-w-[200px]">
-                    {order.order_items && order.order_items.length > 0 
-                      ? order.order_items.map((item) => `${item.quantity}x ${item.product.name}`).join(", ")
+                    {order.order_items && order.order_items.length > 0
+                      ? order.order_items
+                          .map(
+                            (item) => `${item.quantity}x ${item.product.name}`,
+                          )
+                          .join(", ")
                       : "Tidak ada item"}
                   </div>
                   <div className="mt-1">
@@ -203,9 +200,11 @@ export default function ShopOrderTrackingClient({
                 </div>
 
                 <div className="flex flex-col items-end text-right">
-                  {order.status === "PROCESSING" && order.processed_at && order.estimation ? (
+                  {order.status === "PROCESSING" &&
+                  order.processed_at &&
+                  order.estimation ? (
                     <div className="scale-75 origin-right -mr-2">
-                      <OrderEstimationCountDown 
+                      <OrderEstimationCountDown
                         estimation={order.estimation}
                         processed_at={order.processed_at}
                         userRole="SHOP_OWNER"
@@ -223,7 +222,8 @@ export default function ShopOrderTrackingClient({
                   )}
                   {order.post_order_type === "DELIVERY_TO_TABLE" && (
                     <span className="text-[10px] font-medium bg-muted px-1.5 rounded mt-1">
-                      Lt {order.customer.floor} - Meja {order.customer.table_number}
+                      Lt {order.customer.floor} - Meja{" "}
+                      {order.customer.table_number}
                     </span>
                   )}
                 </div>
@@ -262,7 +262,7 @@ export default function ShopOrderTrackingClient({
 
                   {order.status === "PENDING_CONFIRMATION" && (
                     <div className="grid grid-cols-2 gap-3">
-                      <  RejectOrderDialog order_id={order.id} />
+                      <RejectOrderDialog order_id={order.id} />
                       <ConfirmOrderDialog
                         order_id={order.id}
                         payment_method={order.payment_method}

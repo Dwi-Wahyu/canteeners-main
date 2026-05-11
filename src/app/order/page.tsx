@@ -26,18 +26,23 @@ export default async function OrderHistoryPage({
   }
 
   const page = Number(params.page) || 1;
-  const startDate = params.startDate ? new Date(params.startDate as string) : undefined;
-  const endDate = params.endDate ? new Date(params.endDate as string) : undefined;
+  const startDate = params.startDate
+    ? new Date(params.startDate as string)
+    : undefined;
+  const endDate = params.endDate
+    ? new Date(params.endDate as string)
+    : undefined;
 
-  const { data: orders, totalPages, currentPage } = await getCustomerOrderHistory(
-    session.user.customerId,
-    {
-      page,
-      startDate,
-      endDate,
-      limit: 10,
-    }
-  );
+  const {
+    data: orders,
+    totalPages,
+    currentPage,
+  } = await getCustomerOrderHistory(session.user.customerId, {
+    page,
+    startDate,
+    endDate,
+    limit: 10,
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
@@ -70,7 +75,7 @@ export default async function OrderHistoryPage({
                 </p>
               </div>
               <Link
-                href="/kantin"
+                href="/kantin/kantin-kudapan"
                 className="px-6 py-2 bg-primary text-white rounded-full font-bold shadow-lg shadow-primary/20 transition-all active:scale-95"
               >
                 Mulai Belanja
@@ -135,7 +140,9 @@ export default async function OrderHistoryPage({
                           {(order as any).total_discount_amount > 0 && (
                             <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md font-bold">
                               Hemat{" "}
-                              {formatRupiah((order as any).total_discount_amount)}
+                              {formatRupiah(
+                                (order as any).total_discount_amount,
+                              )}
                             </span>
                           )}
                         </div>

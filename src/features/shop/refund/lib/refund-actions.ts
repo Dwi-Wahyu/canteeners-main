@@ -20,6 +20,7 @@ import { adminDb } from "@/lib/firebase/admin";
 import { prisma } from "@/lib/prisma";
 import { endOfWeek, startOfWeek } from "date-fns";
 import { FieldValue } from "firebase-admin/firestore";
+import { revalidatePath } from "next/cache";
 
 export async function createRefundRequest(
   payload: RefundRequestInput,
@@ -189,6 +190,12 @@ export async function createRefundRequest(
 
     await notificationRef.add(notificationData);
 
+    revalidatePath(`/order/${order.id}/refund`);
+    revalidatePath(`/order/${order.id}`);
+    revalidatePath(`/dashboard-kedai/order/${order.id}/refund`);
+    revalidatePath(`/dashboard-kedai/order/${order.id}`);
+    revalidatePath(`/dashboard-kedai/refund`);
+
     return successResponse(undefined, "Permintaan refund berhasil diajukan");
   } catch (error) {
     console.error("createRefundRequest Error:", error);
@@ -305,6 +312,12 @@ export async function updateRefundStatus(
 
     await notificationRef.add(notificationData);
 
+    revalidatePath(`/order/${refund.order_id}/refund`);
+    revalidatePath(`/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/refund`);
+
     return successResponse(
       undefined,
       payload.status === "APPROVED"
@@ -407,6 +420,12 @@ export async function processRefund(
 
     await notificationRef.add(notificationData);
 
+    revalidatePath(`/order/${refund.order_id}/refund`);
+    revalidatePath(`/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/refund`);
+
     return successResponse(undefined, "Refund berhasil diproses");
   } catch (error) {
     console.error("processRefund Error:", error);
@@ -500,6 +519,12 @@ export async function cancelRefund(
 
     await notificationRef.add(notificationData);
 
+    revalidatePath(`/order/${refund.order_id}/refund`);
+    revalidatePath(`/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/refund`);
+
     return successResponse(undefined, "Refund berhasil dibatalkan");
   } catch (error) {
     console.error("cancelRefund Error:", error);
@@ -562,6 +587,12 @@ export async function escalateRefund(
     });
 
     // Note: No notification sent - admin system handles separately
+
+    revalidatePath(`/order/${refund.order_id}/refund`);
+    revalidatePath(`/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/refund`);
 
     return successResponse(undefined, "Refund berhasil dieskalasi ke admin");
   } catch (error) {
@@ -736,6 +767,12 @@ export async function completeRefund(
     };
 
     await notificationRef.add(notificationData);
+
+    revalidatePath(`/order/${refund.order_id}/refund`);
+    revalidatePath(`/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
+    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
+    revalidatePath(`/dashboard-kedai/refund`);
 
     return successResponse(undefined, "Refund berhasil diselesaikan");
   } catch (error) {

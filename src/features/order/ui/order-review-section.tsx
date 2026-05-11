@@ -1,30 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
 import { ShopTestimony } from "@/generated/prisma";
 import StarIcon from "@/components/icons/star-icon";
 import StarFilledIcon from "@/components/icons/star-filled-icon";
 import { createShopTestimony } from "@/features/testimony/lib/testimony-actions";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
-
-type Customer = {
-  name: string;
-  avatar: string;
-};
 
 export default function OrderReviewSection({
   order_id,
@@ -39,7 +26,7 @@ export default function OrderReviewSection({
   const [message, setMessage] = useState("");
 
   const [testimony, setTestimony] = useState<ShopTestimony | null>(
-    prevTestimony
+    prevTestimony,
   );
 
   const { mutateAsync, isPending } = useMutation({
@@ -83,15 +70,20 @@ export default function OrderReviewSection({
                 Ulasan Pelanggan
               </h1>
               <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((rate) => (
-                  <button key={rate} className="">
-                    {testimony.rating >= rate ? (
-                      <StarFilledIcon className="w-5 h-5 text-orange-400" />
-                    ) : (
-                      <StarIcon className="w-5 h-5 text-muted-foreground" />
-                    )}
-                  </button>
-                ))}
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((rate) => (
+                    <button key={rate} className="">
+                      {testimony.rating >= rate ? (
+                        <StarFilledIcon className="w-5 h-5 text-orange-400" />
+                      ) : (
+                        <StarIcon className="w-5 h-5 text-muted-foreground" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <span className="ml-2 text-sm font-semibold text-gray-700">
+                  {testimony.rating}/5
+                </span>
               </div>
             </div>
 
@@ -104,7 +96,6 @@ export default function OrderReviewSection({
         {!testimony && !isUserCustomer && (
           <div className="space-y-1">
             <h3 className="font-bold text-gray-900 flex items-center gap-2">
-              <StarIcon className="size-4 text-gray-400" />
               Ulasan & Rating
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -117,7 +108,6 @@ export default function OrderReviewSection({
           <>
             <div className="space-y-1 mb-4">
               <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                <StarIcon className="size-4 text-orange-400" />
                 Ulasan & Rating
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -126,19 +116,26 @@ export default function OrderReviewSection({
             </div>
 
             <div className="flex mb-4 gap-2 items-center">
-              {[1, 2, 3, 4, 5].map((rate) => (
-                <button
-                  key={rate}
-                  className="cursor-pointer block "
-                  onClick={() => setRating(rate)}
-                >
-                  {rating >= rate ? (
-                    <StarFilledIcon className="w-5 h-5 text-orange-400" />
-                  ) : (
-                    <StarIcon className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </button>
-              ))}
+              <div className="flex gap-2 items-center">
+                {[1, 2, 3, 4, 5].map((rate) => (
+                  <button
+                    key={rate}
+                    className="cursor-pointer block "
+                    onClick={() => setRating(rate)}
+                  >
+                    {rating >= rate ? (
+                      <StarFilledIcon className="w-5 h-5 text-orange-400" />
+                    ) : (
+                      <StarIcon className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </button>
+                ))}
+              </div>
+              {rating > 0 && (
+                <span className="ml-2 text-sm font-semibold text-gray-700">
+                  {rating}/5
+                </span>
+              )}
             </div>
 
             <div className="mb-4">
@@ -148,15 +145,14 @@ export default function OrderReviewSection({
               <Textarea
                 id="ulasan"
                 placeholder="Tulis ulasan Anda di sini..."
-                className="mt-1.5 min-h-[100px] rounded-xl border-gray-200"
+                className="mt-1.5 min-h-25 rounded-xl border-gray-200"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
               />
             </div>
 
             <Button
-              size={"lg"}
-              className="w-full font-bold h-12 rounded-xl"
+              className="w-full"
               disabled={isPending}
               onClick={handleSend}
             >

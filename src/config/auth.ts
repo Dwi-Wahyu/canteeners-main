@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { adminAuth } from "@/lib/firebase/admin";
 import GoogleProvider from "next-auth/providers/google";
 import { processEventParticipation } from "@/features/user/lib/event-actions";
+import { cookies } from "next/headers";
 
 async function getFirebaseToken({
   uid,
@@ -237,17 +238,56 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
+        const userEmail = user.email as string;
         const existingUser = await prisma.user.findUnique({
-          where: { username: user.email as string },
+          where: { username: userEmail },
         });
 
         if (!existingUser) {
-          // Buat user baru jika belum ada
+          // Check for guestId cookie to migrate data
+          const cookieStore = await cookies();
+          const guestId = cookieStore.get("guestId")?.value;
+if (guestId) {
+  const guestUser = await prisma.user.findUnique({
+    where: {
+      id: guestId,
+      role: "CUSTOMER",
+    },
+  });
+
+  if (guestUser && !guestUser.username) {
+    // Convert guest user to a full user account
+
+              await prisma.user.update({
+                where: { id: guestId },
+                data: {
+                  username: userEmail,
+                  name: user.name as string,
+                  avatar: user.image || "avatars/default-avatar.jpg",
+                  last_login: new Date(),
+                },
+              });
+
+              // Trigger event participation for the newly registered user
+              try {
+                await processEventParticipation(guestId);
+              } catch (error) {
+                console.error("Error triggering event participation:", error);
+              }
+
+              // Remove guestId cookie after migration
+              cookieStore.delete("guestId");
+
+              return true;
+            }
+          }
+
+          // Normal flow for new user without guest session
           await prisma.user.create({
             data: {
               id: user.id as string,
               name: user.name as string,
-              username: user.email as string,
+              username: userEmail,
               role: "CUSTOMER",
               avatar: user.image || "avatars/default-avatar.jpg",
               customer: {

@@ -12,16 +12,22 @@ import {
   AlertCircle,
   HelpCircle,
   BookOpen,
+  Gavel,
+  ShieldAlert,
 } from "lucide-react";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getCustomerReferralStatus } from "@/features/user/lib/user-queries";
+import {
+  getCustomerReferralStatus,
+  getCustomerSuspensionStatus,
+} from "@/features/user/lib/user-queries";
 import { activateReferralCode } from "@/features/user/lib/user-actions";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import ReferralStatusCard from "@/features/user/ui/referral-status-card";
 import UserVouchersSection from "@/features/user/ui/user-vouchers-section";
+import { Badge } from "@/components/ui/badge";
 
 export default function CustomerProfilePage() {
   const { data: session, status } = useSession();
@@ -32,27 +38,44 @@ export default function CustomerProfilePage() {
     referral_usage_count: number;
     vouchers: any[];
   } | null>(null);
+  const [suspensionStatus, setSuspensionStatus] = useState<{
+    suspend_until: Date | null;
+    suspend_reason: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isActivating, setIsActivating] = useState(false);
 
   useEffect(() => {
-    if (session?.user?.id && session.user.username !== "") {
+    if (session?.user?.id) {
       fetchStatus();
     } else {
       setLoading(false);
     }
-  }, [session?.user?.id, session?.user?.username]);
+  }, [session?.user?.id, session?.user?.name, session?.user?.username]);
 
   const fetchStatus = async () => {
     try {
-      const status = await getCustomerReferralStatus(session!.user.id);
-      setReferralStatus(status as any);
+      const id = session!.user.id;
+
+      // Fetch suspension status for all logged-in users
+      const suspension = await getCustomerSuspensionStatus(id);
+      setSuspensionStatus(suspension);
+
+      // Only fetch referral status if profile is complete
+      if (session?.user?.name && session?.user?.username) {
+        const status = await getCustomerReferralStatus(id);
+        setReferralStatus(status as any);
+      }
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
   };
+
+  const isSuspended =
+    suspensionStatus?.suspend_until &&
+    new Date(suspensionStatus.suspend_until) > new Date();
 
   const handleActivate = async () => {
     setIsActivating(true);
@@ -73,7 +96,7 @@ export default function CustomerProfilePage() {
   };
 
   // 1. Loading State (Skeleton)
-  if (status === "loading") {
+  if (status === "loading" || (session?.user?.id && loading)) {
     return (
       <div className="min-h-screen bg-gray-50 pb-32">
         <div className="bg-white border-b pb-8 px-5 pt-5">
@@ -103,8 +126,8 @@ export default function CustomerProfilePage() {
     );
   }
 
-  // 2. Guest Mode Detection (No session OR username is empty string)
-  const isGuest = !session || session.user.username === "";
+  // 2. Guest Mode Detection (No session OR missing identity fields)
+  const isGuest = !session || !session.user?.name || !session.user?.username;
 
   if (isGuest) {
     return (
@@ -112,33 +135,77 @@ export default function CustomerProfilePage() {
         {/* Header Profile Guest */}
         <div className="bg-white border-b pb-10 px-5 pt-12">
           <div className="max-w-md mx-auto flex flex-col items-center text-center">
-            <Avatar className="size-24 border-4 border-white shadow-xl mb-6">
-              <AvatarFallback className="bg-gray-100 text-gray-400">
-                <User className="size-12" />
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative mb-6">
+              <Avatar className="size-24 border-4 border-white shadow-xl">
+                <AvatarFallback className="bg-gray-100 text-muted-foreground">
+                  <User className="size-12" />
+                </AvatarFallback>
+              </Avatar>
+              {isSuspended && (
+                <div className="absolute -bottom-2 -right-2 bg-red-600 text-white p-1.5 rounded-full border-2 border-white shadow-lg animate-pulse">
+                  <ShieldAlert className="size-4" />
+                </div>
+              )}
+            </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
               Halo, Tamu!
             </h1>
+            {isSuspended && (
+              <Badge
+                variant="destructive"
+                className="mb-4 animate-bounce font-bold px-4 py-1"
+              >
+                Akun Dibekukan
+              </Badge>
+            )}
             <p className="text-sm text-muted-foreground mb-8 max-w-[250px]">
-              Masuk untuk menikmati fitur lengkap, kelola pesanan, dan dapatkan
-              promo menarik.
+              {isSuspended
+                ? "Akun Anda sedang ditangguhkan. Silakan cek detail pelanggaran Anda."
+                : "Masuk untuk menikmati fitur lengkap, kelola pesanan, dan dapatkan promo menarik."}
             </p>
-            <Button
-              asChild
-              className="rounded-full px-10 h-12 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-red-100 transition-all active:scale-95"
-            >
-              <Link href="/login-pelanggan">Masuk Sekarang</Link>
-            </Button>
+            {!isSuspended && (
+              <Button
+                asChild
+                className="rounded-full px-10 h-12 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-red-100 transition-all active:scale-95"
+              >
+                <Link href="/login-pelanggan">Masuk Sekarang</Link>
+              </Button>
+            )}
           </div>
         </div>
 
         {/* Guest Menu Information */}
         <div className="max-w-md mx-auto mt-8 px-5 space-y-4">
-          <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest px-1">
-            Informasi Aplikasi
+          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest px-1">
+            Menu & Informasi
           </h2>
-          <div className="bg-white rounded-xl shadow border border-muted border overflow-hidden">
+          <div className="bg-white rounded-xl shadow border border-muted overflow-hidden">
+            {session && (
+              <Link
+                href="/profil/pelanggaran"
+                className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+              >
+                <div className="p-2 bg-red-50 rounded-xl">
+                  <Gavel className="size-5 text-red-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">
+                    Pelanggaran
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Cek status akun & riwayat pelanggaran
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isSuspended && (
+                    <Badge variant="destructive" className="text-[8px] h-4">
+                      DIBLOKIR
+                    </Badge>
+                  )}
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </div>
+              </Link>
+            )}
             <Link
               href="/kebijakan-dan-privasi"
               className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
@@ -154,7 +221,7 @@ export default function CustomerProfilePage() {
                   Pelajari bagaimana kami menjaga data Anda
                 </p>
               </div>
-              <ChevronRight className="size-4 text-gray-400" />
+              <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
             <Link
               href="/syarat-dan-ketentuan"
@@ -171,7 +238,7 @@ export default function CustomerProfilePage() {
                   Aturan penggunaan layanan Canteeners
                 </p>
               </div>
-              <ChevronRight className="size-4 text-gray-400" />
+              <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
             <Link
               href="/pusat-bantuan?back_url=/profil"
@@ -188,9 +255,20 @@ export default function CustomerProfilePage() {
                   Butuh bantuan? Hubungi tim kami
                 </p>
               </div>
-              <ChevronRight className="size-4 text-gray-400" />
+              <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
           </div>
+
+          {session && (
+            <Button
+              variant="outline"
+              className="w-full h-12 rounded-2xl border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold gap-2 mt-4"
+              onClick={() => signOut()}
+            >
+              <LogOut className="size-4" />
+              Keluar dari Akun
+            </Button>
+          )}
         </div>
 
         <BottomNav />
@@ -216,10 +294,20 @@ export default function CustomerProfilePage() {
                 {session.user.name?.[0]?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
+            {isSuspended && (
+              <div className="absolute -bottom-2 -right-2 bg-red-600 text-white p-1.5 rounded-full border-2 border-white shadow-lg animate-pulse">
+                <ShieldAlert className="size-4" />
+              </div>
+            )}
           </div>
 
           <h1 className="text-xl font-bold text-gray-900">
             {session.user.name}
+            {isSuspended && (
+              <Badge variant="destructive" className="ml-2 text-[10px] h-5">
+                Diblokir
+              </Badge>
+            )}
           </h1>
           <p className="text-sm text-muted-foreground">
             {session.user.username || "Pelanggan Setia"}
@@ -261,7 +349,7 @@ export default function CustomerProfilePage() {
                 Aturan penggunaan layanan
               </p>
             </div>
-            <ChevronRight className="size-4 text-gray-400" />
+            <ChevronRight className="size-4 text-muted-foreground" />
           </Link>
         </div>
 
@@ -281,7 +369,7 @@ export default function CustomerProfilePage() {
                 Pelajari cara menggunakan aplikasi
               </p>
             </div>
-            <ChevronRight className="size-4 text-gray-400" />
+            <ChevronRight className="size-4 text-muted-foreground" />
           </Link>
         </div>
 
@@ -301,7 +389,32 @@ export default function CustomerProfilePage() {
                 Butuh bantuan? Hubungi tim kami
               </p>
             </div>
-            <ChevronRight className="size-4 text-gray-400" />
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </Link>
+        </div>
+
+        <div className="bg-white rounded-xl shadow border border-muted overflow-hidden">
+          <Link
+            href="/profil/pelanggaran"
+            className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+          >
+            <div className="p-2 bg-red-50 rounded-xl">
+              <Gavel className="size-5 text-red-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-900">Pelanggaran</p>
+              <p className="text-xs text-muted-foreground">
+                Cek status akun & riwayat pelanggaran
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {isSuspended && (
+                <Badge variant="destructive" className="text-[8px] h-4">
+                  DIBLOKIR
+                </Badge>
+              )}
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </div>
           </Link>
         </div>
 

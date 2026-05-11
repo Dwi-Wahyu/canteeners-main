@@ -79,7 +79,6 @@ export default function DeleteShopCartDialog({
             </Button>
           </AlertDialogCancel>
           <Button
-            size={"lg"}
             onClick={handleConfirm}
             variant={"destructive"}
             disabled={isLoading}

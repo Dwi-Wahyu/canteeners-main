@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import OwnerTopbar from "./owner-topbar";
 import OwnerBottomBar from "./owner-bottombar";
 
 export default function OwnerLayout({
@@ -23,6 +22,7 @@ export default function OwnerLayout({
     "/ulasan-pelanggan",
     "/pengaturan/",
     "/produk/",
+    "/order/",
     "metode-pembayaran",
   ];
 

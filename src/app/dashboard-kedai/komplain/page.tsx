@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChevronLeft, MessageSquareWarning } from "lucide-react";
-import NavButton from "@/components/nav-button";
+import Link from "next/link";
 
 export default async function ComplaintsPage() {
   const session = await auth();
@@ -43,17 +43,21 @@ export default async function ComplaintsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-2 mb-5">
-        <NavButton href="/dashboard-kedai" variant="ghost" size="icon">
-          <ChevronLeft />
-        </NavButton>
-        <div>
-          <h2 className="text-2xl font-medium tracking-tight">
-            Komplain Pelanggan
-          </h2>
-          <div className="text-muted-foreground">
-            Kelola dan tanggapi komplain dari pelanggan Anda
-          </div>
+      <div className="flex items-center mb-4">
+        <Link
+          href={"/dashboard-kedai"}
+          className="flex gap-1 text-muted-foreground text-sm items-center"
+        >
+          <ChevronLeft className="w-4 h-4" /> Kembali
+        </Link>
+      </div>
+
+      <div className="mb-5">
+        <h2 className="text-2xl font-medium tracking-tight">
+          Komplain Pelanggan
+        </h2>
+        <div className="text-muted-foreground text-sm">
+          Kelola dan tanggapi komplain dari pelanggan Anda
         </div>
       </div>
 

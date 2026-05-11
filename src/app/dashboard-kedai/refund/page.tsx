@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { RefundList } from "@/features/shop/refund/ui/refund-list";
 import { SearchParams } from "nuqs";
 import { RefundSearchParams } from "@/features/shop/refund/types/refund-search-params";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 export default async function ShopRefundListPage({
   searchParams,
@@ -25,10 +27,19 @@ export default async function ShopRefundListPage({
   const refunds = await getShopRefunds(session.user.shopId, search.status);
 
   return (
-    <div>
+    <div className="space-y-5">
+      <div className="flex items-center mb-4">
+        <Link
+          href={"/dashboard-kedai"}
+          className="flex gap-1 text-muted-foreground text-sm items-center"
+        >
+          <ChevronLeft className="w-4 h-4" /> Kembali
+        </Link>
+      </div>
+
       <div className="mb-5">
         <h2 className="text-2xl font-medium tracking-tight">Daftar Refund</h2>
-        <div className="text-muted-foreground">
+        <div className="text-muted-foreground text-sm">
           Kelola semua permintaan refund dari customer
         </div>
       </div>

@@ -25,6 +25,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import { refundDisbursementModeMapping } from "@/constant/refund-mapping";
 import { LocalStorageService } from "@/services/storage";
+import { truncateFileName } from "@/helper/file-helper";
 
 interface ProcessRefundDialogProps {
   open: boolean;
@@ -198,13 +199,16 @@ export function ProcessRefundDialog({
               {/* File Upload */}
               <div className="space-y-2">
                 <FormLabel>
-                  Bukti {refund.disbursement_mode === "TRANSFER" ? "Transfer" : "Pembayaran"}{" "}
-                  {refund.disbursement_mode === "TRANSFER" ? "(Wajib)" : "(Opsional)"}
+                  Bukti {refund.disbursement_mode === "TRANSFER" ? "Transfer" : "Pembayaran"}
+                  {refund.disbursement_mode === "TRANSFER" && (
+                    <span className="text-destructive ml-1">*</span>
+                  )}
                 </FormLabel>
-                <FormDescription>
-                  Upload bukti {refund.disbursement_mode === "TRANSFER" ? "transfer" : "pembayaran"} (JPG, PNG, WEBP, PDF -
-                  Maks 5MB)
-                </FormDescription>
+                {refund.disbursement_mode === "CASH" && (
+                  <FormDescription>
+                    Upload bukti pembayaran (JPG, PNG, WEBP, PDF - Maks 5MB)
+                  </FormDescription>
+                )}
 
                 {previewUrl && selectedFile ? (
                   <div className="relative border rounded-lg p-3 bg-muted/50">
@@ -227,7 +231,7 @@ export function ProcessRefundDialog({
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
-                          {selectedFile.name}
+                          {truncateFileName(selectedFile.name)}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Preview bukti transfer

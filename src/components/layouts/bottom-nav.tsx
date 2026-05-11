@@ -17,7 +17,7 @@ const NAV_ITEMS = [
   },
   {
     label: "Home",
-    href: "/kantin",
+    href: "/kantin/kantin-kudapan",
     icon: "home",
     isMain: true,
   },

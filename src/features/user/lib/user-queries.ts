@@ -140,3 +140,40 @@ export async function getCustomerReferralStatus(userId: string) {
     })),
   };
 }
+
+export async function getCustomerViolations(userId: string) {
+  return await prisma.customerViolation.findMany({
+    where: {
+      customer: {
+        user_id: userId,
+      },
+    },
+    orderBy: {
+      timestamp: "desc",
+    },
+  });
+}
+
+export async function getCustomerViolationDetail(id: number) {
+  return await prisma.customerViolation.findUnique({
+    where: { id },
+    include: {
+      customer: {
+        select: {
+          suspend_until: true,
+          suspend_reason: true,
+        },
+      },
+    },
+  });
+}
+
+export async function getCustomerSuspensionStatus(userId: string) {
+  return await prisma.customer.findUnique({
+    where: { user_id: userId },
+    select: {
+      suspend_until: true,
+      suspend_reason: true,
+    },
+  });
+}

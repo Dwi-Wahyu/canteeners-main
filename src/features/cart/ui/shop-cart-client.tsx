@@ -30,7 +30,7 @@ import {
   Trash2,
   CircleAlert,
 } from "lucide-react";
-import { formatToHour } from "@/helper/hour-helper";
+import { formatToHour, isTimeWithinRange } from "@/helper/hour-helper";
 import ReferralSection from "./referral-section";
 import { toast } from "sonner";
 import { useRouter } from "nextjs-toploader/app";
@@ -46,22 +46,28 @@ import {
   GetShopCartType,
   GetShopCartItemType,
 } from "../types/cart-queries-types";
+import { cn } from "@/lib/utils";
 
 function CartItemRow({
   item,
   shopCartId,
-  disabled,
+  isLocked,
+  isLastItem,
 }: {
   item: GetShopCartItemType;
   shopCartId: string;
-  disabled: boolean;
+  isLocked: boolean;
+  isLastItem: boolean;
 }) {
   const router = useRouter();
   const [qty, setQty] = useState(item.quantity);
   const [isPending, startTransition] = useTransition();
 
+  const isAvailable = (item.product as any).is_available;
+
   async function handleDeleteItem() {
-    if (disabled) return;
+    // Tidak boleh hapus jika cart dikunci atau ini item terakhir
+    if (isLocked || isLastItem) return;
 
     startTransition(async () => {
       const result = await deleteCartItem(item.id);
@@ -76,7 +82,7 @@ function CartItemRow({
   }
 
   async function handleChangeQuantity(newQty: number) {
-    if (newQty < 1) return;
+    if (newQty < 1 || !isAvailable || isLocked) return;
 
     setQty(newQty);
 
@@ -123,7 +129,7 @@ function CartItemRow({
               size="icon"
               variant="ghost"
               className="h-8 w-8"
-              disabled={disabled}
+              disabled={isLocked || !isAvailable}
             >
               <Pencil className="w-4 h-4 text-muted-foreground" />
             </Button>
@@ -134,7 +140,7 @@ function CartItemRow({
             variant="ghost"
             className="h-8 w-8 hover:bg-red-50 group transition-colors"
             onClick={handleDeleteItem}
-            disabled={disabled || isPending}
+            disabled={isLocked || isPending || isLastItem}
           >
             {isPending ? (
               <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
@@ -151,7 +157,7 @@ function CartItemRow({
           variant="outline"
           className="h-8 w-8"
           onClick={() => handleChangeQuantity(qty - 1)}
-          disabled={qty <= 1 || isPending || disabled}
+          disabled={qty <= 1 || isPending || isLocked || !isAvailable}
         >
           -
         </Button>
@@ -161,14 +167,14 @@ function CartItemRow({
           onChange={(e) => handleChangeQuantity(Number(e.target.value))}
           className="w-12 h-8 text-center p-0 text-xs"
           min={1}
-          disabled={isPending || disabled}
+          disabled={isPending || isLocked || !isAvailable}
         />
         <Button
           size="icon"
           variant="outline"
           className="h-8 w-8"
           onClick={() => handleChangeQuantity(qty + 1)}
-          disabled={isPending || disabled}
+          disabled={isPending || isLocked || !isAvailable}
         >
           +
         </Button>
@@ -232,7 +238,8 @@ export default function ShopCartClient({
   const finalDiscount = (customerProfile.discounts || [])
     .filter((cd) => selectedDiscountIds.includes(cd.id))
     .reduce((sum, cd: any) => {
-      const isItemOnly = cd.discount.code && ITEM_ONLY_DISCOUNT_CODES.includes(cd.discount.code);
+      const isItemOnly =
+        cd.discount.code && ITEM_ONLY_DISCOUNT_CODES.includes(cd.discount.code);
       const discountBase = isItemOnly ? itemsOnlyTotal : shopCart.total_price;
 
       let amount = 0;
@@ -323,13 +330,18 @@ export default function ShopCartClient({
 
   // Apakah di luar jam operasional
   const isOutsideHours =
-    open_time && close_time && (now < open_time || now > close_time);
+    open_time && close_time && !isTimeWithinRange(now, open_time, close_time);
 
   // Apakah status memang tidak aktif (Manual/Sistem)
   const isNotActive = status !== "ACTIVE";
 
+  // Apakah ada item yang tidak tersedia
+  const hasUnavailableItem = shopCart.items.some(
+    (item: any) => !item.product.is_available,
+  );
+
   // Apakah kedai benar-benar bisa menerima order
-  const canOrder = !isNotActive && !isOutsideHours;
+  const canOrder = !isNotActive && !isOutsideHours && !hasUnavailableItem;
 
   const groupedItems = shopCart.items.reduce(
     (acc, item) => {
@@ -346,18 +358,33 @@ export default function ShopCartClient({
   return (
     <div className="flex flex-col gap-4">
       {!canOrder && (
-        <Alert variant={status === "SUSPENDED" ? "destructive" : "default"}>
-          <Store />
+        <Alert
+          variant={
+            status === "SUSPENDED" || hasUnavailableItem
+              ? "destructive"
+              : "default"
+          }
+        >
+          {hasUnavailableItem ? <CircleAlert /> : <Store />}
           <AlertTitle>
             {status === "SUSPENDED"
               ? "Kedai Ditangguhkan"
-              : "Kedai Sedang Tutup"}
+              : hasUnavailableItem
+                ? "Item Tidak Tersedia"
+                : "Kedai Sedang Tutup"}
           </AlertTitle>
           <AlertDescription>
             {status === "SUSPENDED" ? (
               <span>
                 {suspended_reason ||
                   "Kedai ini sementara tidak dapat menerima pesanan."}
+              </span>
+            ) : hasUnavailableItem ? (
+              <span>
+                Ada item di keranjang Anda yang saat ini tidak tersedia. Silakan
+                hapus item tersebut untuk melanjutkan checkout. Jika tidak bisa
+                dihapus silakan tambahkan item lain untuk bisa checkout kemudian
+                hapus item yang tidak tersedia.
               </span>
             ) : status === "INACTIVE" ? (
               <span>
@@ -387,26 +414,48 @@ export default function ShopCartClient({
                 0,
               );
 
+              const isAvailable = (firstItem.product as any).is_available;
+
               return (
                 <AccordionItem
                   value={`item-${idx}`}
                   key={idx}
-                  className="border rounded-lg px-4 mb-2 last:border-b"
+                  className={cn(
+                    "border rounded-lg px-4 mb-2 last:border-b",
+                    !isAvailable && "bg-red-50/50 border-red-200",
+                  )}
                 >
                   <AccordionTrigger className="hover:no-underline py-4">
                     <div className="flex gap-4 items-center">
-                      <img
-                        src={getImageUrl(
-                          "/product/" + firstItem.product.image_url,
-                        )}
-                        alt={productName}
-                        className="rounded-lg object-cover aspect-square w-16 h-16"
-                        onError={(e) =>
-                          (e.currentTarget.src = "/placeholder-image.webp")
-                        }
-                      />
+                      <div className="relative">
+                        <img
+                          src={getImageUrl(
+                            "/product/" + firstItem.product.image_url,
+                          )}
+                          alt={productName}
+                          className={cn(
+                            "rounded-lg object-cover aspect-square w-16 h-16",
+                            !isAvailable && "grayscale",
+                          )}
+                          onError={(e) =>
+                            (e.currentTarget.src = "/placeholder-image.webp")
+                          }
+                        />
+                      </div>
                       <div className="flex flex-col text-left">
-                        <h1 className="font-semibold">{productName}</h1>
+                        {!isAvailable && (
+                          <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm w-fit font-bold mb-1">
+                            Tidak Tersedia
+                          </span>
+                        )}
+                        <h1
+                          className={cn(
+                            "font-semibold",
+                            !isAvailable && "text-red-900",
+                          )}
+                        >
+                          {productName}
+                        </h1>
                         <p className="text-sm text-muted-foreground">
                           {totalQty} Item • {formatRupiah(totalSubtotal)}
                         </p>
@@ -420,7 +469,8 @@ export default function ShopCartClient({
                           key={item.id}
                           item={item}
                           shopCartId={shopCart.id}
-                          disabled={shopCart.order_id !== null}
+                          isLocked={shopCart.order_id !== null}
+                          isLastItem={shopCart.items.length === 1}
                         />
                       ))}
                     </div>
@@ -482,7 +532,7 @@ export default function ShopCartClient({
 
       <div className="flex flex-col gap-2">
         <h1 className="font-semibold text-sm">Ringkasan Harga</h1>
-        
+
         <div className="flex justify-between items-center text-sm text-muted-foreground">
           <h1>Total Harga Menu ({totalQty} Item)</h1>
           <h1>{formatRupiah(itemsOnlyTotal)}</h1>
@@ -507,7 +557,9 @@ export default function ShopCartClient({
 
         <div className="flex font-bold justify-between items-center text-gray-900 mt-1 border-t pt-3">
           <h1>Total Pembayaran</h1>
-          <h1 className="text-lg text-primary">{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
+          <h1 className="text-lg text-primary">
+            {formatRupiah(shopCart.total_price - finalDiscount)}
+          </h1>
         </div>
       </div>
 

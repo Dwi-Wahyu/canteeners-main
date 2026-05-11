@@ -3,10 +3,7 @@ import ShopOrderTrackingClient from "./shop-order-tracking-client";
 import { redirect } from "next/navigation";
 import { getOrderTrackingData } from "@/features/order/lib/order-queries";
 import NavButton from "@/components/nav-button";
-import {
-  ChevronLeft,
-  History,
-} from "lucide-react";
+import { ChevronLeft, History } from "lucide-react";
 import Link from "next/link";
 
 export default async function ShopOrderTrackingPage() {
@@ -40,7 +37,7 @@ export default async function ShopOrderTrackingPage() {
           size="sm"
           className="text-muted-foreground"
         >
-          <History className="w-4 h-4 mr-2" />
+          <History />
           Riwayat
         </NavButton>
       </div>

@@ -13,7 +13,7 @@ export const RefundRequestSchema = z
     reason: z.enum(
       ["LATE_DELIVERY", "WRONG_ORDER", "DAMAGED_FOOD", "MISSING_ITEM", "OTHER"],
       {
-        message: "Alasan refund tidak valid.",
+        message: "Alasan refund wajib dipilih.",
       }
     ),
     description: z
@@ -22,10 +22,9 @@ export const RefundRequestSchema = z
       .max(500, { message: "Deskripsi maksimal 500 karakter." })
       .optional(),
     complaint_proof_url: z
-      .string()
-      .max(255, { message: "URL bukti terlalu panjang." })
-      .optional()
-      .or(z.literal("")),
+      .string({ message: "Bukti komplain wajib diunggah." })
+      .min(1, { message: "Bukti komplain wajib diunggah." })
+      .max(255, { message: "URL bukti terlalu panjang." }),
     disbursement_mode: z.enum(["CASH", "TRANSFER"], {
       message: "Mode pengembalian dana tidak valid.",
     }),

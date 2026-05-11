@@ -69,9 +69,9 @@ export function CustomerRefundPageClient({
                   <AlertDescription>
                     <p className="font-medium mb-2">Syarat Pengajuan Refund:</p>
                     <ul className="text-sm space-y-1 list-disc list-inside">
-                      <li>Pesanan harus berstatus SELESAI</li>
+                      <li>Pesanan harus berstatus selesai</li>
                       <li>Pilih alasan refund dengan benar</li>
-                      <li>Upload bukti jika diperlukan</li>
+                      <li>Upload bukti komplain</li>
                       <li>Refund akan ditinjau oleh pemilik kedai</li>
                     </ul>
                     <Link

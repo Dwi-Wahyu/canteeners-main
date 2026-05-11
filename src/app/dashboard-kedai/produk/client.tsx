@@ -213,7 +213,7 @@ export default function ProductClientPage({
                   {product.description || "Tidak ada deskripsi"}
                 </CardDescription>
               </CardHeader>
-              <CardFooter className="pt-2 gap-2">
+              <CardFooter className="gap-2">
                 <NavButton
                   variant="outline"
                   size="sm"

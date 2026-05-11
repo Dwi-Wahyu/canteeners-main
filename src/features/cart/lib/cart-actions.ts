@@ -378,7 +378,7 @@ export async function processShopCart({
         recipientId: owner_user_id,
         type: "ORDER",
         subType: shopCartData.shop.is_auto_accept ? "ACCEPTED" : "CREATED",
-        resourcePath: "/dashboard-kedai/chat/" + chatId,
+        resourcePath: "/dashboard-kedai/order/" + order_id,
         createdAt: FieldValue.serverTimestamp(),
         isRead: false,
         title: shopCartData.shop.is_auto_accept

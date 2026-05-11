@@ -124,7 +124,7 @@ export default function LoginPelangganPage() {
               background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
               color: "#ffffff",
             }}
-            onClick={() => router.push("/kantin")}
+            onClick={() => router.push("/kantin/kantin-kudapan")}
           >
             Lanjutkan Mode Tamu
           </Button>

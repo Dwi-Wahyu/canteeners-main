@@ -9,7 +9,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Gift, ChevronRight, Ticket, X, Tag, Sparkles, Info, Calendar } from "lucide-react";
+import {
+  Gift,
+  ChevronRight,
+  Ticket,
+  X,
+  Tag,
+  Sparkles,
+  Info,
+  Calendar,
+} from "lucide-react";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -137,12 +146,12 @@ export default function UserVouchersSection({
   if (!activeVouchers || activeVouchers.length === 0) {
     return (
       <div className="bg-card backdrop-blur rounded-xl p-4 border border-gray-100 flex items-center gap-4 shadow-sm">
-        <div className="w-11 h-11 bg-gray-50 rounded-xl flex items-center justify-center flex-shrink-0">
+        <div className="w-11 h-11 bg-gray-50 rounded-xl flex items-center justify-center shrink-0">
           <Ticket className="size-5 text-gray-300" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-bold text-gray-800">Voucher Saya</p>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-sm font-bold">Voucher Saya</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Belum ada voucher tersedia
           </p>
         </div>
@@ -190,7 +199,7 @@ export default function UserVouchersSection({
                 {activeVouchers.length}
               </span>
             </div>
-            <p className="text-[11px] text-gray-400 mt-0.5">
+            <p className="text-[11px] text-muted-foreground mt-0.5">
               {activeVouchers.length} voucher aktif
             </p>
           </div>
@@ -336,14 +345,19 @@ export default function UserVouchersSection({
                             {v.type === "PERCENTAGE" && v.max_discount ? (
                               <div className="flex items-center gap-1 text-[10px] text-gray-400 font-medium">
                                 <Info className="size-2.5" />
-                                <span>Maks. {formatRupiah(v.max_discount)}</span>
+                                <span>
+                                  Maks. {formatRupiah(v.max_discount)}
+                                </span>
                               </div>
                             ) : null}
                             {v.end_date ? (
                               <div className="flex items-center gap-1 text-[10px] text-red-400 font-bold">
                                 <Calendar className="size-2.5" />
                                 <span>
-                                  S/D {format(new Date(v.end_date), "dd MMM yyyy", { locale: id })}
+                                  S/D{" "}
+                                  {format(new Date(v.end_date), "dd MMM yyyy", {
+                                    locale: id,
+                                  })}
                                 </span>
                               </div>
                             ) : null}

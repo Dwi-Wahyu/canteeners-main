@@ -40,6 +40,7 @@ export async function getCart(cart_id: string) {
                   id: true,
                   name: true,
                   image_url: true,
+                  is_available: true,
                 },
               },
               selected_options: {
@@ -119,6 +120,7 @@ export async function getShopCart({
               id: true,
               name: true,
               image_url: true,
+              is_available: true,
               options: {
                 include: {
                   values: true,
@@ -184,6 +186,7 @@ export async function getCartItem(id: string) {
           id: true,
           name: true,
           image_url: true,
+          is_available: true,
           options: {
             include: {
               values: true,

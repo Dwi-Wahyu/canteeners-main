@@ -39,6 +39,7 @@ import {
 import { RefundDisbursementMode, RefundReason } from "@/generated/prisma";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 import { LocalStorageService } from "@/services/storage";
+import { truncateFileName } from "@/helper/file-helper";
 
 interface CreateRefundFormProps {
   order: {
@@ -92,9 +93,9 @@ export function CreateRefundForm({
     resolver: zodResolver(RefundRequestSchema),
     defaultValues: {
       order_id: order.id,
-      reason: undefined,
-      description: undefined,
-      complaint_proof_url: undefined,
+      reason: "" as any,
+      description: "",
+      complaint_proof_url: "",
       disbursement_mode: order.shop
         .refund_disbursement_mode as RefundDisbursementMode,
       affected_item_ids: [],
@@ -149,6 +150,7 @@ export function CreateRefundForm({
     const objectUrl = URL.createObjectURL(file);
     setSelectedFile(file);
     setPreviewUrl(objectUrl);
+    form.setValue("complaint_proof_url", file.name, { shouldValidate: true });
     toast.success("Bukti dipilih");
   };
 
@@ -158,7 +160,7 @@ export function CreateRefundForm({
     }
     setSelectedFile(null);
     setPreviewUrl(null);
-    form.setValue("complaint_proof_url", undefined);
+    form.setValue("complaint_proof_url", "", { shouldValidate: true });
   };
 
   const onSubmit = async (data: RefundRequestInput) => {
@@ -203,6 +205,9 @@ export function CreateRefundForm({
         onSuccess?.();
       } else {
         toast.error(result.error.message || "Gagal mengajukan refund");
+        form.setError("root", {
+          message: result.error.message || "Gagal mengajukan refund",
+        });
       }
     } catch (error) {
       console.error("Submit error:", error);
@@ -413,67 +418,76 @@ export function CreateRefundForm({
         />
 
         {/* File Upload */}
-        <div className="space-y-2">
-          <FormLabel>Bukti</FormLabel>
-          <FormDescription>
-            Upload foto sebagai bukti (JPG, PNG, WEBP - Maks 5MB)
-          </FormDescription>
+        <FormField
+          control={form.control}
+          name="complaint_proof_url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Bukti <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormDescription>
+                Upload foto sebagai bukti (JPG, PNG, WEBP - Maks 5MB)
+              </FormDescription>
 
-          {previewUrl && selectedFile ? (
-            <div className="relative border rounded-lg p-3 bg-muted/50">
-              <div className="flex items-start gap-3">
-                <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
-                  <Image
-                    src={previewUrl}
-                    alt="Bukti refund"
-                    fill
-                    className="object-cover"
+              {previewUrl && selectedFile ? (
+                <div className="relative border rounded-lg p-3 bg-muted/50">
+                  <div className="flex items-start gap-3">
+                    <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
+                      <Image
+                        src={previewUrl}
+                        alt="Bukti refund"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {truncateFileName(selectedFile.name)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Preview bukti refund
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={removeSelectedFile}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
+                  <Input
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleFileUpload}
+                    disabled={isSubmitting}
+                    className="hidden"
+                    id="proof-upload"
                   />
+                  <label
+                    htmlFor="proof-upload"
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                    <div className="text-sm">
+                      <span className="font-medium text-primary">
+                        Klik untuk upload
+                      </span>
+                      <p className="text-muted-foreground">atau drag and drop</p>
+                    </div>
+                  </label>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {selectedFile.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Preview bukti refund
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0"
-                  onClick={removeSelectedFile}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
-              <Input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleFileUpload}
-                disabled={isSubmitting}
-                className="hidden"
-                id="proof-upload"
-              />
-              <label
-                htmlFor="proof-upload"
-                className="cursor-pointer flex flex-col items-center gap-2"
-              >
-                <Upload className="h-8 w-8 text-muted-foreground" />
-                <div className="text-sm">
-                  <span className="font-medium text-primary">
-                    Klik untuk upload
-                  </span>
-                  <p className="text-muted-foreground">atau drag and drop</p>
-                </div>
-              </label>
-            </div>
+              )}
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
+        />
 
         <Alert>
           <AlertCircle className="h-4 w-4" />
@@ -495,16 +509,20 @@ export function CreateRefundForm({
               Batal
             </Button>
           )}
-          <Button
-            type="submit"
-            variant={"outline"}
-            disabled={isSubmitting}
-            className="flex-1"
-          >
+          <Button type="submit" disabled={isSubmitting} className="flex-1">
             {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
             Ajukan Refund
           </Button>
         </div>
+
+        {form.formState.errors.root && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {form.formState.errors.root.message}
+            </AlertDescription>
+          </Alert>
+        )}
       </form>
     </Form>
   );

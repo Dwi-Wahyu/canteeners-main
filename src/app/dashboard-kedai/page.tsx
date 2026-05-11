@@ -21,6 +21,7 @@ import CashIcon from "@/components/icons/cash-icon";
 import NavButton from "@/components/nav-button";
 import ToggleShopStatus from "@/features/shop/ui/toggle-shop-open";
 import { prisma } from "@/lib/prisma";
+import { cn } from "@/lib/utils";
 
 export default async function DashboardKedai() {
   const session = await auth();
@@ -129,14 +130,20 @@ export default async function DashboardKedai() {
         <NavButton
           href="/dashboard-kedai/refund"
           size="lg"
-          className="h-14 col-span-2 focus:scale-105 relative"
-          variant="outline"
+          className={cn(
+            "h-14 col-span-2 focus:scale-105 relative",
+            pendingRefundsCount > 0 && "animate-heartbeat",
+            pendingRefundsCount > 1 && "animate-urgent-shake",
+          )}
+          variant={pendingRefundsCount > 0 ? "destructive" : "outline"}
         >
-          <BanknoteX />
-          Pengajuan Refund
-          {pendingRefundsCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ">
-              {pendingRefundsCount}
+          {pendingRefundsCount > 0 ? (
+            <span className="font-medium">
+              {pendingRefundsCount} Pengajuan Refund Baru
+            </span>
+          ) : (
+            <span className="flex items-center gap-2">
+              <BanknoteX /> Pengajuan Refund
             </span>
           )}
         </NavButton>

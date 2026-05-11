@@ -32,6 +32,25 @@ export function generateFileName(originalName: string, prefix: string): string {
 }
 
 /**
+ * Memotong nama file yang panjang dengan tetap menyertakan ekstensi.
+ * Contoh: "nama-file-sangat-panjang.png" -> "nama-file-san...png"
+ */
+export function truncateFileName(filename: string, maxLength: number = 20): string {
+  if (filename.length <= maxLength) return filename;
+
+  const extension = getFileExtension(filename);
+  const nameWithoutExtension = filename.substring(0, filename.lastIndexOf("."));
+  
+  const charsToShow = maxLength - extension.length - 3; // 3 for "..."
+  
+  if (charsToShow <= 0) {
+    return filename.substring(0, maxLength - 3) + "...";
+  }
+
+  return nameWithoutExtension.substring(0, charsToShow) + "..." + (extension ? "." + extension : "");
+}
+
+/**
  * Menghapus file melalui API Backend.
  * @param filename Nama file (bukan full URL)
  */

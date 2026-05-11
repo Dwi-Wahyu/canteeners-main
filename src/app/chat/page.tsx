@@ -64,7 +64,7 @@ export default function CustomerChatListPage() {
       <div className="mb-4">
         <h1 className="text-xl font-bold text-gray-900">Chat & Orderan</h1>
         <div className="text-sm text-gray-500">
-          Lihat percakapan dengan kedai
+          Daftar percakapan dengan pemilik kedai
         </div>
       </div>
 

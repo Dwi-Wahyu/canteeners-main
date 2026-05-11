@@ -21,7 +21,7 @@ export default async function CartPage() {
     return (
       <div className="flex flex-col">
         <div className="flex-1 w-full justify-center">
-          <EmptyCart shopping_url={"/kantin"} />
+          <EmptyCart shopping_url={"/kantin/kantin-kudapan"} />
         </div>
         <BottomNav />
       </div>
@@ -33,8 +33,7 @@ export default async function CartPage() {
       <div className="flex-1 p-5 pb-24">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
-          <ShoppingCart className="w-5 h-5 text-primary" />
-          <h1 className="text-lg font-semibold">Keranjang</h1>
+          <h1 className="text-xl font-semibold">Keranjang</h1>
           <Badge variant="secondary" className="ml-auto">
             {data.shop_carts.length} Kedai
           </Badge>
@@ -42,7 +41,6 @@ export default async function CartPage() {
 
         <div className="flex flex-col gap-4">
           {data.shop_carts.map((shopCart, idx) => {
-
             // Ambil maks 3 produk unik untuk preview
             const seen = new Set<string>();
             const uniqueProducts: {
