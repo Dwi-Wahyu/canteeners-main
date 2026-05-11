@@ -85,6 +85,6 @@ jobs:
             # Jalankan migration
             podman run --rm \
               --pod canteeners-staging-pod \
-              -e DATABASE_URL=postgresql://canteeners_staging:canteeners_staging123@localhost:5432/canteeners_staging \
+              -e DATABASE_URL=${{secrets.DATABASE_URL}} \
               ghcr.io/dwi-wahyu/canteeners-migrator:staging \
               bunx prisma migrate deploy

@@ -77,5 +77,12 @@ jobs:
             podman pull ghcr.io/dwi-wahyu/canteeners-main:latest
             podman pull ghcr.io/dwi-wahyu/canteeners-migrator:latest
 
+            # Jalankan migration
+            podman run --rm \
+              --network host \
+              -e DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+              ghcr.io/dwi-wahyu/canteeners-migrator:latest \
+              bash -c "bunx prisma migrate deploy"
+
             # Restart service main production menggunakan native systemd (Quadlets)
             systemctl --user restart canteeners-main.service
