@@ -19,6 +19,8 @@ import { deleteFile } from "@/helper/file-helper";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { startOfWeek, endOfWeek } from "date-fns";
 import { calculateCommission } from "@/helper/pricing-helper";
+import { orderQueue } from "@/lib/queue";
+import { getPaymentTimeoutMinutes } from "@/lib/settings";
 
 // --- Helper untuk Revalidasi (DRY Principle) ---
 function revalidateOrderPaths(orderId: string) {
@@ -97,6 +99,26 @@ export async function confirmOrder({
       data: { status: newStatus, confirmed_at: new Date() },
     });
 
+    const timeoutMinutes = await getPaymentTimeoutMinutes();
+
+    // Add job to BullMQ queue for automatic cancellation
+    try {
+      await orderQueue.add(
+        "cancel-unpaid-order",
+        { orderId: order_id },
+        {
+          delay: timeoutMinutes * 60 * 1000,
+          jobId: order_id,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+    } catch (queueError) {
+      console.error("Failed to add job to orderQueue:", queueError);
+      // We don't want to fail the whole action if the queue fails,
+      // but in a production environment, this might be critical.
+    }
+
     // Eksekusi Firebase (Notification & Trigger)
     // jalankan paralel agar lebih cepat menggunakan Promise.all
     const notificationRef = adminDb.collection("notifications");
@@ -107,7 +129,7 @@ export async function confirmOrder({
       type: "ORDER",
       subType: "ACCEPTED",
       title: "Pesanan Diterima",
-      body: notificationBody,
+      body: `${notificationBody}. Batas waktu pembayaran ${timeoutMinutes} menit.`,
       isRead: false,
       intent: "SUCCESS",
       resourcePath: "/order/" + order_id,
@@ -139,7 +161,7 @@ export async function confirmPayment({
   estimation: number;
 }): Promise<ServerActionReturn<void>> {
   try {
-    await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const order = await tx.order.update({
         where: {
           id: order_id,
@@ -224,31 +246,43 @@ export async function confirmPayment({
         }
       }
 
-      const notificationRef = adminDb.collection("notifications");
-
-      // Send notification
-      const notificationData = {
-        recipientId: order.customer.user_id,
-        type: "ORDER",
-        subType: "ACCEPTED",
-        title: "Pembayaran di Konfirmasi",
-        body: "Kedai sudah mulai menyiapkan pesanan anda",
-        isRead: false,
-        intent: "SUCCESS",
-        resourcePath: "/order/" + order_id,
-        createdAt: FieldValue.serverTimestamp(),
-      };
-
-      await notificationRef.add(notificationData);
-
-      // Update doc order untuk realtime trigger
-      const orderRef = adminDb.collection("orders").doc(order_id);
-
-      await orderRef.update({
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-        status: "PROCESSING",
-      });
+      return order;
     });
+
+    // Remove job from BullMQ queue (Safety measure, especially for CASH payments)
+    try {
+      await orderQueue.remove(order_id);
+    } catch (queueError) {
+      console.error("Failed to remove job from orderQueue:", queueError);
+    }
+
+    // Eksekusi Firebase diluar transaksi agar tidak menghambat database
+    const notificationRef = adminDb.collection("notifications");
+
+    // Send notification
+    const notificationData = {
+      recipientId: result.customer.user_id,
+      type: "ORDER",
+      subType: "ACCEPTED",
+      title: "Pembayaran di Konfirmasi",
+      body: "Kedai sudah mulai menyiapkan pesanan anda",
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath: "/order/" + order_id,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    const notificationPromise = notificationRef.add(notificationData);
+
+    // Update doc order untuk realtime trigger
+    const orderRef = adminDb.collection("orders").doc(order_id);
+
+    const triggerPromise = orderRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+      status: "PROCESSING",
+    });
+
+    await Promise.all([notificationPromise, triggerPromise]);
 
     revalidateOrderPaths(order_id);
 
@@ -446,6 +480,13 @@ export async function rejectOrder({
       },
     });
 
+    // Remove job from BullMQ queue
+    try {
+      await orderQueue.remove(order_id);
+    } catch (queueError) {
+      console.error("Failed to remove job from orderQueue:", queueError);
+    }
+
     const notificationRef = adminDb.collection("notifications");
 
     // Send notification
@@ -580,6 +621,13 @@ export async function cancelOrder({
       },
     });
 
+    // Remove job from BullMQ queue
+    try {
+      await orderQueue.remove(order_id);
+    } catch (queueError) {
+      console.error("Failed to remove job from orderQueue:", queueError);
+    }
+
     if (order_status === "PROCESSING") {
       await prisma.refund.create({
         data: {
@@ -701,6 +749,13 @@ export async function savePaymentProof({
       },
     });
 
+    // Remove job from BullMQ queue
+    try {
+      await orderQueue.remove(order_id);
+    } catch (queueError) {
+      console.error("Failed to remove job from orderQueue:", queueError);
+    }
+
     const notificationRef = adminDb.collection("notifications");
 
     // Update doc order untuk realtime trigger
@@ -720,7 +775,7 @@ export async function savePaymentProof({
       body: `Tolong validasi bukti pembayaran ${order.customer.user.name}`,
       isRead: false,
       intent: "SUCCESS",
-      resourcePath: `/dashboard-kedai/order/${order_id}/pembayaran`,
+      resourcePath: `/dashboard-kedai/order/${order_id}`,
       createdAt: FieldValue.serverTimestamp(),
       senderInfo: {
         name: order.customer.user.name,
@@ -794,6 +849,13 @@ export async function timeoutCancelOrder({
         },
       });
     });
+
+    // Remove job from BullMQ queue
+    try {
+      await orderQueue.remove(order_id);
+    } catch (queueError) {
+      console.error("Failed to remove job from orderQueue:", queueError);
+    }
 
     // Firebase Cleanup
     const orderRef = adminDb.collection("orders").doc(order_id);

@@ -18,7 +18,7 @@ export default function LoginPelangganPage() {
       session.status === "authenticated" &&
       session.data?.user?.username !== ""
     ) {
-      router.push("/kantin");
+      router.push("/kantin/kantin-kudapan");
     }
   }, [session, session.status, session.data?.user?.username, router]);
 

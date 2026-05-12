@@ -490,7 +490,9 @@ export default function CustomerOrderDetailClient({
 
       <OrderComplaintSection order={order} />
 
-      <OrderRefundSection order={order as any} userRole="CUSTOMER" />
+      {!(order.status === "CANCELLED" && !order.processed_at && !order.refund) && (
+        <OrderRefundSection order={order as any} userRole="CUSTOMER" />
+      )}
     </div>
   );
 }

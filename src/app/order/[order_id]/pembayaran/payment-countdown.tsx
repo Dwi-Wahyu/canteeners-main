@@ -6,6 +6,9 @@ import { timeoutCancelOrder } from "@/features/order/lib/order-actions";
 import { useRouter } from "next/navigation";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { Timer } from "lucide-react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
+import { getPaymentTimeoutAction } from "./actions";
 
 export default function PaymentCountdown({
   confirmedAt,
@@ -16,13 +19,43 @@ export default function PaymentCountdown({
 }) {
   const router = useRouter();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [timeoutMinutes, setTimeoutMinutes] = useState<number | null>(null);
 
+  // Fetch dynamic timeout duration
   useEffect(() => {
+    const fetchTimeout = async () => {
+      const minutes = await getPaymentTimeoutAction();
+      setTimeoutMinutes(minutes);
+    };
+    fetchTimeout();
+  }, []);
+
+  // Firestore Sync - Auto reload if status changes to CANCELLED (e.g. from worker)
+  useEffect(() => {
+    const orderRef = doc(db, "orders", orderId);
+
+    const unsubscribe = onSnapshot(orderRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.status === "CANCELLED") {
+          // Trigger refresh to update server-side state of the page
+          router.refresh();
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [orderId, router]);
+
+  // Countdown Timer Logic
+  useEffect(() => {
+    if (timeoutMinutes === null) return;
+
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
       const confirmedTime = new Date(confirmedAt).getTime();
-      const fifteenMinutes = 15 * 60 * 1000;
-      const difference = confirmedTime + fifteenMinutes - now;
+      const timeoutMillis = timeoutMinutes * 60 * 1000;
+      const difference = confirmedTime + timeoutMillis - now;
 
       if (difference <= 0) {
         return 0;
@@ -53,7 +86,7 @@ export default function PaymentCountdown({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [confirmedAt, orderId, router]);
+  }, [confirmedAt, orderId, router, timeoutMinutes]);
 
   if (timeLeft === null) return null;
 

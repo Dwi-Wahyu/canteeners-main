@@ -63,7 +63,7 @@ export default async function OrderHistoryPage(props: {
   });
 
   return (
-    <div>
+    <div className="p-5">
       <Link
         href={"/dashboard-kedai/order"}
         className="flex gap-1 text-muted-foreground text-sm mb-4 items-center"

@@ -11,6 +11,7 @@ import { NotificationWatcher } from "@/features/notification/ui/notification-wat
 import { ToastContainer } from "@/components/ui/custom-toast-container";
 import NewVoucherPopup from "@/components/new-voucher-popup";
 import EventParticipationPopup from "@/components/event-participation-popup";
+import { Toaster } from "sonner";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
               <EventParticipationPopup />
             </Suspense>
             <ToastContainer />
+            <Toaster 
+              position="bottom-right" 
+              richColors 
+              toastOptions={{
+                className: "max-w-[90vw] sm:max-w-[350px]",
+                style: {
+                  width: "auto",
+                }
+              }}
+            />
           </ThemeProvider>
         </NuqsAdapter>
       </QueryClientProvider>

@@ -19,6 +19,7 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import PaymentCountdown from "./payment-countdown";
+import { toast } from "sonner";
 
 const PaymentFormSchema = z.object({
   order_id: z.string(),
@@ -65,7 +66,10 @@ export default function UploadPaymentProof({
 
         if (!uploadResponse.ok) {
           form.setError("image_url", {
-            message: uploadData.message || uploadData.error || "Gagal mengunggah file melalui API.",
+            message:
+              uploadData.message ||
+              uploadData.error ||
+              "Gagal mengunggah file melalui API.",
           });
           return;
         }
@@ -173,17 +177,33 @@ export default function UploadPaymentProof({
                             <h1 className="font-semibold">QRCode QRIS</h1>
 
                             <button
-                              onClick={() => {
-                                const url = getImageUrl(
-                                  "/qris-qrcode/" + payment.qr_url,
-                                );
-                                const link = document.createElement("a");
-                                link.href = url;
-                                link.download = payment.qr_url as string;
-                                link.target = "_blank";
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
+                              onClick={async () => {
+                                try {
+                                  const url = getImageUrl(
+                                    "/qris-qrcode/" + payment.qr_url,
+                                  );
+                                  const response = await fetch(url);
+                                  const blob = await response.blob();
+                                  const blobUrl = URL.createObjectURL(blob);
+                                  const link = document.createElement("a");
+                                  link.href = blobUrl;
+                                  link.download =
+                                    payment.qr_url || "qris-code.png";
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  URL.revokeObjectURL(blobUrl);
+                                  toast.success("QR Code berhasil diunduh");
+                                } catch (error) {
+                                  console.error("Download failed:", error);
+                                  // Fallback to simple link if fetch fails
+                                  window.open(
+                                    getImageUrl(
+                                      "/qris-qrcode/" + payment.qr_url,
+                                    ),
+                                    "_blank",
+                                  );
+                                }
                               }}
                               className="p-2 hover:bg-accent rounded-md transition-colors border"
                               title="Download QR Code"
@@ -192,7 +212,7 @@ export default function UploadPaymentProof({
                             </button>
                           </div>
                           <img
-                            className="rounded-lg border w-full max-w-[300px] mx-auto"
+                            className="rounded-lg border w-full max-w-75 mx-auto"
                             src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
                           />
                         </div>

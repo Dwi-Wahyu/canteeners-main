@@ -29,6 +29,7 @@ export function FileUploadImage({
   placeholder?: string;
 }) {
   const [files, setFiles] = React.useState<File[]>([]);
+  const [error, setError] = React.useState<string | null>(null);
 
   const [showInitialPreview, setShowInitialPreview] = React.useState<boolean>(
     !!initialPreviewUrl
@@ -38,17 +39,32 @@ export function FileUploadImage({
     setShowInitialPreview(!!initialPreviewUrl && files.length === 0);
   }, [initialPreviewUrl, files.length]);
 
-  const onFileReject = React.useCallback((file: File, message: string) => {
-    toast(message, {
-      description: `"${
-        file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name
-      }" has been rejected`,
-    });
-  }, []);
+  const onFileReject = React.useCallback(
+    (file: File, message: string) => {
+      let customMessage = message;
+
+      if (message === "File too large") {
+        customMessage = `Ukuran file terlalu besar (maksimal ${
+          maxSize / (1024 * 1024)
+        }MB)`;
+      } else if (message === "File type not accepted") {
+        customMessage = "Format file tidak didukung. Harap upload gambar.";
+      }
+
+      setError(customMessage);
+      toast.error(customMessage, {
+        description: `File "${
+          file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name
+        }" ditolak.`,
+      });
+    },
+    [maxSize]
+  );
 
   const handleFileUploadChange = React.useCallback(
     (newFiles: File[]) => {
       setFiles(newFiles);
+      setError(null);
       if (newFiles.length > 0) {
         setShowInitialPreview(false);
       } else {
@@ -61,6 +77,7 @@ export function FileUploadImage({
 
   const handleDelete = () => {
     setFiles([]);
+    setError(null);
     setShowInitialPreview(false);
     // setShowInitialPreview(!!initialPreviewUrl);
     onFilesChange?.([]);
@@ -147,6 +164,12 @@ export function FileUploadImage({
           </FileUploadList>
         )}
       </FileUpload>
+
+      {error && (
+        <p className="text-destructive text-xs mt-1.5 font-medium animate-in fade-in slide-in-from-top-1">
+          {error}
+        </p>
+      )}
 
       {!multiple && hasPreview && (
         <div className="mt-2 flex justify-center">

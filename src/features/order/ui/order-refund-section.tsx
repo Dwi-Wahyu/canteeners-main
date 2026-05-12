@@ -77,6 +77,12 @@ export function OrderRefundSection({
     return null;
   }
 
+  // Jika tidak ada data refund dan user adalah pemilik kedai, sembunyikan section ini
+  // karena pemilik kedai tidak dapat mengajukan refund sendiri
+  if (!order.refund && userRole === "SHOP_OWNER") {
+    return null;
+  }
+
   const isProcessed = order.refund?.status === "PROCESSED";
   const isCustomer = userRole === "CUSTOMER";
 
