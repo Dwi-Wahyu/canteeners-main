@@ -34,7 +34,7 @@ export default async function ShopOrderDetailPage({
   const finalBackUrl = back_url || defaultBackUrl;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 p-5">
       <div className="flex justify-between items-center">
         <Link
           href={finalBackUrl}

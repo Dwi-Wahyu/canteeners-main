@@ -16,10 +16,9 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { db } from "@/lib/firebase/client";
 import { useQuery } from "@tanstack/react-query";
 import { doc, onSnapshot, Timestamp } from "firebase/firestore";
-import { ChevronRight, FileText, MessageCircle } from "lucide-react";
+import { ChevronRight, MessageCircle } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useRef } from "react";
-import { toast } from "sonner";
 
 export default function ShopOrderChatBubble({
   order_id,
@@ -31,10 +30,15 @@ export default function ShopOrderChatBubble({
     queryFn: () => getOrderSummaryForChatBubble(order_id),
   });
 
-  const lastKnownUpdate = useRef<number>(
-    data?.updated_at.getMilliseconds() ?? 0
-  );
+  const lastKnownUpdate = useRef<number>(data?.updated_at.getTime() ?? 0);
   const isFirstRun = useRef(true);
+
+  // Sync ref with React Query data
+  useEffect(() => {
+    if (data?.updated_at) {
+      lastKnownUpdate.current = data.updated_at.getTime();
+    }
+  }, [data?.updated_at]);
 
   // Listener ke Firestore untuk trigger timestamp
   useEffect(() => {
@@ -46,23 +50,28 @@ export default function ShopOrderChatBubble({
       orderRef,
       (snapshot) => {
         if (!snapshot.exists()) {
+          // Document was deleted (Completed, Rejected, Cancelled)
+          refetch();
           return;
         }
 
-        if (isFirstRun.current) {
-          isFirstRun.current = false;
-          return;
-        }
-
-        const data = snapshot.data();
-        const timestamp = data?.lastUpdatedAt as Timestamp | undefined;
+        const fbData = snapshot.data();
+        const timestamp = fbData?.lastUpdatedAt as Timestamp | undefined;
 
         if (!timestamp) return;
 
         const updateMillis = timestamp.toMillis();
 
+        if (isFirstRun.current) {
+          if (updateMillis > lastKnownUpdate.current) {
+            lastKnownUpdate.current = updateMillis;
+            refetch();
+          }
+          isFirstRun.current = false;
+          return;
+        }
+
         // Jika timestamp besar berarti ada perubahan
-        // Handle ketika pertama kali fetch tidak perlu update
         if (updateMillis > lastKnownUpdate.current) {
           lastKnownUpdate.current = updateMillis;
           refetch();
@@ -70,7 +79,7 @@ export default function ShopOrderChatBubble({
       },
       (err) => {
         console.error("Firestore onSnapshot error:", err);
-      }
+      },
     );
 
     return () => {
@@ -210,7 +219,12 @@ export default function ShopOrderChatBubble({
 
             <NavButton
               className="flex justify-between mt-4 items-center"
-              href={"/dashboard-kedai/order/" + order_id + "?back_url=/dashboard-kedai/chat/" + data.conversation_id}
+              href={
+                "/dashboard-kedai/order/" +
+                order_id +
+                "?back_url=/dashboard-kedai/chat/" +
+                data.conversation_id
+              }
               size="lg"
               variant="outline"
             >

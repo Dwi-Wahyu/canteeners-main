@@ -156,18 +156,10 @@ export function MessageList({
   }, [messages, chatId, currentUserId, isOwner]);
 
   // Flatten all attachments from all messages into a single array for the gallery
-  // We also need to map them back to find the index when a user clicks a specific image
-  const attachments = useMemo(() => {
-    const items: Attachment[] = [];
-    messages.forEach((msg) => {
-      if (msg.attachments && msg.attachments.length > 0) {
-        items.push(...msg.attachments);
-      } else if (msg.attachments && msg.attachments.length > 0) {
-        items.push(...msg.attachments);
-      }
-    });
-    return items;
-  }, [messages]);
+  const attachments = useMemo(
+    () => messages.flatMap((msg) => msg.attachments || []),
+    [messages]
+  );
 
   const handleMediaClick = (clickedUrl: string) => {
     const index = attachments.findIndex((item) => item.url === clickedUrl);
@@ -181,7 +173,7 @@ export function MessageList({
     <ScrollArea className="container p-5 pt-20 max-w-7xl mx-auto flex flex-col gap-4">
       {messages.map((msg) => {
         const isSender = msg.senderId === currentUserId;
-        const msgAttachments = msg.attachments || msg.attachments || [];
+        const msgAttachments = msg.attachments || [];
 
         if (msg.type === "ORDER" && msg.order_id) {
           if (isSender) {
@@ -215,7 +207,12 @@ export function MessageList({
                   }`}
                 >
                   {msgAttachments.map((item, idx) => {
-                    const isVideo = item.contentType?.startsWith("video/");
+                    const isVideo = item.contentType.startsWith("video/");
+                    const mediaPath = isVideo
+                      ? "/message-media-video/"
+                      : "/message-media-image/";
+                    const mediaUrl = getImageUrl(mediaPath + item.url);
+
                     return (
                       <div
                         key={idx}
@@ -228,12 +225,8 @@ export function MessageList({
                       >
                         {isVideo ? (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            {/* Thumbnail generator or just a placeholder if we don't have one?
-                                        Since we don't have a thumbnail service, we can try to use a <video> tag
-                                        with #t=0.1 to show the first frame, but controls disabled.
-                                     */}
                             <video
-                              src={`${getImageUrl("/message-media-video/" + item.url)}#t=0.5`}
+                              src={`${mediaUrl}#t=0.5`}
                               className="w-full h-full object-cover"
                               preload="metadata"
                             />
@@ -243,7 +236,7 @@ export function MessageList({
                           </div>
                         ) : (
                           <img
-                            src={getImageUrl("/message-media-image/" + item.url)}
+                            src={mediaUrl}
                             alt="attachment"
                             className="w-full h-full object-cover"
                           />
