@@ -36,14 +36,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
               <EventParticipationPopup />
             </Suspense>
             <ToastContainer />
-            <Toaster 
-              position="bottom-right" 
-              richColors 
+            <Toaster
+              position="top-left"
+              richColors
               toastOptions={{
-                className: "max-w-[90vw] sm:max-w-[350px]",
+                className: "max-w-[60vw] sm:max-w-[350px]",
                 style: {
                   width: "auto",
-                }
+                },
               }}
             />
           </ThemeProvider>

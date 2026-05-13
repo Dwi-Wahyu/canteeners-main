@@ -848,6 +848,34 @@ export async function timeoutCancelOrder({
           type: "ORDER_CANCEL_WITHOUT_PAY",
         },
       });
+
+      // Cek apakah sudah mencapai batas 3 pelanggaran hari ini
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const todayViolationCount = await tx.customerViolation.count({
+        where: {
+          customer_id: order.customer_id,
+          type: "ORDER_CANCEL_WITHOUT_PAY",
+          timestamp: {
+            gte: startOfDay,
+          },
+        },
+      });
+
+      if (todayViolationCount >= 3) {
+        const suspendUntil = new Date();
+        suspendUntil.setDate(suspendUntil.getDate() + 1); // Bekukan 24 jam
+
+        await tx.customer.update({
+          where: { id: order.customer_id },
+          data: {
+            suspend_until: suspendUntil,
+            suspend_reason:
+              "Akun dibekukan sementara karena pembatalan pesanan otomatis yang berulang (3x hari ini).",
+          },
+        });
+      }
     });
 
     // Remove job from BullMQ queue

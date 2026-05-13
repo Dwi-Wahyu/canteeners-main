@@ -2,25 +2,40 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ContinueWithGoogle from "./continue-with-google";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { createGuestSession } from "@/helper/create-guest-session";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPelangganPage() {
   const router = useRouter();
   const session = useSession();
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   useEffect(() => {
     if (
       session.status === "authenticated" &&
-      session.data?.user?.username !== ""
+      session.data?.user?.username?.includes("@")
     ) {
       router.push("/kantin/kantin-kudapan");
     }
   }, [session, session.status, session.data?.user?.username, router]);
+
+  async function handleGuestLogin() {
+    setIsGuestLoading(true);
+    try {
+      await createGuestSession({ name: "Tamu" });
+      router.push("/kantin/kantin-kudapan");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsGuestLoading(false);
+    }
+  }
 
   return (
     <div
@@ -119,14 +134,22 @@ export default function LoginPelangganPage() {
 
           <Button
             variant="default"
+            disabled={isGuestLoading}
             className="w-full h-12 font-headline font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
             style={{
               background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
               color: "#ffffff",
             }}
-            onClick={() => router.push("/kantin/kantin-kudapan")}
+            onClick={handleGuestLogin}
           >
-            Lanjutkan Mode Tamu
+            {isGuestLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Menyiapkan...
+              </span>
+            ) : (
+              "Lanjutkan Mode Tamu"
+            )}
           </Button>
         </div>
       </main>

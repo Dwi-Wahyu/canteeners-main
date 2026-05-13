@@ -55,7 +55,7 @@ export async function updateShop(
 
 export async function toggleShopStatus(
   id: string,
-  currentStatus: ShopStatus
+  newStatus: ShopStatus,
 ): Promise<ServerActionReturn<ShopStatus>> {
   try {
     const updated = await prisma.shop.update({
@@ -63,7 +63,7 @@ export async function toggleShopStatus(
         id,
       },
       data: {
-        status: currentStatus === "ACTIVE" ? "INACTIVE" : "ACTIVE",
+        status: newStatus,
       },
     });
 

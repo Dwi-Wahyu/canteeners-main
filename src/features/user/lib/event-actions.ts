@@ -59,16 +59,16 @@ export async function processEventParticipation(
       let finalSequenceNumber = slot.current_usage;
 
       if (isWithinQuota) {
-        // Probability 50%
-        // isLucky = Math.random() < 0.5;
-        isLucky = true;
-
         // Atomic increment
         const updatedSlot = await tx.eventSlot.update({
           where: { id: slot.id },
           data: { current_usage: { increment: 1 } },
         });
         finalSequenceNumber = updatedSlot.current_usage;
+
+        // Logic: Setiap 2 user baru (1, 2), user setelahnya (3) mendapatkan voucher
+        // Ini berarti user ke-3, ke-6, ke-9, dst. (sequence_number % 3 === 0)
+        isLucky = finalSequenceNumber % 3 === 0;
 
         if (isLucky) {
           // Find a special 'Event Reward' discount template

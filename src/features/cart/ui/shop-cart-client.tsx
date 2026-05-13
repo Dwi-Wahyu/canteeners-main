@@ -29,6 +29,7 @@ import {
   StickyNote,
   Trash2,
   CircleAlert,
+  ShieldAlert,
 } from "lucide-react";
 import { formatToHour, isTimeWithinRange } from "@/helper/hour-helper";
 import ReferralSection from "./referral-section";
@@ -274,7 +275,10 @@ export default function ShopCartClient({
       return;
     }
 
-    if (!nameAlreadySet) {
+    const isNameInvalid =
+      !customerProfile.user.name || customerProfile.user.name === "Tamu";
+
+    if (isGuest && isNameInvalid) {
       setShowGuestDetailsFormDialog(true);
     } else {
       setShowSnk(true);
@@ -335,13 +339,20 @@ export default function ShopCartClient({
   // Apakah status memang tidak aktif (Manual/Sistem)
   const isNotActive = status !== "ACTIVE";
 
+  // Apakah kedai sedang sibuk
+  const isBusy = status === "BUSY";
+
   // Apakah ada item yang tidak tersedia
   const hasUnavailableItem = shopCart.items.some(
     (item: any) => !item.product.is_available,
   );
 
   // Apakah kedai benar-benar bisa menerima order
-  const canOrder = !isNotActive && !isOutsideHours && !hasUnavailableItem;
+  const canOrder = !isNotActive && !isOutsideHours && !hasUnavailableItem && !isBusy;
+
+  const isSuspended =
+    customerProfile.suspend_until !== null &&
+    new Date(customerProfile.suspend_until) > new Date();
 
   const groupedItems = shopCart.items.reduce(
     (acc, item) => {
@@ -357,7 +368,29 @@ export default function ShopCartClient({
 
   return (
     <div className="flex flex-col gap-4">
-      {!canOrder && (
+      {isSuspended && (
+        <Alert variant="destructive">
+          <ShieldAlert className="w-4 h-4" />
+          <AlertTitle>Akun Dibekukan</AlertTitle>
+          <AlertDescription>
+            {customerProfile.suspend_reason ||
+              "Akun Anda sedang dibekukan sementara karena pelanggaran kebijakan."}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isBusy && (
+        <Alert className="border-orange-200 bg-orange-50 text-orange-900">
+          <Coffee className="w-4 h-4 text-orange-600" />
+          <AlertTitle className="text-orange-800">Kedai Sedang Sibuk</AlertTitle>
+          <AlertDescription className="text-orange-700">
+            Maaf, kedai sedang sangat ramai dan menutup pesanan baru untuk
+            sementara. Silakan coba beberapa saat lagi.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!canOrder && !isBusy && (
         <Alert
           variant={
             status === "SUSPENDED" || hasUnavailableItem
@@ -588,7 +621,7 @@ export default function ShopCartClient({
           size={"lg"}
           onClick={handleClickCheckout}
           disabled={
-            customerProfile.suspend_until !== null ||
+            isSuspended ||
             !canOrder ||
             isPending ||
             (postOrderType === "DELIVERY_TO_TABLE" &&

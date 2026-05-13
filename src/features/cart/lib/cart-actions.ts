@@ -155,17 +155,24 @@ export async function processShopCart({
     const totalCommission = calculateCommission(totalQty);
     const itemsOnlyTotal = shopCartData.total_price - totalCommission;
 
+    const customer = shopCartData.cart.customer;
+    const isGuest = !customer.user.username; // Guest has no username in this system
+
     // Validasi Referral
     if (referralCode) {
-      const customer = shopCartData.cart.customer;
-      const isGuest = !customer.user.username; // Guest has no username in this system
-
       if (isGuest) {
         return errorResponse("Pengguna tamu tidak dapat menggunakan kode referral");
       }
 
       if (customer.has_used_referral) {
         return errorResponse("Anda sudah pernah menggunakan kode referral sebelumnya");
+      }
+    }
+
+    // Validasi Voucher (Guest tidak boleh pakai voucher)
+    if (appliedCustomerDiscountIds && appliedCustomerDiscountIds.length > 0) {
+      if (isGuest) {
+        return errorResponse("Pengguna tamu tidak dapat menggunakan voucher");
       }
     }
 

@@ -239,25 +239,35 @@ export const authConfig: NextAuthConfig = {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         const userEmail = user.email as string;
+        const cookieStore = await cookies();
+        const guestId = cookieStore.get("guestId")?.value;
+
         const existingUser = await prisma.user.findUnique({
           where: { username: userEmail },
+          include: {
+            customer: {
+              include: {
+                cart: true,
+              },
+            },
+          },
         });
 
-        if (!existingUser) {
-          // Check for guestId cookie to migrate data
-          const cookieStore = await cookies();
-          const guestId = cookieStore.get("guestId")?.value;
-if (guestId) {
-  const guestUser = await prisma.user.findUnique({
-    where: {
-      id: guestId,
-      role: "CUSTOMER",
-    },
-  });
+        if (guestId) {
+          const guestUser = await prisma.user.findUnique({
+            where: { id: guestId, role: "CUSTOMER" },
+            include: {
+              customer: {
+                include: {
+                  cart: true,
+                },
+              },
+            },
+          });
 
-  if (guestUser && !guestUser.username) {
-    // Convert guest user to a full user account
-
+          if (guestUser && !guestUser.username) {
+            if (!existingUser) {
+              // CASE 1: New user, convert guest to full user
               await prisma.user.update({
                 where: { id: guestId },
                 data: {
@@ -268,21 +278,80 @@ if (guestId) {
                 },
               });
 
-              // Trigger event participation for the newly registered user
               try {
                 await processEventParticipation(guestId);
               } catch (error) {
                 console.error("Error triggering event participation:", error);
               }
 
-              // Remove guestId cookie after migration
               cookieStore.delete("guestId");
+              return true;
+            } else {
+              // CASE 2: Existing user, merge guest data into existing account
+              const guestCustomer = guestUser.customer;
+              const existingCustomer = existingUser.customer;
 
+              if (guestCustomer && existingCustomer) {
+                await prisma.$transaction(async (tx) => {
+                  // 1. Transfer Orders
+                  await tx.order.updateMany({
+                    where: { customer_id: guestCustomer.id },
+                    data: { customer_id: existingCustomer.id },
+                  });
+
+                  // 2. Transfer Discounts
+                  await tx.customerDiscount.updateMany({
+                    where: { customer_id: guestCustomer.id },
+                    data: { customer_id: existingCustomer.id },
+                  });
+
+                  // 3. Merge Table Info if existing is empty
+                  if (
+                    !existingCustomer.canteen_id &&
+                    guestCustomer.canteen_id
+                  ) {
+                    await tx.customer.update({
+                      where: { id: existingCustomer.id },
+                      data: {
+                        canteen_id: guestCustomer.canteen_id,
+                        floor: guestCustomer.floor,
+                        table_number: guestCustomer.table_number,
+                      },
+                    });
+                  }
+
+                  // 4. Handle Cart (Simplified: move shop carts if existing cart is empty)
+                  if (guestCustomer.cart) {
+                    if (!existingCustomer.cart) {
+                      await tx.cart.update({
+                        where: { id: guestCustomer.cart.id },
+                        data: { customer_id: existingCustomer.id },
+                      });
+                    } else {
+                      // Move shop carts to existing cart
+                      await tx.shopCart.updateMany({
+                        where: { cart_id: guestCustomer.cart.id },
+                        data: { cart_id: existingCustomer.cart.id },
+                      });
+                    }
+                  }
+
+                  // 5. Delete guest user (cascades to customer and leftover cart)
+                  await tx.user.delete({
+                    where: { id: guestId },
+                  });
+                });
+              }
+
+              cookieStore.delete("guestId");
               return true;
             }
           }
+        }
 
-          // Normal flow for new user without guest session
+        // CASE 3: No guest session
+        if (!existingUser) {
+          // Create brand new user
           await prisma.user.create({
             data: {
               id: user.id as string,
@@ -302,14 +371,13 @@ if (guestId) {
             },
           });
 
-          // Pemicu event participation untuk user baru
           try {
             await processEventParticipation(user.id as string);
           } catch (error) {
             console.error("Error triggering event participation:", error);
           }
         } else if (!existingUser.name || existingUser.name === "") {
-          // Update nama jika kosong di database
+          // Update existing user profile if name is missing
           await prisma.user.update({
             where: { id: existingUser.id },
             data: { name: user.name as string },

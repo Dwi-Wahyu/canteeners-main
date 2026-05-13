@@ -151,7 +151,6 @@ export function CreateRefundForm({
     setSelectedFile(file);
     setPreviewUrl(objectUrl);
     form.setValue("complaint_proof_url", file.name, { shouldValidate: true });
-    toast.success("Bukti dipilih");
   };
 
   const removeSelectedFile = () => {
@@ -479,7 +478,9 @@ export function CreateRefundForm({
                       <span className="font-medium text-primary">
                         Klik untuk upload
                       </span>
-                      <p className="text-muted-foreground">atau drag and drop</p>
+                      <p className="text-muted-foreground">
+                        atau drag and drop
+                      </p>
                     </div>
                   </label>
                 </div>

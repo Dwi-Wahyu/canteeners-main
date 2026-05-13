@@ -7,12 +7,14 @@ import { useRouter } from "nextjs-toploader/app";
 import { Loader2, User, Lock, Eye, EyeOff } from "lucide-react";
 import { LoginSchema, LoginInput } from "@/features/auth/types/auth-schemas";
 import { useEffect, useState } from "react";
+import { createGuestSession } from "@/helper/create-guest-session";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function LoginKedaiPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(LoginSchema),
@@ -46,10 +48,25 @@ export default function LoginKedaiPage() {
     }
   }
 
+  async function handleGuestLogin() {
+    setIsGuestLoading(true);
+    try {
+      await createGuestSession({ name: "Tamu" });
+      router.push("/kantin/kantin-kudapan");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsGuestLoading(false);
+    }
+  }
+
   const session = useSession();
 
   useEffect(() => {
-    if (session.status === "authenticated") {
+    if (
+      session.status === "authenticated" &&
+      session.data?.user?.role === "SHOP_OWNER"
+    ) {
       router.push("/dashboard-kedai");
     }
   }, [session, session.status, router]);
@@ -324,6 +341,29 @@ export default function LoginKedaiPage() {
               )}
             </button>
           </form>
+
+          <div className="relative flex items-center justify-center w-full my-1">
+            <div className="absolute w-full border-t border-gray-100" />
+            <span className="relative z-10 bg-[#ffffff] px-4 text-muted-foreground text-xs font-medium">
+              Atau
+            </span>
+          </div>
+
+          <button
+            type="button"
+            disabled={isGuestLoading || form.formState.isSubmitting}
+            onClick={handleGuestLogin}
+            className="w-full rounded-full py-4 font-headline font-bold text-base border-2 border-gray-100 text-gray-600 hover:bg-gray-50 transition-all duration-300 disabled:opacity-50"
+          >
+            {isGuestLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Menyiapkan...
+              </span>
+            ) : (
+              "Lanjutkan Mode Tamu"
+            )}
+          </button>
         </div>
 
         {/* Footer Link */}

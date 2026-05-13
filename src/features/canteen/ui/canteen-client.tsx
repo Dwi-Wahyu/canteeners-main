@@ -462,6 +462,7 @@ export default function CanteenClient({
                           <CustomBadge
                             value={shop.status}
                             successValues={["ACTIVE"]}
+                            warningValues={["BUSY"]}
                             outlineValues={["INACTIVE"]}
                             destructiveValues={["SUSPENDED"]}
                           >

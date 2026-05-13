@@ -148,7 +148,7 @@ export default function CustomerProfilePage() {
               )}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Halo, Tamu!
+              Halo, {session?.user?.name || "Tamu"}!
             </h1>
             {isSuspended && (
               <Badge
@@ -157,6 +157,11 @@ export default function CustomerProfilePage() {
               >
                 Akun Dibekukan
               </Badge>
+            )}
+            {!isSuspended && session?.user?.name && (
+              <p className="text-xs font-medium text-orange-600 mb-2">
+                Anda sedang dalam mode tamu
+              </p>
             )}
             <p className="text-sm text-muted-foreground mb-8 max-w-[250px]">
               {isSuspended

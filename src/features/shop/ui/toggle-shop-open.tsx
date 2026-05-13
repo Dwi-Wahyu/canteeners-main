@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Edit, Loader2 } from "lucide-react";
+import { Edit, Loader2, Coffee } from "lucide-react";
 import { formatToHour } from "@/helper/hour-helper";
 import { ShopStatus } from "@/generated/prisma";
 import { toggleAutoAccept, toggleShopStatus } from "../lib/shop-actions";
@@ -30,9 +30,11 @@ export default function ToggleShopStatus({
   const [isPending, startTransition] = useTransition();
   const [isAutoPending, startAutoTransition] = useTransition();
 
-  function handleToggle() {
+  function handleStatusUpdate(newStatus: ShopStatus) {
+    if (newStatus === status) return;
+
     startTransition(async () => {
-      const result = await toggleShopStatus(id, current_status);
+      const result = await toggleShopStatus(id, newStatus);
 
       if (result.success) {
         toast.success(result.message);
@@ -60,45 +62,100 @@ export default function ToggleShopStatus({
     });
   }
 
+  const getStatusConfig = (s: ShopStatus) => {
+    switch (s) {
+      case "ACTIVE":
+        return {
+          color: "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]",
+          label: "Status Kedai: Buka",
+          desc: "Kedai sedang menerima pesanan",
+        };
+      case "BUSY":
+        return {
+          color: "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]",
+          label: "Status Kedai: Sibuk",
+          desc: "Kedai sedang ramai, pesanan baru ditutup sementara",
+        };
+      case "INACTIVE":
+        return {
+          color: "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]",
+          label: "Status Kedai: Tutup",
+          desc: "Kedai sedang tidak menerima pesanan",
+        };
+      case "SUSPENDED":
+        return {
+          color: "bg-black shadow-[0_0_8px_rgba(0,0,0,0.5)]",
+          label: "Status Kedai: Ditangguhkan",
+          desc: "Akun kedai sedang ditangguhkan oleh admin",
+        };
+      default:
+        return {
+          color: "bg-gray-500",
+          label: "Status Kedai",
+          desc: "Status tidak diketahui",
+        };
+    }
+  };
+
+  const statusConfig = getStatusConfig(status);
+
   return (
     <Card className="mb-4">
       <CardContent>
         <div className="space-y-4">
           {/* Status Kedai */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3">
             <div className="flex gap-3 items-center">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  status === "ACTIVE"
-                    ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"
-                    : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"
-                }`}
-              ></div>
+              <div className={`w-3 h-3 rounded-full ${statusConfig.color}`} />
               <div>
-                <h1 className="text-sm font-semibold">Status Kedai</h1>
+                <h1 className="text-sm font-semibold">{statusConfig.label}</h1>
                 <p className="text-xs text-muted-foreground">
-                  {status === "ACTIVE"
-                    ? "Kedai sedang menerima pesanan"
-                    : "Kedai sedang tutup"}
+                  {statusConfig.desc}
                 </p>
               </div>
             </div>
 
-            <Button
-              size={"sm"}
-              variant={status === "ACTIVE" ? "outline" : "default"}
-              onClick={handleToggle}
-              disabled={isPending}
-              className="min-w-[90px]"
-            >
-              {isPending ? (
-                <Loader2 className="animate-spin w-4 h-4" />
-              ) : status === "ACTIVE" ? (
-                "Tutup Kedai"
-              ) : (
-                "Buka Kedai"
-              )}
-            </Button>
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                size={"sm"}
+                variant={status === "ACTIVE" ? "default" : "outline"}
+                onClick={() => handleStatusUpdate("ACTIVE")}
+                disabled={isPending || status === "SUSPENDED"}
+                className="text-xs h-9"
+              >
+                {isPending && status === "ACTIVE" ? (
+                  <Loader2 className="animate-spin w-3 h-3" />
+                ) : (
+                  "Buka"
+                )}
+              </Button>
+              <Button
+                size={"sm"}
+                variant={status === "BUSY" ? "default" : "outline"}
+                onClick={() => handleStatusUpdate("BUSY")}
+                disabled={isPending || status === "SUSPENDED"}
+                className="text-xs h-9"
+              >
+                {isPending && status === "BUSY" ? (
+                  <Loader2 className="animate-spin w-3 h-3" />
+                ) : (
+                  "Sibuk"
+                )}
+              </Button>
+              <Button
+                size={"sm"}
+                variant={status === "INACTIVE" ? "default" : "outline"}
+                onClick={() => handleStatusUpdate("INACTIVE")}
+                disabled={isPending || status === "SUSPENDED"}
+                className="text-xs h-9"
+              >
+                {isPending && status === "INACTIVE" ? (
+                  <Loader2 className="animate-spin w-3 h-3" />
+                ) : (
+                  "Tutup"
+                )}
+              </Button>
+            </div>
           </div>
 
           <Separator />

@@ -4,8 +4,6 @@ import { getExistingPendingShopCart } from "@/features/cart/lib/cart-queries";
 import CreateShopConversation from "@/features/chat/ui/create-shop-conversation";
 import { getShopAndProducts } from "@/features/shop/lib/shop-queries";
 import { ShopProductsSearchParams } from "@/features/shop/types/shop-search-params";
-import ShopProductList from "@/features/shop/ui/shop-product-list";
-import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
 import { formatToHour } from "@/helper/hour-helper";
 import { ChevronLeft, ShoppingCart, Star } from "lucide-react";
@@ -77,7 +75,14 @@ export default async function ShopDetail({
           </div>
 
           <div className="mb-10">
-            <h1 className="text-3xl font-bold tracking-tight">{shop.name}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold tracking-tight">{shop.name}</h1>
+              {shop.status === "BUSY" && (
+                <span className="bg-orange-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider animate-pulse">
+                  Sibuk
+                </span>
+              )}
+            </div>
             <p className="text-muted text-sm mt-1">{shop.description}</p>
             {shop.open_time && shop.close_time && (
               <p className="text-muted text-sm mt-1">

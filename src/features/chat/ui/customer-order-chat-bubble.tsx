@@ -143,7 +143,7 @@ export default function CustomerOrderChatBubble({
                     key={`${order_id}-${idx}`}
                     className="flex items-center gap-3"
                   >
-                    <Image
+                    <img
                       src={getImageUrl("/product/" + item.image_url)}
                       width={40}
                       height={40}
