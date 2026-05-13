@@ -17,6 +17,12 @@ export async function getShopById(id: string) {
           user_id: true,
         },
       },
+      description: true,
+      image_url: true,
+      order_mode: true,
+      refund_disbursement_mode: true,
+      open_time: true,
+      close_time: true,
     },
   });
 }
@@ -102,11 +108,15 @@ export async function getShopTestimonies(shop_id: string) {
 
 export async function getShopDashboardStats(
   shopId: string,
-  period: "today" | "week" | "month" | "all" = "today"
+  period: "today" | "week" | "month" | "all" = "today",
 ) {
   const now = new Date();
   let startDate: Date | undefined;
-  const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const endDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + 1,
+  );
 
   if (period === "today") {
     startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -120,7 +130,9 @@ export async function getShopDashboardStats(
     startDate = undefined; // No lower bound
   }
 
-  const dateFilter = startDate ? { gte: startDate, lt: endDate } : { lt: endDate };
+  const dateFilter = startDate
+    ? { gte: startDate, lt: endDate }
+    : { lt: endDate };
 
   // Get period specific orders with items for net revenue calculation
   const periodOrders = await prisma.order.findMany({
@@ -132,10 +144,10 @@ export async function getShopDashboardStats(
     include: {
       order_items: {
         include: {
-          selected_options: true
-        }
-      }
-    }
+          selected_options: true,
+        },
+      },
+    },
   });
 
   const totalRevenueInPeriod = periodOrders.reduce(
@@ -146,7 +158,10 @@ export async function getShopDashboardStats(
   // Net revenue = sum of (price_at_add + options_price) * quantity
   const totalNetRevenueInPeriod = periodOrders.reduce((acc, order) => {
     const orderNet = order.order_items.reduce((itemAcc, item) => {
-      const optionsPrice = item.selected_options.reduce((optAcc, opt) => optAcc + (opt.additional_price || 0), 0);
+      const optionsPrice = item.selected_options.reduce(
+        (optAcc, opt) => optAcc + (opt.additional_price || 0),
+        0,
+      );
       return itemAcc + (item.price_at_add + optionsPrice) * item.quantity;
     }, 0);
     return acc + orderNet;
@@ -159,17 +174,20 @@ export async function getShopDashboardStats(
 
   // Calculate average preparation time (in minutes)
   const completedOrdersWithPrepTime = periodOrders.filter(
-    (o) => o.processed_at && o.status === "COMPLETED"
+    (o) => o.processed_at && o.status === "COMPLETED",
   );
-  
+
   const totalPrepTime = completedOrdersWithPrepTime.reduce((acc, order) => {
-    const prepDuration = (order.updated_at.getTime() - order.processed_at!.getTime()) / (1000 * 60);
+    const prepDuration =
+      (order.updated_at.getTime() - order.processed_at!.getTime()) /
+      (1000 * 60);
     return acc + prepDuration;
   }, 0);
 
-  const avgPrepTime = completedOrdersWithPrepTime.length > 0 
-    ? Math.round(totalPrepTime / completedOrdersWithPrepTime.length) 
-    : 0;
+  const avgPrepTime =
+    completedOrdersWithPrepTime.length > 0
+      ? Math.round(totalPrepTime / completedOrdersWithPrepTime.length)
+      : 0;
 
   // Get total complaints in period
   const totalComplaintsInPeriod = await prisma.shopComplaint.count({
@@ -217,15 +235,15 @@ export async function getShopDashboardStats(
       created_at: {
         gte: sevenDaysAgo,
       },
-      status: "COMPLETED"
+      status: "COMPLETED",
     },
     include: {
       order_items: {
         include: {
-          selected_options: true
-        }
-      }
-    }
+          selected_options: true,
+        },
+      },
+    },
   });
 
   // Group by date
@@ -248,10 +266,16 @@ export async function getShopDashboardStats(
     });
 
     const dailyNetRevenue = ordersForDay.reduce((acc, order) => {
-      return acc + order.order_items.reduce((itemAcc, item) => {
-        const optionsPrice = item.selected_options.reduce((optAcc, opt) => optAcc + (opt.additional_price || 0), 0);
-        return itemAcc + (item.price_at_add + optionsPrice) * item.quantity;
-      }, 0);
+      return (
+        acc +
+        order.order_items.reduce((itemAcc, item) => {
+          const optionsPrice = item.selected_options.reduce(
+            (optAcc, opt) => optAcc + (opt.additional_price || 0),
+            0,
+          );
+          return itemAcc + (item.price_at_add + optionsPrice) * item.quantity;
+        }, 0)
+      );
     }, 0);
 
     chartData.push({
@@ -270,10 +294,10 @@ export async function getShopDashboardStats(
     include: {
       order_items: {
         include: {
-          selected_options: true
-        }
-      }
-    }
+          selected_options: true,
+        },
+      },
+    },
   });
 
   const totalGrossRevenue = allCompletedOrders.reduce(
@@ -283,7 +307,10 @@ export async function getShopDashboardStats(
 
   const totalAllTimeNetRevenue = allCompletedOrders.reduce((acc, order) => {
     const orderNet = order.order_items.reduce((itemAcc, item) => {
-      const optionsPrice = item.selected_options.reduce((optAcc, opt) => optAcc + (opt.additional_price || 0), 0);
+      const optionsPrice = item.selected_options.reduce(
+        (optAcc, opt) => optAcc + (opt.additional_price || 0),
+        0,
+      );
       return itemAcc + (item.price_at_add + optionsPrice) * item.quantity;
     }, 0);
     return acc + orderNet;
