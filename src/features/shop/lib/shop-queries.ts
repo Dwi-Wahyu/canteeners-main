@@ -376,6 +376,15 @@ export async function getShopByOwnerId(ownerId: string) {
     select: {
       id: true,
       name: true,
+      status: true,
+      image_url: true,
+    },
+  });
+}
+   },
+    select: {
+      id: true,
+      name: true,
       image_url: true,
     },
   });

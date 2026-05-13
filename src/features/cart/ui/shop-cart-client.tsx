@@ -30,6 +30,7 @@ import {
   Trash2,
   CircleAlert,
   ShieldAlert,
+  Coffee,
 } from "lucide-react";
 import { formatToHour, isTimeWithinRange } from "@/helper/hour-helper";
 import ReferralSection from "./referral-section";
