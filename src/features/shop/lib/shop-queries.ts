@@ -27,6 +27,7 @@ export async function getShopAndProducts(
     select: {
       id: true,
       name: true,
+      status: true,
       canteen: {
         select: {
           slug: true,
