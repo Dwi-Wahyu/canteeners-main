@@ -8,8 +8,15 @@ export async function getShopById(id: string) {
     where: {
       id,
     },
-    include: {
-      owner: true,
+    select: {
+      id: true,
+      name: true,
+      status: true,
+      owner: {
+        select: {
+          user_id: true,
+        },
+      },
     },
   });
 }
@@ -377,14 +384,6 @@ export async function getShopByOwnerId(ownerId: string) {
       id: true,
       name: true,
       status: true,
-      image_url: true,
-    },
-  });
-}
-   },
-    select: {
-      id: true,
-      name: true,
       image_url: true,
     },
   });
