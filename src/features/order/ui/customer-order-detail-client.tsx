@@ -5,18 +5,6 @@ import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
 import { OrderStatus } from "@/generated/prisma";
-
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemFooter,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
-
-import Image from "next/image";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { postOrderTypeMapping } from "@/constant/post-order-type-mapping";
 import CustomerPositionBreadcrumb from "@/features/cart/ui/customer-position-breadcrumb";
@@ -26,12 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatToHour } from "@/helper/hour-helper";
 import { GetCustomerOrderDetail } from "../types/order-queries-types";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
-import {
-  CircleAlert,
-  Edit,
-  MessageSquareHeart,
-  StickyNote,
-} from "lucide-react";
+import { CircleAlert, Edit, StickyNote } from "lucide-react";
 import NavButton from "@/components/nav-button";
 import { getImageUrl } from "@/helper/get-image-url";
 import CashIcon from "@/components/icons/cash-icon";
@@ -51,17 +34,22 @@ import { useNotificationDialogStore } from "@/stores/use-notification-store";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import PaymentCountdown from "@/app/order/[order_id]/pembayaran/payment-countdown";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "radix-ui";
 
 export default function CustomerOrderDetailClient({
   order: initialOrder,
+  shopConfirmationTimeout = 30,
 }: {
   order: GetCustomerOrderDetail;
+  shopConfirmationTimeout?: number;
 }) {
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
   const order =
     (orderData as unknown as GetCustomerOrderDetail) || initialOrder;
 
   const [isLate, setIsLate] = useState(false);
+  const [isOpenProof, setIsOpenProof] = useState(false);
   const showNotification = useNotificationDialogStore((state) => state.show);
   const hideNotification = useNotificationDialogStore((state) => state.hide);
   const prevStatusRef = useRef<OrderStatus>(order.status);
@@ -189,9 +177,13 @@ export default function CustomerOrderDetailClient({
 
         {isGracePeriod &&
           !["COMPLETED", "CANCELLED", "REJECTED"].includes(order.status) && (
-            <Alert variant="destructive" className="bg-destructive/5 border-destructive/20">
-              <CircleAlert className="w-4 h-4 text-destructive" />
-              <AlertTitle className="text-destructive">Masa Tenggang Pembatalan</AlertTitle>
+            <Alert
+              variant="destructive"
+              className="bg-destructive/5 border-destructive/20"
+            >
+              <AlertTitle className="text-destructive">
+                Masa Tenggang Pembatalan
+              </AlertTitle>
               <AlertDescription className="space-y-3">
                 <p>
                   Anda memiliki {15 - elapsedSeconds} detik untuk membatalkan
@@ -231,6 +223,24 @@ export default function CustomerOrderDetailClient({
             </AlertDescription>
           </Alert>
         )}
+
+        {order.status === "WAITING_SHOP_CONFIRMATION" &&
+          order.payment_method !== "CASH" && (
+            <Alert className="bg-blue-50 border-blue-200">
+              <AlertTitle className="text-blue-800">
+                Menunggu Konfirmasi Pembayaran
+              </AlertTitle>
+              <AlertDescription className="text-blue-700">
+                Pesanan Anda sedang dalam proses verifikasi oleh pemilik kedai.
+                Jika dalam {shopConfirmationTimeout} menit pemilik kedai tidak
+                mengonfirmasi, maka pesanan akan otomatis dibatalkan dan
+                pengembalian dana (refund) akan dibuat secara otomatis oleh
+                sistem. Jika bukti pembayaran valid dan telah dilakukan cross
+                check oleh pemilik kedai dan admin, maka dana akan dikembalikan
+                dalam 1x24 jam.
+              </AlertDescription>
+            </Alert>
+          )}
 
         {order.status === "REJECTED" && (
           <Alert variant={"destructive"}>
@@ -392,6 +402,40 @@ export default function CustomerOrderDetailClient({
           <h1>{paymentMethodMapping[order.payment_method]}</h1>
         </div>
 
+        {order.payment_proof_url && (
+          <div>
+            <h1 className="font-semibold">Bukti Pembayaran</h1>
+            <div className="mt-2 relative w-full h-fit max-w-50 overflow-hidden rounded-lg border shadow-sm group">
+              <img
+                src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
+                alt="Bukti Pembayaran"
+                className="object-cover cursor-pointer transition-transform group-hover:scale-105"
+                onClick={() => setIsOpenProof(true)}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1 italic">
+              *Klik gambar untuk memperbesar
+            </p>
+
+            <Dialog open={isOpenProof} onOpenChange={setIsOpenProof}>
+              <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 overflow-visible border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-black/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:top-[-40px] [&>button]:right-0 sm:[&>button]:right-[-40px] sm:[&>button]:top-0">
+                <VisuallyHidden.Root>
+                  <DialogTitle>Bukti Pembayaran</DialogTitle>
+                </VisuallyHidden.Root>
+                <div className="relative w-full h-full max-h-[85vh] flex items-center justify-center">
+                  <img
+                    src={getImageUrl(
+                      "/payment-proof/" + order.payment_proof_url,
+                    )}
+                    alt="Bukti Pembayaran Full"
+                    className="max-w-full max-h-[85vh] object-contain rounded-md"
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )}
+
         {(order.status === "WAITING_PAYMENT" ||
           order.status === "PAYMENT_REJECTED") && (
           <NavButton
@@ -490,9 +534,11 @@ export default function CustomerOrderDetailClient({
 
       <OrderComplaintSection order={order} />
 
-      {!(order.status === "CANCELLED" && !order.processed_at && !order.refund) && (
-        <OrderRefundSection order={order as any} userRole="CUSTOMER" />
-      )}
+      {!(
+        order.status === "CANCELLED" &&
+        !order.processed_at &&
+        !order.refund
+      ) && <OrderRefundSection order={order as any} userRole="CUSTOMER" />}
     </div>
   );
 }

@@ -151,10 +151,7 @@ export default function CustomerProfilePage() {
               Halo, {session?.user?.name || "Tamu"}!
             </h1>
             {isSuspended && (
-              <Badge
-                variant="destructive"
-                className="mb-4 animate-bounce font-bold px-4 py-1"
-              >
+              <Badge variant="destructive" className="mb-4 font-bold px-4 py-1">
                 Akun Dibekukan
               </Badge>
             )}
@@ -263,17 +260,6 @@ export default function CustomerProfilePage() {
               <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
           </div>
-
-          {session && (
-            <Button
-              variant="outline"
-              className="w-full h-12 rounded-2xl border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 font-bold gap-2 mt-4"
-              onClick={() => signOut()}
-            >
-              <LogOut className="size-4" />
-              Keluar dari Akun
-            </Button>
-          )}
         </div>
 
         <BottomNav />

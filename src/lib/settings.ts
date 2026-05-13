@@ -40,3 +40,11 @@ export async function getPaymentTimeoutMinutes(): Promise<number> {
   const value = await getGlobalSetting("payment_timeout_minutes", "15");
   return parseInt(value) || 15;
 }
+
+/**
+ * Mendapatkan batas waktu konfirmasi kedai dalam menit (angka).
+ */
+export async function getShopConfirmationTimeoutMinutes(): Promise<number> {
+  const value = await getGlobalSetting("shop_confirmation_timeout_minutes", "30");
+  return parseInt(value) || 30;
+}

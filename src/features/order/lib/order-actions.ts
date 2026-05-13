@@ -20,7 +20,10 @@ import { paymentMethodMapping } from "@/constant/payment-method";
 import { startOfWeek, endOfWeek } from "date-fns";
 import { calculateCommission } from "@/helper/pricing-helper";
 import { orderQueue } from "@/lib/queue";
-import { getPaymentTimeoutMinutes } from "@/lib/settings";
+import {
+  getPaymentTimeoutMinutes,
+  getShopConfirmationTimeoutMinutes,
+} from "@/lib/settings";
 
 // --- Helper untuk Revalidasi (DRY Principle) ---
 function revalidateOrderPaths(orderId: string) {
@@ -749,11 +752,28 @@ export async function savePaymentProof({
       },
     });
 
-    // Remove job from BullMQ queue
+    // Remove job from BullMQ queue (cancel-unpaid-order)
     try {
       await orderQueue.remove(order_id);
     } catch (queueError) {
       console.error("Failed to remove job from orderQueue:", queueError);
+    }
+
+    // Trigger BullMQ untuk auto-refund jika shop tidak konfirmasi
+    try {
+      const confTimeoutMinutes = await getShopConfirmationTimeoutMinutes();
+      await orderQueue.add(
+        "auto-refund-unconfirmed-payment",
+        { orderId: order_id },
+        {
+          delay: confTimeoutMinutes * 60 * 1000,
+          jobId: `refund-${order_id}`,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+    } catch (queueError) {
+      console.error("Failed to add auto-refund job to orderQueue:", queueError);
     }
 
     const notificationRef = adminDb.collection("notifications");

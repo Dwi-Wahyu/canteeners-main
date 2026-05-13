@@ -56,15 +56,17 @@ async function getFirebaseToken({
           }
         } else if (error.code === "auth/email-already-exists") {
           // If email belongs to another UID, we skip updating email but still try to generate token
-          console.warn(`Email ${email} already exists for another UID in Firebase.`);
+          console.warn(
+            `Email ${email} already exists for another UID in Firebase.`,
+          );
           // Optionally update displayName/photoURL without email
           const { email: _, emailVerified: __, ...otherData } = updateData;
           if (Object.keys(otherData).length > 0) {
-             try {
-               await adminAuth.updateUser(uid, otherData);
-             } catch (e) {
-               console.error("Error updating user without email:", e);
-             }
+            try {
+              await adminAuth.updateUser(uid, otherData);
+            } catch (e) {
+              console.error("Error updating user without email:", e);
+            }
           }
         } else {
           console.error("Error updating firebase user:", error);
@@ -108,9 +110,9 @@ export const authConfig: NextAuthConfig = {
             const guestCustomer = await prisma.user.findUnique({
               where: {
                 id: firebaseUid,
-                role: "CUSTOMER",
               },
               select: {
+                role: true,
                 name: true,
                 customer: {
                   select: {
@@ -125,7 +127,7 @@ export const authConfig: NextAuthConfig = {
               },
             });
 
-            if (!guestCustomer) {
+            if (!guestCustomer || guestCustomer.role !== "CUSTOMER") {
               return null;
             }
 
@@ -180,6 +182,8 @@ export const authConfig: NextAuthConfig = {
             },
           },
         });
+
+        console.log(user);
 
         if (!user) return null;
 
@@ -305,9 +309,15 @@ export const authConfig: NextAuthConfig = {
                     data: { customer_id: existingCustomer.id },
                   });
 
-                  // 3. Merge Table Info if existing is empty
+                  // 3. Transfer Violations
+                  await tx.customerViolation.updateMany({
+                    where: { customer_id: guestCustomer.id },
+                    data: { customer_id: existingCustomer.id },
+                  });
+
+                  // 4. Update table location if existing doesn't have it
                   if (
-                    !existingCustomer.canteen_id &&
+                    !existingCustomer.table_number &&
                     guestCustomer.canteen_id
                   ) {
                     await tx.customer.update({

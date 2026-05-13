@@ -31,51 +31,85 @@ export async function createGuestCustomer({
   }>
 > {
   try {
-    const createdUser = await prisma.user.create({
-      data: {
-        id: firebaseUserUid,
-        name: guestName,
-        role: "CUSTOMER",
-      },
-      select: {
-        id: true,
+    const cookieStore = await cookies();
+
+    // 1. Dapatkan atau buat User
+    let user = await prisma.user.findUnique({
+      where: { id: firebaseUserUid },
+      include: {
+        customer: {
+          include: {
+            cart: true,
+          },
+        },
       },
     });
 
-    if (!createdUser) {
-      return errorResponse("Terjadi kesalahan saat membuat user");
+    if (!user) {
+      user = (await prisma.user.create({
+        data: {
+          id: firebaseUserUid,
+          name: guestName,
+          role: "CUSTOMER",
+        },
+        include: {
+          customer: {
+            include: {
+              cart: true,
+            },
+          },
+        },
+      })) as any;
     }
 
-    const createdCustomer = await prisma.customer.create({
-      data: {
-        user_id: createdUser.id,
-        ...(tableData && {
-          canteen_id: tableData.canteen_id,
-          floor: tableData.floor,
-          table_number: tableData.table_number,
-          last_visit_at: new Date(),
-        }),
-      },
-    });
-
-    if (!createdCustomer) {
-      return errorResponse("Terjadi kesalahan saat membuat customer");
+    if (!user) {
+      return errorResponse("Terjadi kesalahan saat menyiapkan user");
     }
 
-    const createdCart = await prisma.cart.create({
-      data: {
-        customer_id: createdCustomer.id,
-        status: "ACTIVE",
-      },
-    });
+    if (user.role !== "CUSTOMER") {
+      return errorResponse("User sudah terdaftar dengan role lain");
+    }
 
-    if (!createdCart) {
-      return errorResponse("Terjadi kesalahan saat membuat keranjang");
+    // 2. Dapatkan atau buat Customer
+    let customer = user.customer;
+    if (!customer) {
+      customer = (await prisma.customer.create({
+        data: {
+          user_id: user.id,
+          ...(tableData && {
+            canteen_id: tableData.canteen_id,
+            floor: tableData.floor,
+            table_number: tableData.table_number,
+            last_visit_at: new Date(),
+          }),
+        },
+        include: {
+          cart: true,
+        },
+      })) as any;
+    }
+
+    if (!customer) {
+      return errorResponse("Terjadi kesalahan saat menyiapkan customer");
+    }
+
+    // 3. Dapatkan atau buat Cart
+    let cart = customer.cart;
+    if (!cart) {
+      cart = await prisma.cart.create({
+        data: {
+          customer_id: customer.id,
+          status: "ACTIVE",
+        },
+      });
+    }
+
+    if (!cart) {
+      return errorResponse("Terjadi kesalahan saat menyiapkan keranjang");
     }
 
     // Set guestId cookie for migration during login
-    const cookieStore = await cookies();
-    cookieStore.set("guestId", createdUser.id, {
+    cookieStore.set("guestId", user.id, {
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
       httpOnly: true,
@@ -85,16 +119,15 @@ export async function createGuestCustomer({
 
     return successResponse(
       {
-        user_id: createdUser.id,
-        customer_id: createdCustomer.id,
-        cart_id: createdCart.id,
+        user_id: user.id,
+        customer_id: customer.id,
+        cart_id: cart.id,
       },
-      "Sukses membuat guest customer",
+      "Sukses menyiapkan guest customer",
     );
   } catch (error) {
     console.log(error);
-
-    return errorResponse("Terjadi kesalahan");
+    return errorResponse("Terjadi kesalahan sistem");
   }
 }
 
@@ -421,5 +454,58 @@ export async function changePassword(
   } catch (error) {
     console.error(error);
     return errorResponse("Terjadi kesalahan saat mengubah kata sandi");
+  }
+}
+
+export async function getCustomerSuspensionStatus(userId: string) {
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { user_id: userId },
+      select: {
+        suspend_until: true,
+        suspend_reason: true,
+      },
+    });
+    return customer;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export async function getCustomerReferralStatus(userId: string) {
+  try {
+    const customer = await prisma.customer.findUnique({
+      where: { user_id: userId },
+      include: {
+        discounts: {
+          include: {
+            discount: true,
+          },
+        },
+        _count: {
+          select: {
+            orders: {
+              where: {
+                status: "COMPLETED",
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!customer) return null;
+
+    return {
+      referral_code: customer.referral_code,
+      completed_orders_count: customer._count.orders,
+      is_eligible: customer._count.orders >= 2,
+      referral_usage_count: customer.referral_usage_count,
+      vouchers: customer.discounts.filter((d) => !d.is_used),
+    };
+  } catch (error) {
+    console.error(error);
+    return null;
   }
 }

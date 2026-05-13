@@ -6,6 +6,7 @@ import { toast } from "sonner";
 export async function createGuestSession({
   name,
   tableData,
+  guestId,
 }: {
   name: string;
   tableData?: {
@@ -13,13 +14,23 @@ export async function createGuestSession({
     floor: number;
     table_number: number;
   };
+  guestId?: string;
 }): Promise<{ cartId: string | null; userId: string | null }> {
   const auth = getAuth();
 
-  const result = await signInAnonymously(auth);
+  let firebaseUid: string;
+
+  if (guestId) {
+    // Jika ada guestId, kita gunakan itu (Firebase Anonymous login tetap dilakukan untuk token)
+    const result = await signInAnonymously(auth);
+    firebaseUid = guestId; // Kita paksa pakai guestId lama agar data di Prisma nyambung
+  } else {
+    const result = await signInAnonymously(auth);
+    firebaseUid = result.user.uid;
+  }
 
   const createGuest = await createGuestCustomer({
-    firebaseUserUid: result.user.uid,
+    firebaseUserUid: firebaseUid,
     guestName: name,
     tableData,
   });

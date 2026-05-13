@@ -47,7 +47,6 @@ export default async function ViolationsPage() {
         {/* Suspension Status */}
         {isSuspended ? (
           <Alert variant="destructive" className="border-red-200 bg-red-50">
-            <ShieldAlert className="h-5 w-5 text-red-600" />
             <AlertTitle className="text-red-800 font-bold">
               Akun Dibekukan Sementara
             </AlertTitle>
@@ -56,10 +55,9 @@ export default async function ViolationsPage() {
                 Akun Anda sedang ditangguhkan karena melakukan pelanggaran
                 berulang sesuai Syarat & Ketentuan.
               </p>
-              <div className="bg-white/50 p-3 rounded-lg border border-red-100 flex items-start gap-2">
-                <Clock className="size-4 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-2">
                 <div>
-                  <p className="text-xs font-bold">Aktif Kembali Pada:</p>
+                  <p className="text-xs font-bold">Aktif Kembali Pada</p>
                   <p className="text-sm font-medium">
                     {format(
                       new Date(suspension.suspend_until!),
@@ -71,10 +69,7 @@ export default async function ViolationsPage() {
               </div>
               {suspension.suspend_reason && (
                 <div className="flex items-start gap-2">
-                  <Info className="size-4 mt-0.5 shrink-0" />
-                  <p className="text-xs italic">
-                    Alasan: {suspension.suspend_reason}
-                  </p>
+                  <p className="text-xs italic">{suspension.suspend_reason}</p>
                 </div>
               )}
             </AlertDescription>
@@ -95,12 +90,9 @@ export default async function ViolationsPage() {
 
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+            <h2 className="text-sm font-medium text-muted-foreground">
               Riwayat Pelanggaran
             </h2>
-            <Badge variant="outline" className="font-bold">
-              {violations.length} Kejadian
-            </Badge>
           </div>
 
           {violations.length === 0 ? (
@@ -115,7 +107,7 @@ export default async function ViolationsPage() {
               {violations.map((v) => (
                 <Link key={v.id} href={`/profil/pelanggaran/${v.id}`}>
                   <Card className="hover:shadow-md transition-all active:scale-[0.98] border-red-50">
-                    <CardContent className="p-4 flex items-center gap-4">
+                    <CardContent className="flex items-center gap-4">
                       <div className="size-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500">
                         <AlertTriangle className="size-5" />
                       </div>
@@ -151,7 +143,7 @@ export default async function ViolationsPage() {
           <Button
             asChild
             variant="link"
-            className="text-blue-600 h-auto p-0 font-bold text-xs"
+            className="text-blue-600 h-auto p-0 pl-0 font-medium text-xs"
           >
             <Link href="/syarat-dan-ketentuan/pelanggan">
               Baca Syarat & Ketentuan <ChevronRight className="size-3" />

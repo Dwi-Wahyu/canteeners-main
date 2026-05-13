@@ -19,6 +19,8 @@ import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { calculateItemCommission, calculateCommission } from "@/helper/pricing-helper";
+import { orderQueue } from "@/lib/queue";
+import { getPaymentTimeoutMinutes } from "@/lib/settings";
 
 /**
  * Helper internal untuk menghitung ulang semua subtotal item dan total harga keranjang
@@ -256,6 +258,7 @@ export async function processShopCart({
           customer_id: shopCartData.cart.customer_id,
           payment_method: paymentMethod,
           status: initialStatus,
+          confirmed_at: shopCartData.shop.is_auto_accept ? new Date() : null,
           total_price: shopCartData.total_price - total_discount_amount,
           total_discount_amount,
           post_order_type: postOrderType,
@@ -306,6 +309,25 @@ export async function processShopCart({
     });
 
     order_id = result.order_id;
+
+    // Trigger BullMQ untuk auto-cancel jika is_auto_accept aktif
+    if (shopCartData.shop.is_auto_accept) {
+      const timeoutMinutes = await getPaymentTimeoutMinutes();
+      try {
+        await orderQueue.add(
+          "cancel-unpaid-order",
+          { orderId: order_id },
+          {
+            delay: timeoutMinutes * 60 * 1000,
+            jobId: order_id,
+            removeOnComplete: true,
+            removeOnFail: true,
+          },
+        );
+      } catch (queueError) {
+        console.error("Failed to add job to orderQueue in processShopCart:", queueError);
+      }
+    }
 
     // 3. Update Firestore (After Commit)
     const chatRef = adminDb.collection("chats").doc(chatId);

@@ -48,17 +48,9 @@ export async function seedUsers() {
           password: userData.password,
           role: userData.role,
           avatar: userData.avatar,
-          ...(userData.role === "ADMIN"
-            ? {
-                admin: {
-                  create: {},
-                },
-              }
-            : {
-                owner: {
-                  create: {},
-                },
-              }),
+          admin: {
+            create: {},
+          },
         },
       });
 

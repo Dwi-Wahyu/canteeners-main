@@ -21,7 +21,6 @@ import { completeOrder } from "../lib/order-actions";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
 import CancelOrderDialog from "./cancel-order-dialog";
 import { Loader, Map, StickyNote } from "lucide-react";
-import NavButton from "@/components/nav-button";
 import ConfirmPaymentDialog from "./confirm-payment-dialog";
 import RejectPaymentDialog from "./reject-payment-dialog";
 import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
@@ -37,6 +36,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { ImageLightbox } from "@/features/canteen/ui/image-lightbox";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "radix-ui";
 
 export default function ShopOrderDetailClient({
   order: initialOrder,
@@ -46,6 +47,7 @@ export default function ShopOrderDetailClient({
   const [isPending, startTransition] = useTransition();
 
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
+  const [isOpenProof, setIsOpenProof] = useState(false);
   const order = (orderData as unknown as GetShopOrderDetail) || initialOrder;
 
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
@@ -236,12 +238,34 @@ export default function ShopOrderDetailClient({
             </div>
           ) : (
             <div>
-              <img
-                src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
-                width={400}
-                height={300}
-                alt="payment proof"
-              />
+              <div className="mt-2 relative w-full h-fit max-w-50 overflow-hidden rounded-lg border shadow-sm group">
+                <img
+                  src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
+                  alt="Bukti Pembayaran"
+                  className="object-cover cursor-pointer transition-transform group-hover:scale-105"
+                  onClick={() => setIsOpenProof(true)}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1 italic">
+                *Klik gambar untuk memperbesar
+              </p>
+
+              <Dialog open={isOpenProof} onOpenChange={setIsOpenProof}>
+                <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 overflow-visible border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-black/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:top-[-40px] [&>button]:right-0 sm:[&>button]:right-[-40px] sm:[&>button]:top-0">
+                  <VisuallyHidden.Root>
+                    <DialogTitle>Bukti Pembayaran</DialogTitle>
+                  </VisuallyHidden.Root>
+                  <div className="relative w-full h-full max-h-[85vh] flex items-center justify-center">
+                    <img
+                      src={getImageUrl(
+                        "/payment-proof/" + order.payment_proof_url,
+                      )}
+                      alt="Bukti Pembayaran Full"
+                      className="max-w-full max-h-[85vh] object-contain rounded-md"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {order.status === "WAITING_SHOP_CONFIRMATION" && (
                 <div className="grid grid-cols-2 gap-4 mt-2">

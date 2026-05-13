@@ -1,4 +1,5 @@
 import { seedUsers } from "./seed-users";
+import { seedOwners } from "./seed-owners";
 import { seedCanteens } from "./seed-canteens";
 import { seedCategories } from "./seed-categories";
 import { prisma } from "@/lib/prisma";
@@ -31,6 +32,7 @@ async function main() {
   await seedCanteens();
   await seedCategories();
   await seedUsers();
+  await seedOwners();
   await seedSuperAdmin();
   await seedShops();
   console.log("✅ Seeding selesai dengan sukses.");

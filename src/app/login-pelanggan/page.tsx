@@ -28,8 +28,17 @@ export default function LoginPelangganPage() {
   async function handleGuestLogin() {
     setIsGuestLoading(true);
     try {
-      await createGuestSession({ name: "Tamu" });
-      router.push("/kantin/kantin-kudapan");
+      const guestId = localStorage.getItem("guestId");
+      const result = await createGuestSession({
+        name: "Tamu",
+        guestId: guestId || undefined,
+      });
+
+      if (result.userId) {
+        localStorage.setItem("guestId", result.userId);
+        // Gunakan window.location agar session benar-benar ke-refresh
+        window.location.href = "/kantin/kantin-kudapan";
+      }
     } catch (error) {
       console.error(error);
     } finally {

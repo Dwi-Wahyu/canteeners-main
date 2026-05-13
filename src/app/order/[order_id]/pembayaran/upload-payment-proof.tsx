@@ -225,7 +225,7 @@ export default function UploadPaymentProof({
           {order.payment_method === "BANK_TRANSFER" &&
             order.status === "WAITING_PAYMENT" && (
               <Card>
-                <CardContent className="pt-6">
+                <CardContent>
                   {order.shop.payments
                     .filter((p) => p.method === "BANK_TRANSFER")
                     .map((payment, idx) => {

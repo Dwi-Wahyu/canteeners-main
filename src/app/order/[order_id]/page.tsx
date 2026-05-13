@@ -1,6 +1,7 @@
 import { auth } from "@/config/auth";
 import { getCustomerOrderDetail } from "@/features/order/lib/order-queries";
 import CustomerOrderDetailClient from "@/features/order/ui/customer-order-detail-client";
+import { getShopConfirmationTimeoutMinutes } from "@/lib/settings";
 import { ChevronLeft, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -24,6 +25,8 @@ export default async function OrderDetailPage({
     return notFound();
   }
 
+  const shopConfirmationTimeout = await getShopConfirmationTimeoutMinutes();
+
   return (
     <div>
       <div className="p-4 flex items-center gap-2 justify-between bg-primary sticky top-0 z-10 text-primary-foreground">
@@ -39,7 +42,10 @@ export default async function OrderDetailPage({
         </Link>
       </div>
 
-      <CustomerOrderDetailClient order={order} />
+      <CustomerOrderDetailClient
+        order={order}
+        shopConfirmationTimeout={shopConfirmationTimeout}
+      />
     </div>
   );
 }
