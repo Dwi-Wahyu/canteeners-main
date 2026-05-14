@@ -182,7 +182,7 @@ export function OrderRefundSection({
           >
             {order.refund ? (
               <>
-                <ExternalLink className="mr-2 h-4 w-4" />
+                <ExternalLink className="h-4 w-4" />
                 Lihat Status Refund
               </>
             ) : (

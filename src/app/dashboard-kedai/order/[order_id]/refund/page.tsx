@@ -33,9 +33,9 @@ export default async function ShopRefundPage({
   }
 
   return (
-    <div className="space-y-5">
-      <Card>
-        <CardHeader>
+    <div className="space-y-5 p-5">
+      <div>
+        <div>
           <div className="flex justify-between items-center mb-4">
             <Link
               href={`/dashboard-kedai/order/${order_id}`}
@@ -49,9 +49,9 @@ export default async function ShopRefundPage({
           <CardDescription className="text-muted-foreground text-sm">
             Kelola permintaan refund customer untuk pesanan ini
           </CardDescription>
-        </CardHeader>
+        </div>
 
-        <CardContent>
+        <div className="mt-4">
           <RefundDetails
             refund={refundData as any}
             userRole="SHOP_OWNER"
@@ -62,8 +62,8 @@ export default async function ShopRefundPage({
               revalidatePath(`/order/${order_id}`);
             }}
           />
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

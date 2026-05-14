@@ -19,11 +19,13 @@ import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
 import Image from "next/image";
 import { getImageUrl } from "@/helper/get-image-url";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { VisuallyHidden } from "radix-ui";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface RefundDetailsProps {
   refund: {
@@ -76,6 +78,8 @@ export function RefundDetails({
   const [escalateDialogOpen, setEscalateDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
+
+  const [isOpenProof, setIsOpenProof] = useState(false);
 
   const historyArray = refund.history || [];
 
@@ -281,16 +285,37 @@ export function RefundDetails({
       {refund.disbursement_proof_url && (
         <div>
           <p className="text-sm text-muted-foreground mb-2">Bukti Transfer</p>
-          <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-            <Image
+          <div className="relative max-w-50 h-fit rounded-lg cursor-pointer overflow-hidden border">
+            <img
               src={getImageUrl(
                 "/disbursement-proof/" + refund.disbursement_proof_url,
               )}
               alt="Bukti transfer"
-              fill
+              onClick={() => setIsOpenProof(true)}
               className="object-contain"
             />
           </div>
+
+          <p className="text-[10px] text-muted-foreground mt-1 italic">
+            *Klik gambar untuk memperbesar
+          </p>
+
+          <Dialog open={isOpenProof} onOpenChange={setIsOpenProof}>
+            <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 overflow-visible border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-black/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:top-[-40px] [&>button]:right-0 sm:[&>button]:right-[-40px] sm:[&>button]:top-0">
+              <VisuallyHidden.Root>
+                <DialogTitle>Bukti Transfer</DialogTitle>
+              </VisuallyHidden.Root>
+              <div className="relative w-full h-full max-h-[85vh] flex items-center justify-center">
+                <img
+                  src={getImageUrl(
+                    "/disbursement-proof/" + refund.disbursement_proof_url,
+                  )}
+                  alt="Bukti Pembayaran Full"
+                  className="max-w-full max-h-[85vh] object-contain rounded-md"
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
 
@@ -375,25 +400,23 @@ export function RefundDetails({
                         oleh {item.actor_name}
                       </p>
                     )}
-                    <time className="text-[10px] text-muted-foreground whitespace-nowrap">
-                      {format(new Date(item.created_at), "dd MMM yyyy, HH:mm", {
-                        locale: localeId,
-                      })}
-                    </time>
                   </div>
                   {item.note && (
                     <p className="text-sm text-muted-foreground mt-1 italic">
                       {item.note}
                     </p>
                   )}
+                  <time className="text-[10px] text-muted-foreground whitespace-nowrap">
+                    {format(new Date(item.created_at), "dd MMM yyyy, HH:mm", {
+                      locale: localeId,
+                    })}
+                  </time>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
-
-      <Separator />
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2">
