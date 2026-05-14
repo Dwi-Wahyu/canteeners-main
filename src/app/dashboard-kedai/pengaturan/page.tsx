@@ -170,7 +170,7 @@ export default async function OwnerSettingsPage() {
       </Item>
 
       <Item variant="outline" size="sm" className="mb-4" asChild>
-        <Link href="/panduan/mitra">
+        <Link href="/panduan/mitra?back_url=/dashboard-kedai/pengaturan">
           <ItemMedia>
             <BookOpen className="size-5" />
           </ItemMedia>

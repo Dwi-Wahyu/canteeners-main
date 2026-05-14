@@ -1,9 +1,18 @@
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 
-export default function SyaratDanKetentuanMitra() {
+export default async function SyaratDanKetentuanMitra({
+  searchParams,
+}: {
+  searchParams: Promise<{ back_url?: string }>;
+}) {
+  const { back_url } = await searchParams;
+
   return (
     <div className="min-h-screen bg-background pb-10">
-      <TopbarWithBackButton title="S&K Kemitraan (Mitra)" backUrl="/" />
+      <TopbarWithBackButton
+        title="S&K Kemitraan (Mitra)"
+        backUrl={back_url || "/"}
+      />
 
       <div className="max-w-4xl mx-auto px-5 pt-24 space-y-8 text-gray-800 leading-relaxed text-justify">
         <header>
@@ -18,16 +27,18 @@ export default function SyaratDanKetentuanMitra() {
           </p>
           <div className="mt-6 text-gray-600 text-sm italic space-y-4">
             <p>
-              Dokumen ini merupakan Perjanjian Kemitraan yang mengikat secara hukum
-              antara PT Kantiners Indonesia (&quot;Kantiners&quot;) dan pemilik
-              usaha makanan/minuman yang terdaftar sebagai mitra platform
-              (&quot;Mitra&quot;). Dengan menyelesaikan proses pendaftaran dan
-              menggunakan Platform Kantiners, Mitra dianggap telah membaca,
-              memahami, dan menyetujui seluruh ketentuan dalam dokumen ini.
+              Dokumen ini merupakan Perjanjian Kemitraan yang mengikat secara
+              hukum antara PT Kantiners Indonesia (&quot;Kantiners&quot;) dan
+              pemilik usaha makanan/minuman yang terdaftar sebagai mitra
+              platform (&quot;Mitra&quot;). Dengan menyelesaikan proses
+              pendaftaran dan menggunakan Platform Kantiners, Mitra dianggap
+              telah membaca, memahami, dan menyetujui seluruh ketentuan dalam
+              dokumen ini.
             </p>
             <p>
-              Dokumen ini dirancang untuk melindungi kepentingan kedua belah pihak
-              dan memastikan kelangsungan layanan yang baik bagi pelanggan.
+              Dokumen ini dirancang untuk melindungi kepentingan kedua belah
+              pihak dan memastikan kelangsungan layanan yang baik bagi
+              pelanggan.
             </p>
           </div>
         </header>
@@ -43,8 +54,8 @@ export default function SyaratDanKetentuanMitra() {
           </p>
           <ul className="list-disc pl-10 space-y-2">
             <li>
-              <strong>&quot;Kantiners&quot;</strong> adalah PT Kantiners Indonesia
-              selaku penyedia Platform teknologi.
+              <strong>&quot;Kantiners&quot;</strong> adalah PT Kantiners
+              Indonesia selaku penyedia Platform teknologi.
             </li>
             <li>
               <strong>&quot;Mitra&quot;</strong> adalah pemilik atau pengelola
@@ -86,8 +97,8 @@ export default function SyaratDanKetentuanMitra() {
             <div>
               <h4 className="font-bold mb-2">1.1 Proses Pendaftaran</h4>
               <p className="mb-2">
-                Pendaftaran Mitra dibantu sepenuhnya oleh tim Kantiners. Data yang
-                wajib diserahkan oleh calon Mitra meliputi:
+                Pendaftaran Mitra dibantu sepenuhnya oleh tim Kantiners. Data
+                yang wajib diserahkan oleh calon Mitra meliputi:
               </p>
               <ul className="list-disc pl-5 space-y-1 mb-4">
                 <li>Nama lengkap Penanggung Jawab Kedai;</li>
@@ -96,9 +107,9 @@ export default function SyaratDanKetentuanMitra() {
               </ul>
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <p className="text-sm italic">
-                  Kantiners berhak menolak permohonan pendaftaran jika ditemukan data
-                  yang tidak valid atau tidak memenuhi syarat operasional yang
-                  ditetapkan.
+                  Kantiners berhak menolak permohonan pendaftaran jika ditemukan
+                  data yang tidak valid atau tidak memenuhi syarat operasional
+                  yang ditetapkan.
                 </p>
               </div>
             </div>
@@ -111,9 +122,9 @@ export default function SyaratDanKetentuanMitra() {
                   onboarding.
                 </li>
                 <li>
-                  Selanjutnya, Mitra diharapkan dapat mengelola menu (harga, gambar,
-                  kategori, deskripsi produk, dan modal) secara mandiri melalui
-                  fitur yang tersedia di Platform.
+                  Selanjutnya, Mitra diharapkan dapat mengelola menu (harga,
+                  gambar, kategori, deskripsi produk, dan modal) secara mandiri
+                  melalui fitur yang tersedia di Platform.
                 </li>
                 <li>
                   Mitra bertanggung jawab atas keakuratan informasi menu yang
@@ -126,9 +137,9 @@ export default function SyaratDanKetentuanMitra() {
               <h4 className="font-bold mb-2">1.3 Bantuan Teknis</h4>
               <p className="bg-blue-50 p-4 rounded-lg border border-blue-100 text-sm">
                 Kantiners menyediakan dukungan teknis bagi Mitra yang mengalami
-                kesulitan dalam penggunaan Platform. Bantuan dapat diakses melalui
-                jalur CS Mitra yang beroperasi pada Hari Kerja pukul 08.00–17.00 WIB
-                dengan target respons awal maksimal 2 (dua) jam.
+                kesulitan dalam penggunaan Platform. Bantuan dapat diakses
+                melalui jalur CS Mitra yang beroperasi pada Hari Kerja pukul
+                08.00–17.00 WIB dengan target respons awal maksimal 2 (dua) jam.
               </p>
             </div>
           </div>
@@ -157,13 +168,13 @@ export default function SyaratDanKetentuanMitra() {
                   notifikasi Pesanan diterima.
                 </li>
                 <li>
-                  Jika Mitra tidak memberikan respons dalam batas waktu tersebut,
-                  Pelanggan berhak membatalkan Pesanan secara otomatis melalui
-                  sistem.
+                  Jika Mitra tidak memberikan respons dalam batas waktu
+                  tersebut, Pelanggan berhak membatalkan Pesanan secara otomatis
+                  melalui sistem.
                 </li>
                 <li>
-                  Pesanan yang tidak direspons secara berulang akan menjadi bahan
-                  evaluasi kinerja Mitra.
+                  Pesanan yang tidak direspons secara berulang akan menjadi
+                  bahan evaluasi kinerja Mitra.
                 </li>
               </ul>
             </div>
@@ -171,20 +182,22 @@ export default function SyaratDanKetentuanMitra() {
             <div>
               <h4 className="font-bold mb-2">2.3 Penolakan Pesanan</h4>
               <p>
-                Jika Mitra memilih &quot;Tolak&quot;, Mitra wajib memberikan alasan
-                yang jelas melalui sistem (contoh: &quot;Stok Habis&quot;,
-                &quot;Kedai Tutup Sementara&quot;). Penolakan tanpa alasan yang
-                valid akan dicatat dalam rekam jejak kinerja Mitra.
+                Jika Mitra memilih &quot;Tolak&quot;, Mitra wajib memberikan
+                alasan yang jelas melalui sistem (contoh: &quot;Stok
+                Habis&quot;, &quot;Kedai Tutup Sementara&quot;). Penolakan tanpa
+                alasan yang valid akan dicatat dalam rekam jejak kinerja Mitra.
               </p>
             </div>
 
             <div>
-              <h4 className="font-bold mb-2">2.4 Penerimaan & Estimasi Waktu</h4>
+              <h4 className="font-bold mb-2">
+                2.4 Penerimaan & Estimasi Waktu
+              </h4>
               <p className="mb-2">Jika Pesanan diterima, Mitra wajib:</p>
               <ul className="list-disc pl-5 space-y-2">
                 <li>
-                  Memberikan estimasi waktu penyiapan yang realistis (pilihan: 5, 10,
-                  15, atau 20 menit);
+                  Memberikan estimasi waktu penyiapan yang realistis (pilihan:
+                  5, 10, 15, atau 20 menit);
                 </li>
                 <li>Mematuhi estimasi waktu yang telah ditetapkan;</li>
                 <li>
@@ -195,13 +208,15 @@ export default function SyaratDanKetentuanMitra() {
             </div>
 
             <div>
-              <h4 className="font-bold mb-2">2.5 Kebijakan Pengembalian Dana</h4>
+              <h4 className="font-bold mb-2">
+                2.5 Kebijakan Pengembalian Dana
+              </h4>
               <p className="mb-4">
                 Bagian ini mengatur prosedur pengembalian dana kepada Pelanggan
-                untuk menjamin keadilan dan kualitas layanan di Platform Kantiners.
-                Pengajuan refund dapat dilakukan oleh Pelanggan jika pengalaman
-                pemesanan tidak sesuai dengan standar operasional yang telah
-                ditetapkan.
+                untuk menjamin keadilan dan kualitas layanan di Platform
+                Kantiners. Pengajuan refund dapat dilakukan oleh Pelanggan jika
+                pengalaman pemesanan tidak sesuai dengan standar operasional
+                yang telah ditetapkan.
               </p>
 
               <div className="space-y-6">
@@ -217,24 +232,25 @@ export default function SyaratDanKetentuanMitra() {
                       mendapatkan pengembalian dana secara penuh.
                     </li>
                     <li>
-                      <strong>Kesalahan Pesanan:</strong> Digunakan jika produk yang
-                      diterima tidak sesuai dengan deskripsi, bahan, atau porsi yang
-                      tertera di Platform. Refund dapat dilakukan secara parsial
-                      pada item yang salah.
+                      <strong>Kesalahan Pesanan:</strong> Digunakan jika produk
+                      yang diterima tidak sesuai dengan deskripsi, bahan, atau
+                      porsi yang tertera di Platform. Refund dapat dilakukan
+                      secara parsial pada item yang salah.
                     </li>
                     <li>
-                      <strong>Makanan Rusak/Cacat:</strong> Digunakan jika produk
-                      diterima dalam kondisi tidak higienis atau rusak secara fisik
-                      sehingga tidak layak konsumsi.
+                      <strong>Makanan Rusak/Cacat:</strong> Digunakan jika
+                      produk diterima dalam kondisi tidak higienis atau rusak
+                      secara fisik sehingga tidak layak konsumsi.
                     </li>
                     <li>
                       <strong>Item Kurang:</strong> Digunakan jika terdapat menu
-                      yang telah dibayar namun tidak diantarkan ke meja Pelanggan.
+                      yang telah dibayar namun tidak diantarkan ke meja
+                      Pelanggan.
                     </li>
                     <li>
                       <strong>Lain-lain:</strong> Digunakan untuk alasan di luar
-                      kategori di atas, di mana jumlah dana refund dapat ditentukan
-                      berdasarkan kesepakatan bersama.
+                      kategori di atas, di mana jumlah dana refund dapat
+                      ditentukan berdasarkan kesepakatan bersama.
                     </li>
                   </ul>
                 </div>
@@ -245,21 +261,21 @@ export default function SyaratDanKetentuanMitra() {
                   </h5>
                   <ol className="list-decimal pl-5 space-y-2 text-sm">
                     <li>
-                      <strong>Refund Penuh:</strong> Berlaku otomatis untuk alasan
-                      Keterlambatan Pengiriman sebagai kompensasi atas waktu tunggu
-                      yang ekstrem.
+                      <strong>Refund Penuh:</strong> Berlaku otomatis untuk
+                      alasan Keterlambatan Pengiriman sebagai kompensasi atas
+                      waktu tunggu yang ekstrem.
                     </li>
                     <li>
                       <strong>Refund Parsial:</strong> Untuk alasan Kesalahan
-                      Pesanan, Makanan Rusak/Cacat, dan Item Kurang, Pelanggan dapat
-                      memilih item spesifik yang bermasalah untuk dikembalikan
-                      dananya.
+                      Pesanan, Makanan Rusak/Cacat, dan Item Kurang, Pelanggan
+                      dapat memilih item spesifik yang bermasalah untuk
+                      dikembalikan dananya.
                     </li>
                     <li>
-                      <strong>Refund Custom:</strong> Untuk alasan Lain-lain, jumlah
-                      dana yang diajukan dapat diinput secara manual sesuai
-                      kesepakatan antara Mitra dan Pelanggan. Dengan maksimum harga
-                      total order.
+                      <strong>Refund Custom:</strong> Untuk alasan Lain-lain,
+                      jumlah dana yang diajukan dapat diinput secara manual
+                      sesuai kesepakatan antara Mitra dan Pelanggan. Dengan
+                      maksimum harga total order.
                     </li>
                   </ol>
                 </div>
@@ -270,13 +286,14 @@ export default function SyaratDanKetentuanMitra() {
                   </h5>
                   <ul className="list-disc pl-5 space-y-2 text-sm">
                     <li>
-                      <strong>Menunggu Konfirmasi Kedai:</strong> Status awal saat
-                      Pelanggan mengajukan refund dan menunggu respon dari Mitra.
+                      <strong>Menunggu Konfirmasi Kedai:</strong> Status awal
+                      saat Pelanggan mengajukan refund dan menunggu respon dari
+                      Mitra.
                     </li>
                     <li>
-                      <strong>Disetujui:</strong> Mitra telah memverifikasi klaim
-                      dan setuju untuk mengembalikan dana sesuai nominal yang
-                      diajukan.
+                      <strong>Disetujui:</strong> Mitra telah memverifikasi
+                      klaim dan setuju untuk mengembalikan dana sesuai nominal
+                      yang diajukan.
                     </li>
                     <li>
                       <strong>Ditolak:</strong> Mitra menolak pengajuan refund,
@@ -285,12 +302,13 @@ export default function SyaratDanKetentuanMitra() {
                     </li>
                     <li>
                       <strong>Selesai Diproses:</strong> Dana telah berhasil
-                      diserahkan kepada Pelanggan dan membutuhkan konfirmasi akhir
-                      dari sisi pengguna untuk menutup laporan.
+                      diserahkan kepada Pelanggan dan membutuhkan konfirmasi
+                      akhir dari sisi pengguna untuk menutup laporan.
                     </li>
                     <li>
-                      <strong>Dibatalkan Pengguna:</strong> Pelanggan membatalkan
-                      pengajuan refund secara mandiri sebelum proses selesai.
+                      <strong>Dibatalkan Pengguna:</strong> Pelanggan
+                      membatalkan pengajuan refund secara mandiri sebelum proses
+                      selesai.
                     </li>
                     <li>
                       <strong>Dieskalasi:</strong> Kasus dialihkan kepada CS
@@ -311,13 +329,15 @@ export default function SyaratDanKetentuanMitra() {
           </h3>
           <div className="space-y-6 text-primary-foreground/90">
             <div>
-              <h4 className="font-bold text-white mb-2">3.1 Model Komisi & Diskon Kuantitas</h4>
+              <h4 className="font-bold text-white mb-2">
+                3.1 Model Komisi & Diskon Kuantitas
+              </h4>
               <p className="text-sm">
                 Biaya penggunaan Platform (Komisi) ditetapkan sebesar{" "}
                 <strong>Rp1.000,-</strong> per item menu yang berhasil terjual.
                 Sistem menerapkan <strong>diskon 50%</strong> pada total komisi
-                pesanan jika kuantitas item dalam satu pesanan tersebut melebihi 2
-                (dua) unit. Kantiners berhak menyesuaikan besaran ini dengan
+                pesanan jika kuantitas item dalam satu pesanan tersebut melebihi
+                2 (dua) unit. Kantiners berhak menyesuaikan besaran ini dengan
                 pemberitahuan minimal 14 hari sebelumnya.
               </p>
             </div>
@@ -333,15 +353,17 @@ export default function SyaratDanKetentuanMitra() {
             </div>
 
             <div>
-              <h4 className="font-bold text-white mb-2">3.3 Pembatalan Komisi akibat Refund</h4>
+              <h4 className="font-bold text-white mb-2">
+                3.3 Pembatalan Komisi akibat Refund
+              </h4>
               <p className="text-sm mb-2">
                 Jika terjadi pengembalian dana (refund), kewajiban komisi akan
                 disesuaikan secara otomatis sebagai berikut:
               </p>
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 <li>
-                  <strong>Refund Seluruh Item:</strong> Total komisi untuk pesanan
-                  tersebut akan dibatalkan sepenuhnya (Rp0,-).
+                  <strong>Refund Seluruh Item:</strong> Total komisi untuk
+                  pesanan tersebut akan dibatalkan sepenuhnya (Rp0,-).
                 </li>
                 <li>
                   <strong>Refund Sebagian:</strong> Komisi hanya akan dihitung
@@ -352,24 +374,30 @@ export default function SyaratDanKetentuanMitra() {
             </div>
 
             <div>
-              <h4 className="font-bold text-white mb-2">3.4 Penyetoran Komisi</h4>
+              <h4 className="font-bold text-white mb-2">
+                3.4 Penyetoran Komisi
+              </h4>
               <ul className="list-disc pl-5 space-y-2 text-sm">
                 <li>
-                  Mitra wajib menyetorkan total akumulasi Komisi kepada Kantiners
-                  setiap hari Minggu (akhir pekan) untuk transaksi yang terjadi
-                  dalam satu pekan (Senin s.d. Sabtu).
+                  Mitra wajib menyetorkan total akumulasi Komisi kepada
+                  Kantiners setiap hari Minggu (akhir pekan) untuk transaksi
+                  yang terjadi dalam satu pekan (Senin s.d. Sabtu).
                 </li>
-                <li>Batas waktu penyetoran adalah pukul 23.59 WIB pada hari Minggu.</li>
+                <li>
+                  Batas waktu penyetoran adalah pukul 23.59 WIB pada hari
+                  Minggu.
+                </li>
                 <li>
                   Keterlambatan penyetoran tanpa konfirmasi sebelumnya kepada CS
-                  Kantiners dapat dikenakan teguran dan/atau menjadi pertimbangan
-                  dalam evaluasi kinerja Mitra.
+                  Kantiners dapat dikenakan teguran dan/atau menjadi
+                  pertimbangan dalam evaluasi kinerja Mitra.
                 </li>
               </ul>
             </div>
-            
+
             <p className="text-xs italic border-t border-primary-foreground/20 pt-4">
-              *Detail lengkap subsidi dan rekonsiliasi dapat diakses melalui dashboard mitra.
+              *Detail lengkap subsidi dan rekonsiliasi dapat diakses melalui
+              dashboard mitra.
             </p>
           </div>
         </section>
@@ -399,20 +427,22 @@ export default function SyaratDanKetentuanMitra() {
               <h4 className="font-bold mb-2">4.2 Kualitas & Standar Produk</h4>
               <ul className="list-disc pl-5 space-y-1">
                 <li>
-                  Mitra wajib menjaga kualitas, kebersihan, dan higienitas produk
-                  yang dijual sesuai standar pangan yang berlaku.
+                  Mitra wajib menjaga kualitas, kebersihan, dan higienitas
+                  produk yang dijual sesuai standar pangan yang berlaku.
                 </li>
                 <li>
-                  Produk yang diantarkan harus sesuai dengan deskripsi, bahan, dan
-                  foto yang tercantum di menu Platform.
+                  Produk yang diantarkan harus sesuai dengan deskripsi, bahan,
+                  dan foto yang tercantum di menu Platform.
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold mb-2">4.3 Ketersediaan Jam Operasional</h4>
+              <h4 className="font-bold mb-2">
+                4.3 Ketersediaan Jam Operasional
+              </h4>
               <p>
-                Mitra diharapkan mengatur jam operasional Kedai secara akurat pada
-                Platform.
+                Mitra diharapkan mengatur jam operasional Kedai secara akurat
+                pada Platform.
               </p>
             </div>
           </div>
@@ -426,39 +456,46 @@ export default function SyaratDanKetentuanMitra() {
           <div className="space-y-6">
             <div>
               <h4 className="font-bold mb-2">5.1 Sistem Penilaian</h4>
-              <p className="mb-2">Kinerja Mitra dinilai melalui dua sumber utama:</p>
+              <p className="mb-2">
+                Kinerja Mitra dinilai melalui dua sumber utama:
+              </p>
               <ul className="list-disc pl-5 space-y-1">
                 <li>
                   Formulir penilaian yang diisi oleh Pelanggan setelah Pesanan
                   selesai (rating dan ulasan tertulis); dan
                 </li>
                 <li>
-                  Data operasional Platform (tingkat respons, ketepatan estimasi,
-                  frekuensi penolakan, keterlambatan penyetoran komisi).
+                  Data operasional Platform (tingkat respons, ketepatan
+                  estimasi, frekuensi penolakan, keterlambatan penyetoran
+                  komisi).
                 </li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold mb-2">5.2 Evaluasi Mingguan</h4>
               <p>
-                Tim Kantiners akan melakukan evaluasi rutin setiap pekan terhadap
-                kinerja Mitra berdasarkan data dan ulasan yang terkumpul.
+                Tim Kantiners akan melakukan evaluasi rutin setiap pekan
+                terhadap kinerja Mitra berdasarkan data dan ulasan yang
+                terkumpul.
               </p>
             </div>
             <div>
-              <h4 className="font-bold mb-2 text-red-600">5.3 Tahapan Sanksi</h4>
+              <h4 className="font-bold mb-2 text-red-600">
+                5.3 Tahapan Sanksi
+              </h4>
               <ol className="list-decimal pl-5 space-y-2 text-sm">
                 <li>
-                  <strong>Peringatan Lisan/Tertulis:</strong> Notifikasi dan sesi
-                  evaluasi bersama CS untuk perbaikan.
+                  <strong>Peringatan Lisan/Tertulis:</strong> Notifikasi dan
+                  sesi evaluasi bersama CS untuk perbaikan.
                 </li>
                 <li>
                   <strong>Surat Peringatan (SP):</strong> Diberikan jika masalah
                   yang sama berulang setelah peringatan pertama.
                 </li>
                 <li>
-                  <strong>Penangguhan Sementara:</strong> Akun Mitra dinonaktifkan
-                  sementara sambil menunggu perbaikan yang disepakati.
+                  <strong>Penangguhan Sementara:</strong> Akun Mitra
+                  dinonaktifkan sementara sambil menunggu perbaikan yang
+                  disepakati.
                 </li>
                 <li>
                   <strong>Pemutusan Kemitraan:</strong> Diberikan jika tidak ada
@@ -485,9 +522,9 @@ export default function SyaratDanKetentuanMitra() {
             </p>
             <p>
               Kantiners adalah penyedia Platform teknologi yang mempertemukan
-              Pelanggan dan Mitra. Kantiners tidak bertanggung jawab atas kualitas, 
-              keamanan, atau higienitas produk, maupun sengketa pembayaran 
-              langsung antara Mitra dan Pelanggan.
+              Pelanggan dan Mitra. Kantiners tidak bertanggung jawab atas
+              kualitas, keamanan, atau higienitas produk, maupun sengketa
+              pembayaran langsung antara Mitra dan Pelanggan.
             </p>
           </div>
         </section>
@@ -500,12 +537,13 @@ export default function SyaratDanKetentuanMitra() {
           <div className="bg-red-50 p-6 rounded-lg border border-red-100 space-y-4 text-red-800 text-sm">
             <p>
               Jika terjadi gangguan sistem menyeluruh yang berasal dari pihak
-              Kantiners, Mitra diharapkan melayani Pelanggan yang datang secara 
+              Kantiners, Mitra diharapkan melayani Pelanggan yang datang secara
               manual untuk sementara waktu.
             </p>
             <p>
-              Sebagai kompensasi, seluruh biaya Komisi untuk transaksi manual 
-              yang terjadi pada waktu gangguan berlangsung akan dibebaskan (Rp0,-).
+              Sebagai kompensasi, seluruh biaya Komisi untuk transaksi manual
+              yang terjadi pada waktu gangguan berlangsung akan dibebaskan
+              (Rp0,-).
             </p>
           </div>
         </section>
@@ -517,8 +555,8 @@ export default function SyaratDanKetentuanMitra() {
           </h3>
           <p className="text-sm">
             Kantiners akan menjaga kerahasiaan data operasional Mitra (data
-            penjualan, komisi, informasi kontak) dan tidak akan membagikan
-            data tersebut kepada pihak ketiga tanpa persetujuan Mitra, kecuali
+            penjualan, komisi, informasi kontak) dan tidak akan membagikan data
+            tersebut kepada pihak ketiga tanpa persetujuan Mitra, kecuali
             diwajibkan oleh hukum.
           </p>
         </section>
@@ -556,9 +594,9 @@ export default function SyaratDanKetentuanMitra() {
             10. Ketentuan Penutup
           </h3>
           <p className="text-sm">
-            Kantiners berhak mengubah ketentuan dalam dokumen ini sewaktu-waktu. 
-            Perubahan material akan diberitahukan kepada Mitra melalui notifikasi 
-            atau pesan CS minimal 14 hari sebelum berlaku.
+            Kantiners berhak mengubah ketentuan dalam dokumen ini sewaktu-waktu.
+            Perubahan material akan diberitahukan kepada Mitra melalui
+            notifikasi atau pesan CS minimal 14 hari sebelum berlaku.
           </p>
         </section>
 

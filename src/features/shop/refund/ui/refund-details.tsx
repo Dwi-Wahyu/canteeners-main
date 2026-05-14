@@ -440,8 +440,11 @@ export function RefundDetails({
             disabled={isCompleting}
             className="w-full sm:w-auto"
           >
-            {isCompleting && <Loader2 className="h-4 w-4 animate-spin" />}
-            <CheckCircle2 className="h-4 w-4" />
+            {isCompleting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
             Konfirmasi Dana Diterima
           </Button>
         )}
