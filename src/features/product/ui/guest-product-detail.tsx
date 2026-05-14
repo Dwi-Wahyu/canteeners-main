@@ -20,9 +20,11 @@ import { useRouter } from "next/navigation";
 export default function GuestProductDetail({
   data,
   cartId: initialCartId,
+  backUrl,
 }: {
   data: NonNullable<GetProductById>;
   cartId: string | undefined;
+  backUrl: string;
 }) {
   const router = useRouter();
   // Gunakan State atau Ref untuk menyimpan cartId yang mungkin berubah dan butuh nilainya instan tanpa menunggu re-render untuk logika,
@@ -137,7 +139,8 @@ export default function GuestProductDetail({
 
     if (result.success) {
       // toast.success("Berhasil ditambahkan ke keranjang");
-      router.back();
+      router.push(backUrl);
+      router.refresh();
     } else {
       toast.error("Gagal menambahkan ke keranjang");
     }

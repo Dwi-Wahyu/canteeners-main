@@ -209,7 +209,7 @@ export default function CustomerProfilePage() {
               </Link>
             )}
             <Link
-              href="/kebijakan-dan-privasi"
+              href="/kebijakan-dan-privasi?back_url=/profil"
               className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
             >
               <div className="p-2 bg-purple-50 rounded-xl">
@@ -226,7 +226,7 @@ export default function CustomerProfilePage() {
               <ChevronRight className="size-4 text-muted-foreground" />
             </Link>
             <Link
-              href="/syarat-dan-ketentuan"
+              href="/syarat-dan-ketentuan/pelanggan?back_url=/profil"
               className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
             >
               <div className="p-2 bg-gray-50 rounded-xl">

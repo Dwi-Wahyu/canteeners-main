@@ -520,6 +520,9 @@ export async function addToCart({
       return errorResponse("Gagal tambah ke keranjang");
     }
 
+    revalidatePath("/kedai/" + shopId);
+    revalidatePath("/keranjang/" + shopCartId);
+
     return successResponse({ shopCartId }, "Berhasil tambah ke keranjang");
   } catch (error) {
     console.error("Error addToCart:", error);
@@ -573,7 +576,7 @@ export async function deleteCartItem(
       // Hitung ulang semua subtotal dan total harga di keranjang
       await recalculateShopCart(tx, cartItem.shop_cart_id);
 
-      revalidatePath("/dashboard-pelanggan/keranjang/" + cartItem.shop_cart_id);
+      revalidatePath("/keranjang/" + cartItem.shop_cart_id);
     });
 
     return successResponse(undefined, "Berhasil menghapus item");
@@ -645,7 +648,7 @@ export async function changeCartItemDetails({
       return cartItem.shop_cart_id;
     });
 
-    revalidatePath("/dashboard-pelanggan/keranjang/" + shopCartId);
+    revalidatePath("/keranjang/" + shopCartId);
 
     return successResponse(undefined, "Sukses menyimpan perubahan");
   } catch (error) {

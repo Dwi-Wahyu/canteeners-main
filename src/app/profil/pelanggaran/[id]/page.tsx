@@ -151,7 +151,7 @@ export default async function ViolationDetailPage({
               variant="outline"
               className="w-full h-14 rounded-2xl border-gray-200 text-gray-700 font-bold gap-2"
             >
-              <Link href="/syarat-dan-ketentuan/pelanggan">
+              <Link href={`/syarat-dan-ketentuan/pelanggan?back_url=/profil/pelanggaran/${violation.id}`}>
                 Pelajari Aturan Layanan <ArrowRight className="size-4" />
               </Link>
             </Button>

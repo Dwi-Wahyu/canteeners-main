@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
 import {
   Search,
   QrCode,
@@ -42,8 +43,10 @@ import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default function PanduanPelangganPage() {
+function PanduanPelangganContent() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const backUrl = searchParams.get("back_url") || "/";
 
   const menuItems = [
     { id: "hero", label: "Beranda", icon: <MapPin size={18} /> },
@@ -98,7 +101,7 @@ export default function PanduanPelangganPage() {
     <div className="min-h-screen bg-background pb-10">
       <TopbarWithBackButton
         title="Panduan Pelanggan"
-        backUrl="/"
+        backUrl={backUrl}
         actionButton={
           <Button
             variant="ghost"
@@ -167,7 +170,6 @@ export default function PanduanPelangganPage() {
               Pencarian & Pemesanan
             </h3>
           </div>
-          {/* ... existing card content ... */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="card-shadow">
@@ -675,5 +677,13 @@ export default function PanduanPelangganPage() {
         </section>
       </main>
     </div>
+  );
+}
+
+export default function PanduanPelangganPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center">Memuat...</div>}>
+      <PanduanPelangganContent />
+    </Suspense>
   );
 }

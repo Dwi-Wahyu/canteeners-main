@@ -3,33 +3,34 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { ShoppingBag, MessageCircle, Home, History, User } from "lucide-react";
 
 const NAV_ITEMS = [
   {
     label: "Keranjang",
     href: "/keranjang",
-    icon: "shopping_bag",
+    icon: ShoppingBag,
   },
   {
     label: "Chat",
     href: "/chat",
-    icon: "chat",
+    icon: MessageCircle,
   },
   {
     label: "Home",
     href: "/kantin/kantin-kudapan",
-    icon: "home",
+    icon: Home,
     isMain: true,
   },
   {
     label: "Riwayat",
     href: "/order",
-    icon: "history",
+    icon: History,
   },
   {
     label: "Profil",
     href: "/profil",
-    icon: "person",
+    icon: User,
   },
 ];
 
@@ -53,6 +54,8 @@ export function BottomNav() {
           pathname === item.href ||
           (item.href !== "/" && pathname.startsWith(item.href));
 
+        const Icon = item.icon;
+
         return (
           <Link
             key={item.href}
@@ -63,15 +66,10 @@ export function BottomNav() {
             )}
             aria-label={item.label}
           >
-            <span
-              className="material-symbols-outlined mb-0.5"
-              style={{
-                fontSize: 22,
-                fontVariationSettings: isActive ? "'FILL' 1" : "none",
-              }}
-            >
-              {item.icon}
-            </span>
+            <Icon
+              className={cn("size-5 mb-0.5", isActive && "fill-current/10")}
+              strokeWidth={isActive ? 2.5 : 2}
+            />
             <span
               className={cn(
                 "text-[10px] tracking-wide",

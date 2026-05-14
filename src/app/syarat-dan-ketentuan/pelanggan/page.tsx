@@ -1,9 +1,18 @@
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 
-export default function SyaratDanKetentuanPelanggan() {
+export default async function SyaratDanKetentuanPelanggan({
+  searchParams,
+}: {
+  searchParams: Promise<{ back_url?: string }>;
+}) {
+  const { back_url } = await searchParams;
+
   return (
     <div className="min-h-screen bg-background pb-10">
-      <TopbarWithBackButton title="S&K Pengguna" backUrl="/" />
+      <TopbarWithBackButton
+        title="S&K Pengguna"
+        backUrl={back_url || "/"}
+      />
 
       <div className="max-w-4xl mx-auto px-5 pt-24 space-y-8 text-gray-800 leading-relaxed text-justify">
         <header>

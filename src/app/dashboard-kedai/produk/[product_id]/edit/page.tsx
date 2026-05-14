@@ -7,9 +7,9 @@ import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 export default async function EditProductPage({
   params,
 }: {
-  params: Promise<{ product_id: string }>;
+  params: Promise<{ product_id: string; back_url?: string }>;
 }) {
-  const { product_id } = await params;
+  const { product_id, back_url } = await params;
 
   const product = await getProductIncludeCategory(product_id);
 
@@ -19,11 +19,13 @@ export default async function EditProductPage({
 
   const categories = await getCategories();
 
+  console.log(back_url);
+
   return (
     <div>
       <TopbarWithBackButton
         title="Edit Produk"
-        backUrl="/dashboard-kedai/produk"
+        backUrl={back_url || "/dashboard-kedai/produk"}
       />
 
       <div className="p-5 pt-20">

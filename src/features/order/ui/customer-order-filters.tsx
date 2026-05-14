@@ -13,7 +13,9 @@ export default function CustomerOrderFilters() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const [startDate, setStartDate] = useState(searchParams.get("startDate") || "");
+  const [startDate, setStartDate] = useState(
+    searchParams.get("startDate") || "",
+  );
   const [endDate, setEndDate] = useState(searchParams.get("endDate") || "");
   const [showFilters, setShowFilters] = useState(!!(startDate || endDate));
 
@@ -21,10 +23,10 @@ export default function CustomerOrderFilters() {
     const params = new URLSearchParams(searchParams.toString());
     if (startDate) params.set("startDate", startDate);
     else params.delete("startDate");
-    
+
     if (endDate) params.set("endDate", endDate);
     else params.delete("endDate");
-    
+
     params.set("page", "1"); // Reset to page 1
 
     startTransition(() => {
@@ -48,15 +50,15 @@ export default function CustomerOrderFilters() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+        <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
           Filter Pesanan
         </h2>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className={cn(
             "h-8 text-[10px] font-bold gap-1.5 rounded-full px-3",
-            showFilters ? "text-primary bg-primary/5" : "text-gray-500"
+            showFilters ? "text-primary bg-primary/5" : "text-muted-foreground",
           )}
           onClick={() => setShowFilters(!showFilters)}
         >
@@ -69,7 +71,9 @@ export default function CustomerOrderFilters() {
         <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Dari Tanggal</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">
+                Dari Tanggal
+              </label>
               <Input
                 type="date"
                 value={startDate}
@@ -78,7 +82,9 @@ export default function CustomerOrderFilters() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Sampai Tanggal</label>
+              <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">
+                Sampai Tanggal
+              </label>
               <Input
                 type="date"
                 value={endDate}

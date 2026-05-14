@@ -83,7 +83,7 @@ export default async function OrderHistoryPage({
             </div>
           ) : (
             orders.map((order) => (
-              <Link key={order.id} href={`/order/${order.id}`}>
+              <Link key={order.id} href={`/order/${order.id}?backUrl=/order`}>
                 <Card className="overflow-hidden mb-4 hover:shadow-md transition-shadow active:scale-[0.98] border-none shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-3">

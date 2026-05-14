@@ -145,7 +145,7 @@ export default async function ViolationsPage() {
             variant="link"
             className="text-blue-600 h-auto p-0 pl-0 font-medium text-xs"
           >
-            <Link href="/syarat-dan-ketentuan/pelanggan">
+            <Link href="/syarat-dan-ketentuan/pelanggan?back_url=/profil/pelanggaran">
               Baca Syarat & Ketentuan <ChevronRight className="size-3" />
             </Link>
           </Button>

@@ -30,7 +30,11 @@ export default async function GuestProductDetailPage({
         backUrl={(back_url as string) || "/kedai/" + data.shop_id}
       />
 
-      <GuestProductDetail data={data} cartId={session?.user.cartId} />
+      <GuestProductDetail
+        data={data}
+        cartId={session?.user.cartId}
+        backUrl={(back_url as string) || "/kedai/" + data.shop_id}
+      />
     </div>
   );
 }

@@ -28,7 +28,7 @@ export default async function ProductDetailPage({
             <NavButton
               variant="ghost"
               size="icon"
-              href={`/dashboard-kedai/produk/${data.id}/edit`}
+              href={`/dashboard-kedai/produk/${data.id}/edit?back_url=/dashboard-kedai/produk/${data.id}`}
             >
               <Edit />
             </NavButton>

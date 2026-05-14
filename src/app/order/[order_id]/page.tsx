@@ -8,10 +8,13 @@ import { notFound, redirect } from "next/navigation";
 
 export default async function OrderDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ order_id: string }>;
+  searchParams: Promise<{ backUrl?: string }>;
 }) {
   const { order_id } = await params;
+  const { backUrl } = await searchParams;
 
   const session = await auth();
 
@@ -31,7 +34,7 @@ export default async function OrderDetailPage({
     <div>
       <div className="p-4 flex items-center gap-2 justify-between bg-primary sticky top-0 z-10 text-primary-foreground">
         <div className="flex gap-2 items-center">
-          <Link href={"/chat/" + order.conversation_id}>
+          <Link href={backUrl || "/chat/" + order.conversation_id}>
             <ChevronLeft />
           </Link>
           <h1 className="text-xl font-semibold">Detail Order</h1>

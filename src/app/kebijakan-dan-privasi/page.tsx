@@ -2,10 +2,19 @@ import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 
 export const dynamic = "force-dynamic";
 
-export default function KebijakanPrivasi() {
+export default async function KebijakanPrivasi({
+  searchParams,
+}: {
+  searchParams: Promise<{ back_url?: string }>;
+}) {
+  const { back_url } = await searchParams;
+
   return (
     <div className="min-h-screen bg-background pb-10">
-      <TopbarWithBackButton title="Kebijakan Privasi Pengguna" backUrl="/" />
+      <TopbarWithBackButton
+        title="Kebijakan Privasi Pengguna"
+        backUrl={back_url || "/"}
+      />
 
       <div className="px-5 pt-24 space-y-8">
         <header>

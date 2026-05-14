@@ -466,7 +466,7 @@ export default function CustomerOrderDetailClient({
                 />
                 <div className="mt-1">
                   <NavButton
-                    href={`/dashboard-pelanggan/kantin/${order.shop.canteen.slug}/pilih-meja`}
+                    href={`/kantin/${order.shop.canteen.slug}/pilih-meja`}
                     size="sm"
                   >
                     <Edit />
