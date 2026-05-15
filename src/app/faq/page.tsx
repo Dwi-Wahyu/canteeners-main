@@ -7,21 +7,18 @@ import {
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Suspense, useEffect, useState } from "react";
 import { getFaqs } from "./faq-actions";
 
 export const dynamic = "force-dynamic";
 
-async function FAQContent({ back_url }: { back_url?: string }) {
-  const [faqs, setFaqs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default async function FAQ({
+  searchParams,
+}: {
+  searchParams: Promise<{ back_url?: string }>;
+}) {
+  const { back_url } = await searchParams;
 
-  useEffect(() => {
-    getFaqs().then((data) => {
-      setFaqs(data);
-      setLoading(false);
-    });
-  }, []);
+  const faqs = await getFaqs();
 
   return (
     <div className="min-h-screen bg-white">
@@ -40,13 +37,7 @@ async function FAQContent({ back_url }: { back_url?: string }) {
           Pertanyaan yang Sering Diajukan
         </h2>
 
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-12 bg-muted animate-pulse rounded-lg" />
-            ))}
-          </div>
-        ) : faqs.length > 0 ? (
+        {faqs.length > 0 ? (
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((item) => (
               <AccordionItem value={item.id.toString()} key={item.id}>
@@ -66,19 +57,5 @@ async function FAQContent({ back_url }: { back_url?: string }) {
         )}
       </div>
     </div>
-  );
-}
-
-export default async function FAQ({
-  searchParams,
-}: {
-  searchParams: Promise<{ back_url?: string }>;
-}) {
-  const { back_url } = await searchParams;
-
-  return (
-    <Suspense fallback={<div className="p-10 text-center">Memuat...</div>}>
-      <FAQContent back_url={back_url} />
-    </Suspense>
   );
 }
