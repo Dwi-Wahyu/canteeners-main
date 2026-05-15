@@ -9,6 +9,7 @@ import { Timer } from "lucide-react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/client";
 import { getPaymentTimeoutAction } from "./actions";
+import { Button } from "@/components/ui/button";
 
 export default function PaymentCountdown({
   confirmedAt,
@@ -38,6 +39,19 @@ export default function PaymentCountdown({
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data.status === "CANCELLED") {
+          notificationDialog.error({
+            title: "Pesanan Dibatalkan",
+            message:
+              "Waktu pembayaran telah habis. Pesanan dibatalkan otomatis dan tercatat sebagai pelanggaran.",
+            actionButtons: (
+              <Button
+                className="w-full"
+                onClick={() => notificationDialog.hide()}
+              >
+                Saya Mengerti
+              </Button>
+            ),
+          });
           // Trigger refresh to update server-side state of the page
           router.refresh();
         }
@@ -78,7 +92,15 @@ export default function PaymentCountdown({
           notificationDialog.error({
             title: "Waktu Habis",
             message:
-              "Waktu pembayaran telah habis. Pesanan dibatalkan otomatis.",
+              "Waktu pembayaran telah habis. Pesanan dibatalkan otomatis dan tercatat sebagai pelanggaran.",
+            actionButtons: (
+              <Button
+                className="w-full"
+                onClick={() => notificationDialog.hide()}
+              >
+                Saya Mengerti
+              </Button>
+            ),
           });
           router.replace("/order/" + orderId);
         }

@@ -275,7 +275,7 @@ export default function CustomerOrderDetailClient({
                 <AlertTitle>Silakan lakukan pembayaran di kedai</AlertTitle>
               </Alert>
 
-              {order.confirmed_at && (
+              {order.confirmed_at && !isGracePeriod && (
                 <PaymentCountdown
                   confirmedAt={order.confirmed_at}
                   orderId={order.id}
@@ -284,7 +284,7 @@ export default function CustomerOrderDetailClient({
             </>
           )}
 
-        {order.status === "WAITING_PAYMENT" && order.confirmed_at && (
+        {order.status === "WAITING_PAYMENT" && order.confirmed_at && !isGracePeriod && (
           <PaymentCountdown
             confirmedAt={order.confirmed_at}
             orderId={order.id}

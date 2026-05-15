@@ -11,11 +11,7 @@ import CartShopCard from "@/features/cart/ui/cart-shop-card";
 export default async function CartPage() {
   const session = await auth();
 
-  if (!session) {
-    redirect("/login-pelanggan");
-  }
-
-  const data = session.user.cartId ? await getCart(session.user.cartId) : null;
+  const data = session?.user.cartId ? await getCart(session.user.cartId) : null;
 
   if (!data || (data && data.shop_carts.length === 0)) {
     return (

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import TestimoniCarousel from "@/components/testimoni-carousel";
+import Image from "next/image";
 
 /* ── Animated Counter ─────────────────────────────────────── */
 function AnimatedCounter({
@@ -37,7 +38,7 @@ function AnimatedCounter({
           observer.unobserve(el);
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -70,19 +71,28 @@ function Reveal({
     const el = ref.current;
     if (!el) return;
     const ob = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); ob.unobserve(el); } },
-      { threshold: 0.12 }
+      ([e]) => {
+        if (e.isIntersecting) {
+          setVisible(true);
+          ob.unobserve(el);
+        }
+      },
+      { threshold: 0.12 },
     );
     ob.observe(el);
     return () => ob.disconnect();
   }, []);
 
   const base =
-    direction === "up" ? "translate-y-12 opacity-0" :
-    direction === "down" ? "-translate-y-12 opacity-0" :
-    direction === "left" ? "translate-x-16 opacity-0" :
-    direction === "right" ? "-translate-x-16 opacity-0" :
-    "scale-90 opacity-0";
+    direction === "up"
+      ? "translate-y-12 opacity-0"
+      : direction === "down"
+        ? "-translate-y-12 opacity-0"
+        : direction === "left"
+          ? "translate-x-16 opacity-0"
+          : direction === "right"
+            ? "-translate-x-16 opacity-0"
+            : "scale-90 opacity-0";
   const vis = "translate-y-0 translate-x-0 scale-100 opacity-100";
 
   return (
@@ -95,12 +105,14 @@ function Reveal({
         transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
       }}
     >
-      <div className={`transition-all ${visible ? vis : base}`}
+      <div
+        className={`transition-all ${visible ? vis : base}`}
         style={{
           transitionDuration: "700ms",
           transitionDelay: visible ? `${delay}ms` : "0ms",
           transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
-        }}>
+        }}
+      >
         {children}
       </div>
     </div>
@@ -108,16 +120,29 @@ function Reveal({
 }
 
 /* ── Floating Particle ────────────────────────────────────── */
-function Particle({ x, y, size, opacity, duration, delay }: {
-  x: number; y: number; size: number; opacity: number;
-  duration: number; delay: number;
+function Particle({
+  x,
+  y,
+  size,
+  opacity,
+  duration,
+  delay,
+}: {
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  duration: number;
+  delay: number;
 }) {
   return (
     <div
       className="absolute rounded-full bg-white pointer-events-none"
       style={{
-        left: `${x}%`, top: `${y}%`,
-        width: size, height: size,
+        left: `${x}%`,
+        top: `${y}%`,
+        width: size,
+        height: size,
         opacity,
         animation: `floatParticle ${duration}s ${delay}s ease-in-out infinite alternate`,
       }}
@@ -189,7 +214,7 @@ export default function LandingAnimatedPage({
     setTouchEnd(null);
     if ("targetTouches" in e) setTouchStart(e.targetTouches[0].clientX);
     else setTouchStart((e as React.MouseEvent).clientX);
-    
+
     if (autoPlayRef.current) clearInterval(autoPlayRef.current);
   };
 
@@ -210,16 +235,23 @@ export default function LandingAnimatedPage({
     const distance = touchStart - touchEnd;
     if (distance > minSwipeDistance) nextSlide();
     else if (distance < -minSwipeDistance) prevSlide();
-    
+
     setTouchStart(null);
     setTouchEnd(null);
     startAutoPlay();
   };
 
-  const dragOffset = isSwiping && touchStart !== null && touchEnd !== null ? touchEnd - touchStart : 0;
+  const dragOffset =
+    isSwiping && touchStart !== null && touchEnd !== null
+      ? touchEnd - touchStart
+      : 0;
 
   /* Typing badge */
-  const taglines = ["#1 Kantin Digital di Kampus", "Tanpa Antre. Tanpa Ribet.", "Pesan Sekarang, Ambil Langsung."];
+  const taglines = [
+    "#1 Kantin Digital di Kampus",
+    "Tanpa Antre. Tanpa Ribet.",
+    "Pesan Sekarang, Ambil Langsung.",
+  ];
   const [tagIdx, setTagIdx] = useState(0);
   const [displayed, setDisplayed] = useState("");
   const [typing, setTyping] = useState(true);
@@ -229,7 +261,10 @@ export default function LandingAnimatedPage({
     let i = typing ? displayed.length : displayed.length;
     if (typing) {
       if (displayed.length < target.length) {
-        const t = setTimeout(() => setDisplayed(target.slice(0, displayed.length + 1)), 60);
+        const t = setTimeout(
+          () => setDisplayed(target.slice(0, displayed.length + 1)),
+          60,
+        );
         return () => clearTimeout(t);
       } else {
         const t = setTimeout(() => setTyping(false), 2000);
@@ -244,7 +279,7 @@ export default function LandingAnimatedPage({
         setTyping(true);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayed, typing, tagIdx]);
 
   /* particles (stable, computed once) */
@@ -256,21 +291,31 @@ export default function LandingAnimatedPage({
       opacity: 0.06 + (i % 5) * 0.035,
       duration: 4 + (i % 5),
       delay: (i * 0.4) % 3,
-    }))
+    })),
   ).current;
 
-
   const features = [
-    { icon: "speed", title: "Tanpa Antre", desc: "Pesan dari kelas, ambil saat istirahat. Tidak ada lagi waktu terbuang untuk mengantre panjang." },
-    { icon: "payments", title: "Pembayaran Mulus", desc: "QRIS, e-wallet, transfer bank — semua tersedia dalam satu interface yang ringan." },
-    { icon: "restaurant_menu", title: "Menu Terlengkap", desc: "Jelajahi seluruh menu dari semua tenant kantin. Selalu up-to-date dengan stok terkini." },
+    {
+      icon: "speed",
+      title: "Tanpa Antre",
+      desc: "Pesan dari kelas, ambil saat istirahat. Tidak ada lagi waktu terbuang untuk mengantre panjang.",
+    },
+    {
+      icon: "payments",
+      title: "Pembayaran Mulus",
+      desc: "QRIS, e-wallet, transfer bank — semua tersedia dalam satu interface yang ringan.",
+    },
+    {
+      icon: "restaurant_menu",
+      title: "Menu Terlengkap",
+      desc: "Jelajahi seluruh menu dari semua tenant kantin. Selalu up-to-date dengan stok terkini.",
+    },
   ];
 
   return (
     <div className="bg-[#f8f9ff] overflow-x-hidden">
-
       {/* ── Hero Slider ───────────────────────────────────────── */}
-      <section 
+      <section
         className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16 cursor-grab active:cursor-grabbing"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -281,35 +326,49 @@ export default function LandingAnimatedPage({
         onMouseLeave={handleTouchEnd}
       >
         {/* Slide Stack */}
-        <div 
-          className={`absolute inset-0 z-0 flex ${isSwiping ? '' : 'transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]'}`}
-          style={{ width: `${heroSlides.length * 100}%`, transform: `translateX(calc(-${(slideIdx * 100) / heroSlides.length}% + ${dragOffset}px))` }}
+        <div
+          className={`absolute inset-0 z-0 flex ${isSwiping ? "" : "transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"}`}
+          style={{
+            width: `${heroSlides.length * 100}%`,
+            transform: `translateX(calc(-${(slideIdx * 100) / heroSlides.length}% + ${dragOffset}px))`,
+          }}
         >
           {heroSlides.map((slide, i) => (
-            <div
-              key={i}
-              className="relative w-full h-full flex-1"
-            >
-              <img
+            <div key={i} className="relative w-full h-full flex-1">
+              {/* <img
                 src={slide.img}
                 alt={slide.alt}
                 className="w-full h-full object-cover select-none pointer-events-none"
                 draggable={false}
+              /> */}
+
+              <Image
+                src={slide.img}
+                alt={slide.alt}
+                fill
+                priority={i === 0} // SANGAT PENTING: Preload hanya slide pertama agar tidak memblokir render
+                className="object-cover select-none pointer-events-none"
+                draggable={false}
+                sizes="100vw"
+                quality={85} // Mengurangi ukuran file tanpa mengurangi visual secara signifikan
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/75 pointer-events-none" />
-              <div className={`absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t ${slide.accent} to-transparent pointer-events-none`} />
+              <div className="absolute inset-0 bg-linear-to-b from-black/65 via-black/50 to-black/75 pointer-events-none" />
+              <div
+                className={`absolute bottom-0 left-0 right-0 h-1/3 bg-linear-to-t ${slide.accent} to-transparent pointer-events-none`}
+              />
             </div>
           ))}
         </div>
 
         {/* Floating Particles */}
-        <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-          {particles.map((p, i) => <Particle key={i} {...p} />)}
+        <div className="absolute inset-0 z-1 pointer-events-none overflow-hidden">
+          {particles.map((p, i) => (
+            <Particle key={i} {...p} />
+          ))}
         </div>
 
         {/* Hero Content */}
         <div className="max-w-4xl w-full mx-auto px-6 relative z-10 flex flex-col justify-between md:justify-center items-center text-center text-white min-h-[75vh] md:min-h-0 md:gap-8">
-          
           {/* Top Section (Title) */}
           <div className="pt-2 md:pt-0 w-full mb-0 md:mb-2">
             {/* Typing Badge */}
@@ -325,8 +384,7 @@ export default function LandingAnimatedPage({
               className="font-headline text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.15] md:leading-[1.1] opacity-0 translate-y-6 drop-shadow-2xl"
               style={{ animation: "heroFadeUp 0.7s 0.4s forwards ease-out" }}
             >
-              Lewati Antrean,{" "}
-              <br className="hidden sm:block" />
+              Lewati Antrean, <br className="hidden sm:block" />
               <span className="text-[#ffb4ab]">Nikmati Makananmu.</span>
             </h1>
           </div>
@@ -337,9 +395,9 @@ export default function LandingAnimatedPage({
               className="text-base md:text-lg text-white/90 max-w-2xl mx-auto font-body-inter leading-relaxed opacity-0 translate-y-6 drop-shadow-md"
               style={{ animation: "heroFadeUp 0.7s 0.6s forwards ease-out" }}
             >
-              Pesan makanan favoritmu dari kantin kampus tanpa ribet. Bayar mudah,
-              ambil pesanan saat sudah siap. Waktumu berharga, gunakan untuk hal
-              yang lebih penting.
+              Pesan makanan favoritmu dari kantin kampus tanpa ribet. Bayar
+              mudah, ambil pesanan saat sudah siap. Waktumu berharga, gunakan
+              untuk hal yang lebih penting.
             </p>
           </div>
 
@@ -382,7 +440,11 @@ export default function LandingAnimatedPage({
                 onClick={() => goToSlide(i)}
                 aria-label={`Go to slide ${i + 1}`}
                 className="relative h-1.5 rounded-full transition-all duration-500 overflow-hidden"
-                style={{ width: i === slideIdx ? 32 : 8, background: i === slideIdx ? "white" : "rgba(255,255,255,0.35)" }}
+                style={{
+                  width: i === slideIdx ? 32 : 8,
+                  background:
+                    i === slideIdx ? "white" : "rgba(255,255,255,0.35)",
+                }}
               >
                 {i === slideIdx && (
                   <span
@@ -397,7 +459,9 @@ export default function LandingAnimatedPage({
 
         {/* Slide counter top-right */}
         <div className="absolute top-28 right-6 md:right-10 z-20 text-white/50 text-sm font-mono font-bold">
-          <span className="text-white">{String(slideIdx + 1).padStart(2, "0")}</span>
+          <span className="text-white">
+            {String(slideIdx + 1).padStart(2, "0")}
+          </span>
           <span className="mx-1">/</span>
           <span>{String(heroSlides.length).padStart(2, "0")}</span>
         </div>
@@ -417,7 +481,9 @@ export default function LandingAnimatedPage({
                 <span className="text-4xl md:text-5xl font-black text-[#DC2626] group-hover:scale-110 transition-transform duration-300 inline-block">
                   <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                 </span>
-                <span className="text-slate-400 text-sm font-medium uppercase tracking-wide">{stat.label}</span>
+                <span className="text-slate-400 text-sm font-medium uppercase tracking-wide">
+                  {stat.label}
+                </span>
               </div>
             </Reveal>
           ))}
@@ -427,13 +493,19 @@ export default function LandingAnimatedPage({
       {/* ── Features ─────────────────────────────────────────── */}
       <section className="py-24 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <Reveal direction="up" className="text-center max-w-2xl mx-auto mb-16">
-            <p className="text-[#DC2626] font-bold text-sm uppercase tracking-widest mb-3">Mengapa Canteeners?</p>
+          <Reveal
+            direction="up"
+            className="text-center max-w-2xl mx-auto mb-16"
+          >
+            <p className="text-[#DC2626] font-bold text-sm uppercase tracking-widest mb-3">
+              Mengapa Canteeners?
+            </p>
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-5 text-[#0b1c30]">
               Dirancang untuk Kehidupan Kampus
             </h2>
             <p className="text-[#0b1c30]/60 font-body-inter text-lg">
-              Kami mendesain ulang pengalaman jajan di kantin agar lebih cepat, higienis, dan tanpa stres.
+              Kami mendesain ulang pengalaman jajan di kantin agar lebih cepat,
+              higienis, dan tanpa stres.
             </p>
           </Reveal>
 
@@ -450,10 +522,14 @@ export default function LandingAnimatedPage({
                     <h3 className="font-headline text-xl font-extrabold mb-2 text-[#0b1c30] tracking-tight group-hover:text-[#DC2626] transition-colors duration-300">
                       {f.title}
                     </h3>
-                    <p className="text-[#0b1c30]/60 font-body-inter leading-relaxed text-sm">{f.desc}</p>
+                    <p className="text-[#0b1c30]/60 font-body-inter leading-relaxed text-sm">
+                      {f.desc}
+                    </p>
                   </div>
                   <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300 self-center">
-                    <span className="material-symbols-outlined text-[#DC2626] text-xl">arrow_forward</span>
+                    <span className="material-symbols-outlined text-[#DC2626] text-xl">
+                      arrow_forward
+                    </span>
                   </div>
                 </div>
               </Reveal>
@@ -465,10 +541,12 @@ export default function LandingAnimatedPage({
       {/* ── How It Works ─────────────────────────────────────── */}
       <section className="py-24 bg-[#f8f9ff]" id="cara-pesan">
         <div className="max-w-5xl mx-auto px-6">
-          <Reveal direction="up" className="text-center max-w-2xl mx-auto mb-20">
+          <Reveal
+            direction="up"
+            className="text-center max-w-2xl mx-auto mb-20"
+          >
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-5 text-[#0b1c30]">
-              Cara Kerja{" "}
-              <span className="text-[#DC2626]">Canteeners</span>
+              Cara Kerja <span className="text-[#DC2626]">Canteeners</span>
             </h2>
             <p className="text-[#0b1c30]/60 font-body-inter text-lg">
               Hanya butuh beberapa ketukan di layar handphone Anda untuk
@@ -545,7 +623,9 @@ export default function LandingAnimatedPage({
                             >
                               <span
                                 className={`material-symbols-outlined text-2xl ${
-                                  item.highlight ? "text-white" : "text-[#DC2626]"
+                                  item.highlight
+                                    ? "text-white"
+                                    : "text-[#DC2626]"
                                 }`}
                               >
                                 {item.icon}
@@ -591,7 +671,9 @@ export default function LandingAnimatedPage({
                             >
                               <span
                                 className={`material-symbols-outlined text-2xl ${
-                                  item.highlight ? "text-white" : "text-[#DC2626]"
+                                  item.highlight
+                                    ? "text-white"
+                                    : "text-[#DC2626]"
                                 }`}
                               >
                                 {item.icon}
@@ -620,13 +702,19 @@ export default function LandingAnimatedPage({
       {/* ── Testimonials ─────────────────────────────────────── */}
       <section className="py-24 bg-[#eff4ff]" id="testimoni">
         <div className="max-w-7xl mx-auto px-6">
-          <Reveal direction="up" className="text-center max-w-2xl mx-auto mb-14">
-            <p className="text-[#DC2626] font-bold text-sm uppercase tracking-widest mb-3">Testimoni</p>
+          <Reveal
+            direction="up"
+            className="text-center max-w-2xl mx-auto mb-14"
+          >
+            <p className="text-[#DC2626] font-bold text-sm uppercase tracking-widest mb-3">
+              Testimoni
+            </p>
             <h2 className="font-headline text-3xl md:text-4xl font-bold mb-5 text-[#0b1c30]">
               Apa Kata Mereka?
             </h2>
             <p className="text-[#0b1c30]/60 font-body-inter text-lg">
-              Ribuan mahasiswa dan tenant telah merasakan kemudahan Canteeners setiap harinya.
+              Ribuan mahasiswa dan tenant telah merasakan kemudahan Canteeners
+              setiap harinya.
             </p>
           </Reveal>
           <Reveal direction="up" delay={150}>
@@ -641,7 +729,8 @@ export default function LandingAnimatedPage({
         <div
           className="absolute inset-0 z-10 opacity-10 pointer-events-none"
           style={{
-            backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
+            backgroundImage:
+              "radial-gradient(circle at 2px 2px, white 1px, transparent 0)",
             backgroundSize: "24px 24px",
           }}
         />
@@ -652,13 +741,12 @@ export default function LandingAnimatedPage({
         <div className="max-w-4xl mx-auto px-6 relative z-20 text-center">
           <Reveal direction="zoom">
             <h2 className="font-headline text-4xl md:text-5xl font-extrabold mb-8 text-white leading-tight">
-              Punya Warung di Kantin?{" "}
-              <br className="hidden sm:block" />
+              Punya Warung di Kantin? <br className="hidden sm:block" />
               Mari Berkembang Bersama!
             </h2>
             <p className="text-red-100 font-body-inter text-lg mb-12 max-w-2xl mx-auto leading-relaxed">
-              Tingkatkan efisiensi pelayanan, jangkau lebih banyak pelanggan, dan
-              kelola laporan keuangan warung Anda secara otomatis.
+              Tingkatkan efisiensi pelayanan, jangkau lebih banyak pelanggan,
+              dan kelola laporan keuangan warung Anda secara otomatis.
             </p>
             <div className="flex flex-col sm:flex-row gap-5 justify-center">
               <Link
@@ -666,7 +754,9 @@ export default function LandingAnimatedPage({
                 className="group inline-flex items-center justify-center gap-2 bg-white text-[#DC2626] hover:bg-red-50 rounded-full px-8 py-4 font-bold transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 text-lg"
               >
                 Daftar Jadi Mitra
-                <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">
+                  arrow_forward
+                </span>
               </Link>
               <Link
                 href="/faq"

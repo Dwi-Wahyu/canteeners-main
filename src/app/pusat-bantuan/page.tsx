@@ -28,7 +28,7 @@ function PusatBantuanContent() {
     {
       title: "WhatsApp",
       description: "Chat langsung dengan tim kami (08.00 - 20.00)",
-      icon: <MessageCircle className="size-6 text-green-500" />,
+      icon: <MessageCircle className="size-6" />,
       href: "https://wa.me/6281234567890", // Placeholder
       label: "+62 812-3456-7890",
       color: "hover:bg-green-50",
@@ -36,7 +36,7 @@ function PusatBantuanContent() {
     {
       title: "Instagram",
       description: "Ikuti kami untuk update terbaru",
-      icon: <Instagram className="size-6 text-pink-500" />,
+      icon: <Instagram className="size-6" />,
       href: "https://instagram.com/canteeners", // Placeholder
       label: "@canteeners",
       color: "hover:bg-pink-50",
@@ -44,7 +44,7 @@ function PusatBantuanContent() {
     {
       title: "Email",
       description: "Kirim pertanyaan melalui email",
-      icon: <Mail className="size-6 text-blue-500" />,
+      icon: <Mail className="size-6" />,
       href: "mailto:support@canteeners.com",
       label: "support@canteeners.com",
       color: "hover:bg-blue-50",
@@ -106,7 +106,7 @@ function PusatBantuanContent() {
 
         {/* FAQ Link */}
         <Card className="bg-primary text-primary-foreground overflow-hidden">
-          <CardHeader className="p-5">
+          <CardHeader>
             <CardTitle className="text-lg text-white">
               Butuh jawaban cepat?
             </CardTitle>
@@ -114,9 +114,13 @@ function PusatBantuanContent() {
               Lihat pertanyaan yang sering diajukan di halaman FAQ kami.
             </CardDescription>
           </CardHeader>
-          <CardContent className="px-5 pb-5">
+          <CardContent>
             <Button variant="secondary" className="w-full font-bold" asChild>
-              <Link href="/faq">Buka FAQ</Link>
+              <Link
+                href={`/faq?back_url=/pusat-bantuan?back_url=${encodeURIComponent(backUrl)}`}
+              >
+                Buka FAQ
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -126,7 +130,7 @@ function PusatBantuanContent() {
           <p className="text-[10px] font-medium tracking-widest uppercase">
             Canteeners Support Center
           </p>
-          <p className="text-[9px] mt-1">Version 1.0.0</p>
+          <p className="text-xs mt-1">Version 1.0.0</p>
         </div>
       </div>
     </div>

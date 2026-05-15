@@ -854,7 +854,8 @@ export async function timeoutCancelOrder({
         where: { id: order_id },
         data: {
           status: "CANCELLED",
-          cancelled_reason: "Batas waktu pembayaran berakhir (15 menit)",
+          cancelled_reason:
+            "Batas waktu pembayaran berakhir, pesanan dibatalkan otomatis oleh sistem dan tercatat sebagai pelanggaran.",
           cancelled_by_id: "SYSTEM",
         },
       });
@@ -915,7 +916,7 @@ export async function timeoutCancelOrder({
       type: "ORDER",
       subType: "CANCELLED",
       title: "Pesanan Dibatalkan Otomatis",
-      body: "Batas waktu pembayaran 15 menit telah berakhir",
+      body: "Batas waktu pembayaran telah berakhir, pesanan dibatalkan otomatis dan tercatat sebagai pelanggaran.",
       isRead: false,
       intent: "ERROR",
       resourcePath: "/order/" + order_id,

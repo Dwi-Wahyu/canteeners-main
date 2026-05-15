@@ -32,9 +32,13 @@ export default function OrderEstimationCountDown({
       .padStart(2, "0")}`;
   }, [estimation, processed_at]);
 
-  const [timeLeft, setTimeLeft] = useState<string | null>(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+    setTimeLeft(calculateTimeLeft());
+
     const timer = setInterval(() => {
       const current = calculateTimeLeft();
       setTimeLeft(current);
@@ -45,6 +49,17 @@ export default function OrderEstimationCountDown({
 
     return () => clearInterval(timer);
   }, [calculateTimeLeft, onFinished]);
+
+  if (!isMounted) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="h-7 w-12 bg-gray-200 animate-pulse rounded" />
+        {/* <span className="text-[10px] font-bold text-muted-foreground uppercase bg-gray-100 px-2 py-0.5 rounded">
+          Sisa Waktu
+        </span> */}
+      </div>
+    );
+  }
 
   if (timeLeft === null) {
     if (userRole === "SHOP_OWNER") {
@@ -62,9 +77,9 @@ export default function OrderEstimationCountDown({
       <h1 className="text-lg font-bold text-primary tabular-nums tracking-tight">
         {timeLeft}
       </h1>
-      <span className="text-[10px] font-bold text-muted-foreground uppercase bg-gray-100 px-2 py-0.5 rounded">
+      {/* <span className="text-[10px] font-bold text-muted-foreground uppercase bg-gray-100 px-2 py-0.5 rounded">
         Sisa Waktu
-      </span>
+      </span> */}
     </div>
   );
 }

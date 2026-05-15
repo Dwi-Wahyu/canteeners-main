@@ -21,10 +21,6 @@ export default async function OrderHistoryPage({
   const session = await auth();
   const params = await searchParams;
 
-  if (!session || !session.user.customerId) {
-    redirect("/login-pelanggan");
-  }
-
   const page = Number(params.page) || 1;
   const startDate = params.startDate
     ? new Date(params.startDate as string)
@@ -33,16 +29,21 @@ export default async function OrderHistoryPage({
     ? new Date(params.endDate as string)
     : undefined;
 
-  const {
-    data: orders,
-    totalPages,
-    currentPage,
-  } = await getCustomerOrderHistory(session.user.customerId, {
-    page,
-    startDate,
-    endDate,
-    limit: 10,
-  });
+  let orders: any[] = [];
+  let totalPages = 0;
+  let currentPage = 1;
+
+  if (session?.user.customerId) {
+    const result = await getCustomerOrderHistory(session.user.customerId, {
+      page,
+      startDate,
+      endDate,
+      limit: 10,
+    });
+    orders = result.data;
+    totalPages = result.totalPages;
+    currentPage = result.currentPage;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">

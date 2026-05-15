@@ -318,7 +318,7 @@ export async function processShopCart({
           "cancel-unpaid-order",
           { orderId: order_id },
           {
-            delay: timeoutMinutes * 60 * 1000,
+            delay: (timeoutMinutes * 60 * 1000) + 15000,
             jobId: order_id,
             removeOnComplete: true,
             removeOnFail: true,

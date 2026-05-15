@@ -32,9 +32,7 @@ export function OrderNotificationDialog({
   const { metadata, senderInfo, title, body, resourcePath } = notification;
 
   const handleViewDetails = () => {
-    if (resourcePath) {
-      router.push(resourcePath);
-    }
+    router.push("/dashboard-kedai/order");
     onOpenChange(false);
   };
 

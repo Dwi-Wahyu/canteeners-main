@@ -89,7 +89,11 @@ export default function useWatchNotification() {
         actionButtons: (
           <Button
             onClick={() => {
-              router.push(data.resourcePath);
+              if (data.type === "ORDER") {
+                router.push("/dashboard-kedai/order");
+              } else {
+                router.push(data.resourcePath);
+              }
               hideNotification();
             }}
             className="w-full"
