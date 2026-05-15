@@ -40,6 +40,8 @@ ENV FIREBASE_API_KEY=placeholder
 ENV FIREBASE_CLIENT_EMAIL=placeholder@placeholder.com
 ENV FIREBASE_PROJECT_ID=placeholder
 
+ENV SKIP_REDIS=true
+
 # Path eksplisit untuk prisma v7 multi-schema
 RUN if [ -d "prisma/schema" ]; then bunx prisma generate --schema ./prisma/schema; fi
 
