@@ -1,12 +1,9 @@
-"use client";
-
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,9 +12,7 @@ import { getFaqs } from "./faq-actions";
 
 export const dynamic = "force-dynamic";
 
-function FAQContent() {
-  const searchParams = useSearchParams();
-  const backUrl = searchParams.get("back_url") || "/pusat-bantuan";
+async function FAQContent({ back_url }: { back_url?: string }) {
   const [faqs, setFaqs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +28,7 @@ function FAQContent() {
       {/* Header */}
       <div className="bg-white border-b px-5 py-4 flex items-center gap-4 sticky top-0 z-10">
         <Button variant="ghost" size="icon" asChild className="-ml-2">
-          <Link href={backUrl}>
+          <Link href={back_url ? back_url : "/pusat-bantuan"}>
             <ChevronLeft className="size-6" />
           </Link>
         </Button>
@@ -74,10 +69,16 @@ function FAQContent() {
   );
 }
 
-export default function FAQ() {
+export default async function FAQ({
+  searchParams,
+}: {
+  searchParams: Promise<{ back_url?: string }>;
+}) {
+  const { back_url } = await searchParams;
+
   return (
     <Suspense fallback={<div className="p-10 text-center">Memuat...</div>}>
-      <FAQContent />
+      <FAQContent back_url={back_url} />
     </Suspense>
   );
 }
