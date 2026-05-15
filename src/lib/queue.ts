@@ -49,3 +49,12 @@ Object.defineProperty(orderQueue, "_isFallback", {
   value: !isRedisAvailable,
   enumerable: false,
 });
+
+export const refundQueue: any = isRedisAvailable
+  ? new Queue("refund-queue", { connection: redisConnection })
+  : new FallbackQueue();
+
+Object.defineProperty(refundQueue, "_isFallback", {
+  value: !isRedisAvailable,
+  enumerable: false,
+});

@@ -6,6 +6,7 @@ import { CardDescription, CardTitle } from "@/components/ui/card";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
+import { useWatchRefundUpdate } from "@/hooks/use-watch-refund-update";
 import { useRouter } from "next/navigation";
 
 interface ShopRefundPageClientProps {
@@ -20,6 +21,10 @@ export function ShopRefundPageClient({
   const router = useRouter();
   const { orderData } = useWatchOrderUpdate(orderId);
   const order = (orderData as unknown as GetShopOrderDetail) || initialOrder;
+
+  // Aktifkan kembali listener khusus refund untuk realtime bus
+  const refundId = order?.refund?.id;
+  useWatchRefundUpdate(refundId, ["order-detail", orderId]);
 
   const refundData = order.refund;
 

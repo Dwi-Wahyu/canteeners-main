@@ -6,7 +6,6 @@ import { db } from "@/lib/firebase/client";
 import { useQuery } from "@tanstack/react-query";
 import { doc, onSnapshot, Timestamp } from "firebase/firestore";
 import { useEffect, useRef } from "react";
-import { toast } from "sonner";
 
 type UseWatchOrderUpdateReturn = {
   orderData: GetOrderDetail | null;
@@ -17,7 +16,7 @@ type UseWatchOrderUpdateReturn = {
 };
 
 export function useWatchOrderUpdate(
-  order_id: string
+  order_id: string,
 ): UseWatchOrderUpdateReturn {
   const lastKnownUpdate = useRef<number>(0);
 
@@ -52,7 +51,8 @@ export function useWatchOrderUpdate(
         }
 
         const data = snapshot.data();
-        const timestamp = (data?.lastUpdatedTimestamp || data?.lastUpdatedAt) as Timestamp | undefined;
+        const timestamp = (data?.lastUpdatedTimestamp ||
+          data?.lastUpdatedAt) as Timestamp | undefined;
 
         if (!timestamp) return;
 
@@ -75,7 +75,7 @@ export function useWatchOrderUpdate(
         } else {
           console.error("Firestore onSnapshot error:", err);
         }
-      }
+      },
     );
 
     return () => unsubscribe();

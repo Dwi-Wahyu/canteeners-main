@@ -1,6 +1,10 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, Auth } from "firebase/auth";
+import { 
+  initializeFirestore, 
+  Firestore, 
+  memoryLocalCache 
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -12,7 +16,28 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID!,
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const globalForFirebase = globalThis as unknown as {
+  app: FirebaseApp | undefined;
+  db: Firestore | undefined;
+  auth: Auth | undefined;
+};
 
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+const app = globalForFirebase.app ?? (getApps().length ? getApp() : initializeApp(firebaseConfig));
+
+// Konfigurasi Firestore yang paling stabil untuk lingkungan Development HMR
+const db = globalForFirebase.db ?? initializeFirestore(app, {
+  // 1. Paksa cache di memori saja. Assertion ca9 sering terjadi karena IndexedDB yang korup.
+  localCache: memoryLocalCache(),
+  // 2. Gunakan Long Polling untuk menghindari ketidakstabilan WebSocket saat modul reload cepat.
+  experimentalForceLongPolling: true,
+});
+
+const auth = globalForFirebase.auth ?? getAuth(app);
+
+if (process.env.NODE_ENV !== "production") {
+  globalForFirebase.app = app;
+  globalForFirebase.db = db;
+  globalForFirebase.auth = auth;
+}
+
+export { db, auth };

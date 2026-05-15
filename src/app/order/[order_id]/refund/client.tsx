@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "nextjs-toploader/app";
 import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
+import { useWatchRefundUpdate } from "@/hooks/use-watch-refund-update";
 import { GetCustomerOrderDetail } from "@/features/order/types/order-queries-types";
 
 interface CustomerRefundPageClientProps {
@@ -34,6 +35,10 @@ export function CustomerRefundPageClient({
   const { orderData } = useWatchOrderUpdate(orderId);
   const order =
     (orderData as unknown as GetCustomerOrderDetail) || initialOrder;
+
+  // Aktifkan kembali listener khusus refund untuk realtime bus
+  const refundId = order?.refund?.id;
+  useWatchRefundUpdate(refundId, ["order-detail", orderId]);
 
   if (!order) {
     return notFound();
