@@ -52,6 +52,11 @@ export async function getCustomerProfile(id: string) {
           discount: true,
         },
       },
+      violations: {
+        where: {
+          type: "ORDER_CANCEL_WITHOUT_PAY",
+        },
+      },
     },
   });
 }
@@ -174,6 +179,25 @@ export async function getCustomerSuspensionStatus(userId: string) {
     select: {
       suspend_until: true,
       suspend_reason: true,
+    },
+  });
+}
+
+export async function getUserReports(reporterId: string) {
+  return await prisma.userReport.findMany({
+    where: {
+      reporter_id: reporterId,
+    },
+    include: {
+      reported_user: {
+        select: {
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+    orderBy: {
+      created_at: "desc",
     },
   });
 }

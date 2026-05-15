@@ -333,30 +333,6 @@ export async function processShopCart({
     const chatRef = adminDb.collection("chats").doc(chatId);
     const chatSnap = await chatRef.get();
 
-    if (!chatSnap.exists) {
-      await chatRef.set({
-        id: chatId,
-        participantsInfo: {
-          [customer_user_id]: {
-            name: shopCartData.cart.customer.user.name,
-            avatar: shopCartData.cart.customer.user.avatar,
-            role: "CUSTOMER",
-          },
-          [owner_user_id]: {
-            name: shopCartData.shop.owner.user.name,
-            avatar: shopCartData.shop.owner.user.avatar,
-            role: "SHOP_OWNER",
-          },
-        },
-        participantIds: [customer_user_id, owner_user_id],
-        lastMessage: "Order masuk, Mohon konfirmasi apakah pesanan tersedia",
-        lastMessageAt: FieldValue.serverTimestamp(),
-        lastMessageType: "ORDER",
-        lastMessageSenderId: customer_user_id,
-        unreadCounts: { [customer_user_id]: 0, [owner_user_id]: 1 },
-      });
-    }
-
     let chatMessage = "Order masuk. Mohon konfirmasi apakah pesanan tersedia";
     let notificationBody = `Pesanan ${shopCartData.items.length} item oleh ${
       shopCartData.cart.customer.user.name
@@ -376,6 +352,39 @@ export async function processShopCart({
           shopCartData.cart.customer.user.name
         } sebesar ${formatRupiah(result.total_price)}`;
       }
+    }
+
+    const chatMetadata = {
+      lastMessage: chatMessage,
+      lastMessageAt: FieldValue.serverTimestamp(),
+      lastMessageType: "ORDER",
+      lastMessageSenderId: customer_user_id,
+    };
+
+    if (!chatSnap.exists) {
+      await chatRef.set({
+        id: chatId,
+        participantsInfo: {
+          [customer_user_id]: {
+            name: shopCartData.cart.customer.user.name,
+            avatar: shopCartData.cart.customer.user.avatar,
+            role: "CUSTOMER",
+          },
+          [owner_user_id]: {
+            name: shopCartData.shop.owner.user.name,
+            avatar: shopCartData.shop.owner.user.avatar,
+            role: "SHOP_OWNER",
+          },
+        },
+        participantIds: [customer_user_id, owner_user_id],
+        unreadCounts: { [customer_user_id]: 0, [owner_user_id]: 1 },
+        ...chatMetadata,
+      });
+    } else {
+      await chatRef.update({
+        ...chatMetadata,
+        [`unreadCounts.${owner_user_id}`]: FieldValue.increment(1),
+      });
     }
 
     await Promise.all([

@@ -30,6 +30,9 @@ import {
   ReportUserSchema,
 } from "@/features/user/types/user-schema";
 import { reportUser } from "@/features/user/lib/user-actions";
+import { doc, deleteDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
+import { usePathname, useRouter } from "next/navigation";
 
 const REPORT_REASONS = [
   { id: "HARASSMENT", label: "Pelecehan / Kata-kata kasar" },
@@ -41,11 +44,16 @@ const REPORT_REASONS = [
 
 export function ReportUserDialog({
   reportedUserId,
+  chatId,
 }: {
   reportedUserId: string;
+  chatId: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const router = useRouter();
+  const pathname = usePathname();
 
   const form = useForm<ReportUserInput>({
     resolver: zodResolver(ReportUserSchema),
@@ -62,9 +70,19 @@ export function ReportUserDialog({
       const result = await reportUser(data);
 
       if (result.success) {
-        toast.success("Laporan berhasil dikirim.");
+        // Hapus percakapan setelah berhasil melaporkan
+        const docRef = doc(db, "chats", chatId);
+        await deleteDoc(docRef);
+
+        toast.success("Laporan berhasil dikirim dan percakapan dihapus.");
         setIsOpen(false);
         form.reset();
+
+        // Redirect ke daftar chat
+        const redirectPath = pathname.includes("/dashboard-kedai/")
+          ? "/dashboard-kedai/chat"
+          : "/chat";
+        router.push(redirectPath);
       } else {
         toast.error(result.error.message);
       }

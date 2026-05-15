@@ -14,6 +14,7 @@ import {
   MessagesSquare,
   Store,
   User,
+  Bell,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -58,6 +59,20 @@ export default async function OwnerSettingsPage() {
           </ItemMedia>
           <ItemContent>
             <ItemTitle>Pesan Singkat</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <ChevronRight className="size-4" />
+          </ItemActions>
+        </Link>
+      </Item>
+
+      <Item variant="outline" size="sm" className="mb-4" asChild>
+        <Link href="/dashboard-kedai/notifikasi">
+          <ItemMedia>
+            <Bell className="size-5" />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>Notifikasi</ItemTitle>
           </ItemContent>
           <ItemActions>
             <ChevronRight className="size-4" />

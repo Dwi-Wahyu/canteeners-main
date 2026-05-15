@@ -103,7 +103,7 @@ export default async function ViolationsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="gap-3 flex flex-col">
               {violations.map((v) => (
                 <Link key={v.id} href={`/profil/pelanggaran/${v.id}`}>
                   <Card className="hover:shadow-md transition-all active:scale-[0.98] border-red-50">

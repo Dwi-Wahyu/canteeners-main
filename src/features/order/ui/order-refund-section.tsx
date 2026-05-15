@@ -115,7 +115,7 @@ export function OrderRefundSection({
               {order.refund.history.map((item, idx) => (
                 <div key={item.id} className="relative flex items-start gap-4">
                   <div
-                    className={`mt-1.5 size-[22px] rounded-full border-4 border-background shadow-sm z-10 ${
+                    className={`mt-1.5 size-5.5 rounded-full border-4 border-background shadow-sm z-10 ${
                       idx === 0 ? "bg-primary" : "bg-muted"
                     }`}
                   />

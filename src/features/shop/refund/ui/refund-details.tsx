@@ -117,8 +117,6 @@ export function RefundDetails({
     userRole === "SHOP_OWNER";
 
   const canProcess =
-    !hasAdminIntervened &&
-    !isLastActionByAdmin &&
     refund.status === "APPROVED" &&
     userRole === "SHOP_OWNER";
 

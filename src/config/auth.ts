@@ -136,7 +136,7 @@ export const authConfig: NextAuthConfig = {
             return {
               id: firebaseUid,
               username: "",
-              name,
+              name: guestCustomer.name || name,
               role: "CUSTOMER",
               avatar: "default-avatar.jpeg",
               cartId: guestCustomer.customer?.cart?.id,

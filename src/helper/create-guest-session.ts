@@ -52,7 +52,7 @@ export async function createGuestSession({
   const res = await signIn("credentials", {
     username: "",
     password: "",
-    name,
+    name: createGuest.data.name,
     isGuest: "true",
     firebaseUid: createGuest.data.user_id,
     redirect: false,

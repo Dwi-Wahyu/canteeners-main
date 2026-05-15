@@ -82,14 +82,16 @@ export default function CancelOrderDialog({
         return {
           trigger: "Batalkan & Refund",
           title: "Batalkan Pesanan & Kembalikan Dana?",
-          description: "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib mengembalikan dana kepada pelanggan secara manual atau melalui sistem refund yang tersedia.",
+          description:
+            "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib mengembalikan dana kepada pelanggan secara manual atau melalui sistem refund yang tersedia.",
           action: "Ya, Batalkan & Refund",
         };
       }
       return {
         trigger: "Batalkan Pesanan",
         title: "Batalkan Pesanan Pelanggan?",
-        description: "Berikan alasan yang jelas mengapa Anda perlu membatalkan pesanan ini.",
+        description:
+          "Berikan alasan yang jelas mengapa Anda perlu membatalkan pesanan ini.",
         action: "Batalkan Pesanan",
       };
     }
@@ -99,14 +101,16 @@ export default function CancelOrderDialog({
       return {
         trigger: "Batalkan & Refund",
         title: "Batalkan Pesanan Anda?",
-        description: "Pesanan sudah melewati estimasi waktu. Anda dapat membatalkan pesanan dan dana akan dikembalikan.",
+        description:
+          "Pesanan sudah melewati estimasi waktu. Anda dapat membatalkan pesanan dan dana akan dikembalikan.",
         action: "Ya, Batalkan Sekarang",
       };
     }
     return {
       trigger: "Batalkan Pesanan",
       title: "Yakin ingin membatalkan?",
-      description: "Pesanan yang dibatalkan tidak dapat dikembalikan. Silakan masukkan alasan pembatalan.",
+      description:
+        "Pesanan yang dibatalkan tidak dapat dikembalikan. Silakan masukkan alasan pembatalan.",
       action: "Ya, Batalkan",
     };
   };
@@ -116,10 +120,10 @@ export default function CancelOrderDialog({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button 
-          size={"lg"} 
-          variant={"destructive"} 
-          className={cn("w-full font-bold gap-2", className)}
+        <Button
+          size={"lg"}
+          variant={"destructive"}
+          className={cn(className)}
           disabled={isPending}
         >
           {isProcessing ? <AlertTriangle size={18} /> : <XCircle size={18} />}
@@ -137,7 +141,9 @@ export default function CancelOrderDialog({
           </AlertDialogDescription>
 
           <div className="space-y-1.5 mt-4">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">Alasan Pembatalan</label>
+            <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">
+              Alasan Pembatalan
+            </label>
             <Textarea
               disabled={isPending}
               value={reason}
@@ -160,7 +166,11 @@ export default function CancelOrderDialog({
         </AlertDialogHeader>
         <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-3 mt-4">
           <AlertDialogCancel asChild>
-            <Button variant={"outline"} className="w-full h-12 rounded-xl font-bold" disabled={isPending}>
+            <Button
+              variant={"outline"}
+              className="w-full h-12 rounded-xl font-bold"
+              disabled={isPending}
+            >
               Kembali
             </Button>
           </AlertDialogCancel>

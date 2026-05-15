@@ -2,7 +2,8 @@ import {
   getCustomerProfile, 
   getCustomerViolations, 
   getCustomerViolationDetail,
-  getCustomerSuspensionStatus
+  getCustomerSuspensionStatus,
+  getUserReports
 } from "../lib/user-queries";
 
 export type GetCustomerProfileType = NonNullable<
@@ -19,4 +20,8 @@ export type GetCustomerViolationDetailType = Awaited<
 
 export type GetCustomerSuspensionStatusType = Awaited<
   ReturnType<typeof getCustomerSuspensionStatus>
+>;
+
+export type GetUserReportsType = Awaited<
+  ReturnType<typeof getUserReports>
 >;

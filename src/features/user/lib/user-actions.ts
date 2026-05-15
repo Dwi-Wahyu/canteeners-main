@@ -28,6 +28,7 @@ export async function createGuestCustomer({
     user_id: string;
     customer_id: string;
     cart_id: string;
+    name: string;
   }>
 > {
   try {
@@ -122,6 +123,7 @@ export async function createGuestCustomer({
         user_id: user.id,
         customer_id: customer.id,
         cart_id: cart.id,
+        name: user.name,
       },
       "Sukses menyiapkan guest customer",
     );

@@ -369,6 +369,18 @@ export default function ShopCartClient({
 
   return (
     <div className="flex flex-col gap-4">
+      {customerProfile.violations && customerProfile.violations.length >= 2 && !isSuspended && (
+        <Alert className="border-red-200 bg-red-50 text-red-900">
+          <CircleAlert className="w-4 h-4 text-red-600" />
+          <AlertTitle className="text-red-800">Peringatan Pelanggaran</AlertTitle>
+          <AlertDescription className="text-red-700">
+            Anda wajib menyelesaikan pesanan setelah checkout. Jika order
+            dibatalkan sebelum melakukan pembayaran, maka akun akan dibekukan 1
+            hari.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {isSuspended && (
         <Alert variant="destructive">
           <ShieldAlert className="w-4 h-4" />

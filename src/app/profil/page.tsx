@@ -14,6 +14,7 @@ import {
   BookOpen,
   Gavel,
   ShieldAlert,
+  Bell,
 } from "lucide-react";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import Link from "next/link";
@@ -183,30 +184,50 @@ export default function CustomerProfilePage() {
           </h2>
           <div className="bg-white rounded-xl shadow border border-muted overflow-hidden">
             {session && (
-              <Link
-                href="/profil/pelanggaran"
-                className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
-              >
-                <div className="p-2 bg-red-50 rounded-xl">
-                  <Gavel className="size-5 text-red-500" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">
-                    Pelanggaran
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    Cek status akun & riwayat pelanggaran
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isSuspended && (
-                    <Badge variant="destructive" className="text-[8px] h-4">
-                      DIBLOKIR
-                    </Badge>
-                  )}
+              <>
+                <Link
+                  href="/profil/pelanggaran"
+                  className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+                >
+                  <div className="p-2 bg-red-50 rounded-xl">
+                    <Gavel className="size-5 text-red-500" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      Pelanggaran
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Cek status akun & riwayat pelanggaran
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isSuspended && (
+                      <Badge variant="destructive" className="text-[8px] h-4">
+                        DIBLOKIR
+                      </Badge>
+                    )}
+                    <ChevronRight className="size-4 text-muted-foreground" />
+                  </div>
+                </Link>
+
+                <Link
+                  href="/notifikasi"
+                  className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+                >
+                  <div className="p-2 bg-orange-50 rounded-xl">
+                    <Bell className="size-5 text-orange-500" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      Notifikasi
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Lihat pembaruan pesanan & laporan
+                    </p>
+                  </div>
                   <ChevronRight className="size-4 text-muted-foreground" />
-                </div>
-              </Link>
+                </Link>
+              </>
             )}
             <Link
               href="/kebijakan-dan-privasi?back_url=/profil"
@@ -324,6 +345,24 @@ export default function CustomerProfilePage() {
 
       {/* Profile Menu */}
       <div className="max-w-md mx-auto mt-6 px-5 space-y-4">
+        <div className="bg-white rounded-xl shadow border border-muted overflow-hidden">
+          <Link
+            href="/notifikasi"
+            className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors border-b last:border-0"
+          >
+            <div className="p-2 bg-orange-50 rounded-xl">
+              <Bell className="size-5 text-orange-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-900">Notifikasi</p>
+              <p className="text-xs text-muted-foreground">
+                Lihat pembaruan pesanan & laporan
+              </p>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </Link>
+        </div>
+
         <div className="bg-white rounded-xl shadow border border-muted overflow-hidden">
           <Link
             href="/syarat-dan-ketentuan/pelanggan?back_url=/profil"
