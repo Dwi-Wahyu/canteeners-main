@@ -81,8 +81,40 @@ export default function CustomerOrderDetailClient({
         ),
       });
     }
+
+    if (prevStatusRef.current !== "CANCELLED" && order.status === "CANCELLED") {
+      const isShopCancellation =
+        order.cancelled_by_id === order.shop.owner?.user_id;
+
+      if (isShopCancellation) {
+        showNotification({
+          title: "Pesanan Dibatalkan Kedai",
+          message:
+            "Maaf, pesananmu dibatalkan oleh kedai. Dana akan dikembalikan sesuai metode yang dipilih.",
+          type: "error",
+          actionButtons: (
+            <div className="flex flex-col gap-2 w-full">
+              <Button
+                asChild
+                className="w-full"
+                onClick={() => hideNotification()}
+              >
+                <Link href="/">Lihat Detail</Link>
+              </Button>
+            </div>
+          ),
+        });
+      }
+    }
+
     prevStatusRef.current = order.status;
-  }, [order.status, showNotification, hideNotification]);
+  }, [
+    order.status,
+    order.cancelled_by_id,
+    order.shop.owner?.user_id,
+    showNotification,
+    hideNotification,
+  ]);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
@@ -191,7 +223,7 @@ export default function CustomerOrderDetailClient({
                 </p>
                 <CancelOrderDialog
                   order_id={order.id}
-                  user_id={order.customer_id}
+                  user_id={order.customer.user_id}
                   order_status={order.status}
                   userRole="CUSTOMER"
                   isLate={isLate}
@@ -491,7 +523,7 @@ export default function CustomerOrderDetailClient({
         {canCancel && !isGracePeriod && (
           <CancelOrderDialog
             order_id={order.id}
-            user_id={order.customer_id}
+            user_id={order.customer.user_id}
             order_status={order.status}
             userRole="CUSTOMER"
             isLate={isLate}

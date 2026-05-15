@@ -116,9 +116,7 @@ export function RefundDetails({
     refund.status === "PENDING" &&
     userRole === "SHOP_OWNER";
 
-  const canProcess =
-    refund.status === "APPROVED" &&
-    userRole === "SHOP_OWNER";
+  const canProcess = refund.status === "APPROVED" && userRole === "SHOP_OWNER";
 
   const canComplete = refund.status === "PROCESSED" && userRole === "CUSTOMER";
 
@@ -268,12 +266,11 @@ export function RefundDetails({
         <div>
           <p className="text-sm text-muted-foreground mb-2">Bukti Komplain</p>
           <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-            <Image
+            <img
               src={getImageUrl(
                 "/complaint-proof/" + refund.complaint_proof_url,
               )}
               alt="Bukti komplain"
-              fill
               className="object-contain"
             />
           </div>
@@ -320,7 +317,7 @@ export function RefundDetails({
       {/* Rejected Reason */}
       {refund.status === "REJECTED" && refund.rejected_reason && (
         <Alert variant="destructive">
-          <X className="h-4 w-4" />
+          <X />
           <AlertDescription>
             <p className="font-medium mb-1">Alasan Penolakan:</p>
             <p className="text-sm">{refund.rejected_reason}</p>
@@ -331,7 +328,7 @@ export function RefundDetails({
       {/* Escalated Reason */}
       {refund.status === "ESCALATED" && refund.escalated_reason && (
         <Alert>
-          <AlertTriangle className="h-4 w-4" />
+          <AlertTriangle />
           <AlertDescription>
             <p className="font-medium mb-1">Alasan Eskalasi ke Admin:</p>
             <p className="text-sm">{refund.escalated_reason}</p>
@@ -343,9 +340,9 @@ export function RefundDetails({
       {userRole === "CUSTOMER" &&
         refund.status === "APPROVED" &&
         refund.disbursement_mode === "CASH" && (
-          <Alert className="border-yellow-200 bg-yellow-50">
-            <CheckCircle2 className="h-4 w-4 text-yellow-600" />
-            <AlertDescription className="text-yellow-900">
+          <Alert>
+            <CheckCircle2 />
+            <AlertDescription>
               <span className="font-semibold">Refund Disetujui!</span> Silakan
               ambil dana refund Anda secara tunai di kedai.
             </AlertDescription>
@@ -354,9 +351,9 @@ export function RefundDetails({
 
       {/* Processed Success */}
       {refund.status === "COMPLETED" && (
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-900">
+        <Alert>
+          <CheckCircle2 />
+          <AlertDescription>
             Dana refund telah dikembalikan ke customer.
           </AlertDescription>
         </Alert>
@@ -366,11 +363,11 @@ export function RefundDetails({
       {refund.history && refund.history.length > 0 && (
         <div className="space-y-4 pt-2">
           <Label>Riwayat Perubahan</Label>
-          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-muted">
+          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2.75 before:-translate-x-px before:h-full before:w-0.5 before:bg-muted">
             {refund.history.map((item, idx) => (
               <div key={item.id} className="relative flex items-start gap-4">
                 <div
-                  className={`mt-1.5 size-[22px] rounded-full border-4 border-background shadow-sm z-10 ${
+                  className={`mt-1.5 size-5.5 rounded-full border-4 border-background shadow-sm z-10 ${
                     idx === 0 ? "bg-primary" : "bg-muted"
                   }`}
                 />
@@ -425,8 +422,7 @@ export function RefundDetails({
             onClick={handleCancel}
             disabled={isCancelling}
           >
-            {isCancelling && <Loader2 className="h-4 w-4 animate-spin" />}
-            <X className="h-4 w-4" />
+            {isCancelling ? <Loader2 className="animate-spin" /> : <X />}
             Batalkan Refund
           </Button>
         )}
@@ -439,9 +435,9 @@ export function RefundDetails({
             className="w-full sm:w-auto"
           >
             {isCompleting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="animate-spin" />
             ) : (
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCircle2 />
             )}
             Konfirmasi Dana Diterima
           </Button>
@@ -460,7 +456,7 @@ export function RefundDetails({
             onClick={() => setProcessDialogOpen(true)}
             className="bg-green-600 hover:bg-green-700"
           >
-            <CheckCircle2 className="h-4 w-4" />
+            <CheckCircle2 />
             Tandai Selesai
           </Button>
         )}
@@ -471,7 +467,7 @@ export function RefundDetails({
             variant="destructive"
             onClick={() => setEscalateDialogOpen(true)}
           >
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangle />
             Eskalasi ke Admin
           </Button>
         )}

@@ -219,8 +219,9 @@ export default function ShopOrderDetailClient({
               <CancelOrderDialog
                 order_id={order.id}
                 order_status={order.status}
-                user_id={order.shop.owner_id}
+                user_id={order.shop.owner?.user_id as string}
                 userRole="SHOP_OWNER"
+                defaultDisbursementMode={order.shop.refund_disbursement_mode}
               />
 
               <ConfirmPaymentDialog order_id={order.id} />
@@ -382,8 +383,9 @@ export default function ShopOrderDetailClient({
           <CancelOrderDialog
             order_id={order.id}
             order_status={order.status}
-            user_id={order.shop.owner_id}
+            user_id={order.shop.owner?.user_id as string}
             userRole="SHOP_OWNER"
+            defaultDisbursementMode={order.shop.refund_disbursement_mode}
           />
 
           <Button

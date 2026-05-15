@@ -312,6 +312,19 @@ export async function updateRefundStatus(
 
     await notificationRef.add(notificationData);
 
+    // Update Firestore order doc to trigger real-time update
+    try {
+      const orderRef = adminDb.collection("orders").doc(refund.order_id);
+      await orderRef.update({
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      console.error(
+        "Failed to update Firestore order for refund status:",
+        error,
+      );
+    }
+
     revalidatePath(`/order/${refund.order_id}/refund`);
     revalidatePath(`/order/${refund.order_id}`);
     revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
@@ -420,6 +433,19 @@ export async function processRefund(
 
     await notificationRef.add(notificationData);
 
+    // Update Firestore order doc to trigger real-time update
+    try {
+      const orderRef = adminDb.collection("orders").doc(refund.order_id);
+      await orderRef.update({
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      console.error(
+        "Failed to update Firestore order for refund status:",
+        error,
+      );
+    }
+
     revalidatePath(`/order/${refund.order_id}/refund`);
     revalidatePath(`/order/${refund.order_id}`);
     revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
@@ -519,6 +545,19 @@ export async function cancelRefund(
 
     await notificationRef.add(notificationData);
 
+    // Update Firestore order doc to trigger real-time update
+    try {
+      const orderRef = adminDb.collection("orders").doc(refund.order_id);
+      await orderRef.update({
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      console.error(
+        "Failed to update Firestore order for refund status:",
+        error,
+      );
+    }
+
     revalidatePath(`/order/${refund.order_id}/refund`);
     revalidatePath(`/order/${refund.order_id}`);
     revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
@@ -587,6 +626,19 @@ export async function escalateRefund(
     });
 
     // Note: No notification sent - admin system handles separately
+
+    // Update Firestore order doc to trigger real-time update
+    try {
+      const orderRef = adminDb.collection("orders").doc(refund.order_id);
+      await orderRef.update({
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      console.error(
+        "Failed to update Firestore order for refund status:",
+        error,
+      );
+    }
 
     revalidatePath(`/order/${refund.order_id}/refund`);
     revalidatePath(`/order/${refund.order_id}`);
@@ -767,6 +819,19 @@ export async function completeRefund(
     };
 
     await notificationRef.add(notificationData);
+
+    // Update Firestore order doc to trigger real-time update
+    try {
+      const orderRef = adminDb.collection("orders").doc(refund.order_id);
+      await orderRef.update({
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      console.error(
+        "Failed to update Firestore order for refund status:",
+        error,
+      );
+    }
 
     revalidatePath(`/order/${refund.order_id}/refund`);
     revalidatePath(`/order/${refund.order_id}`);

@@ -12,14 +12,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useState, useTransition } from "react";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus, RefundDisbursementMode } from "@/generated/prisma";
 import { Textarea } from "@/components/ui/textarea";
 
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
-import { Loader, AlertTriangle, XCircle } from "lucide-react";
+import { Loader, AlertTriangle, XCircle, Banknote, CreditCard } from "lucide-react";
 import { cancelOrder } from "../lib/order-actions";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 export default function CancelOrderDialog({
   order_id,
@@ -28,6 +30,7 @@ export default function CancelOrderDialog({
   userRole = "CUSTOMER",
   isLate = false,
   className,
+  defaultDisbursementMode = "CASH",
 }: {
   order_id: string;
   user_id: string;
@@ -35,9 +38,11 @@ export default function CancelOrderDialog({
   userRole?: "CUSTOMER" | "SHOP_OWNER";
   isLate?: boolean;
   className?: string;
+  defaultDisbursementMode?: RefundDisbursementMode;
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [disbursementMode, setDisbursementMode] = useState<RefundDisbursementMode>(defaultDisbursementMode);
   const [isPending, startTransition] = useTransition();
 
   const isProcessing = order_status === "PROCESSING";
@@ -57,6 +62,7 @@ export default function CancelOrderDialog({
         cancelled_by_id: user_id,
         cancelled_reason: reason,
         order_status,
+        disbursement_mode: isOwner && isProcessing ? disbursementMode : undefined,
       });
 
       if (result.success) {
@@ -83,7 +89,7 @@ export default function CancelOrderDialog({
           trigger: "Batalkan & Refund",
           title: "Batalkan Pesanan & Kembalikan Dana?",
           description:
-            "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib mengembalikan dana kepada pelanggan secara manual atau melalui sistem refund yang tersedia.",
+            "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib mengembalikan dana kepada pelanggan.",
           action: "Ya, Batalkan & Refund",
         };
       }
@@ -130,7 +136,7 @@ export default function CancelOrderDialog({
           {labels.trigger}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-[90vw] rounded-2xl">
+      <AlertDialogContent className="max-w-[90vw] rounded-2xl overflow-y-auto max-h-[90vh]">
         <AlertDialogHeader className="text-start">
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">
             <AlertTriangle size={20} />
@@ -149,12 +155,55 @@ export default function CancelOrderDialog({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Contoh: Stok habis, Terlalu lama, dll..."
-              className="h-32 rounded-xl bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-destructive"
+              className="h-28 rounded-xl bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-destructive"
             />
           </div>
 
+          {isOwner && isProcessing && (
+            <div className="space-y-3 mt-4">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">
+                Metode Pengembalian Dana
+              </label>
+              <RadioGroup
+                disabled={isPending}
+                value={disbursementMode}
+                onValueChange={(v) => setDisbursementMode(v as RefundDisbursementMode)}
+                className="grid grid-cols-2 gap-3"
+              >
+                <div>
+                  <RadioGroupItem
+                    value="CASH"
+                    id="cash"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="cash"
+                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                  >
+                    <Banknote className="mb-2 h-6 w-6" />
+                    <span className="text-xs font-bold">Tunai</span>
+                  </Label>
+                </div>
+                <div>
+                  <RadioGroupItem
+                    value="TRANSFER"
+                    id="transfer"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="transfer"
+                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                  >
+                    <CreditCard className="mb-2 h-6 w-6" />
+                    <span className="text-xs font-bold">Transfer</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
           {isProcessing && (
-            <div className="mt-2 bg-blue-50 p-3 rounded-xl">
+            <div className="mt-4 bg-blue-50 p-3 rounded-xl">
               <Link
                 className="text-[11px] text-blue-600 font-medium flex items-center gap-1"
                 href={"/syarat-dan-ketentuan"}
@@ -164,7 +213,7 @@ export default function CancelOrderDialog({
             </div>
           )}
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-3 mt-4">
+        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-3 mt-6">
           <AlertDialogCancel asChild>
             <Button
               variant={"outline"}

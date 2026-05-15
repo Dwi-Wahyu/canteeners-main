@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { getCustomerOrderDetail } from "@/features/order/lib/order-queries";
 import { RefundDetails } from "@/features/shop/refund/ui/refund-details";
 import { CreateRefundForm } from "@/features/shop/refund/ui/create-refund-form";
 import {
@@ -17,18 +16,24 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useRouter } from "nextjs-toploader/app";
+import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
+import { GetCustomerOrderDetail } from "@/features/order/types/order-queries-types";
 
 interface CustomerRefundPageClientProps {
-  order: Awaited<ReturnType<typeof getCustomerOrderDetail>>;
+  order: GetCustomerOrderDetail;
   orderId: string;
 }
 
 export function CustomerRefundPageClient({
-  order,
+  order: initialOrder,
   orderId,
 }: CustomerRefundPageClientProps) {
   const router = useRouter();
   const [showForm, setShowForm] = useState(false);
+
+  const { orderData } = useWatchOrderUpdate(orderId);
+  const order =
+    (orderData as unknown as GetCustomerOrderDetail) || initialOrder;
 
   if (!order) {
     return notFound();

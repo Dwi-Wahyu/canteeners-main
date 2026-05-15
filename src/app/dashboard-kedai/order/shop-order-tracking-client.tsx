@@ -48,7 +48,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import OrderEstimationCountDown from "@/features/order/ui/order-estimation-countdown";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { VisuallyHidden } from "radix-ui";
 
 export default function ShopOrderTrackingClient({
   shopId,
@@ -279,11 +285,14 @@ export default function ShopOrderTrackingClient({
                             ? "Verifikasi Pembayaran"
                             : "Bukti Pembayaran"}
                         </h1>
+                        <h2 className="text-sm text-muted-foreground">
+                          Klik untuk melihat bukti pembayaran secara penuh
+                        </h2>
 
                         <Dialog>
                           <DialogTrigger asChild>
                             <button className="block w-fit group">
-                              <Image
+                              <img
                                 className="rounded border group-hover:opacity-90 transition-opacity"
                                 width={80}
                                 height={80}
@@ -295,6 +304,9 @@ export default function ShopOrderTrackingClient({
                             </button>
                           </DialogTrigger>
                           <DialogContent className="max-w-3xl p-1 bg-transparent border-none">
+                            <VisuallyHidden.Root>
+                              <DialogTitle>Bukti Pembayaran</DialogTitle>
+                            </VisuallyHidden.Root>
                             <div className="relative w-full aspect-auto flex items-center justify-center">
                               <img
                                 src={getImageUrl(

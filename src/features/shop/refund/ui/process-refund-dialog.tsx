@@ -17,7 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form, FormDescription, FormField, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormDescription,
+  FormField,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CheckCircle, Loader2, Upload, X } from "lucide-react";
@@ -124,12 +130,12 @@ export function ProcessRefundDialog({
       if (selectedFile) {
         try {
           // Check if file is image or other (like PDF)
-          // Since LocalStorageService.uploadImage doesn't support PDF, 
+          // Since LocalStorageService.uploadImage doesn't support PDF,
           // we might need to be careful if we want to keep PDF support.
           // For now, let's use uploadImage and see if it works for supported types.
           const filename = await storageService.uploadImage(
             selectedFile,
-            "disbursement-proof"
+            "disbursement-proof",
           );
           finalData.disbursement_proof_url = filename;
         } catch (uploadError) {
@@ -197,96 +203,110 @@ export function ProcessRefundDialog({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* File Upload */}
-              <div className="space-y-2">
-                <FormLabel>
-                  Bukti {refund.disbursement_mode === "TRANSFER" ? "Transfer" : "Pembayaran"}
-                  {refund.disbursement_mode === "TRANSFER" && (
-                    <span className="text-destructive ml-1">*</span>
+              {refund.disbursement_mode === "TRANSFER" && (
+                <div className="space-y-2">
+                  <FormLabel>
+                    Bukti{" "}
+                    {refund.disbursement_mode === "TRANSFER"
+                      ? "Transfer"
+                      : "Pembayaran"}
+                    {refund.disbursement_mode === "TRANSFER" && (
+                      <span className="text-destructive ml-1">*</span>
+                    )}
+                  </FormLabel>
+                  {refund.disbursement_mode === "CASH" && (
+                    <FormDescription>
+                      Upload bukti pembayaran (JPG, PNG, WEBP, PDF - Maks 5MB)
+                    </FormDescription>
                   )}
-                </FormLabel>
-                {refund.disbursement_mode === "CASH" && (
-                  <FormDescription>
-                    Upload bukti pembayaran (JPG, PNG, WEBP, PDF - Maks 5MB)
-                  </FormDescription>
-                )}
 
-                {previewUrl && selectedFile ? (
-                  <div className="relative border rounded-lg p-3 bg-muted/50">
-                    <div className="flex items-start gap-3">
-                      {selectedFile.type === "application/pdf" ? (
-                        <div className="h-16 w-16 rounded bg-red-100 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-medium text-red-900">
-                            PDF
-                          </span>
+                  {previewUrl && selectedFile ? (
+                    <div className="relative border rounded-lg p-3 bg-muted/50">
+                      <div className="flex items-start gap-3">
+                        {selectedFile.type === "application/pdf" ? (
+                          <div className="h-16 w-16 rounded bg-red-100 flex items-center justify-center shrink-0">
+                            <span className="text-xs font-medium text-red-900">
+                              PDF
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
+                            <Image
+                              src={previewUrl}
+                              alt="Bukti transfer"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {truncateFileName(selectedFile.name)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Preview bukti transfer
+                          </p>
                         </div>
-                      ) : (
-                        <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
-                          <Image
-                            src={previewUrl}
-                            alt="Bukti transfer"
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {truncateFileName(selectedFile.name)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Preview bukti transfer
-                        </p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0"
+                          onClick={removeUploadedFile}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0"
-                        onClick={removeUploadedFile}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
-                    <Input
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
-                      onChange={handleFileUpload}
-                      disabled={isSubmitting}
-                      className="hidden"
-                      id="proof-upload"
-                    />
-                    <label
-                      htmlFor="proof-upload"
-                      className="cursor-pointer flex flex-col items-center gap-2"
-                    >
-                      <Upload className="h-8 w-8 text-muted-foreground" />
-                      <div className="text-sm">
-                        <span className="font-medium text-primary">
-                          Klik untuk upload
-                        </span>
-                        <p className="text-muted-foreground">
-                          atau drag and drop
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-                )}
-                <FormField
-                  control={form.control}
-                  name="disbursement_proof_url"
-                  render={() => <FormMessage />}
-                />
-              </div>
+                  ) : (
+                    <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
+                      <Input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
+                        onChange={handleFileUpload}
+                        disabled={isSubmitting}
+                        className="hidden"
+                        id="proof-upload"
+                      />
+                      <label
+                        htmlFor="proof-upload"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <div className="text-sm">
+                          <span className="font-medium text-primary">
+                            Klik untuk upload
+                          </span>
+                          <p className="text-muted-foreground">
+                            atau drag and drop
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+                  <FormField
+                    control={form.control}
+                    name="disbursement_proof_url"
+                    render={() => <FormMessage />}
+                  />
+                </div>
+              )}
 
               <Alert>
                 <CheckCircle className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  Dengan mengkonfirmasi, Anda menyatakan bahwa dana telah
-                  dikirim ke customer. Customer akan menerima notifikasi.
-                </AlertDescription>
+
+                {refund.disbursement_mode === "TRANSFER" ? (
+                  <AlertDescription className="text-sm">
+                    Anda menyatakan bahwa dana telah dikirim ke customer.
+                    Customer akan menerima notifikasi.
+                  </AlertDescription>
+                ) : (
+                  <AlertDescription className="text-sm">
+                    Anda menyatakan bahwa dana telah diterima customer. Pastikan
+                    customer konfirmasi dana diterima pada aplikasi agar refund
+                    selesai.
+                  </AlertDescription>
+                )}
               </Alert>
 
               <DialogFooter className="gap-2 sm:gap-0">

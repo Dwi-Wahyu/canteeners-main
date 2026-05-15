@@ -1,4 +1,5 @@
 export const refundReasonMapping = {
+  SHOP_CANCELLATION: "Pembatalan oleh Kedai",
   LATE_DELIVERY: "Keterlambatan Pengiriman",
   WRONG_ORDER: "Kesalahan Pesanan",
   DAMAGED_FOOD: "Makanan Rusak/Cacat",

@@ -5,6 +5,7 @@ import {
   PaymentMethod,
   RewardType,
   DiscountType,
+  RefundDisbursementMode,
 } from "@/generated/prisma";
 import {
   errorResponse,
@@ -585,11 +586,13 @@ export async function cancelOrder({
   cancelled_by_id,
   cancelled_reason,
   order_status,
+  disbursement_mode,
 }: {
   order_id: string;
   cancelled_by_id: string;
   cancelled_reason: string;
   order_status: OrderStatus;
+  disbursement_mode?: RefundDisbursementMode;
 }): Promise<ServerActionReturn<void>> {
   try {
     const updated = await prisma.order.update({
@@ -631,15 +634,19 @@ export async function cancelOrder({
       console.error("Failed to remove job from orderQueue:", queueError);
     }
 
+    const isShopCancellation =
+      cancelled_by_id === updated.shop.owner?.user_id;
+
     if (order_status === "PROCESSING") {
       await prisma.refund.create({
         data: {
           amount: updated.total_price,
           order_id: order_id,
-          disbursement_mode: updated.shop.refund_disbursement_mode,
-          reason: "OTHER",
+          disbursement_mode:
+            disbursement_mode || updated.shop.refund_disbursement_mode,
+          reason: isShopCancellation ? "SHOP_CANCELLATION" : "OTHER",
           status: "APPROVED",
-          description: "Pembatalan order oleh kedai",
+          description: cancelled_reason,
         },
       });
     }
@@ -653,7 +660,7 @@ export async function cancelOrder({
         type: "ORDER",
         subType: "CANCELLED",
         title: `Pelanggan Membatalkan Order`,
-        body: `Lihat Detail Alasan Membatalkan Order`,
+        body: `Lihat Alasan Membatalkan Order`,
         isRead: false,
         intent: "ERROR",
         resourcePath: `/dashboard-kedai/order/${order_id}`,
@@ -671,10 +678,10 @@ export async function cancelOrder({
         type: "ORDER",
         subType: "CANCELLED",
         title: `Kedai Membatalkan Order`,
-        body: `Lihat Detail Alasan Membatalkan Order`,
+        body: `Lihat Alasan Membatalkan Order`,
         isRead: false,
         intent: "ERROR",
-        resourcePath: `/order/${order_id}`,
+        resourcePath: isShopCancellation ? "/" : `/order/${order_id}`,
         createdAt: FieldValue.serverTimestamp(),
       };
 

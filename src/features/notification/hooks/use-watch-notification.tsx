@@ -80,6 +80,11 @@ export default function useWatchNotification() {
         audio.play().catch((err) => console.error("Error playing sound:", err));
       }
 
+      // Skip dialog for completed refunds as requested
+      if (data.type === "REFUND" && data.subType === "COMPLETED") {
+        return;
+      }
+
       showNotification({
         title: data.title,
         message: data.body,

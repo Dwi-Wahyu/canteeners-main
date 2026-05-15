@@ -119,7 +119,11 @@ export async function getShopOrderDetail(id: string) {
             },
           },
           name: true,
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
           refund_disbursement_mode: true,
         },
       },
@@ -144,6 +148,7 @@ export async function getShopOrderDetail(id: string) {
       },
       customer: {
         select: {
+          user_id: true,
           table_number: true,
           floor: true,
 
@@ -197,7 +202,11 @@ export async function getCustomerOrderDetail(id: string) {
               account_number: true,
             },
           },
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
           refund_disbursement_mode: true,
         },
       },
@@ -251,7 +260,11 @@ export async function getOrderSummaryForChatBubble(id: string) {
       shop: {
         select: {
           id: true,
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
         },
       },
       post_order_type: true,
@@ -319,7 +332,11 @@ export async function getOrderDetail(id: string) {
             },
           },
           name: true,
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
           refund_disbursement_mode: true,
           payments: {
             select: {
@@ -353,6 +370,7 @@ export async function getOrderDetail(id: string) {
       },
       customer: {
         select: {
+          user_id: true,
           table_number: true,
           floor: true,
 

@@ -98,7 +98,7 @@ export function RespondRefundDialog({
         toast.success(
           data.status === "APPROVED"
             ? "Refund berhasil disetujui"
-            : "Refund ditolak"
+            : "Refund ditolak",
         );
         form.reset();
         setShowRejectReason(false);
@@ -131,7 +131,7 @@ export function RespondRefundDialog({
   const affectedItems =
     affectedItemIds.length > 0
       ? refund.order.order_items?.filter((item) =>
-          affectedItemIds.includes(item.id)
+          affectedItemIds.includes(item.id),
         )
       : [];
 
@@ -199,21 +199,6 @@ export function RespondRefundDialog({
                     </span>
                   </div>
                 ))}
-              </div>
-            </div>
-          )}
-
-          {/* Proof */}
-          {refund.complaint_proof_url && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Bukti:</p>
-              <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-                <Image
-                  src={getImageUrl("/complaint-proof/" + refund.complaint_proof_url)}
-                  alt="Bukti komplain"
-                  fill
-                  className="object-contain"
-                />
               </div>
             </div>
           )}
