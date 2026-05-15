@@ -214,11 +214,6 @@ export function ProcessRefundDialog({
                       <span className="text-destructive ml-1">*</span>
                     )}
                   </FormLabel>
-                  {refund.disbursement_mode === "CASH" && (
-                    <FormDescription>
-                      Upload bukti pembayaran (JPG, PNG, WEBP, PDF - Maks 5MB)
-                    </FormDescription>
-                  )}
 
                   {previewUrl && selectedFile ? (
                     <div className="relative border rounded-lg p-3 bg-muted/50">
