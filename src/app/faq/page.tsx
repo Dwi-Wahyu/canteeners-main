@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Suspense, useEffect, useState } from "react";
 import { getFaqs } from "./faq-actions";
 
+export const dynamic = "force-dynamic";
+
 function FAQContent() {
   const searchParams = useSearchParams();
   const backUrl = searchParams.get("back_url") || "/pusat-bantuan";
@@ -39,7 +41,9 @@ function FAQContent() {
       </div>
 
       <div className="p-5">
-        <h2 className="text-xl font-bold mb-6">Pertanyaan yang Sering Diajukan</h2>
+        <h2 className="text-xl font-bold mb-6">
+          Pertanyaan yang Sering Diajukan
+        </h2>
 
         {loading ? (
           <div className="space-y-4">
@@ -48,14 +52,12 @@ function FAQContent() {
             ))}
           </div>
         ) : faqs.length > 0 ? (
-          <Accordion
-            type="single"
-            collapsible
-            className="w-full"
-          >
+          <Accordion type="single" collapsible className="w-full">
             {faqs.map((item) => (
               <AccordionItem value={item.id.toString()} key={item.id}>
-                <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
+                <AccordionTrigger className="text-left">
+                  {item.question}
+                </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-4 text-balance text-muted-foreground">
                   <p>{item.answer}</p>
                 </AccordionContent>
