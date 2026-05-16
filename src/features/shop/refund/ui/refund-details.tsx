@@ -231,17 +231,8 @@ export function RefundDetails({
       {refund.complaint_proof_url && (
         <div>
           <p className="text-sm text-muted-foreground mb-2">Bukti Komplain</p>
-          <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-            <img
-              src={getImageUrl(
-                "/complaint-proof/" + refund.complaint_proof_url,
-              )}
-              alt="Bukti komplain"
-              className="object-contain"
-            />
-          </div>
 
-          <div className="mt-2 relative w-full h-fit max-w-50 overflow-hidden rounded-lg border shadow-sm group">
+          <div className="relative w-full h-fit max-w-50 overflow-hidden rounded-lg border shadow-sm group">
             <img
               src={getImageUrl(
                 "/complaint-proof/" + refund.complaint_proof_url,
