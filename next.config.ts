@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   allowedDevOrigins: ["192.168.1.11", "*.192.168.1.11", "localhost"],
+  
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
 
   images: {
     // Mengizinkan Next.js mengakses localhost untuk optimasi gambar

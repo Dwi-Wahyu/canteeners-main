@@ -62,7 +62,24 @@ export default function UploadPaymentProof({
           body: formData,
         });
 
-        const uploadData = await uploadResponse.json();
+        let uploadData;
+        const contentType = uploadResponse.headers.get("content-type");
+        
+        if (contentType && contentType.includes("application/json")) {
+          uploadData = await uploadResponse.json();
+        } else {
+          // Jika bukan JSON (biasanya error dari Nginx/Proxy berupa HTML)
+          if (uploadResponse.status === 413) {
+            form.setError("image_url", {
+              message: "Ukuran file terlalu besar (Maks 10MB). Silakan periksa konfigurasi server.",
+            });
+          } else {
+            form.setError("image_url", {
+              message: "Gagal mengunggah file. Terjadi kesalahan pada server (bukan JSON).",
+            });
+          }
+          return;
+        }
 
         if (!uploadResponse.ok) {
           form.setError("image_url", {
