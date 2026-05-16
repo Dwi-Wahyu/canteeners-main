@@ -473,7 +473,10 @@ export async function processRefund(
       recipientId: refund.order.customer.user_id,
       type: "REFUND",
       subType: "DISBURSED",
-      title: "Dana Refund Telah Dikirim",
+      title:
+        refund.disbursement_mode === "CASH"
+          ? "Konfirmasi Dana Diterima"
+          : "Dana Refund Dikirim",
       body:
         refund.disbursement_mode === "CASH"
           ? "Dana refund telah diserahkan ke Anda. Mohon konfirmasi penerimaan dana."
@@ -487,6 +490,8 @@ export async function processRefund(
         disbursementMode: refund.disbursement_mode,
         refundId: refund.id,
       },
+      duration: 0,
+      showLoadingBar: false,
       buttons: [
         {
           label: "Konfirmasi Dana Diterima",

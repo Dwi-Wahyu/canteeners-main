@@ -87,8 +87,9 @@ export default function useWatchNotification() {
             : data.type === "COMPLAINT"
               ? "error"
               : "info",
-        duration: 5000,
-        showLoadingBar: true,
+        duration: data.duration !== undefined ? data.duration : 5000,
+        showLoadingBar:
+          data.showLoadingBar !== undefined ? data.showLoadingBar : true,
         actionButtons: (
           <div className="flex flex-col gap-2 w-full">
             {data.buttons && data.buttons.length > 0 ? (

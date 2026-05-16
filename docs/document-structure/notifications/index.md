@@ -33,5 +33,7 @@ type NotificationButton = {
 - `body`: `string`
 - `intent`: `NotificationIntent`
 - `buttons`: `NotificationButton[]` (Optional)
+- `duration`: `number` (Optional, 0 for persistent)
+- `showLoadingBar`: `boolean` (Optional)
 - `metadata`: `Record<string, any>` (Optional)
 

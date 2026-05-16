@@ -310,13 +310,13 @@ export function CreateRefundForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.entries(refundReasonMapping).map(
-                        ([key, label]) => (
+                      {Object.entries(refundReasonMapping)
+                        .filter(([key]) => key !== "SHOP_CANCELLATION")
+                        .map(([key, label]) => (
                           <SelectItem key={key} value={key}>
                             {label}
                           </SelectItem>
-                        ),
-                      )}
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

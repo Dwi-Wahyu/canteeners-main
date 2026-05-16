@@ -71,6 +71,9 @@
     }
   ],
 
+  "duration": 0,
+  "showLoadingBar": false,
+
   "intent": "SUCCESS"
 }
 ```

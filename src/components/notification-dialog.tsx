@@ -62,7 +62,7 @@ export default function NotificationDialog() {
     <Dialog open={!!notification} onOpenChange={() => hide()}>
       <DialogContent
         showCloseButton={false}
-        className="overflow-hidden p-0 max-w-[90vw] sm:max-w-[400px] rounded-3xl border-none shadow-2xl"
+        className="overflow-hidden p-0 max-w-[90vw] sm:max-w-100 rounded-3xl border-none shadow-2xl"
       >
         <div className="flex flex-col items-center p-8 pt-10">
           {/* Simplified Icon Container */}

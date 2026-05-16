@@ -78,7 +78,7 @@ export function EscalateRefundDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle className="text-start">Eskalasi ke Admin</DialogTitle>
           <DialogDescription className="text-start">
@@ -107,7 +107,7 @@ export function EscalateRefundDialog({
                   <FormControl>
                     <Textarea
                       placeholder="Jelaskan detail kecurigaan atau masalah yang Anda temukan..."
-                      className="min-h-[120px] resize-none"
+                      className="min-h-20 resize-none"
                       {...field}
                     />
                   </FormControl>
@@ -141,8 +141,11 @@ export function EscalateRefundDialog({
                 variant="destructive"
                 disabled={isSubmitting}
               >
-                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                <AlertTriangle className="h-4 w-4" />
+                {isSubmitting ? (
+                  <Loader2 className=" animate-spin" />
+                ) : (
+                  <AlertTriangle className="" />
+                )}
                 Eskalasi ke Admin
               </Button>
             </DialogFooter>

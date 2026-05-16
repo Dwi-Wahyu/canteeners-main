@@ -39,6 +39,8 @@ export type NotificationBase = {
   };
   metadata?: Record<string, any>;
   buttons?: NotificationButton[];
+  duration?: number;
+  showLoadingBar?: boolean;
 };
 
 // --- ORDER ---

@@ -240,6 +240,37 @@ export function RefundDetails({
               className="object-contain"
             />
           </div>
+
+          <div className="mt-2 relative w-full h-fit max-w-50 overflow-hidden rounded-lg border shadow-sm group">
+            <img
+              src={getImageUrl(
+                "/complaint-proof/" + refund.complaint_proof_url,
+              )}
+              alt="Bukti Komplain"
+              className="object-cover cursor-pointer transition-transform group-hover:scale-105"
+              onClick={() => setIsOpenProof(true)}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1 italic">
+            *Klik gambar untuk memperbesar
+          </p>
+
+          <Dialog open={isOpenProof} onOpenChange={setIsOpenProof}>
+            <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 overflow-visible border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-black/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:top-[-40px] [&>button]:right-0 sm:[&>button]:right-[-40px] sm:[&>button]:top-0">
+              <VisuallyHidden.Root>
+                <DialogTitle>Bukti Refund</DialogTitle>
+              </VisuallyHidden.Root>
+              <div className="relative w-full h-full max-h-[85vh] flex items-center justify-center">
+                <img
+                  src={getImageUrl(
+                    "/complaint-proof/" + refund.complaint_proof_url,
+                  )}
+                  alt="Bukti komplain"
+                  className="max-w-full max-h-[85vh] object-contain rounded-md"
+                />
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
 
