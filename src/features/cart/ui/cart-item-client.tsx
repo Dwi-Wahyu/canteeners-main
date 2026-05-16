@@ -183,10 +183,9 @@ export default function CartItemClient({
       <div className="flex flex-col md:flex-row gap-6">
         {/* Image */}
         <div className="relative w-full md:w-1/3 aspect-square shrink-0">
-          <Image
+          <img
             src={getImageUrl("/product/" + data.product.image_url)}
             alt={data.product.name}
-            fill
             className="object-cover shadow rounded-xl"
           />
         </div>
