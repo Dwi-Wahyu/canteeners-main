@@ -11,9 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 import { useEffect, useRef, useState } from "react";
-import {
-  AppNotification,
-} from "../types";
+import { AppNotification } from "../types";
 import { useNotificationDialogStore } from "@/stores/use-notification-store";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -49,7 +47,7 @@ export default function useWatchNotification() {
       chatsRef,
       where("recipientId", "==", user.uid),
       orderBy("createdAt", "desc"),
-      limit(1)
+      limit(1),
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -80,31 +78,51 @@ export default function useWatchNotification() {
         audio.play().catch((err) => console.error("Error playing sound:", err));
       }
 
-      // Skip dialog for completed refunds as requested
-      if (data.type === "REFUND" && data.subType === "COMPLETED") {
-        return;
-      }
-
       showNotification({
         title: data.title,
         message: data.body,
-        type: data.type === "ORDER" ? "success" : data.type === "COMPLAINT" ? "error" : "info",
+        type:
+          data.type === "ORDER"
+            ? "success"
+            : data.type === "COMPLAINT"
+              ? "error"
+              : "info",
         duration: 5000,
         showLoadingBar: true,
         actionButtons: (
-          <Button
-            onClick={() => {
-              if (data.type === "ORDER") {
-                router.push("/dashboard-kedai/order");
-              } else {
-                router.push(data.resourcePath);
-              }
-              hideNotification();
-            }}
-            className="w-full"
-          >
-            Lihat Detail
-          </Button>
+          <div className="flex flex-col gap-2 w-full">
+            {data.buttons && data.buttons.length > 0 ? (
+              data.buttons.map((btn, idx) => (
+                <Button
+                  key={idx}
+                  variant={btn.variant as any}
+                  onClick={() => {
+                    router.push(btn.actionPath);
+                    hideNotification();
+                  }}
+                  className="w-full"
+                >
+                  {btn.label}
+                </Button>
+              ))
+            ) : (
+              <Button
+                onClick={() => {
+                  if (data.resourcePath) {
+                    router.push(data.resourcePath);
+                  } else if (data.type === "ORDER") {
+                    router.push("/dashboard-kedai/order");
+                  } else {
+                    router.push("/");
+                  }
+                  hideNotification();
+                }}
+                className="w-full"
+              >
+                Lihat Detail
+              </Button>
+            )}
+          </div>
         ),
       });
     });

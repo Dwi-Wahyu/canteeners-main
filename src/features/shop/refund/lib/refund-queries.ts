@@ -1,3 +1,5 @@
+"use server";
+
 import { RefundStatus } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma";
 
@@ -68,9 +70,76 @@ export async function getRefundByOrderId(orderId: string) {
   }
 }
 
+export async function getRefundById(refund_id: string) {
+  try {
+    const refund = await prisma.refund.findUnique({
+      where: {
+        id: refund_id,
+      },
+      include: {
+        affected_items: {
+          select: {
+            order_item_id: true,
+          },
+        },
+        history: {
+          select: {
+            id: true,
+            status: true,
+            note: true,
+            actor_role: true,
+            actor_name: true,
+            created_at: true,
+          },
+          orderBy: {
+            created_at: "desc",
+          },
+        },
+        order: {
+          include: {
+            order_items: {
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                    image_url: true,
+                  },
+                },
+              },
+            },
+            customer: {
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+            shop: {
+              select: {
+                id: true,
+                name: true,
+                owner_id: true,
+                refund_disbursement_mode: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return refund;
+  } catch (error) {
+    console.error("getRefundByOrderId Error:", error);
+    return null;
+  }
+}
+
 export async function getShopRefunds(
   shopId: string,
-  status: RefundStatus | null
+  status: RefundStatus | null,
 ) {
   try {
     const refunds = await prisma.refund.findMany({
@@ -126,7 +195,7 @@ export async function getShopRefunds(
 
 export async function getCustomerRefunds(
   customerId: string,
-  status?: RefundStatus
+  status?: RefundStatus,
 ) {
   try {
     const refunds = await prisma.refund.findMany({

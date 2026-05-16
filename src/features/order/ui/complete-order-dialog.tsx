@@ -68,14 +68,10 @@ export default function CompleteOrderDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row justify-end">
-            <Button
-              size={"lg"}
-              onClick={() => setIsOpen(false)}
-              variant={"outline"}
-            >
+            <Button onClick={() => setIsOpen(false)} variant={"outline"}>
               Batal
             </Button>
-            <Button size={"lg"} onClick={handleClick} disabled={isPending}>
+            <Button onClick={handleClick} disabled={isPending}>
               Ya, Sudah Selesai
             </Button>
           </AlertDialogFooter>

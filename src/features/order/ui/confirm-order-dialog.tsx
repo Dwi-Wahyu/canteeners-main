@@ -61,7 +61,7 @@ export default function ConfirmOrderDialog({
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogTrigger asChild>
           <Button size={"lg"} className="w-full" disabled={isPending}>
-            <CheckCircle className="mr-2 h-4 w-4" />
+            <CheckCircle />
             Terima Pesanan
           </Button>
         </AlertDialogTrigger>
@@ -77,16 +77,12 @@ export default function ConfirmOrderDialog({
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row justify-end gap-2">
             <AlertDialogCancel asChild>
-              <Button size={"lg"} variant={"outline"} disabled={isPending}>
+              <Button variant={"outline"} disabled={isPending}>
                 Batal
               </Button>
             </AlertDialogCancel>
-            <Button size={"lg"} onClick={handleConfirm} disabled={isPending}>
-              {isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                "Terima"
-              )}
+            <Button onClick={handleConfirm} disabled={isPending}>
+              {isPending ? <Loader2 className="animate-spin" /> : "Terima"}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

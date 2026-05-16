@@ -235,6 +235,7 @@ export async function getCustomerOrderDetail(id: string) {
             select: {
               name: true,
               avatar: true,
+              id: true,
             },
           },
           table_number: true,
@@ -501,7 +502,7 @@ export async function getCustomerOrderHistory(
     endDate?: Date;
     page?: number;
     limit?: number;
-  }
+  },
 ) {
   const page = filters?.page || 1;
   const limit = filters?.limit || 10;

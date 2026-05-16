@@ -63,6 +63,14 @@
   "title": "Dana Refund Telah Dikirim",
   "body": "Dana refund sebesar Rp{amount} telah dikirim melalui {disbursement_mode}",
 
+  "buttons": [
+    {
+      "label": "Konfirmasi Dana Diterima",
+      "actionPath": "/order/refund/{refundId}/confirm?back_url=/order/{orderId}",
+      "variant": "default"
+    }
+  ],
+
   "intent": "SUCCESS"
 }
 ```

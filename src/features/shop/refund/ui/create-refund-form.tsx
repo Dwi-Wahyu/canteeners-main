@@ -19,6 +19,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -29,7 +36,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { AlertCircle, Loader2, Upload, X } from "lucide-react";
+import { AlertCircle, DollarSign, Loader2, Upload, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import {
@@ -40,6 +47,7 @@ import { RefundDisbursementMode, RefundReason } from "@/generated/prisma";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 import { LocalStorageService } from "@/services/storage";
 import { truncateFileName } from "@/helper/file-helper";
+import Link from "next/link";
 
 interface CreateRefundFormProps {
   order: {
@@ -79,6 +87,8 @@ export function CreateRefundForm({
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   const storageService = useMemo(() => new LocalStorageService(), []);
+
+  const [showForm, setShowForm] = useState(false);
 
   // Cleanup preview URL on unmount
   useEffect(() => {
@@ -217,314 +227,357 @@ export function CreateRefundForm({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        {/* Order Summary */}
-        <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-          <p className="text-sm font-medium">Informasi Pesanan</p>
-          <div className="text-sm space-y-1">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Order ID:</span>
-              <span className="font-mono">#{order.id.substring(0, 8)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total Pesanan:</span>
-              <span className="font-semibold">
-                Rp{order.total_price.toLocaleString("id-ID")}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Jumlah Item:</span>
-              <span>{order.order_items.length} item</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Reason Select */}
-        <FormField
-          control={form.control}
-          name="reason"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Alasan <span className="text-red-500">*</span>
-              </FormLabel>
-              <Select
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  setSelectedItems(new Set());
-                  form.setValue("amount", undefined);
-                  form.setValue("affected_item_ids", []);
-                }}
-                value={field.value}
-              >
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Pilih alasan refund" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.entries(refundReasonMapping).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Item Selection or Manual Amount */}
-        {selectedReason && isItemLevel && (
-          <div className="space-y-2">
-            <FormLabel>
-              Pilih Item yang Bermasalah <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormDescription>
-              Pilih item yang rusak/salah/kurang dari daftar pesanan Anda
-            </FormDescription>
-            <div className="border rounded-lg divide-y max-h-64 overflow-y-auto">
-              {order.order_items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-3 p-3 hover:bg-muted/50"
-                >
-                  <Checkbox
-                    checked={selectedItems.has(item.id)}
-                    onCheckedChange={() => handleItemToggle(item.id)}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {item.product.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.quantity}x • Rp
-                      {item.subtotal.toLocaleString("id-ID")}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {selectedItems.size > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-green-900">
-                    Jumlah Refund
-                  </span>
-                  <span className="text-lg font-bold text-green-700">
-                    Rp{calculatedAmount.toLocaleString("id-ID")}
-                  </span>
-                </div>
-                <p className="text-xs text-green-700 mt-1">
-                  {selectedItems.size} item dipilih
-                </p>
-              </div>
-            )}
-            <FormMessage>
-              {form.formState.errors.affected_item_ids?.message}
-            </FormMessage>
-          </div>
-        )}
-
-        {selectedReason && !isItemLevel && (
-          <FormField
-            control={form.control}
-            name="amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Jumlah Refund *</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      Rp
-                    </span>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      className="pl-10"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value === ""
-                            ? undefined
-                            : parseFloat(e.target.value) || 0,
-                        )
-                      }
-                    />
-                  </div>
-                </FormControl>
-                <FormDescription>
-                  Maksimal: Rp{order.total_price.toLocaleString("id-ID")}
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
-        {/* Description */}
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Deskripsi</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Jelaskan detail masalah Anda..."
-                  className="min-h-25 resize-none"
-                  {...field}
-                  value={field.value || ""}
-                />
-              </FormControl>
-              <FormDescription>10-500 karakter</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Disbursement Mode */}
-        <FormField
-          control={form.control}
-          name="disbursement_mode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Mode Pengembalian Dana <span className="text-red-500">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {Object.entries(refundDisbursementModeMapping).map(
-                    ([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ),
-                  )}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* File Upload */}
-        <FormField
-          control={form.control}
-          name="complaint_proof_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Bukti <span className="text-red-500">*</span>
-              </FormLabel>
-              <FormDescription>
-                Upload foto sebagai bukti (JPG, PNG, WEBP - Maks 5MB)
-              </FormDescription>
-
-              {previewUrl && selectedFile ? (
-                <div className="relative border rounded-lg p-3 bg-muted/50">
-                  <div className="flex items-start gap-3">
-                    <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
-                      <Image
-                        src={previewUrl}
-                        alt="Bukti refund"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {truncateFileName(selectedFile.name)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Preview bukti refund
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      onClick={removeSelectedFile}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
-                  <Input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp"
-                    onChange={handleFileUpload}
-                    disabled={isSubmitting}
-                    className="hidden"
-                    id="proof-upload"
-                  />
-                  <label
-                    htmlFor="proof-upload"
-                    className="cursor-pointer flex flex-col items-center gap-2"
-                  >
-                    <Upload className="h-8 w-8 text-muted-foreground" />
-                    <div className="text-sm">
-                      <span className="font-medium text-primary">
-                        Klik untuk upload
-                      </span>
-                      <p className="text-muted-foreground">
-                        atau drag and drop
-                      </p>
-                    </div>
-                  </label>
-                </div>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="text-sm">
-            Permintaan refund akan ditinjau oleh pemilik kedai. Pastikan
-            informasi yang Anda berikan akurat dan lengkap.
-          </AlertDescription>
-        </Alert>
-
-        <div className="flex gap-2 pt-2">
-          {onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}
-              className="flex-1"
-            >
-              Batal
-            </Button>
-          )}
-          <Button type="submit" disabled={isSubmitting} className="flex-1">
-            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-            Ajukan Refund
-          </Button>
-        </div>
-
-        {form.formState.errors.root && (
-          <Alert variant="destructive">
+    <div>
+      {/* Request Refund - Terms and Button */}
+      {!showForm && (
+        <div className="space-y-4">
+          <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {form.formState.errors.root.message}
+              <p className="font-medium mb-2">Syarat Pengajuan Refund:</p>
+              <ul className="text-sm space-y-1 list-disc list-inside">
+                <li>Pesanan harus berstatus selesai</li>
+                <li>Pilih alasan refund dengan benar</li>
+                <li>Upload bukti komplain</li>
+                <li>Refund akan ditinjau oleh pemilik kedai</li>
+              </ul>
+              <Link
+                href={`/panduan/pelanggan/refund?back_url=/order/${order.id}/refund`}
+                className="text-primary hover:underline text-sm mt-2 inline-block"
+              >
+                Baca Panduan Refund Lengkap →
+              </Link>
             </AlertDescription>
           </Alert>
-        )}
-      </form>
-    </Form>
+
+          <Button
+            variant="default"
+            size="lg"
+            className="w-full"
+            onClick={() => setShowForm(true)}
+          >
+            <DollarSign />
+            Buat Pengajuan
+          </Button>
+        </div>
+      )}
+
+      {showForm && (
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Order Summary */}
+            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+              <p className="text-sm font-medium">Informasi Pesanan</p>
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Order ID:</span>
+                  <span className="font-mono">#{order.id.substring(0, 8)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total Pesanan:</span>
+                  <span className="font-semibold">
+                    Rp{order.total_price.toLocaleString("id-ID")}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Jumlah Item:</span>
+                  <span>{order.order_items.length} item</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Reason Select */}
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Alasan <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      setSelectedItems(new Set());
+                      form.setValue("amount", undefined);
+                      form.setValue("affected_item_ids", []);
+                    }}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Pilih alasan refund" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(refundReasonMapping).map(
+                        ([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Item Selection or Manual Amount */}
+            {selectedReason && isItemLevel && (
+              <div className="space-y-2">
+                <FormLabel>
+                  Pilih Item yang Bermasalah{" "}
+                  <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormDescription>
+                  Pilih item yang rusak/salah/kurang dari daftar pesanan Anda
+                </FormDescription>
+                <div className="border rounded-lg divide-y max-h-64 overflow-y-auto">
+                  {order.order_items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-3 p-3 hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        checked={selectedItems.has(item.id)}
+                        onCheckedChange={() => handleItemToggle(item.id)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {item.product.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.quantity}x • Rp
+                          {item.subtotal.toLocaleString("id-ID")}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {selectedItems.size > 0 && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-green-900">
+                        Jumlah Refund
+                      </span>
+                      <span className="text-lg font-bold text-green-700">
+                        Rp{calculatedAmount.toLocaleString("id-ID")}
+                      </span>
+                    </div>
+                    <p className="text-xs text-green-700 mt-1">
+                      {selectedItems.size} item dipilih
+                    </p>
+                  </div>
+                )}
+                <FormMessage>
+                  {form.formState.errors.affected_item_ids?.message}
+                </FormMessage>
+              </div>
+            )}
+
+            {selectedReason && !isItemLevel && (
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jumlah Refund *</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                          Rp
+                        </span>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          className="pl-10"
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value === ""
+                                ? undefined
+                                : parseFloat(e.target.value) || 0,
+                            )
+                          }
+                        />
+                      </div>
+                    </FormControl>
+                    <FormDescription>
+                      Maksimal: Rp
+                      {order.total_price.toLocaleString("id-ID")}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Deskripsi</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Jelaskan detail masalah Anda..."
+                      className="min-h-25 resize-none"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormDescription>10-500 karakter</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Disbursement Mode */}
+            <FormField
+              control={form.control}
+              name="disbursement_mode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Mode Pengembalian Dana{" "}
+                    <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.entries(refundDisbursementModeMapping).map(
+                        ([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* File Upload */}
+            <FormField
+              control={form.control}
+              name="complaint_proof_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Bukti <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormDescription>
+                    Upload foto sebagai bukti (JPG, PNG, WEBP - Maks 5MB)
+                  </FormDescription>
+
+                  {previewUrl && selectedFile ? (
+                    <div className="relative border rounded-lg p-3 bg-muted/50">
+                      <div className="flex items-start gap-3">
+                        <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
+                          <Image
+                            src={previewUrl}
+                            alt="Bukti refund"
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {truncateFileName(selectedFile.name)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Preview bukti refund
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="shrink-0"
+                          onClick={removeSelectedFile}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
+                      <Input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handleFileUpload}
+                        disabled={isSubmitting}
+                        className="hidden"
+                        id="proof-upload"
+                      />
+                      <label
+                        htmlFor="proof-upload"
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <Upload className="h-8 w-8 text-muted-foreground" />
+                        <div className="text-sm">
+                          <span className="font-medium text-primary">
+                            Klik untuk upload
+                          </span>
+                          <p className="text-muted-foreground">
+                            atau drag and drop
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-sm">
+                Permintaan refund akan ditinjau oleh pemilik kedai. Pastikan
+                informasi yang Anda berikan akurat dan lengkap.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex gap-2 pt-2">
+              {onCancel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
+                  Batal
+                </Button>
+              )}
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
+                {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                Ajukan Refund
+              </Button>
+            </div>
+
+            {form.formState.errors.root && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {form.formState.errors.root.message}
+                </AlertDescription>
+              </Alert>
+            )}
+          </form>
+        </Form>
+      )}
+    </div>
   );
 }

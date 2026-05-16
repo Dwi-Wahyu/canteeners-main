@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -17,16 +10,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RefundStatusBadge } from "./refund-status-badge";
-import {
-  refundReasonMapping,
-  refundDisbursementModeMapping,
-} from "@/constant/refund-mapping";
+import { refundReasonMapping } from "@/constant/refund-mapping";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { DollarSign, ExternalLink, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 
 interface RefundListProps {
   refunds: Array<{
@@ -100,67 +89,67 @@ export function RefundList({ refunds }: RefundListProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {refunds.map((refund) => (
-              <Card
-                key={refund.id}
-                className="hover:bg-muted/50 transition-colors"
+            {refunds.map((refund, idx) => (
+              <Link
+                key={refund.id || `refund-${idx}`}
+                className="block"
+                href={`/dashboard-kedai/order/${refund.order.id}/refund?back_url=/dashboard-kedai/refund`}
               >
-                <CardContent>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 space-y-2">
-                      {/* Customer Name & Time */}
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">
-                          {refund.order.customer.user.name}
-                        </p>
-                        <span className="text-xs text-muted-foreground">•</span>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(refund.requested_at), {
-                            addSuffix: true,
-                            locale: localeId,
-                          })}
-                        </p>
-                      </div>
+                <Card className="hover:bg-muted/50 transition-colors">
+                  <CardContent>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-2">
+                        {/* Customer Name & Time */}
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">
+                            {refund.order.customer.user.name}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            •
+                          </span>
+                          <p className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(
+                              new Date(refund.requested_at),
+                              {
+                                addSuffix: true,
+                                locale: localeId,
+                              },
+                            )}
+                          </p>
+                        </div>
 
-                      {/* Order ID */}
-                      <p className="text-sm text-muted-foreground">
-                        Order:{" "}
-                        <span className="font-mono">
-                          #{refund.order.id.substring(0, 8)}
-                        </span>
-                      </p>
-
-                      {/* Amount & Reason */}
-                      <div className="flex items-center gap-3">
-                        <p className="text-lg font-bold text-primary">
-                          Rp{refund.amount.toLocaleString("id-ID")}
-                        </p>
-                        <span className="text-xs text-muted-foreground">•</span>
+                        {/* Order ID */}
                         <p className="text-sm text-muted-foreground">
-                          {
-                            refundReasonMapping[
-                              refund.reason as keyof typeof refundReasonMapping
-                            ]
-                          }
+                          Order:{" "}
+                          <span className="font-mono">
+                            #{refund.order.id.substring(0, 8)}
+                          </span>
                         </p>
+
+                        {/* Amount & Reason */}
+                        <div className="flex items-center gap-3">
+                          <p className="text-lg font-bold text-primary">
+                            Rp{refund.amount.toLocaleString("id-ID")}
+                          </p>
+                          <span className="text-xs text-muted-foreground">
+                            •
+                          </span>
+                          <p className="text-sm text-muted-foreground">
+                            {
+                              refundReasonMapping[
+                                refund.reason as keyof typeof refundReasonMapping
+                              ]
+                            }
+                          </p>
+                        </div>
+
+                        {/* Status Badge */}
+                        <RefundStatusBadge status={refund.status as any} />
                       </div>
-
-                      {/* Status Badge */}
-                      <RefundStatusBadge status={refund.status as any} />
                     </div>
-
-                    {/* Action Button */}
-                    <Link
-                      href={`/dashboard-kedai/order/${refund.order.id}/refund`}
-                    >
-                      <Button variant="outline" size="sm">
-                        Detail
-                        <ExternalLink className="ml-2 h-3 w-3" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

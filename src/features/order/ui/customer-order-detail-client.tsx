@@ -45,8 +45,9 @@ export default function CustomerOrderDetailClient({
   shopConfirmationTimeout?: number;
 }) {
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
-  const order =
-    (orderData as unknown as GetCustomerOrderDetail) || initialOrder;
+  const order = orderData
+    ? (orderData as GetCustomerOrderDetail)
+    : initialOrder;
 
   const [isLate, setIsLate] = useState(false);
   const [isOpenProof, setIsOpenProof] = useState(false);
@@ -223,7 +224,7 @@ export default function CustomerOrderDetailClient({
                 </p>
                 <CancelOrderDialog
                   order_id={order.id}
-                  user_id={order.customer.user_id}
+                  user_id={order.customer.user.id}
                   order_status={order.status}
                   userRole="CUSTOMER"
                   isLate={isLate}
@@ -283,7 +284,7 @@ export default function CustomerOrderDetailClient({
         )}
 
         {order.status === "CANCELLED" &&
-          order.cancelled_by_id === order.shop.owner_id && (
+          order.cancelled_by_id === order.shop.owner.user_id && (
             <Alert variant={"destructive"}>
               <ShoppingCartExclamationIcon />
               <AlertTitle>Pesanan Dibatalkan Oleh Pemilik Kedai</AlertTitle>
@@ -316,12 +317,14 @@ export default function CustomerOrderDetailClient({
             </>
           )}
 
-        {order.status === "WAITING_PAYMENT" && order.confirmed_at && !isGracePeriod && (
-          <PaymentCountdown
-            confirmedAt={order.confirmed_at}
-            orderId={order.id}
-          />
-        )}
+        {order.status === "WAITING_PAYMENT" &&
+          order.confirmed_at &&
+          !isGracePeriod && (
+            <PaymentCountdown
+              confirmedAt={order.confirmed_at}
+              orderId={order.id}
+            />
+          )}
 
         <div>
           <h1 className="font-semibold mb-1">Pesanan</h1>
@@ -523,7 +526,7 @@ export default function CustomerOrderDetailClient({
         {canCancel && !isGracePeriod && (
           <CancelOrderDialog
             order_id={order.id}
-            user_id={order.customer.user_id}
+            user_id={order.customer.user.id}
             order_status={order.status}
             userRole="CUSTOMER"
             isLate={isLate}

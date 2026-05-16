@@ -171,7 +171,9 @@ export function ProcessRefundDialog({
         <DialogHeader>
           <DialogTitle>Proses Refund</DialogTitle>
           <DialogDescription>
-            Konfirmasi bahwa dana refund telah dikirim ke customer.
+            {refund.disbursement_mode === "TRANSFER"
+              ? " Pastikan bukti transfer valid."
+              : " Pastikan customer telah menerima dana."}
           </DialogDescription>
         </DialogHeader>
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { RefundStatusBadge } from "@/features/shop/refund/ui/refund-status-badge";
@@ -17,7 +18,6 @@ import {
 } from "@/constant/refund-mapping";
 import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, Loader2, X } from "lucide-react";
-import Image from "next/image";
 import { getImageUrl } from "@/helper/get-image-url";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
@@ -26,53 +26,21 @@ import { Label } from "@/components/ui/label";
 import { VisuallyHidden } from "radix-ui";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useWatchRefundUpdate } from "@/hooks/use-watch-refund-update";
+import { GetRefundById } from "../types/refund-queries-types";
 
 interface RefundDetailsProps {
-  refund: {
-    id: string;
-    amount: number;
-    reason: string;
-    status: string;
-    description: string | null;
-    complaint_proof_url: string | null;
-    disbursement_proof_url: string | null;
-    disbursement_mode: string;
-    rejected_reason: string | null;
-    escalated_reason: string | null;
-    requested_at: Date;
-    processed_at: Date | null;
-    affected_items?: Array<{
-      order_item_id: string;
-    }>;
-    history?: Array<{
-      id: string;
-      status: string;
-      note: string | null;
-      actor_role?: string | null;
-      actor_name?: string | null;
-      created_at: Date;
-    }>;
-    order: {
-      id: string;
-      order_items?: Array<{
-        id: string;
-        product: {
-          name: string;
-        };
-        quantity: number;
-        subtotal: number;
-      }>;
-    };
-  };
+  refund: GetRefundById;
   userRole: "CUSTOMER" | "SHOP_OWNER";
-  onRefresh?: () => void;
 }
 
 export function RefundDetails({
-  refund,
+  refund: initialRefund,
   userRole,
-  onRefresh,
 }: RefundDetailsProps) {
+  const { refundData } = useWatchRefundUpdate(initialRefund.id, initialRefund);
+  const refund = refundData || initialRefund;
+
   const [respondDialogOpen, setRespondDialogOpen] = useState(false);
   const [processDialogOpen, setProcessDialogOpen] = useState(false);
   const [escalateDialogOpen, setEscalateDialogOpen] = useState(false);
@@ -142,7 +110,6 @@ export function RefundDetails({
 
       if (result.success) {
         toast.success("Refund berhasil dibatalkan");
-        onRefresh?.();
       } else {
         toast.error(result.error.message || "Gagal membatalkan refund");
       }
@@ -160,7 +127,6 @@ export function RefundDetails({
 
       if (result.success) {
         toast.success("Refund berhasil diselesaikan");
-        onRefresh?.();
       } else {
         toast.error(result.error.message || "Gagal menyelesaikan refund");
       }
@@ -457,7 +423,7 @@ export function RefundDetails({
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle2 />
-            Tandai Selesai
+            Proses Refund
           </Button>
         )}
 
@@ -477,22 +443,19 @@ export function RefundDetails({
       <RespondRefundDialog
         open={respondDialogOpen}
         onOpenChange={setRespondDialogOpen}
-        refund={refund as any}
-        onSuccess={onRefresh}
+        refund={refund}
       />
 
       <ProcessRefundDialog
         open={processDialogOpen}
         onOpenChange={setProcessDialogOpen}
-        refund={refund as any}
-        onSuccess={onRefresh}
+        refund={refund}
       />
 
       <EscalateRefundDialog
         open={escalateDialogOpen}
         onOpenChange={setEscalateDialogOpen}
         refundId={refund.id}
-        onSuccess={onRefresh}
       />
     </div>
   );

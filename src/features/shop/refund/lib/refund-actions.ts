@@ -17,12 +17,23 @@ import {
 } from "@/helper/action-helper";
 import { calculateCommission } from "@/helper/pricing-helper";
 import { adminDb } from "@/lib/firebase/admin";
-import { syncRefundToFirestore } from "@/lib/firebase/sync-refund";
 import { prisma } from "@/lib/prisma";
 import { refundQueue } from "@/lib/queue";
 import { endOfWeek, startOfWeek } from "date-fns";
 import { FieldValue } from "firebase-admin/firestore";
 import { revalidatePath } from "next/cache";
+
+function revalidateRefundPaths(orderId: string) {
+  const paths = [
+    `/order/${orderId}`,
+    `/order/${orderId}/refund`,
+    `/dashboard-kedai/order/${orderId}`,
+    `/dashboard-kedai/order/${orderId}/refund`,
+    `/dashboard-kedai/order`,
+    `/dashboard-kedai/refund`,
+  ];
+  paths.forEach((path) => revalidatePath(path));
+}
 
 export async function createRefundRequest(
   payload: RefundRequestInput,
@@ -165,8 +176,11 @@ export async function createRefundRequest(
       });
     }
 
-    // Sync to Firestore — create new refund document
-    await syncRefundToFirestore(refund.id, {
+    // Sync to Firestore & Send notification
+    const refundRef = adminDb.collection("refunds").doc(refund.id);
+    const orderRef = adminDb.collection("orders").doc(payload.order_id);
+
+    const triggerPromise = refundRef.set({
       refundId: refund.id,
       orderId: payload.order_id,
       shopOwnerUserId: order.shop.owner.user_id,
@@ -175,8 +189,16 @@ export async function createRefundRequest(
       amount: refundAmount,
       reason: payload.reason,
       disbursementMode: payload.disbursement_mode,
-      requestedAt: new Date(),
+      requestedAt: FieldValue.serverTimestamp(),
+      lastUpdatedAt: FieldValue.serverTimestamp(),
     });
+
+    const orderTriggerPromise = orderRef.set(
+      {
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
 
     // Schedule reminder job 12 hours after refund is created
     await refundQueue.add(
@@ -215,13 +237,15 @@ export async function createRefundRequest(
       },
     };
 
-    await notificationRef.add(notificationData);
+    const notificationPromise = notificationRef.add(notificationData);
 
-    revalidatePath(`/order/${order.id}/refund`);
-    revalidatePath(`/order/${order.id}`);
-    revalidatePath(`/dashboard-kedai/order/${order.id}/refund`);
-    revalidatePath(`/dashboard-kedai/order/${order.id}`);
-    revalidatePath(`/dashboard-kedai/refund`);
+    await Promise.all([
+      triggerPromise,
+      orderTriggerPromise,
+      notificationPromise,
+    ]);
+
+    revalidateRefundPaths(order.id);
 
     return successResponse(undefined, "Permintaan refund berhasil diajukan");
   } catch (error) {
@@ -277,7 +301,7 @@ export async function updateRefundStatus(
     }
 
     // Update refund status
-    const updated = await prisma.refund.update({
+    await prisma.refund.update({
       where: {
         id: payload.refund_id,
       },
@@ -301,11 +325,6 @@ export async function updateRefundStatus(
       },
     });
 
-    // Sync to Firestore
-    await syncRefundToFirestore(payload.refund_id, {
-      status: payload.status,
-    });
-
     // Send notification to customer
     const notificationRef = adminDb.collection("notifications");
 
@@ -315,14 +334,14 @@ export async function updateRefundStatus(
 
     if (payload.status === "APPROVED") {
       notificationTitle = "Refund Disetujui";
-      notificationBody = `Permintaan refund Anda sebesar Rp ${refund.amount.toLocaleString(
+      notificationBody = `Pengajuan refund Anda sebesar Rp ${refund.amount.toLocaleString(
         "id-ID",
       )} telah disetujui`;
       notificationIntent = "SUCCESS";
     } else {
       notificationTitle = "Refund Ditolak";
       notificationBody =
-        "Permintaan refund Anda ditolak. Lihat alasan untuk detail lebih lanjut";
+        "Pengajuan refund Anda ditolak. Lihat alasan untuk detail lebih lanjut";
       notificationIntent = "WARNING";
     }
 
@@ -342,32 +361,30 @@ export async function updateRefundStatus(
           : { amount: refund.amount },
     };
 
-    await notificationRef.add(notificationData);
+    const notificationPromise = notificationRef.add(notificationData);
 
-    // Update Firestore order doc to trigger real-time update (keep for compatibility)
-    try {
-      const orderRef = adminDb.collection("orders").doc(refund.order_id);
-      await orderRef.update({
+    const refundRef = adminDb.collection("refunds").doc(refund.id);
+    const orderRef = adminDb.collection("orders").doc(refund.order_id);
+
+    const triggerPromise = refundRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+      status: payload.status,
+    });
+
+    const orderTriggerPromise = orderRef.set(
+      {
         lastUpdatedAt: FieldValue.serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Failed to update Firestore order for refund status:", error);
-    }
+      },
+      { merge: true },
+    );
 
-    // Sync to dedicated refunds collection (Primary Realtime Bus)
-    try {
-      await syncRefundToFirestore(payload.refund_id, {
-        status: "ESCALATED", // This will be dynamic based on the function
-      });
-    } catch (error) {
-      console.error("Failed to sync refund to Firestore:", error);
-    }
+    await Promise.all([
+      notificationPromise,
+      triggerPromise,
+      orderTriggerPromise,
+    ]);
 
-    revalidatePath(`/order/${refund.order_id}/refund`);
-    revalidatePath(`/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/refund`);
+    revalidateRefundPaths(refund.order_id);
 
     return successResponse(
       undefined,
@@ -438,18 +455,16 @@ export async function processRefund(
         history: {
           create: {
             status: "PROCESSED",
-            note: "Dana refund telah dikirim ke customer",
+            note:
+              refund.disbursement_mode === "CASH"
+                ? "Dana telah diserahkan ke pelanggan"
+                : "Dana refund telah dikirim ke customer",
             actor_id: session.user.id,
             actor_name: session.user.name,
             actor_role: session.user.role as any,
           },
         },
       },
-    });
-
-    // Sync to Firestore
-    await syncRefundToFirestore(payload.refund_id, {
-      status: "PROCESSED",
     });
 
     // Send notification to customer
@@ -459,11 +474,10 @@ export async function processRefund(
       type: "REFUND",
       subType: "DISBURSED",
       title: "Dana Refund Telah Dikirim",
-      body: `Dana refund sebesar Rp${refund.amount.toLocaleString(
-        "id-ID",
-      )} telah dikirim melalui ${
-        refund.disbursement_mode === "CASH" ? "tunai" : "transfer"
-      }`,
+      body:
+        refund.disbursement_mode === "CASH"
+          ? "Dana refund telah diserahkan ke Anda. Mohon konfirmasi penerimaan dana."
+          : "Dana refund telah dikirim ke rekening Anda. Mohon konfirmasi penerimaan dana kepada kedai.",
       isRead: false,
       intent: "SUCCESS",
       resourcePath: `/order/${refund.order_id}`,
@@ -471,35 +485,41 @@ export async function processRefund(
       metadata: {
         amount: refund.amount,
         disbursementMode: refund.disbursement_mode,
+        refundId: refund.id,
       },
+      buttons: [
+        {
+          label: "Konfirmasi Dana Diterima",
+          actionPath: `/order/refund/${refund.id}/confirm?back_url=/order/${refund.order_id}`,
+          variant: "default",
+        },
+      ],
     };
 
-    await notificationRef.add(notificationData);
+    const notificationPromise = notificationRef.add(notificationData);
 
-    // Update Firestore order doc to trigger real-time update (keep for compatibility)
-    try {
-      const orderRef = adminDb.collection("orders").doc(refund.order_id);
-      await orderRef.update({
+    const refundRef = adminDb.collection("refunds").doc(refund.id);
+    const orderRef = adminDb.collection("orders").doc(refund.order_id);
+
+    const triggerPromise = refundRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
+      status: "PROCESSED",
+    });
+
+    const orderTriggerPromise = orderRef.set(
+      {
         lastUpdatedAt: FieldValue.serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Failed to update Firestore order for refund status:", error);
-    }
+      },
+      { merge: true },
+    );
 
-    // Sync to dedicated refunds collection (Primary Realtime Bus)
-    try {
-      await syncRefundToFirestore(payload.refund_id, {
-        status: "ESCALATED", // This will be dynamic based on the function
-      });
-    } catch (error) {
-      console.error("Failed to sync refund to Firestore:", error);
-    }
+    await Promise.all([
+      notificationPromise,
+      triggerPromise,
+      orderTriggerPromise,
+    ]);
 
-    revalidatePath(`/order/${refund.order_id}/refund`);
-    revalidatePath(`/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/refund`);
+    revalidateRefundPaths(refund.order_id);
 
     return successResponse(undefined, "Refund berhasil diproses");
   } catch (error) {
@@ -578,51 +598,41 @@ export async function cancelRefund(
       },
     });
 
-    // Sync to Firestore
-    await syncRefundToFirestore(payload.refund_id, {
+    // Send notification to shop owner
+    // const notificationRef = adminDb.collection("notifications");
+    // const notificationData = {
+    //   recipientId: refund.order.shop.owner.user_id,
+    //   type: "REFUND",
+    //   subType: "CANCELLED",
+    //   title: "Refund Dibatalkan",
+    //   body: "Customer membatalkan permintaan refund untuk pesanan ini",
+    //   isRead: false,
+    //   intent: "INFO",
+    //   resourcePath: `/dashboard-kedai/order/${refund.order_id}`,
+    //   createdAt: FieldValue.serverTimestamp(),
+    // };
+
+    // const notificationPromise = notificationRef.add(notificationData);
+
+    const refundRef = adminDb.collection("refunds").doc(refund.id);
+    const orderRef = adminDb.collection("orders").doc(refund.order_id);
+
+    const triggerPromise = refundRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
       status: "CANCELLED",
     });
 
-    // Send notification to shop owner
-    const notificationRef = adminDb.collection("notifications");
-    const notificationData = {
-      recipientId: refund.order.shop.owner.user_id,
-      type: "REFUND",
-      subType: "CANCELLED",
-      title: "Refund Dibatalkan",
-      body: "Customer membatalkan permintaan refund untuk pesanan ini",
-      isRead: false,
-      intent: "INFO",
-      resourcePath: `/dashboard-kedai/order/${refund.order_id}`,
-      createdAt: FieldValue.serverTimestamp(),
-    };
-
-    await notificationRef.add(notificationData);
-
-    // Update Firestore order doc to trigger real-time update (keep for compatibility)
-    try {
-      const orderRef = adminDb.collection("orders").doc(refund.order_id);
-      await orderRef.update({
+    const orderTriggerPromise = orderRef.set(
+      {
         lastUpdatedAt: FieldValue.serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Failed to update Firestore order for refund status:", error);
-    }
+      },
+      { merge: true },
+    );
 
-    // Sync to dedicated refunds collection (Primary Realtime Bus)
-    try {
-      await syncRefundToFirestore(payload.refund_id, {
-        status: "ESCALATED", // This will be dynamic based on the function
-      });
-    } catch (error) {
-      console.error("Failed to sync refund to Firestore:", error);
-    }
+    // await Promise.all([notificationPromise, triggerPromise]);
+    await Promise.all([triggerPromise, orderTriggerPromise]);
 
-    revalidatePath(`/order/${refund.order_id}/refund`);
-    revalidatePath(`/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/refund`);
+    revalidateRefundPaths(refund.order_id);
 
     return successResponse(undefined, "Refund berhasil dibatalkan");
   } catch (error) {
@@ -644,6 +654,24 @@ export async function escalateRefund(
       },
       include: {
         history: true,
+        order: {
+          select: {
+            customer: {
+              select: {
+                user_id: true,
+              },
+            },
+            shop: {
+              select: {
+                owner: {
+                  select: {
+                    user_id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -685,37 +713,50 @@ export async function escalateRefund(
       },
     });
 
-    // Sync to Firestore
-    await syncRefundToFirestore(payload.refund_id, {
+    // Send notification to shop owner
+    const notificationRef = adminDb.collection("notifications");
+    const notificationData = {
+      recipientId:
+        session.user.role === "SHOP_OWNER"
+          ? refund.order.customer.user_id
+          : refund.order.shop.owner.user_id,
+      type: "REFUND",
+      subType: "COMPLETED",
+      title: "Refund Dieskalasi",
+      body: `Refund untuk pesanan #${refund.order_id.substring(0, 8)} telah dieskalasi ke admin`,
+      isRead: false,
+      intent: "SUCCESS",
+      resourcePath:
+        session.user.role === "SHOP_OWNER"
+          ? `/order/${refund.order_id}/refund`
+          : `/dashboard-kedai/order/${refund.order_id}/refund`,
+      createdAt: FieldValue.serverTimestamp(),
+    };
+
+    const notificationPromise = await notificationRef.add(notificationData);
+
+    const refundRef = adminDb.collection("refunds").doc(refund.id);
+    const orderRef = adminDb.collection("orders").doc(refund.order_id);
+
+    const triggerPromise = refundRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
       status: "ESCALATED",
     });
 
-    // Note: No notification sent - admin system handles separately
-
-    // Update Firestore order doc to trigger real-time update (keep for compatibility)
-    try {
-      const orderRef = adminDb.collection("orders").doc(refund.order_id);
-      await orderRef.update({
+    const orderTriggerPromise = orderRef.set(
+      {
         lastUpdatedAt: FieldValue.serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Failed to update Firestore order for refund status:", error);
-    }
+      },
+      { merge: true },
+    );
 
-    // Sync to dedicated refunds collection (Primary Realtime Bus)
-    try {
-      await syncRefundToFirestore(payload.refund_id, {
-        status: "ESCALATED", // This will be dynamic based on the function
-      });
-    } catch (error) {
-      console.error("Failed to sync refund to Firestore:", error);
-    }
+    await Promise.all([
+      notificationPromise,
+      triggerPromise,
+      orderTriggerPromise,
+    ]);
 
-    revalidatePath(`/order/${refund.order_id}/refund`);
-    revalidatePath(`/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/refund`);
+    revalidateRefundPaths(refund.order_id);
 
     return successResponse(undefined, "Refund berhasil dieskalasi ke admin");
   } catch (error) {
@@ -772,14 +813,14 @@ export async function completeRefund(
           id: payload.refund_id,
         },
         data: {
-          status: "COMPLETED" as any,
+          status: "COMPLETED",
           history: {
             create: {
-              status: "COMPLETED" as any,
+              status: "COMPLETED",
               note: "Customer mengonfirmasi bahwa dana refund telah diterima",
               actor_id: session.user.id,
               actor_name: session.user.name,
-              actor_role: session.user.role as any,
+              actor_role: session.user.role as Role,
             },
           },
         },
@@ -821,11 +862,11 @@ export async function completeRefund(
           0,
         );
 
-        // Jika alasan refund adalah keterlambatan (LATE_DELIVERY) atau alasan global lainnya 
-        // yang tidak memilih item spesifik (affected_items kosong), 
-        // maka kita anggap refund proporsional terhadap amount? 
+        // Jika alasan refund adalah keterlambatan (LATE_DELIVERY) atau alasan global lainnya
+        // yang tidak memilih item spesifik (affected_items kosong),
+        // maka kita anggap refund proporsional terhadap amount?
         // Namun instruksi user: "pengurangan sesuai jumlah qty item yang direfund"
-        
+
         if (refundedQty > 0) {
           const originalCommission = calculateCommission(totalOriginalQty);
           const remainingCommission = calculateCommission(
@@ -872,54 +913,43 @@ export async function completeRefund(
       }
     });
 
-    // Sync to Firestore
-    await syncRefundToFirestore(payload.refund_id, {
+    // Send notification to shop owner
+    // const notificationRef = adminDb.collection("notifications");
+    // const notificationData = {
+    //   recipientId: refund.order.shop.owner.user_id,
+    //   type: "REFUND",
+    //   subType: "COMPLETED",
+    //   title: "Refund Selesai",
+    //   body: `Customer telah mengonfirmasi penerimaan dana refund untuk pesanan #${refund.order.id.substring(
+    //     0,
+    //     8,
+    //   )}`,
+    //   isRead: false,
+    //   intent: "SUCCESS",
+    //   resourcePath: `/dashboard-kedai/order/${refund.order_id}`,
+    //   createdAt: FieldValue.serverTimestamp(),
+    // };
+
+    // const notificationPromise = await notificationRef.add(notificationData);
+
+    const refundRef = adminDb.collection("refunds").doc(refund.id);
+    const orderRef = adminDb.collection("orders").doc(refund.order_id);
+
+    const triggerPromise = refundRef.update({
+      lastUpdatedAt: FieldValue.serverTimestamp(),
       status: "COMPLETED",
     });
 
-    // Send notification to shop owner
-    const notificationRef = adminDb.collection("notifications");
-    const notificationData = {
-      recipientId: refund.order.shop.owner.user_id,
-      type: "REFUND",
-      subType: "COMPLETED",
-      title: "Refund Selesai",
-      body: `Customer telah mengonfirmasi penerimaan dana refund untuk pesanan #${refund.order.id.substring(
-        0,
-        8,
-      )}`,
-      isRead: false,
-      intent: "SUCCESS",
-      resourcePath: `/dashboard-kedai/order/${refund.order_id}`,
-      createdAt: FieldValue.serverTimestamp(),
-    };
-
-    await notificationRef.add(notificationData);
-
-    // Update Firestore order doc to trigger real-time update (keep for compatibility)
-    try {
-      const orderRef = adminDb.collection("orders").doc(refund.order_id);
-      await orderRef.update({
+    const orderTriggerPromise = orderRef.set(
+      {
         lastUpdatedAt: FieldValue.serverTimestamp(),
-      });
-    } catch (error) {
-      console.error("Failed to update Firestore order for refund status:", error);
-    }
+      },
+      { merge: true },
+    );
 
-    // Sync to dedicated refunds collection (Primary Realtime Bus)
-    try {
-      await syncRefundToFirestore(payload.refund_id, {
-        status: "ESCALATED", // This will be dynamic based on the function
-      });
-    } catch (error) {
-      console.error("Failed to sync refund to Firestore:", error);
-    }
+    await Promise.all([triggerPromise, orderTriggerPromise]);
 
-    revalidatePath(`/order/${refund.order_id}/refund`);
-    revalidatePath(`/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}/refund`);
-    revalidatePath(`/dashboard-kedai/order/${refund.order_id}`);
-    revalidatePath(`/dashboard-kedai/refund`);
+    revalidateRefundPaths(refund.order_id);
 
     return successResponse(undefined, "Refund berhasil diselesaikan");
   } catch (error) {

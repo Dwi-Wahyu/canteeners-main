@@ -9,6 +9,18 @@ export type NotificationIntent =
 
 export type NotificationType = "ORDER" | "REFUND" | "COMPLAINT";
 
+export type NotificationButton = {
+  label: string;
+  actionPath: string;
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+};
+
 export type NotificationBase = {
   id: string; // Firestore Document ID
   type: NotificationType;
@@ -26,6 +38,7 @@ export type NotificationBase = {
     avatar?: string;
   };
   metadata?: Record<string, any>;
+  buttons?: NotificationButton[];
 };
 
 // --- ORDER ---

@@ -15,8 +15,11 @@ export default function HistoryBackButton({
   const router = useRouter();
 
   return (
-    <button onClick={router.back} className={`${cn(className)}`}>
-      {children ? children : <ChevronLeft className="w-5 h-5" />}
+    <button
+      onClick={router.back}
+      className={`${cn(className)} text-muted-foreground cursor-pointer`}
+    >
+      {children ? children : <ChevronLeft className="w-4 h-4" />}
     </button>
   );
 }

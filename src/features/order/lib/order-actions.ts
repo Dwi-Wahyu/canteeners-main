@@ -136,16 +136,18 @@ export async function confirmOrder({
       body: `${notificationBody}. Batas waktu pembayaran ${timeoutMinutes} menit.`,
       isRead: false,
       intent: "SUCCESS",
-      resourcePath: "/order/" + order_id,
+      resourcePath: `/order/${order_id}`,
       createdAt: FieldValue.serverTimestamp(),
       expiresAt: FieldValue.serverTimestamp(),
     });
 
-    const triggerPromise = orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-      status: newStatus,
-    });
-
+    const triggerPromise = orderRef.set(
+      {
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+        status: newStatus,
+      },
+      { merge: true },
+    );
     await Promise.all([notificationPromise, triggerPromise]);
 
     revalidateOrderPaths(order_id);
@@ -267,12 +269,12 @@ export async function confirmPayment({
     const notificationData = {
       recipientId: result.customer.user_id,
       type: "ORDER",
-      subType: "ACCEPTED",
+      subType: "PAYMENT_APPROVED",
       title: "Pembayaran di Konfirmasi",
       body: "Kedai sudah mulai menyiapkan pesanan anda",
       isRead: false,
       intent: "SUCCESS",
-      resourcePath: "/order/" + order_id,
+      resourcePath: `/order/${order_id}`,
       createdAt: FieldValue.serverTimestamp(),
     };
 
@@ -281,10 +283,13 @@ export async function confirmPayment({
     // Update doc order untuk realtime trigger
     const orderRef = adminDb.collection("orders").doc(order_id);
 
-    const triggerPromise = orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-      status: "PROCESSING",
-    });
+    const triggerPromise = orderRef.set(
+      {
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+        status: "PROCESSING",
+      },
+      { merge: true },
+    );
 
     await Promise.all([notificationPromise, triggerPromise]);
 
@@ -497,7 +502,7 @@ export async function rejectOrder({
     const notificationData = {
       recipientId: order.customer.user_id,
       type: "ORDER",
-      subType: "ACCEPTED",
+      subType: "REJECTED",
       title: "Pesanan Ditolak",
       body: rejected_reason,
       isRead: false,
@@ -553,7 +558,7 @@ export async function rejectPayment({
     const notificationData = {
       recipientId: order.customer.user_id,
       type: "ORDER",
-      subType: "ACCEPTED",
+      subType: "REJECTED",
       title: "Bukti Pembayaran Ditolak",
       body: reason,
       isRead: false,
@@ -567,11 +572,13 @@ export async function rejectPayment({
     // Update doc order untuk realtime trigger
     const orderRef = adminDb.collection("orders").doc(order_id);
 
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-      status: "PAYMENT_REJECTED",
-    });
-
+    await orderRef.set(
+      {
+        lastUpdatedAt: FieldValue.serverTimestamp(),
+        status: "PAYMENT_REJECTED",
+      },
+      { merge: true },
+    );
     revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Berhasil menolak pembayaran");
@@ -634,8 +641,7 @@ export async function cancelOrder({
       console.error("Failed to remove job from orderQueue:", queueError);
     }
 
-    const isShopCancellation =
-      cancelled_by_id === updated.shop.owner?.user_id;
+    const isShopCancellation = cancelled_by_id === updated.shop.owner?.user_id;
 
     if (order_status === "PROCESSING") {
       await prisma.refund.create({

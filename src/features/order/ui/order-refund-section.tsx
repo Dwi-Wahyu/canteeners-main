@@ -16,6 +16,8 @@ import { completeRefund } from "@/features/shop/refund/lib/refund-actions";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useWatchRefundUpdate } from "@/hooks/use-watch-refund-update";
+import { GetRefundById } from "@/features/shop/refund/types/refund-queries-types";
 
 interface OrderRefundSectionProps {
   order: {
@@ -24,6 +26,7 @@ interface OrderRefundSectionProps {
     refund?: {
       id: string;
       status: RefundStatus;
+      updated_at?: Date | string | null;
       history?: {
         id: string;
         status: RefundStatus;
@@ -38,9 +41,19 @@ interface OrderRefundSectionProps {
 }
 
 export function OrderRefundSection({
-  order,
+  order: initialOrder,
   userRole,
 }: OrderRefundSectionProps) {
+  const { refundData } = useWatchRefundUpdate(
+    initialOrder.refund?.id,
+    initialOrder.refund as unknown as GetRefundById,
+  );
+
+  const order = {
+    ...initialOrder,
+    refund: refundData || initialOrder.refund,
+  };
+
   const [isCompleting, setIsCompleting] = useState(false);
   const isCancelled = order.status === "CANCELLED";
   const canRequestRefund =

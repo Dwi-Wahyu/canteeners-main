@@ -4,6 +4,7 @@ import AppTestimonyForm from "@/features/testimony/ui/app-testimony-form";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import HistoryBackButton from "@/components/layouts/history-back-button";
 
 export default async function TestimonyPage({
   searchParams,
@@ -18,14 +19,11 @@ export default async function TestimonyPage({
     <div className="">
       <LandingTopbar />
 
-      <div className="p-5 pt-28 max-w-md mx-auto">
-        <div className="flex items-center gap-2 mb-6">
-          <Button variant="ghost" size="icon" asChild className="-ml-2">
-            <Link href={finalBackUrl}>
-              <ChevronLeft className="size-6" />
-            </Link>
-          </Button>
-          <h1 className="text-lg font-bold">Kembali</h1>
+      <div className="p-5 pt-24 max-w-md mx-auto">
+        <div className="flex items-center mb-4">
+          <HistoryBackButton className="flex gap-1 items-center">
+            <ChevronLeft className="w-4 h-4" /> Kembali
+          </HistoryBackButton>
         </div>
 
         <div className="text-center mb-8">
@@ -41,8 +39,8 @@ export default async function TestimonyPage({
             session?.user.role === "SHOP_OWNER"
               ? "Pemilik Kedai"
               : session?.user.role === "CUSTOMER"
-              ? "Pelanggan"
-              : undefined
+                ? "Pelanggan"
+                : undefined
           }
         />
       </div>
