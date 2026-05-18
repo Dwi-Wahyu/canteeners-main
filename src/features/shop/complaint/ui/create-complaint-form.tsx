@@ -21,13 +21,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import {
-  AlertCircle,
-  Loader,
-  Loader2,
-  Upload,
-  X,
-} from "lucide-react";
+import { AlertCircle, Loader, Loader2, Upload, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
@@ -175,10 +169,9 @@ export default function CreateComplaintForm({
             <div className="relative border rounded-lg p-3 bg-muted/50">
               <div className="flex items-start gap-3">
                 <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
-                  <Image
+                  <img
                     src={uploadedFile.url}
                     alt="Bukti komplain"
-                    fill
                     className="object-cover"
                   />
                 </div>
@@ -224,9 +217,7 @@ export default function CreateComplaintForm({
                   <span className="font-medium text-primary">
                     Klik untuk upload
                   </span>
-                  <p className="text-muted-foreground">
-                    atau drag and drop
-                  </p>
+                  <p className="text-muted-foreground">atau drag and drop</p>
                 </div>
               </label>
             </div>
@@ -236,8 +227,8 @@ export default function CreateComplaintForm({
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription className="text-sm">
-            Komplain Anda akan ditinjau oleh pemilik kedai. Pastikan
-            informasi yang Anda berikan akurat.
+            Komplain Anda akan ditinjau oleh pemilik kedai. Pastikan informasi
+            yang Anda berikan akurat.
           </AlertDescription>
         </Alert>
 

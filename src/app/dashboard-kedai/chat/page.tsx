@@ -6,7 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { useChatList } from "@/features/chat/hooks/use-chat-list";
+import { useChatListPaginated } from "@/features/chat/hooks/use-chat-list-paginated";
+import { InfiniteScrollTrigger } from "@/features/chat/ui/infinite-scroll-trigger";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -17,7 +18,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export default function OwnerChatListPage() {
-  const { chats, isLoading, user } = useChatList();
+  const { chats, isLoading, isLoadingMore, user, loadMore, hasMore } =
+    useChatListPaginated();
 
   if (isLoading) {
     return (
@@ -186,6 +188,15 @@ export default function OwnerChatListPage() {
           </div>
         )}
       </div>
+
+      {/* Infinite scroll trigger — hanya tampil saat ada chat */}
+      {chats.length > 0 && (
+        <InfiniteScrollTrigger
+          onIntersect={loadMore}
+          isLoading={isLoadingMore}
+          hasMore={hasMore}
+        />
+      )}
     </div>
   );
 }

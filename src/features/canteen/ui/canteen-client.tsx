@@ -249,7 +249,7 @@ export default function CanteenClient({
       <div className="sticky top-0 z-30 bg-[#f6faff]/92 backdrop-blur-md px-4 pt-4 pb-3">
         <div className="flex items-center bg-[#e6eff8] rounded-2xl px-4 py-3 gap-3 transition-all focus-within:ring-2 focus-within:ring-[#bb0004]/20 focus-within:bg-white">
           {/* Search icon */}
-          <Search className="size-4 text-[#926f69] flex-shrink-0" />
+          <Search className="size-4 text-[#926f69] shrink-0" />
 
           {/* Input */}
           <input
@@ -263,14 +263,14 @@ export default function CanteenClient({
           {name && (
             <button
               onClick={() => setName(null)}
-              className="text-[#926f69] hover:text-[#bb0004] transition-colors text-lg leading-none flex-shrink-0"
+              className="text-[#926f69] hover:text-[#bb0004] transition-colors text-lg leading-none shrink-0"
             >
               ×
             </button>
           )}
 
           {/* Divider */}
-          <div className="w-px h-5 bg-[#c8d4e0] flex-shrink-0" />
+          <div className="w-px h-5 bg-[#c8d4e0] shrink-0" />
 
           {/* Fork & Knife filter icon */}
           <Suspense
@@ -387,7 +387,7 @@ export default function CanteenClient({
                           </span>
                           <button
                             id={`add-btn-${product.id}`}
-                            className="cc-add-btn w-8 h-8 rounded-full bg-[#bb0004] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(187,0,4,0.3)] transition-all active:scale-90"
+                            className="cc-add-btn w-8 h-8 rounded-full cursor-pointer bg-[#bb0004] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(187,0,4,0.3)] transition-all active:scale-90"
                             onClick={(e) => handleAddClick(e, product)}
                             disabled={loadingProductId === product.id}
                           >

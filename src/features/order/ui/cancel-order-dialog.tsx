@@ -146,32 +146,27 @@ export default function CancelOrderDialog({
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-[90vw] rounded-2xl overflow-y-auto max-h-[90vh]">
         <AlertDialogHeader className="text-start">
-          <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <AlertTriangle size={20} />
-            {labels.title}
-          </AlertDialogTitle>
+          <AlertDialogTitle>{labels.title}</AlertDialogTitle>
           <AlertDialogDescription className="text-sm">
             {labels.description}
           </AlertDialogDescription>
 
           <div className="space-y-1.5 mt-4">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">
-              Alasan Pembatalan
-            </label>
+            <Label>Alasan Pembatalan</Label>
             <Textarea
               disabled={isPending}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Contoh: Stok habis, Terlalu lama, dll..."
-              className="h-28 rounded-xl bg-gray-50 border-none focus-visible:ring-1 focus-visible:ring-destructive"
+              className="h-28"
             />
           </div>
 
           {isOwner && isProcessing && (
             <div className="space-y-3 mt-4">
-              <label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">
+              <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">
                 Metode Pengembalian Dana
-              </label>
+              </Label>
               <RadioGroup
                 disabled={isPending}
                 value={disbursementMode}

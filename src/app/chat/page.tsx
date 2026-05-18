@@ -4,7 +4,8 @@ import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
-import { useChatList } from "@/features/chat/hooks/use-chat-list";
+import { useChatListPaginated } from "@/features/chat/hooks/use-chat-list-paginated";
+import { InfiniteScrollTrigger } from "@/features/chat/ui/infinite-scroll-trigger";
 import Link from "next/link";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -19,7 +20,8 @@ import NavButton from "@/components/nav-button";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 
 export default function CustomerChatListPage() {
-  const { chats, isLoading, user } = useChatList();
+  const { chats, isLoading, isLoadingMore, user, loadMore, hasMore } =
+    useChatListPaginated();
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -145,6 +147,15 @@ export default function CustomerChatListPage() {
           </div>
         )}
       </div>
+
+      {/* Infinite scroll trigger — hanya tampil saat ada chat */}
+      {chats.length > 0 && (
+        <InfiniteScrollTrigger
+          onIntersect={loadMore}
+          isLoading={isLoadingMore}
+          hasMore={hasMore}
+        />
+      )}
 
       <BottomNav />
     </div>

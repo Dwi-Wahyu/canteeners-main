@@ -103,7 +103,9 @@ export function EscalateRefundDialog({
               name="escalated_reason"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alasan Eskalasi *</FormLabel>
+                  <FormLabel>
+                    Alasan Eskalasi <span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Jelaskan detail kecurigaan atau masalah yang Anda temukan..."
@@ -141,11 +143,7 @@ export function EscalateRefundDialog({
                 variant="destructive"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? (
-                  <Loader2 className=" animate-spin" />
-                ) : (
-                  <AlertTriangle className="" />
-                )}
+                {isSubmitting && <Loader2 className=" animate-spin" />}
                 Eskalasi ke Admin
               </Button>
             </DialogFooter>
