@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { getImageUrl } from "@/helper/get-image-url";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, MessageSquareWarning } from "lucide-react";
-import CreateComplaintDialog from "@/features/shop/complaint/ui/create-complaint-dialog";
+import NavButton from "@/components/nav-button";
 import { useRouter } from "next/navigation";
 import { OrderStatus } from "@/generated/prisma";
 
@@ -44,10 +44,6 @@ export default function OrderComplaintSection({
   const canFileComplaint = order.status === "COMPLETED" && !order.complaint;
   const hasComplaint = !!order.complaint;
 
-  const handleComplaintSuccess = () => {
-    router.refresh();
-  };
-
   if (!canFileComplaint && !hasComplaint) {
     return null;
   }
@@ -68,10 +64,14 @@ export default function OrderComplaintSection({
                 menyelesaikannya.
               </p>
             </div>
-            <CreateComplaintDialog
-              orderId={order.id}
-              onSuccess={handleComplaintSuccess}
-            />
+            <NavButton
+              href={`/order/${order.id}/komplain`}
+              variant="outline"
+              size={"lg"}
+              className="w-full"
+            >
+              Ajukan Komplain
+            </NavButton>
           </div>
         )}
 
