@@ -180,9 +180,7 @@ export function OrderRefundSection({
               onClick={handleCompleteRefund}
               disabled={isCompleting}
             >
-              {isCompleting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {isCompleting && <Loader2 className="animate-spin" />}
               Konfirmasi Dana Diterima
             </Button>
           )}

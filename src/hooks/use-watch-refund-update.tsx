@@ -28,6 +28,11 @@ export function useWatchRefundUpdate(
   const router = useRouter();
   const lastKnownUpdate = useRef<number>(0);
   const [firestoreStatus, setFirestoreStatus] = useState<RefundStatus | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const {
     data: sqlData,
@@ -92,9 +97,10 @@ export function useWatchRefundUpdate(
 
   // Merge Firestore status if not COMPLETED in SQL
   // This allows the UI to update immediately while SQL is refetching
-  const mergedData = (sqlData && firestoreStatus && sqlData.status !== "COMPLETED")
-    ? { ...sqlData, status: firestoreStatus }
-    : (sqlData || initialData);
+  const mergedData =
+    isMounted && sqlData && firestoreStatus && sqlData.status !== "COMPLETED"
+      ? { ...sqlData, status: firestoreStatus }
+      : sqlData || initialData;
 
   return {
     refundData: (mergedData as GetRefundById) ?? null,

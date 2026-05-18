@@ -534,22 +534,43 @@ export async function rejectPayment({
   reason: string;
 }): Promise<ServerActionReturn<void>> {
   try {
-    const order = await prisma.order.update({
-      where: {
-        id: order_id,
-      },
-      data: {
-        status: "PAYMENT_REJECTED",
-        rejected_reason: reason.trim(),
-      },
-      select: {
-        customer: {
-          select: {
-            user_id: true,
-          },
+    const currentOrder = await prisma.order.findUnique({
+      where: { id: order_id },
+      select: { payment_proof_url: true },
+    });
+
+    const order = await prisma.$transaction(async (tx) => {
+      const updatedOrder = await tx.order.update({
+        where: {
+          id: order_id,
         },
-        shop_id: true,
-      },
+        data: {
+          status: "PAYMENT_REJECTED",
+          rejected_reason: reason.trim(),
+          payment_proof_url: null,
+          confirmed_at: new Date(),
+        },
+        select: {
+          customer: {
+            select: {
+              user_id: true,
+            },
+          },
+          shop_id: true,
+        },
+      });
+
+      if (currentOrder?.payment_proof_url) {
+        await tx.orderPaymentHistory.create({
+          data: {
+            order_id,
+            payment_proof_url: currentOrder.payment_proof_url,
+            rejected_reason: reason.trim(),
+          },
+        });
+      }
+
+      return updatedOrder;
     });
 
     const notificationRef = adminDb.collection("notifications");
@@ -763,10 +784,10 @@ export async function savePaymentProof({
       return errorResponse("Order tidak ditemukan");
     }
 
-    // hapus nanti file yang lama, pastikan pake trycatch biar ga error
-    if (order.payment_proof_url) {
-      await deleteFile(order.payment_proof_url);
-    }
+    // Kita tidak menghapus file lama agar riwayat pembayaran tetap memiliki bukti gambar
+    // if (order.payment_proof_url) {
+    //   await deleteFile(order.payment_proof_url);
+    // }
 
     await prisma.order.update({
       where: {
@@ -788,6 +809,7 @@ export async function savePaymentProof({
     // Trigger BullMQ untuk auto-refund jika shop tidak konfirmasi
     try {
       const confTimeoutMinutes = await getShopConfirmationTimeoutMinutes();
+      await orderQueue.remove(`refund-${order_id}`);
       await orderQueue.add(
         "auto-refund-unconfirmed-payment",
         { orderId: order_id },

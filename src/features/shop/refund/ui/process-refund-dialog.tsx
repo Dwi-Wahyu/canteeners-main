@@ -306,7 +306,7 @@ export function ProcessRefundDialog({
                 )}
               </Alert>
 
-              <DialogFooter className="gap-2 sm:gap-0">
+              <DialogFooter className="gap-2 flex sm:gap-0">
                 <Button
                   type="button"
                   variant="outline"
@@ -316,9 +316,7 @@ export function ProcessRefundDialog({
                   Batal
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                  {isSubmitting && <Loader2 className="animate-spin" />}
                   Konfirmasi Refund Selesai
                 </Button>
               </DialogFooter>

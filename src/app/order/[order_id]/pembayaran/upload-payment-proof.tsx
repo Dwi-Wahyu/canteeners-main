@@ -15,11 +15,14 @@ import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Copy, CopyCheck, Download, Loader2, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import PaymentCountdown from "./payment-countdown";
 import { toast } from "sonner";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase/client";
+import { History, Info } from "lucide-react";
 
 const PaymentFormSchema = z.object({
   order_id: z.string(),
@@ -38,6 +41,23 @@ export default function UploadPaymentProof({
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [copied, setCopied] = useState(false);
+
+  // Firestore Sync - Auto reload if status changes (e.g. from shop rejection)
+  useEffect(() => {
+    const orderRef = doc(db, "orders", order_id);
+
+    const unsubscribe = onSnapshot(orderRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        // Trigger refresh if status changes to force re-fetch of server data
+        if (data.status !== order.status) {
+          router.refresh();
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [order_id, order.status, router]);
 
   const form = useForm<PaymentFormInput>({
     resolver: zodResolver(PaymentFormSchema),
@@ -64,18 +84,20 @@ export default function UploadPaymentProof({
 
         let uploadData;
         const contentType = uploadResponse.headers.get("content-type");
-        
+
         if (contentType && contentType.includes("application/json")) {
           uploadData = await uploadResponse.json();
         } else {
           // Jika bukan JSON (biasanya error dari Nginx/Proxy berupa HTML)
           if (uploadResponse.status === 413) {
             form.setError("image_url", {
-              message: "Ukuran file terlalu besar (Maks 10MB). Silakan periksa konfigurasi server.",
+              message:
+                "Ukuran file terlalu besar (Maks 10MB). Silakan periksa konfigurasi server.",
             });
           } else {
             form.setError("image_url", {
-              message: "Gagal mengunggah file. Terjadi kesalahan pada server (bukan JSON).",
+              message:
+                "Gagal mengunggah file. Terjadi kesalahan pada server (bukan JSON).",
             });
           }
           return;
@@ -168,8 +190,20 @@ export default function UploadPaymentProof({
         </>
       )}
 
-      {order.status === "WAITING_PAYMENT" && (
+      {(order.status === "WAITING_PAYMENT" ||
+        order.status === "PAYMENT_REJECTED") && (
         <>
+          {order.status === "PAYMENT_REJECTED" && (
+            <Alert variant={"destructive"}>
+              <Info className="h-4 w-4" />
+              <AlertTitle>Pembayaran Ditolak</AlertTitle>
+              <AlertDescription>
+                Alasan:{" "}
+                {order.rejected_reason || "Bukti pembayaran tidak valid"}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {order.confirmed_at && (
             <PaymentCountdown
               confirmedAt={order.confirmed_at}
@@ -177,117 +211,117 @@ export default function UploadPaymentProof({
             />
           )}
 
-          {order.payment_method === "QRIS" &&
-            order.status === "WAITING_PAYMENT" && (
-              <Card>
-                <CardContent>
-                  {order.shop.payments
-                    .filter((p) => p.method === "QRIS")
-                    .map((payment, idx) => {
-                      if (!payment.qr_url) {
-                        return <div key={idx}>Belum ada qr code</div>;
-                      }
+          {order.payment_method === "QRIS" && (
+            <Card>
+              <CardContent>
+                {order.shop.payments
+                  .filter((p) => p.method === "QRIS")
+                  .map((payment, idx) => {
+                    if (!payment.qr_url) {
+                      return <div key={idx}>Belum ada qr code</div>;
+                    }
 
-                      return (
-                        <div key={idx} className="flex flex-col gap-4">
-                          <div className="flex items-center justify-between">
-                            <h1 className="font-semibold">QRCode QRIS</h1>
+                    return (
+                      <div key={idx} className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                          <h1 className="font-semibold">QRCode QRIS</h1>
 
-                            <button
-                              onClick={async () => {
-                                try {
-                                  const url = getImageUrl(
-                                    "/qris-qrcode/" + payment.qr_url,
-                                  );
-                                  const response = await fetch(url);
-                                  const blob = await response.blob();
-                                  const blobUrl = URL.createObjectURL(blob);
-                                  const link = document.createElement("a");
-                                  link.href = blobUrl;
-                                  link.download =
-                                    payment.qr_url || "qris-code.png";
-                                  document.body.appendChild(link);
-                                  link.click();
-                                  document.body.removeChild(link);
-                                  URL.revokeObjectURL(blobUrl);
-                                  toast.success("QR Code berhasil diunduh");
-                                } catch (error) {
-                                  console.error("Download failed:", error);
-                                  // Fallback to simple link if fetch fails
-                                  window.open(
-                                    getImageUrl(
-                                      "/qris-qrcode/" + payment.qr_url,
-                                    ),
-                                    "_blank",
-                                  );
-                                }
-                              }}
-                              className="p-2 hover:bg-accent rounded-md transition-colors border"
-                              title="Download QR Code"
-                            >
-                              <Download className="w-5 h-5 text-primary" />
-                            </button>
-                          </div>
-                          <img
-                            className="rounded-lg border w-full max-w-75 mx-auto"
-                            src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
-                          />
+                          <button
+                            onClick={async () => {
+                              try {
+                                const url = getImageUrl(
+                                  "/qris-qrcode/" + payment.qr_url,
+                                );
+                                const response = await fetch(url);
+                                const blob = await response.blob();
+                                const blobUrl = URL.createObjectURL(blob);
+                                const link = document.createElement("a");
+                                link.href = blobUrl;
+                                link.download =
+                                  payment.qr_url || "qris-code.png";
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(blobUrl);
+                                toast.success("QR Code berhasil diunduh");
+                              } catch (error) {
+                                console.error("Download failed:", error);
+                                // Fallback to simple link if fetch fails
+                                window.open(
+                                  getImageUrl("/qris-qrcode/" + payment.qr_url),
+                                  "_blank",
+                                );
+                              }
+                            }}
+                            className="p-2 hover:bg-accent rounded-md transition-colors border"
+                            title="Download QR Code"
+                          >
+                            <Download className="w-5 h-5 text-primary" />
+                          </button>
                         </div>
-                      );
-                    })}
-                </CardContent>
-              </Card>
-            )}
+                        <img
+                          className="rounded-lg border w-full max-w-75 mx-auto"
+                          src={getImageUrl("/qris-qrcode/" + payment.qr_url)}
+                        />
+                      </div>
+                    );
+                  })}
+              </CardContent>
+            </Card>
+          )}
 
-          {order.payment_method === "BANK_TRANSFER" &&
-            order.status === "WAITING_PAYMENT" && (
-              <Card>
-                <CardContent>
-                  {order.shop.payments
-                    .filter((p) => p.method === "BANK_TRANSFER")
-                    .map((payment, idx) => {
-                      if (!payment.account_number) {
-                        return <div key={idx}>Belum ada nomor rekening</div>;
-                      }
+          {order.payment_method === "BANK_TRANSFER" && (
+            <Card>
+              <CardContent>
+                {order.shop.payments
+                  .filter((p) => p.method === "BANK_TRANSFER")
+                  .map((payment, idx) => {
+                    if (!payment.account_number) {
+                      return <div key={idx}>Belum ada nomor rekening</div>;
+                    }
 
-                      return (
-                        <div key={idx} className="space-y-2">
-                          <h1 className="font-semibold text-sm text-muted-foreground">
-                            Nomor Rekening {payment.note}
+                    return (
+                      <div key={idx} className="space-y-2">
+                        <h1 className="font-semibold text-sm text-muted-foreground">
+                          Nomor Rekening {payment.note}
+                        </h1>
+                        <div className="flex items-center justify-between p-3 border rounded-lg bg-accent/20">
+                          <h1 className="text-xl font-bold tracking-wider">
+                            {payment.account_number}
                           </h1>
-                          <div className="flex items-center justify-between p-3 border rounded-lg bg-accent/20">
-                            <h1 className="text-xl font-bold tracking-wider">
-                              {payment.account_number}
-                            </h1>
-                            <button
-                              onClick={() => {
-                                if (payment.account_number) {
-                                  navigator.clipboard.writeText(
-                                    payment.account_number,
-                                  );
-                                  setCopied(true);
-                                  setTimeout(() => setCopied(false), 2000);
-                                }
-                              }}
-                              className="p-2 hover:bg-accent rounded-md transition-colors border bg-background"
-                            >
-                              {copied ? (
-                                <CopyCheck className="w-5 h-5 text-green-600" />
-                              ) : (
-                                <Copy className="w-5 h-5 text-primary" />
-                              )}
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => {
+                              if (payment.account_number) {
+                                navigator.clipboard.writeText(
+                                  payment.account_number,
+                                );
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                              }
+                            }}
+                            className="p-2 hover:bg-accent rounded-md transition-colors border bg-background"
+                          >
+                            {copied ? (
+                              <CopyCheck className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <Copy className="w-5 h-5 text-primary" />
+                            )}
+                          </button>
                         </div>
-                      );
-                    })}
-                </CardContent>
-              </Card>
-            )}
+                      </div>
+                    );
+                  })}
+              </CardContent>
+            </Card>
+          )}
 
           <div>
             <div className="mb-2">
-              <h1 className="font-medium">Upload Bukti Pembayaran</h1>
+              <h1 className="font-medium">
+                {order.status === "PAYMENT_REJECTED"
+                  ? "Upload Ulang Bukti Pembayaran"
+                  : "Upload Bukti Pembayaran"}
+              </h1>
               <h1 className="text-muted-foreground">
                 Upload bukti pembayaran sejumlah{" "}
                 <span className="font-medium text-primary">
@@ -324,12 +358,51 @@ export default function UploadPaymentProof({
                   ) : (
                     <Send className="" />
                   )}
-                  Kirim
+                  {order.status === "PAYMENT_REJECTED"
+                    ? "Upload Ulang"
+                    : "Kirim"}
                 </Button>
               </Field>
             </form>
           </div>
         </>
+      )}
+
+      {order.payment_histories && order.payment_histories.length > 0 && (
+        <div className="mt-4">
+          <div className="flex items-center gap-2 mb-3">
+            <History className="w-5 h-5 text-muted-foreground" />
+            <h2 className="font-semibold">Riwayat Pembayaran</h2>
+          </div>
+          <div className="space-y-4">
+            {order.payment_histories.map((history: any) => (
+              <Card key={history.id} className="overflow-hidden border-dashed">
+                <CardContent className="flex gap-4">
+                  <div className="relative size-20 shrink-0 rounded-lg overflow-hidden border">
+                    <img
+                      src={getImageUrl(
+                        "/payment-proof/" + history.payment_proof_url,
+                      )}
+                      alt="Rejected proof"
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+                      Ditolak
+                    </p>
+                    <p className="text-sm font-medium mt-1">
+                      {history.rejected_reason || "Bukti tidak valid"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {new Date(history.created_at).toLocaleString("id-ID")}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

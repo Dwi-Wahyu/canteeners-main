@@ -176,44 +176,50 @@ export async function createRefundRequest(
       });
     }
 
-    // Sync to Firestore & Send notification
+    // Sync to Firestore
+    console.log(`[createRefundRequest] Starting Firestore sync for order ${payload.order_id}`);
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(payload.order_id);
 
-    const triggerPromise = refundRef.set({
-      refundId: refund.id,
-      orderId: payload.order_id,
-      shopOwnerUserId: order.shop.owner.user_id,
-      customerUserId: order.customer.user_id,
-      status: "PENDING",
-      amount: refundAmount,
-      reason: payload.reason,
-      disbursementMode: payload.disbursement_mode,
-      requestedAt: FieldValue.serverTimestamp(),
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-    });
+    try {
+      await Promise.all([
+        refundRef.set({
+          refundId: refund.id,
+          orderId: payload.order_id,
+          shopOwnerUserId: order.shop.owner.user_id,
+          customerUserId: order.customer.user_id,
+          status: "PENDING",
+          amount: refundAmount,
+          reason: payload.reason,
+          disbursementMode: payload.disbursement_mode,
+          requestedAt: FieldValue.serverTimestamp(),
+          lastUpdatedAt: FieldValue.serverTimestamp(),
+        }),
+        orderRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        ),
+      ]);
+      console.log(`[createRefundRequest] Firestore sync successful for refund ${refund.id}`);
+    } catch (firestoreError) {
+      console.error(`[createRefundRequest] Firestore sync FAILED for refund ${refund.id}:`, firestoreError);
+    }
 
-    const orderTriggerPromise = orderRef.set(
-      {
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    // Schedule reminder job 12 hours after refund is created
-    await refundQueue.add(
+    // Schedule reminder job 12 hours after refund is created (non-blocking)
+    refundQueue.add(
       "notify-pending-refund",
       { refundId: refund.id },
       {
-        delay: 12 * 60 * 60 * 1000, // 12 hours in milliseconds
-        jobId: `refund-reminder-${refund.id}`, // Unique jobId to avoid duplicates
+        delay: 12 * 60 * 60 * 1000,
+        jobId: `refund-reminder-${refund.id}`,
         removeOnComplete: true,
         removeOnFail: false,
       },
-    );
+    ).catch((err: any) => console.error(`[createRefundRequest] Queue add FAILED for refund ${refund.id}:`, err));
 
-    // Send notification to shop owner
-    const notificationRef = adminDb.collection("notifications");
+    // Send notification to shop owner (asynchronously)
     const notificationData = {
       recipientId: order.shop.owner.user_id,
       type: "REFUND",
@@ -237,13 +243,11 @@ export async function createRefundRequest(
       },
     };
 
-    const notificationPromise = notificationRef.add(notificationData);
-
-    await Promise.all([
-      triggerPromise,
-      orderTriggerPromise,
-      notificationPromise,
-    ]);
+    const notificationRef = adminDb.collection("notifications");
+    notificationRef
+      .add(notificationData)
+      .then(() => console.log(`[createRefundRequest] Notification sent for refund ${refund.id}`))
+      .catch((err: any) => console.error(`[createRefundRequest] Notification FAILED for refund ${refund.id}:`, err));
 
     revalidateRefundPaths(order.id);
 
@@ -361,28 +365,37 @@ export async function updateRefundStatus(
           : { amount: refund.amount },
     };
 
-    const notificationPromise = notificationRef.add(notificationData);
-
+    // Sync to Firestore
+    console.log(`[updateRefundStatus] Starting Firestore sync for refund ${refund.id}`);
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
-    const triggerPromise = refundRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-      status: payload.status,
-    });
+    try {
+      await Promise.all([
+        refundRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+            status: payload.status,
+          },
+          { merge: true },
+        ),
+        orderRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        ),
+      ]);
+      console.log(`[updateRefundStatus] Firestore status sync successful for refund ${refund.id}`);
+    } catch (firestoreError) {
+      console.error(`[updateRefundStatus] Firestore status sync FAILED for refund ${refund.id}:`, firestoreError);
+    }
 
-    const orderTriggerPromise = orderRef.set(
-      {
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    await Promise.all([
-      notificationPromise,
-      triggerPromise,
-      orderTriggerPromise,
-    ]);
+    // Send notification to customer (asynchronously)
+    notificationRef
+      .add(notificationData)
+      .then(() => console.log(`[updateRefundStatus] Notification sent for refund ${refund.id}`))
+      .catch((err) => console.error(`[updateRefundStatus] Notification FAILED for refund ${refund.id}:`, err));
 
     revalidateRefundPaths(refund.order_id);
 
@@ -501,29 +514,42 @@ export async function processRefund(
       ],
     };
 
-    const notificationPromise = notificationRef.add(notificationData);
-
+    // Sync to Firestore
+    console.log(`[processRefund] Starting Firestore sync for refund ${refund.id}`);
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
-    const triggerPromise = refundRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-      status: "PROCESSED",
-    });
+    try {
+      // Prioritaskan update status agar UI sinkron
+      await Promise.all([
+        refundRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+            status: "PROCESSED",
+          },
+          { merge: true },
+        ),
+        orderRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        ),
+      ]);
+      console.log(`[processRefund] Firestore status sync successful for refund ${refund.id}`);
+    } catch (syncError) {
+      console.error(`[processRefund] Firestore status sync FAILED for refund ${refund.id}:`, syncError);
+      // Tetap lanjutkan ke notifikasi meskipun sync status gagal (Prisma sudah sukses)
+    }
 
-    const orderTriggerPromise = orderRef.set(
-      {
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+    // Send notification to customer (asynchronously, don't let it block too long if it's slow)
+    notificationRef
+      .add(notificationData)
+      .then(() => console.log(`[processRefund] Notification sent for refund ${refund.id}`))
+      .catch((err) => console.error(`[processRefund] Notification FAILED for refund ${refund.id}:`, err));
 
-    await Promise.all([
-      notificationPromise,
-      triggerPromise,
-      orderTriggerPromise,
-    ]);
-
+    // Wait for notification with a reasonable timeout or just proceed
+    // Di sini kita biarkan saja notificationPromise jalan, tapi kita revalidate path sekarang
     revalidateRefundPaths(refund.order_id);
 
     return successResponse(undefined, "Refund berhasil diproses");
@@ -619,23 +645,31 @@ export async function cancelRefund(
 
     // const notificationPromise = notificationRef.add(notificationData);
 
+    // Sync to Firestore
+    console.log(`[cancelRefund] Starting Firestore sync for refund ${refund.id}`);
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
-    const triggerPromise = refundRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-      status: "CANCELLED",
-    });
-
-    const orderTriggerPromise = orderRef.set(
-      {
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    // await Promise.all([notificationPromise, triggerPromise]);
-    await Promise.all([triggerPromise, orderTriggerPromise]);
+    try {
+      await Promise.all([
+        refundRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+            status: "CANCELLED",
+          },
+          { merge: true },
+        ),
+        orderRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        ),
+      ]);
+      console.log(`[cancelRefund] Firestore sync successful for refund ${refund.id}`);
+    } catch (firestoreError) {
+      console.error(`[cancelRefund] Firestore sync FAILED for refund ${refund.id}:`, firestoreError);
+    }
 
     revalidateRefundPaths(refund.order_id);
 
@@ -738,28 +772,37 @@ export async function escalateRefund(
       createdAt: FieldValue.serverTimestamp(),
     };
 
-    const notificationPromise = await notificationRef.add(notificationData);
-
+    // Sync to Firestore
+    console.log(`[escalateRefund] Starting Firestore sync for refund ${refund.id}`);
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
-    const triggerPromise = refundRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-      status: "ESCALATED",
-    });
+    try {
+      await Promise.all([
+        refundRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+            status: "ESCALATED",
+          },
+          { merge: true },
+        ),
+        orderRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        ),
+      ]);
+      console.log(`[escalateRefund] Firestore sync successful for refund ${refund.id}`);
+    } catch (firestoreError) {
+      console.error(`[escalateRefund] Firestore sync FAILED for refund ${refund.id}:`, firestoreError);
+    }
 
-    const orderTriggerPromise = orderRef.set(
-      {
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    await Promise.all([
-      notificationPromise,
-      triggerPromise,
-      orderTriggerPromise,
-    ]);
+    // Send notification (asynchronously)
+    notificationRef
+      .add(notificationData)
+      .then(() => console.log(`[escalateRefund] Notification sent for refund ${refund.id}`))
+      .catch((err) => console.error(`[escalateRefund] Notification FAILED for refund ${refund.id}:`, err));
 
     revalidateRefundPaths(refund.order_id);
 
@@ -918,41 +961,31 @@ export async function completeRefund(
       }
     });
 
-    // Send notification to shop owner
-    // const notificationRef = adminDb.collection("notifications");
-    // const notificationData = {
-    //   recipientId: refund.order.shop.owner.user_id,
-    //   type: "REFUND",
-    //   subType: "COMPLETED",
-    //   title: "Refund Selesai",
-    //   body: `Customer telah mengonfirmasi penerimaan dana refund untuk pesanan #${refund.order.id.substring(
-    //     0,
-    //     8,
-    //   )}`,
-    //   isRead: false,
-    //   intent: "SUCCESS",
-    //   resourcePath: `/dashboard-kedai/order/${refund.order_id}`,
-    //   createdAt: FieldValue.serverTimestamp(),
-    // };
-
-    // const notificationPromise = await notificationRef.add(notificationData);
-
+    // Sync to Firestore
+    console.log(`[completeRefund] Starting Firestore sync for refund ${refund.id}`);
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
-    const triggerPromise = refundRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-      status: "COMPLETED",
-    });
-
-    const orderTriggerPromise = orderRef.set(
-      {
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-
-    await Promise.all([triggerPromise, orderTriggerPromise]);
+    try {
+      await Promise.all([
+        refundRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+            status: "COMPLETED",
+          },
+          { merge: true },
+        ),
+        orderRef.set(
+          {
+            lastUpdatedAt: FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        ),
+      ]);
+      console.log(`[completeRefund] Firestore sync successful for refund ${refund.id}`);
+    } catch (firestoreError) {
+      console.error(`[completeRefund] Firestore sync FAILED for refund ${refund.id}:`, firestoreError);
+    }
 
     revalidateRefundPaths(refund.order_id);
 

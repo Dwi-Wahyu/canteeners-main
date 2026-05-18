@@ -10,7 +10,6 @@ import {
 /**
  * Task 3 & 5: Logic Implementation for Granular Event
  * This function handles the atomic increment of usage and creation of EventUsage.
- * It also implements the 50% probability distribution logic.
  */
 export async function processEventParticipation(
   userId: string,

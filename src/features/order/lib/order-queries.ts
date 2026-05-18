@@ -398,9 +398,17 @@ export async function getOrderAndPaymentMethod(order_id: string) {
       confirmed_at: true,
       payment_method: true,
       payment_proof_url: true,
+      rejected_reason: true,
       total_price: true,
+      payment_histories: {
+        orderBy: {
+          created_at: "desc",
+        },
+      },
       shop: {
         select: {
+          name: true,
+          image_url: true,
           payments: {
             select: {
               method: true,
