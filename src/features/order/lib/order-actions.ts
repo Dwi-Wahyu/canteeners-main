@@ -644,7 +644,7 @@ export async function cancelOrder({
     const isShopCancellation = cancelled_by_id === updated.shop.owner?.user_id;
 
     if (order_status === "PROCESSING") {
-      await prisma.refund.create({
+      const refund = await prisma.refund.create({
         data: {
           amount: updated.total_price,
           order_id: order_id,
@@ -654,6 +654,20 @@ export async function cancelOrder({
           status: "APPROVED",
           description: cancelled_reason,
         },
+      });
+
+      const refundRef = adminDb.collection("refunds").doc(refund.id);
+      await refundRef.set({
+        refundId: refund.id,
+        orderId: order_id,
+        shopOwnerUserId: updated.shop.owner?.user_id || "",
+        customerUserId: updated.customer.user_id,
+        status: "APPROVED",
+        amount: updated.total_price,
+        reason: isShopCancellation ? "SHOP_CANCELLATION" : "OTHER",
+        disbursementMode: disbursement_mode || updated.shop.refund_disbursement_mode,
+        requestedAt: FieldValue.serverTimestamp(),
+        lastUpdatedAt: FieldValue.serverTimestamp(),
       });
     }
 
@@ -679,19 +693,18 @@ export async function cancelOrder({
 
       await notificationRef.add(notificationData);
     } else {
-      const notificationData = {
-        recipientId: updated.customer.user_id,
-        type: "ORDER",
-        subType: "CANCELLED",
-        title: `Kedai Membatalkan Order`,
-        body: `Lihat Alasan Membatalkan Order`,
-        isRead: false,
-        intent: "ERROR",
-        resourcePath: isShopCancellation ? "/" : `/order/${order_id}`,
-        createdAt: FieldValue.serverTimestamp(),
-      };
-
-      await notificationRef.add(notificationData);
+      // const notificationData = {
+      //   recipientId: updated.customer.user_id,
+      //   type: "ORDER",
+      //   subType: "CANCELLED",
+      //   title: `Kedai Membatalkan Order`,
+      //   body: `Lihat Alasan Membatalkan Order`,
+      //   isRead: false,
+      //   intent: "ERROR",
+      //   resourcePath: `/order/${order_id}`,
+      //   createdAt: FieldValue.serverTimestamp(),
+      // };
+      // await notificationRef.add(notificationData);
     }
 
     // Hapus doc order dari tracking aktif

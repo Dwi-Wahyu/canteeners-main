@@ -86,7 +86,6 @@ export default function CustomerOrderDetailClient({
     if (prevStatusRef.current !== "CANCELLED" && order.status === "CANCELLED") {
       const isShopCancellation =
         order.cancelled_by_id === order.shop.owner?.user_id;
-
       if (isShopCancellation) {
         showNotification({
           title: "Pesanan Dibatalkan Kedai",
@@ -100,7 +99,7 @@ export default function CustomerOrderDetailClient({
                 className="w-full"
                 onClick={() => hideNotification()}
               >
-                <Link href="/">Lihat Detail</Link>
+                <Link href={`/order/${order.id}`}>Lihat Detail</Link>
               </Button>
             </div>
           ),

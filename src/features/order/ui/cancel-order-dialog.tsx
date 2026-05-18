@@ -17,7 +17,13 @@ import { Textarea } from "@/components/ui/textarea";
 
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
-import { Loader, AlertTriangle, XCircle, Banknote, CreditCard } from "lucide-react";
+import {
+  Loader,
+  AlertTriangle,
+  XCircle,
+  Banknote,
+  CreditCard,
+} from "lucide-react";
 import { cancelOrder } from "../lib/order-actions";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -42,7 +48,8 @@ export default function CancelOrderDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const [disbursementMode, setDisbursementMode] = useState<RefundDisbursementMode>(defaultDisbursementMode);
+  const [disbursementMode, setDisbursementMode] =
+    useState<RefundDisbursementMode>(defaultDisbursementMode);
   const [isPending, startTransition] = useTransition();
 
   const isProcessing = order_status === "PROCESSING";
@@ -62,7 +69,8 @@ export default function CancelOrderDialog({
         cancelled_by_id: user_id,
         cancelled_reason: reason,
         order_status,
-        disbursement_mode: isOwner && isProcessing ? disbursementMode : undefined,
+        disbursement_mode:
+          isOwner && isProcessing ? disbursementMode : undefined,
       });
 
       if (result.success) {
@@ -132,7 +140,7 @@ export default function CancelOrderDialog({
           className={cn(className)}
           disabled={isPending}
         >
-          {isProcessing ? <AlertTriangle size={18} /> : <XCircle size={18} />}
+          {/* {isProcessing ? <AlertTriangle size={18} /> : <XCircle size={18} />} */}
           {labels.trigger}
         </Button>
       </AlertDialogTrigger>
@@ -167,7 +175,9 @@ export default function CancelOrderDialog({
               <RadioGroup
                 disabled={isPending}
                 value={disbursementMode}
-                onValueChange={(v) => setDisbursementMode(v as RefundDisbursementMode)}
+                onValueChange={(v) =>
+                  setDisbursementMode(v as RefundDisbursementMode)
+                }
                 className="grid grid-cols-2 gap-3"
               >
                 <div>
@@ -213,19 +223,14 @@ export default function CancelOrderDialog({
             </div>
           )}
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex flex-col-reverse sm:flex-row gap-3 mt-6">
+        <AlertDialogFooter className="flex sm:flex-row gap-3 mt-6">
           <AlertDialogCancel asChild>
-            <Button
-              variant={"outline"}
-              className="w-full h-12 rounded-xl font-bold"
-              disabled={isPending}
-            >
+            <Button variant={"outline"} disabled={isPending}>
               Kembali
             </Button>
           </AlertDialogCancel>
           <Button
             variant={"destructive"}
-            className="w-full h-12 rounded-xl font-bold"
             onClick={handleConfirm}
             disabled={isPending || !reason.trim()}
           >
