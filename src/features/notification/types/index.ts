@@ -7,7 +7,11 @@ export type NotificationIntent =
   | "WARNING"
   | "ERROR";
 
-export type NotificationType = "ORDER" | "REFUND" | "COMPLAINT";
+export type NotificationType =
+  | "ORDER"
+  | "REFUND"
+  | "COMPLAINT"
+  | "SHOP_VIOLATION";
 
 export type NotificationButton = {
   label: string;
@@ -83,7 +87,16 @@ export interface ComplaintNotification extends NotificationBase {
   subType: ComplaintNotificationSubType;
 }
 
+// --- SHOP_VIOLATION ---
+export type ShopViolationNotificationSubType = "CREATED" | "SUSPENDED";
+
+export interface ShopViolationNotification extends NotificationBase {
+  type: "SHOP_VIOLATION";
+  subType: ShopViolationNotificationSubType;
+}
+
 export type AppNotification =
   | OrderNotification
   | RefundNotification
-  | ComplaintNotification;
+  | ComplaintNotification
+  | ShopViolationNotification;

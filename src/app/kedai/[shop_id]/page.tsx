@@ -6,7 +6,7 @@ import { getShopAndProducts } from "@/features/shop/lib/shop-queries";
 import { ShopProductsSearchParams } from "@/features/shop/types/shop-search-params";
 import { getImageUrl } from "@/helper/get-image-url";
 import { formatToHour } from "@/helper/hour-helper";
-import { ChevronLeft, ShoppingCart, Star } from "lucide-react";
+import { ChevronLeft, Star } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SearchParams } from "nuqs";
@@ -82,6 +82,11 @@ export default async function ShopDetail({
                   Sibuk
                 </span>
               )}
+              {shop.status === "SUSPENDED" && (
+                <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider animate-pulse">
+                  Dinonaktifkan
+                </span>
+              )}
             </div>
             <p className="text-muted text-sm mt-1">{shop.description}</p>
             {shop.open_time && shop.close_time && (
@@ -94,12 +99,42 @@ export default async function ShopDetail({
       </div>
 
       <div className="relative z-30 mt-[20vh] w-full bg-background min-h-screen shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
-        <div className="p-5">
-          <ShopDetailClient
-            shop={shop}
-            cartId={session?.user.cartId}
-            pendingShopCart={pendingShopCart}
-          />
+        <div className="p-5 flex flex-col gap-4">
+          {shop.status === "SUSPENDED" && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mt-2">
+              <h3 className="font-bold text-red-800 text-sm">
+                Kedai Saat Ini Tidak Tersedia
+              </h3>
+              <p className="text-xs text-red-700 mt-1">
+                {shop.suspended_reason ||
+                  "Kedai ini sedang dinonaktifkan oleh administrator dan tidak dapat menerima pesanan."}
+              </p>
+            </div>
+          )}
+
+          {shop.violations && shop.violations.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <h3 className="font-bold text-amber-800 text-sm flex items-center gap-2">
+                Peringatan Performa Kedai
+              </h3>
+              <p className="text-xs text-amber-700 mt-1">
+                Kedai ini memiliki catatan pelanggaran yang mungkin mempengaruhi
+                pengalaman pesanan Anda.
+              </p>
+            </div>
+          )}
+
+          {shop.status !== "SUSPENDED" ? (
+            <ShopDetailClient
+              shop={shop}
+              cartId={session?.user.cartId}
+              pendingShopCart={pendingShopCart}
+            />
+          ) : (
+            <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-xl">
+              Menu tidak tersedia saat kedai dinonaktifkan
+            </div>
+          )}
         </div>
       </div>
     </div>

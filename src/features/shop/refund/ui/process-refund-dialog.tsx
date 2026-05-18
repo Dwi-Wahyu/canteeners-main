@@ -317,7 +317,7 @@ export function ProcessRefundDialog({
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting && <Loader2 className="animate-spin" />}
-                  Konfirmasi Refund Selesai
+                  Proses
                 </Button>
               </DialogFooter>
             </form>

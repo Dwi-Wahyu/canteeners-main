@@ -8,6 +8,7 @@ import {
   MessageSquare,
   BookAlert,
   MessageCircle,
+  ShieldAlert,
 } from "lucide-react";
 import { NotificationIntent } from "@/features/notification/types";
 
@@ -16,6 +17,7 @@ export const notificationTypeIconMapping = {
   REFUND: <BookAlert className="h-4 w-4" />,
   COMPLAINT: <MessageSquare className="h-4 w-4" />,
   CHAT: <MessageCircle className="h-4 w-4" />,
+  SHOP_VIOLATION: <ShieldAlert className="h-4 w-4" />,
 };
 
 export const notificationIntentIconMapping = {

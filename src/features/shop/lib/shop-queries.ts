@@ -41,6 +41,7 @@ export async function getShopAndProducts(
       id: true,
       name: true,
       status: true,
+      suspended_reason: true,
       canteen: {
         select: {
           slug: true,
@@ -63,6 +64,15 @@ export async function getShopAndProducts(
       image_url: true,
       average_rating: true,
       total_ratings: true,
+      violations: {
+        orderBy: { created_at: "desc" },
+        take: 3,
+        select: {
+          id: true,
+          type: true,
+          created_at: true,
+        },
+      },
       products: {
         where: {
           name: { contains: productName, mode: "insensitive" },

@@ -9,6 +9,7 @@ import {
   ChevronRight,
   CreditCard,
   FileText,
+  Gavel,
   MessageCircleQuestionMark,
   MessageSquareDot,
   MessagesSquare,
@@ -73,6 +74,20 @@ export default async function OwnerSettingsPage() {
           </ItemMedia>
           <ItemContent>
             <ItemTitle>Notifikasi</ItemTitle>
+          </ItemContent>
+          <ItemActions>
+            <ChevronRight className="size-4" />
+          </ItemActions>
+        </Link>
+      </Item>
+
+      <Item variant="outline" size="sm" className="mb-4" asChild>
+        <Link href="/dashboard-kedai/pelanggaran">
+          <ItemMedia>
+            <Gavel className="size-5" />
+          </ItemMedia>
+          <ItemContent>
+            <ItemTitle>Pelanggaran Kedai</ItemTitle>
           </ItemContent>
           <ItemActions>
             <ChevronRight className="size-4" />

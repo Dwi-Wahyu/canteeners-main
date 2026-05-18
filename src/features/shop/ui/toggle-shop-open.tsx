@@ -66,31 +66,31 @@ export default function ToggleShopStatus({
     switch (s) {
       case "ACTIVE":
         return {
-          color: "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]",
-          label: "Status Kedai: Buka",
+          color: "text-green-500",
+          label: "Buka",
           desc: "Kedai sedang menerima pesanan",
         };
       case "BUSY":
         return {
-          color: "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]",
-          label: "Status Kedai: Sibuk",
+          color: "text-orange-500",
+          label: "Sibuk",
           desc: "Kedai sedang ramai, pesanan baru ditutup sementara",
         };
       case "INACTIVE":
         return {
-          color: "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]",
-          label: "Status Kedai: Tutup",
+          color: "text-gray-500",
+          label: "Tutup",
           desc: "Kedai sedang tidak menerima pesanan",
         };
       case "SUSPENDED":
         return {
-          color: "bg-black shadow-[0_0_8px_rgba(0,0,0,0.5)]",
-          label: "Status Kedai: Ditangguhkan",
-          desc: "Akun kedai sedang ditangguhkan oleh admin",
+          color: "text-red-500",
+          label: "Ditangguhkan",
+          desc: "Kedai sedang ditangguhkan oleh admin",
         };
       default:
         return {
-          color: "bg-gray-500",
+          color: "text-gray-500",
           label: "Status Kedai",
           desc: "Status tidak diketahui",
         };
@@ -106,12 +106,14 @@ export default function ToggleShopStatus({
           {/* Status Kedai */}
           <div className="flex flex-col gap-3">
             <div className="flex gap-3 items-center">
-              <div className={`w-3 h-3 rounded-full ${statusConfig.color}`} />
               <div>
-                <h1 className="text-sm font-semibold">{statusConfig.label}</h1>
-                <p className="text-xs text-muted-foreground">
+                <h1 className="font-medium">Status Kedai</h1>
+                <h1 className={`text-xl font-bold ${statusConfig.color}`}>
+                  {statusConfig.label}
+                </h1>
+                {/* <p className="text-sm text-muted-foreground">
                   {statusConfig.desc}
-                </p>
+                </p> */}
               </div>
             </div>
 
