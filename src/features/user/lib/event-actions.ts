@@ -65,9 +65,9 @@ export async function processEventParticipation(
         });
         finalSequenceNumber = updatedSlot.current_usage;
 
-        // Logic: Setiap 2 user baru (1, 2), user setelahnya (3) mendapatkan voucher
-        // Ini berarti user ke-3, ke-6, ke-9, dst. (sequence_number % 3 === 0)
-        isLucky = finalSequenceNumber % 3 === 0;
+        // Logic: Setiap 5 user baru (1, 2, 3, 4), user setelahnya (5) mendapatkan voucher
+        // Ini berarti user ke-5, ke-10, ke-15, dst. (sequence_number % 5 === 0)
+        isLucky = finalSequenceNumber % 5 === 0;
 
         if (isLucky) {
           // Find a special 'Event Reward' discount template
