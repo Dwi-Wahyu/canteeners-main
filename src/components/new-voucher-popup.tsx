@@ -101,7 +101,7 @@ export default function NewVoucherPopup() {
                       <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full border-r shadow-inner z-10" />
                       <div className="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full border-l shadow-inner z-10" />
 
-                      <div className="bg-gradient-to-r from-red-500 to-red-600 p-4 rounded-2xl flex items-center gap-4 text-white shadow-lg shadow-red-100 border border-red-400">
+                      <div className="bg-linear-to-r from-red-500 to-red-600 p-4 rounded-2xl flex items-center gap-4 text-white shadow-lg shadow-red-100 border border-red-400">
                         <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
                           <Ticket className="size-6 text-white" />
                         </div>
@@ -121,7 +121,8 @@ export default function NewVoucherPopup() {
                           {v.event_usage && (
                             <p className="text-[8px] font-bold text-white/90 mt-1 italic">
                               *Kamu adalah orang ke-
-                              {v.event_usage.sequence_number} yang beruntung!
+                              {Math.floor(v.event_usage.sequence_number / 5)} yang
+                              beruntung!
                             </p>
                           )}
                         </div>

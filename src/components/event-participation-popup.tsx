@@ -17,7 +17,6 @@ import {
   processEventParticipation,
 } from "@/features/user/lib/event-actions";
 import { toast } from "sonner";
-import { formatRupiah } from "@/helper/format-rupiah";
 
 export default function EventParticipationPopup() {
   const pathname = usePathname();
@@ -28,15 +27,12 @@ export default function EventParticipationPopup() {
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
-  // Triggered only on canteen detail page with QR params
+  // Triggered only on canteen detail page
   const isCanteenDetail =
     pathname.startsWith("/kantin/") && pathname.split("/").length === 3;
-  const floor = searchParams.get("floor");
-  const tableNumber = searchParams.get("table_number");
-  const hasQRParams = !!(floor && tableNumber);
 
   useEffect(() => {
-    if (!hasQRParams || !isCanteenDetail) return;
+    if (!isCanteenDetail) return;
 
     const checkEvent = async () => {
       const res = await getActiveEventSlot(session?.user?.id);
@@ -47,7 +43,7 @@ export default function EventParticipationPopup() {
     };
 
     checkEvent();
-  }, [pathname, searchParams, session, hasQRParams, isCanteenDetail]);
+  }, [pathname, session, isCanteenDetail]);
 
   // Countdown timer
   useEffect(() => {
