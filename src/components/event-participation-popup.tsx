@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Gift, Timer, Users, Ticket } from "lucide-react";
+import { Gift, Timer, Users } from "lucide-react";
 import {
   getActiveEventSlot,
   processEventParticipation,
@@ -20,10 +20,10 @@ import { toast } from "sonner";
 
 export default function EventParticipationPopup() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [slotInfo, setSlotInfo] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [hasDismissed, setHasDismissed] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
@@ -32,18 +32,22 @@ export default function EventParticipationPopup() {
     pathname.startsWith("/kantin/") && pathname.split("/").length === 3;
 
   useEffect(() => {
-    if (!isCanteenDetail) return;
+    if (!isCanteenDetail || status === "loading" || hasDismissed) return;
 
     const checkEvent = async () => {
       const res = await getActiveEventSlot(session?.user?.id);
-      if (res.success && res.data && !res.data.hasParticipated) {
-        setSlotInfo(res.data.slot);
-        setIsOpen(true);
+      if (res.success && res.data) {
+        if (!res.data.hasParticipated) {
+          setSlotInfo(res.data.slot);
+          setIsOpen(true);
+        } else {
+          setIsOpen(false);
+        }
       }
     };
 
     checkEvent();
-  }, [pathname, session, isCanteenDetail]);
+  }, [pathname, session, status, isCanteenDetail, hasDismissed]);
 
   // Countdown timer
   useEffect(() => {
@@ -91,7 +95,13 @@ export default function EventParticipationPopup() {
   const remainingSlots = slotInfo.quota - slotInfo.current_usage;
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) setHasDismissed(true);
+      }}
+    >
       <DialogContent className="sm:max-w-md border-none p-0 overflow-hidden bg-transparent shadow-none">
         <div className="relative p-6 bg-white rounded-3xl overflow-hidden">
           {/* Background decoration */}
@@ -148,7 +158,7 @@ export default function EventParticipationPopup() {
               <Button
                 onClick={handleJoin}
                 disabled={isPending || remainingSlots <= 0}
-                className="h-12"
+                className="h-11"
               >
                 {isPending
                   ? "Memproses..."
@@ -158,7 +168,7 @@ export default function EventParticipationPopup() {
               </Button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-gray-400 text-sm font-bold hover:text-gray-600 transition-colors"
+                className="text-muted-foreground text-sm transition-colors"
               >
                 Gunakan mode tamu
               </button>
