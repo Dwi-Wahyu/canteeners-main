@@ -17,9 +17,11 @@ import {
   processEventParticipation,
 } from "@/features/user/lib/event-actions";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function EventParticipationPopup() {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session, status } = useSession();
   const [slotInfo, setSlotInfo] = useState<any>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -75,18 +77,15 @@ export default function EventParticipationPopup() {
 
   const handleJoin = () => {
     if (!session) {
-      toast.error("Silakan login terlebih dahulu untuk mengikuti event ini.");
+      router.push("/");
+      setIsOpen(false);
       return;
     }
 
     startTransition(async () => {
-      const res = await processEventParticipation(session.user.id);
-      if (res.success) {
-        toast.success(res.message);
-        setIsOpen(false);
-      } else {
-        toast.error(res.error.message);
-      }
+      await processEventParticipation(session.user.id);
+      setIsOpen(false);
+      setHasDismissed(true);
     });
   };
 
@@ -157,14 +156,12 @@ export default function EventParticipationPopup() {
             <div className="mt-8 w-full flex flex-col gap-3">
               <Button
                 onClick={handleJoin}
-                disabled={isPending || remainingSlots <= 0}
+                disabled={remainingSlots <= 0}
                 className="h-11"
               >
-                {isPending
-                  ? "Memproses..."
-                  : remainingSlots > 0
-                    ? "Mendaftar dan Dapatkan Diskon"
-                    : "Kuota Habis"}
+                {remainingSlots > 0
+                  ? "Mendaftar dan Dapatkan Diskon"
+                  : "Kuota Habis"}
               </Button>
               <button
                 onClick={() => setIsOpen(false)}
