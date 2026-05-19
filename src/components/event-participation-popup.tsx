@@ -82,18 +82,20 @@ export default function EventParticipationPopup() {
   }, [slotInfo, isOpen]);
 
   const handleJoin = () => {
-    // Check if not logged in or still a guest (username is empty for guests)
-    if (!session || !session.user?.username) {
-      router.push("/login-pelanggan");
-      setIsOpen(false);
-      return;
-    }
+    router.push("/login-pelanggan");
 
-    startTransition(async () => {
-      await processEventParticipation(session.user.id);
-      setIsOpen(false);
-      setHasDismissed(true);
-    });
+    // Check if not logged in or still a guest (username is empty for guests)
+    // if (!session || !session.user?.username) {
+    //   router.push("/login-pelanggan");
+    //   setIsOpen(false);
+    //   return;
+    // }
+
+    // startTransition(async () => {
+    //   await processEventParticipation(session.user.id);
+    //   setIsOpen(false);
+    //   setHasDismissed(true);
+    // });
   };
 
   if (!slotInfo) return null;

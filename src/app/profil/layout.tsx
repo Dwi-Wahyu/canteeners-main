@@ -8,9 +8,9 @@ export default async function Layout({
 }) {
   const session = await auth();
 
-  if (!session) {
-    redirect("/login-pelanggan");
-  }
+  // if (!session) {
+  //   redirect("/login-pelanggan");
+  // }
 
   // if (session.user.role !== "CUSTOMER") {
   //   redirect("/");

@@ -161,7 +161,7 @@ export default function CustomerProfilePage() {
                 Anda sedang dalam mode tamu
               </p>
             )}
-            <p className="text-sm text-muted-foreground mb-8 max-w-[250px]">
+            <p className="text-sm text-muted-foreground mb-8 max-w-62.5">
               {isSuspended
                 ? "Akun Anda sedang ditangguhkan. Silakan cek detail pelanggaran Anda."
                 : "Masuk untuk menikmati fitur lengkap, kelola pesanan, dan dapatkan promo menarik."}
