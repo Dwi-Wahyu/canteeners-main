@@ -34,7 +34,13 @@ export default function EventParticipationPopup() {
     pathname.startsWith("/kantin/") && pathname.split("/").length === 3;
 
   useEffect(() => {
-    if (!isCanteenDetail || status === "loading" || hasDismissed) return;
+    if (
+      !isCanteenDetail ||
+      status === "loading" ||
+      hasDismissed ||
+      (session && session.user.name === "Tamu")
+    )
+      return;
 
     const checkEvent = async () => {
       const res = await getActiveEventSlot(session?.user?.id);
@@ -76,8 +82,9 @@ export default function EventParticipationPopup() {
   }, [slotInfo, isOpen]);
 
   const handleJoin = () => {
-    if (!session) {
-      router.push("/");
+    // Check if not logged in or still a guest (username is empty for guests)
+    if (!session || !session.user?.username) {
+      router.push("/login-pelanggan");
       setIsOpen(false);
       return;
     }
