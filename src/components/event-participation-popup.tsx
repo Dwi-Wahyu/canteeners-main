@@ -12,11 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Gift, Timer, Users } from "lucide-react";
-import {
-  getActiveEventSlot,
-  processEventParticipation,
-} from "@/features/user/lib/event-actions";
-import { toast } from "sonner";
+import { getActiveEventSlot } from "@/features/user/lib/event-actions";
 import { useRouter } from "next/navigation";
 
 export default function EventParticipationPopup() {
@@ -164,7 +160,7 @@ export default function EventParticipationPopup() {
 
             <div className="mt-8 w-full flex flex-col gap-3">
               <Button
-                onClick={handleJoin}
+                onClick={() => router.push("/login-pelanggan")}
                 disabled={remainingSlots <= 0}
                 className="h-11"
               >
