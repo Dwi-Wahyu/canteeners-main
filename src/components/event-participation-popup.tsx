@@ -160,7 +160,10 @@ export default function EventParticipationPopup() {
 
             <div className="mt-8 w-full flex flex-col gap-3">
               <Button
-                onClick={() => router.push("/login-pelanggan")}
+                onClick={() => {
+                  setIsOpen(false);
+                  router.push("/login-pelanggan");
+                }}
                 disabled={remainingSlots <= 0}
                 className="h-11"
               >
