@@ -6,6 +6,8 @@ import {
   orderBy,
   query,
   where,
+  writeBatch,
+  doc,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { AppNotification } from "../types";
@@ -13,7 +15,7 @@ import { db } from "@/lib/firebase/client";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, ShoppingCart, RefreshCcw, AlertCircle } from "lucide-react";
+import { Bell, ShoppingCart, RefreshCcw, AlertCircle, CheckCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 import { getAuth, onAuthStateChanged, User } from "firebase/auth";
@@ -21,6 +23,7 @@ import { getUserReports } from "@/features/user/lib/user-queries";
 import { GetUserReportsType } from "@/features/user/types/user-queries-types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Gavel, Clock, CheckCircle2, XCircle, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function NotificationList() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -28,6 +31,7 @@ export default function NotificationList() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingReports, setIsLoadingReports] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMarkingRead, setIsMarkingRead] = useState(false);
 
   const [user, setUser] = useState<User | null>(null);
 
@@ -82,6 +86,28 @@ export default function NotificationList() {
 
     return () => unsubscribe();
   }, [user]);
+
+  const markAllAsRead = async () => {
+    if (!user || notifications.length === 0) return;
+
+    const unreadNotifications = notifications.filter((n) => !n.isRead);
+    if (unreadNotifications.length === 0) return;
+
+    setIsMarkingRead(true);
+    const batch = writeBatch(db);
+    unreadNotifications.forEach((n) => {
+      const notificationRef = doc(db, "notifications", n.id);
+      batch.update(notificationRef, { isRead: true });
+    });
+
+    try {
+      await batch.commit();
+    } catch (err) {
+      console.error("Error marking all notifications as read:", err);
+    } finally {
+      setIsMarkingRead(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -162,6 +188,8 @@ export default function NotificationList() {
     );
   }
 
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
   return (
     <Tabs defaultValue="notifications" className="w-full">
       <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -170,6 +198,20 @@ export default function NotificationList() {
       </TabsList>
 
       <TabsContent value="notifications" className="space-y-3">
+        {unreadCount > 0 && (
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-primary h-8 gap-1"
+              onClick={markAllAsRead}
+              disabled={isMarkingRead}
+            >
+              <CheckCircle className="w-3 h-3" />
+              Tandai semua dibaca
+            </Button>
+          </div>
+        )}
         {error ? (
           <Card className="border-destructive">
             <CardContent>
@@ -203,7 +245,7 @@ export default function NotificationList() {
               >
                 <Card
                   className={`hover:bg-muted/50 transition-colors ${
-                    !notification.isRead ? "border-l-4 border-l-primary" : ""
+                    !notification.isRead ? "border-l-4 border-l-primary bg-primary/5" : ""
                   }`}
                 >
                   <CardContent className="flex items-start gap-4">

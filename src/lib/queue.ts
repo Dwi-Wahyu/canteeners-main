@@ -9,11 +9,24 @@ const redisConnection = {
 // Flag to detect if Redis is available
 const isRedisAvailable = process.env.SKIP_REDIS !== "true";
 
+if (!isRedisAvailable && process.env.NODE_ENV === "production") {
+  console.error(
+    "[Queue] CRITICAL: SKIP_REDIS=true di environment production. " +
+      "Order dan refund queue tidak akan berfungsi!",
+  );
+}
+
 // In-memory fallback queue for build-time
 class FallbackQueue {
   private jobs: Map<string, any[]> = new Map();
 
   async add(name: string, data: any, opts?: any) {
+    // WARNING: FallbackQueue aktif — job TIDAK akan diproses
+    console.error(
+      `[FallbackQueue] WARNING: Job "${name}" ditambahkan ke in-memory fallback queue. ` +
+        `Job ini TIDAK akan diproses. Pastikan Redis tersedia dan SKIP_REDIS tidak di-set di production.`,
+      { data, opts },
+    );
     if (!this.jobs.has(name)) {
       this.jobs.set(name, []);
     }

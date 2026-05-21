@@ -92,11 +92,11 @@ export default function OwnerBottomBar() {
                 {unreadChatCount > 99 ? "99+" : unreadChatCount}
               </span>
             )}
-            {/* {isHome && unreadNotificationCount > 0 && (
+            {item.label === "Beranda" && unreadNotificationCount > 0 && (
               <span className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm">
                 {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
               </span>
-            )} */}
+            )}
           </Link>
         );
       })}

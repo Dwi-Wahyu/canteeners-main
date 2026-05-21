@@ -10,6 +10,7 @@ import { adminAuth } from "@/lib/firebase/admin";
 import GoogleProvider from "next-auth/providers/google";
 import { processEventParticipation } from "@/features/user/lib/event-actions";
 import { cookies } from "next/headers";
+import { syncUserNameInFirestore } from "@/lib/firebase/sync-user-name";
 
 async function getFirebaseToken({
   uid,
@@ -183,7 +184,7 @@ export const authConfig: NextAuthConfig = {
           },
         });
 
-        console.log(user);
+        // console.log(user);
 
         if (!user) return null;
 
@@ -289,6 +290,12 @@ export const authConfig: NextAuthConfig = {
               }
 
               cookieStore.delete("guestId");
+              try {
+                await syncUserNameInFirestore(guestId, user.name as string);
+              } catch (error) {
+                // Non-fatal: Prisma sudah terupdate, Firestore sync bisa retry manual
+                console.error("Failed to sync user name to Firestore (CASE 1):", error);
+              }
               return true;
             } else {
               // CASE 2: Existing user, merge guest data into existing account
@@ -351,6 +358,13 @@ export const authConfig: NextAuthConfig = {
                     where: { id: guestId },
                   });
                 });
+              }
+
+              try {
+                // userId yang dipakai di Firestore adalah existingUser.id (bukan guestId yang sudah didelete)
+                await syncUserNameInFirestore(existingUser.id, user.name as string);
+              } catch (error) {
+                console.error("Failed to sync user name to Firestore (CASE 2):", error);
               }
 
               cookieStore.delete("guestId");
@@ -473,8 +487,10 @@ export const authConfig: NextAuthConfig = {
               displayName: dbUser.name,
               photoURL: dbUser.avatar,
             });
-            token.firebaseToken = firebaseToken;
-            token.firebaseTokenCreatedAt = Math.floor(Date.now() / 1000);
+            if (firebaseToken) {
+              token.firebaseToken = firebaseToken;
+              token.firebaseTokenCreatedAt = Math.floor(Date.now() / 1000);
+            }
           }
         }
       }
