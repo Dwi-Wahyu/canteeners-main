@@ -28,6 +28,8 @@ jobs:
           push: true
           target: runner
           tags: ghcr.io/dwi-wahyu/canteeners-main:staging
+          cache-from: type=registry,ref=ghcr.io/dwi-wahyu/canteeners-main:cache-staging
+          cache-to: type=registry,ref=ghcr.io/dwi-wahyu/canteeners-main:cache-staging,mode=max
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
@@ -45,6 +47,8 @@ jobs:
           push: true
           target: migrator
           tags: ghcr.io/dwi-wahyu/canteeners-migrator:staging
+          cache-from: type=registry,ref=ghcr.io/dwi-wahyu/canteeners-migrator:cache-staging
+          cache-to: type=registry,ref=ghcr.io/dwi-wahyu/canteeners-migrator:cache-staging,mode=max
           build-args: |
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
