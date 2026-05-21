@@ -488,6 +488,16 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
           },
         },
       },
+      shop: {
+        select: {
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
+          refund_disbursement_mode: true,
+        },
+      },
       order_items: {
         select: {
           quantity: true,

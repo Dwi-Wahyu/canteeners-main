@@ -14,6 +14,7 @@ import { GetProductById } from "../types/product-queries-types";
 import { getImageUrl } from "@/helper/get-image-url";
 import { addToCart } from "@/features/cart/lib/cart-actions";
 import { createGuestSession } from "@/helper/create-guest-session";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { useRouter } from "next/navigation";
 
@@ -29,11 +30,22 @@ export default function GuestProductDetail({
   const router = useRouter();
   // Gunakan State atau Ref untuk menyimpan cartId yang mungkin berubah dan butuh nilainya instan tanpa menunggu re-render untuk logika,
   // tapi useState juga oke jika ingin memicu UI update.
-  const activeCartId = useRef(initialCartId);
+  const queryClient = useQueryClient();
+
+  const getInitialCartId = () => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("activeCartId");
+      if (saved) return saved;
+    }
+    return initialCartId;
+  };
+  const activeCartId = useRef(getInitialCartId());
 
   // Update ref jika prop berubah (misal setelah refresh halaman)
   useEffect(() => {
-    activeCartId.current = initialCartId;
+    if (initialCartId) {
+      activeCartId.current = initialCartId;
+    }
   }, [initialCartId]);
 
   const [quantity, setQuantity] = useState(1);
@@ -110,42 +122,160 @@ export default function GuestProductDetail({
   async function handleAddToCart() {
     if (!validateOptions()) return;
 
-    setIsLoading(true);
+    const allSelectedValueIds = Object.values(selectedOptions).flat();
+    const originalCartId = activeCartId.current;
+    const targetCartId = originalCartId || "temp-guest-cart";
 
-    if (!activeCartId.current) {
-      const { cartId: createdCartId } = await createGuestSession({
-        name: "",
-      });
+    // Perform optimistic update
+    const previousCart = queryClient.getQueryData(["cart", targetCartId]);
 
-      if (!createdCartId) {
-        toast.error("Gagal membuat sesi tamu, silakan coba lagi");
-        setIsLoading(false);
-        return;
-      }
+    const newCart: any = previousCart
+      ? JSON.parse(JSON.stringify(previousCart))
+      : { id: targetCartId, shop_carts: [] };
 
-      // Simpan ke Ref agar klik berikutnya menggunakan ID ini
-      activeCartId.current = createdCartId;
+    let shopCart = newCart.shop_carts.find(
+      (sc: any) => sc.shop.id === data.shop_id,
+    );
+    if (!shopCart) {
+      shopCart = {
+        id: "temp-shop-cart-" + Math.random().toString(),
+        created_at: new Date().toISOString(),
+        total_price: 0,
+        shop: {
+          id: data.shop_id,
+          name: "Kedai",
+        },
+        _count: {
+          items: 0,
+        },
+        items: [],
+      };
+      newCart.shop_carts.push(shopCart);
     }
 
-    const allSelectedValueIds = Object.values(selectedOptions).flat();
-
-    const result = await addToCart({
-      cartId: activeCartId.current,
-      shopId: data.shop_id,
-      productId: data.id,
-      quantity,
-      selected_option_value_ids: allSelectedValueIds,
+    const selectedOptionsList: any[] = [];
+    let totalOptionsPrice = 0;
+    allSelectedValueIds.forEach((valId) => {
+      data.options?.forEach((opt: any) => {
+        const foundVal = opt.values?.find((v: any) => v.id === valId);
+        if (foundVal) {
+          selectedOptionsList.push({
+            value: foundVal.value,
+            product_option: {
+              option: opt.option,
+            },
+          });
+          totalOptionsPrice += foundVal.additional_price || 0;
+        }
+      });
     });
 
-    if (result.success) {
-      // toast.success("Berhasil ditambahkan ke keranjang");
-      router.push(backUrl);
-      router.refresh();
-    } else {
-      toast.error("Gagal menambahkan ke keranjang");
+    const newItem = {
+      id: "temp-cart-item-" + Math.random().toString(),
+      quantity,
+      subtotal: 0,
+      product: {
+        id: data.id,
+        name: data.name,
+        image_url: data.image_url,
+        is_available: true,
+      },
+      selected_options: selectedOptionsList,
+      _isNew: true,
+      _basePriceSum: (data.price + totalOptionsPrice) * quantity,
+    };
+    shopCart.items.push(newItem);
+
+    const totalCartQty = shopCart.items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    const prevTotalCartQty = totalCartQty - quantity;
+
+    const prevCommissionPerUnit = prevTotalCartQty > 2 ? 500 : 1000;
+    const newCommissionPerUnit = totalCartQty > 2 ? 500 : 1000;
+
+    let newTotalPrice = 0;
+    shopCart.items.forEach((item: any) => {
+      let basePriceSum = 0;
+      if (item._isNew) {
+        basePriceSum = item._basePriceSum;
+      } else {
+        const prevItemCommission = item.quantity * prevCommissionPerUnit;
+        basePriceSum = item.subtotal - prevItemCommission;
+      }
+      item.subtotal = basePriceSum + (item.quantity * newCommissionPerUnit);
+      newTotalPrice += item.subtotal;
+    });
+
+    shopCart.total_price = newTotalPrice;
+    shopCart._count.items = shopCart.items.length;
+
+    queryClient.setQueryData(["cart", targetCartId], newCart);
+
+    if (!originalCartId) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("activeCartId", "temp-guest-cart");
+      }
     }
 
-    setIsLoading(false);
+    setIsLoading(true);
+
+    try {
+      let cartId = originalCartId;
+      if (!cartId) {
+        const { cartId: createdCartId } = await createGuestSession({
+          name: "",
+        });
+        if (!createdCartId) {
+          throw new Error("Gagal membuat sesi tamu, silakan coba lagi");
+        }
+        cartId = createdCartId;
+        activeCartId.current = cartId;
+
+        // Copy cache from temp-guest-cart to real cartId
+        const tempCartData = queryClient.getQueryData(["cart", "temp-guest-cart"]);
+        if (tempCartData) {
+          const realCartData = {
+            ...(tempCartData as any),
+            id: cartId,
+          };
+          queryClient.setQueryData(["cart", cartId], realCartData);
+        }
+        if (typeof window !== "undefined") {
+          localStorage.setItem("activeCartId", cartId);
+        }
+        queryClient.removeQueries({ queryKey: ["cart", "temp-guest-cart"] });
+      }
+
+      const result = await addToCart({
+        cartId: cartId!,
+        shopId: data.shop_id,
+        productId: data.id,
+        quantity,
+        selected_option_value_ids: allSelectedValueIds,
+      });
+
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ["cart", cartId] });
+        router.push(backUrl);
+        router.refresh();
+      } else {
+        throw new Error(result.error.message || "Gagal menambahkan ke keranjang");
+      }
+    } catch (error: any) {
+      // Rollback on error
+      if (previousCart) {
+        queryClient.setQueryData(["cart", targetCartId], previousCart);
+      } else {
+        queryClient.removeQueries({ queryKey: ["cart", targetCartId] });
+      }
+      if (!originalCartId) {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("activeCartId");
+        }
+        queryClient.removeQueries({ queryKey: ["cart", "temp-guest-cart"] });
+      }
+      toast.error(error.message || "Terjadi kesalahan saat menambahkan ke keranjang");
+      setIsLoading(false);
+    }
   }
 
   return (

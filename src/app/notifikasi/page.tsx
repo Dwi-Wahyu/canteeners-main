@@ -10,7 +10,7 @@ export default async function NotificationPage() {
     <div>
       <div className="p-4 flex items-center gap-2 justify-between bg-primary sticky top-0 z-10 text-primary-foreground">
         <div className="flex gap-2 items-center">
-          <Link href={"/chat"}>
+          <Link href={"/profil"}>
             <ChevronLeft />
           </Link>
           <h1 className="text-xl font-semibold">Notifikasi</h1>

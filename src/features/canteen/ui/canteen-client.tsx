@@ -124,9 +124,27 @@ export default function CanteenClient({
 
   const [activeTab, setActiveTab] = useState<ActiveTab>("menu");
   const [loadingProductId, setLoadingProductId] = useState<string | null>(null);
-  const [activeCartId, setActiveCartId] = useState<string | null>(
-    session?.user.cartId || null,
-  );
+  const [activeCartId, setActiveCartId] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      if (session?.user?.username) {
+        return session.user.cartId || null;
+      }
+      const saved = localStorage.getItem("activeCartId");
+      if (saved) return saved;
+    }
+    return session?.user.cartId || null;
+  });
+
+  const changeActiveCartId = (id: string | null) => {
+    setActiveCartId(id);
+    if (typeof window !== "undefined") {
+      if (id && id !== "temp-guest-cart") {
+        localStorage.setItem("activeCartId", id);
+      } else if (!id) {
+        localStorage.removeItem("activeCartId");
+      }
+    }
+  };
   const [flyingImage, setFlyingImage] = useState<FlyingImage | null>(null);
 
   const [name, setName] = useQueryState("name", {
@@ -180,28 +198,130 @@ export default function CanteenClient({
       }, 600);
     }
 
+    const selected_option_value_ids: string[] = [];
+    if (product.options) {
+      product.options.forEach((option) => {
+        if (option.is_required && option.values && option.values.length > 0) {
+          selected_option_value_ids.push(option.values[0].id);
+        }
+      });
+    }
+
+    const originalActiveCartId = activeCartId;
+    const targetCartId = originalActiveCartId || "temp-guest-cart";
+
+    // Perform optimistic update
+    const previousCart = queryClient.getQueryData(["cart", targetCartId]);
+
+    const newCart: any = previousCart
+      ? JSON.parse(JSON.stringify(previousCart))
+      : { id: targetCartId, shop_carts: [] };
+
+    let shopCart = newCart.shop_carts.find(
+      (sc: any) => sc.shop.id === product.shop_id,
+    );
+    if (!shopCart) {
+      shopCart = {
+        id: "temp-shop-cart-" + Math.random().toString(),
+        created_at: new Date().toISOString(),
+        total_price: 0,
+        shop: {
+          id: product.shop_id,
+          name: product.shop_name,
+        },
+        _count: {
+          items: 0,
+        },
+        items: [],
+      };
+      newCart.shop_carts.push(shopCart);
+    }
+
+    const selectedOptions: any[] = [];
+    let totalOptionsPrice = 0;
+    selected_option_value_ids.forEach((valId) => {
+      product.options?.forEach((opt: any) => {
+        const foundVal = opt.values?.find((v: any) => v.id === valId);
+        if (foundVal) {
+          selectedOptions.push({
+            value: foundVal.value,
+            product_option: {
+              option: opt.option,
+            },
+          });
+          totalOptionsPrice += foundVal.additional_price || 0;
+        }
+      });
+    });
+
+    const newItem = {
+      id: "temp-cart-item-" + Math.random().toString(),
+      quantity: 1,
+      subtotal: 0,
+      product: {
+        id: product.id,
+        name: product.name,
+        image_url: product.image_url,
+        is_available: product.is_available,
+      },
+      selected_options: selectedOptions,
+      _isNew: true,
+      _basePriceSum: product.price + totalOptionsPrice,
+    };
+    shopCart.items.push(newItem);
+
+    const totalCartQty = shopCart.items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    const prevTotalCartQty = totalCartQty - 1;
+
+    const prevCommissionPerUnit = prevTotalCartQty > 2 ? 500 : 1000;
+    const newCommissionPerUnit = totalCartQty > 2 ? 500 : 1000;
+
+    let newTotalPrice = 0;
+    shopCart.items.forEach((item: any) => {
+      let basePriceSum = 0;
+      if (item._isNew) {
+        basePriceSum = item._basePriceSum;
+      } else {
+        const prevItemCommission = item.quantity * prevCommissionPerUnit;
+        basePriceSum = item.subtotal - prevItemCommission;
+      }
+      item.subtotal = basePriceSum + (item.quantity * newCommissionPerUnit);
+      newTotalPrice += item.subtotal;
+    });
+
+    shopCart.total_price = newTotalPrice;
+    shopCart._count.items = shopCart.items.length;
+
+    queryClient.setQueryData(["cart", targetCartId], newCart);
+
+    if (!originalActiveCartId) {
+      changeActiveCartId("temp-guest-cart");
+    }
+
     setLoadingProductId(product.id);
+
     try {
-      let cartId = activeCartId;
+      let cartId = originalActiveCartId;
       if (!cartId) {
         const { cartId: createdCartId } = await createGuestSession({
           name: "",
         });
         if (!createdCartId) {
-          toast.error("Gagal membuat sesi tamu, silakan coba lagi");
-          return;
+          throw new Error("Gagal membuat sesi tamu, silakan coba lagi");
         }
         cartId = createdCartId;
-        setActiveCartId(cartId);
-      }
 
-      const selected_option_value_ids: string[] = [];
-      if (product.options) {
-        product.options.forEach((option) => {
-          if (option.is_required && option.values && option.values.length > 0) {
-            selected_option_value_ids.push(option.values[0].id);
-          }
-        });
+        // Copy cache from temp-guest-cart to real cartId
+        const tempCartData = queryClient.getQueryData(["cart", "temp-guest-cart"]);
+        if (tempCartData) {
+          const realCartData = {
+            ...(tempCartData as any),
+            id: cartId,
+          };
+          queryClient.setQueryData(["cart", cartId], realCartData);
+        }
+        changeActiveCartId(cartId);
+        queryClient.removeQueries({ queryKey: ["cart", "temp-guest-cart"] });
       }
 
       const result = await addToCart({
@@ -215,10 +335,20 @@ export default function CanteenClient({
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["cart", cartId] });
       } else {
-        toast.error(result.error.message || "Gagal menambahkan ke keranjang");
+        throw new Error(result.error.message || "Gagal menambahkan ke keranjang");
       }
-    } catch {
-      toast.error("Terjadi kesalahan saat menambahkan ke keranjang");
+    } catch (error: any) {
+      // Rollback on error
+      if (previousCart) {
+        queryClient.setQueryData(["cart", targetCartId], previousCart);
+      } else {
+        queryClient.removeQueries({ queryKey: ["cart", targetCartId] });
+      }
+      if (!originalActiveCartId) {
+        changeActiveCartId(null);
+        queryClient.removeQueries({ queryKey: ["cart", "temp-guest-cart"] });
+      }
+      toast.error(error.message || "Terjadi kesalahan saat menambahkan ke keranjang");
     } finally {
       setLoadingProductId(null);
     }
@@ -524,7 +654,7 @@ export default function CanteenClient({
       )}
 
       {/* ── Cart Summary (floating) ───────────────── */}
-      {activeCartId && <CartSummary cartId={activeCartId} />}
+      <CartSummary cartId={activeCartId || "temp-guest-cart"} />
     </div>
   );
 }

@@ -20,7 +20,7 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { completeOrder } from "../lib/order-actions";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
 import CancelOrderDialog from "./cancel-order-dialog";
-import { Loader, Map, StickyNote } from "lucide-react";
+import { CircleAlert, Loader, Map, StickyNote } from "lucide-react";
 import ConfirmPaymentDialog from "./confirm-payment-dialog";
 import RejectPaymentDialog from "./reject-payment-dialog";
 import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
@@ -125,7 +125,25 @@ export default function ShopOrderDetailClient({
           <Alert variant={"destructive"}>
             <ShoppingCartExclamationIcon />
             <AlertTitle>Pesanan Dibatalkan Oleh Pelanggan</AlertTitle>
-            <AlertDescription>{order.rejected_reason}</AlertDescription>
+            <AlertDescription>{order.cancelled_reason}</AlertDescription>
+          </Alert>
+        )}
+
+      {order.status === "CANCELLED" &&
+        order.cancelled_by_id === order.shop.owner?.user_id && (
+          <Alert variant={"destructive"}>
+            <ShoppingCartExclamationIcon />
+            <AlertTitle>Pesanan Dibatalkan Oleh Anda</AlertTitle>
+            <AlertDescription>{order.cancelled_reason}</AlertDescription>
+          </Alert>
+        )}
+
+      {order.status === "CANCELLED" &&
+        order.cancelled_by_id === "SYSTEM" && (
+          <Alert variant={"destructive"}>
+            <CircleAlert className="w-4 h-4 text-destructive" />
+            <AlertTitle>Pesanan Dibatalkan Otomatis oleh Sistem</AlertTitle>
+            <AlertDescription>{order.cancelled_reason}</AlertDescription>
           </Alert>
         )}
 

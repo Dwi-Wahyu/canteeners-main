@@ -17,12 +17,14 @@ export default function PostOrderTypeTab({
   customerProfile,
   canteen_name,
   selectTablePageUrl,
+  isBusy = false,
 }: {
   postOrderType: PostOrderType;
   setPostOrderType: (type: PostOrderType) => void;
   customerProfile: GetCustomerProfileType;
   canteen_name: string;
   selectTablePageUrl: string;
+  isBusy?: boolean;
 }) {
   return (
     <div>
@@ -36,7 +38,7 @@ export default function PostOrderTypeTab({
         onValueChange={(value) => setPostOrderType(value as PostOrderType)}
       >
         <TabsList>
-          <TabsTrigger value="DELIVERY_TO_TABLE">
+          <TabsTrigger value="DELIVERY_TO_TABLE" disabled={isBusy}>
             <HandPlatter />
             Makan Di Meja
           </TabsTrigger>

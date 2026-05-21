@@ -338,10 +338,16 @@ export default function ShopCartClient({
     open_time && close_time && !isTimeWithinRange(now, open_time, close_time);
 
   // Apakah status memang tidak aktif (Manual/Sistem)
-  const isNotActive = status !== "ACTIVE";
+  const isNotActive = status !== "ACTIVE" && status !== "BUSY";
 
   // Apakah kedai sedang sibuk
   const isBusy = status === "BUSY";
+
+  useEffect(() => {
+    if (isBusy) {
+      setPostOrderType("TAKEAWAY");
+    }
+  }, [isBusy]);
 
   // Apakah ada item yang tidak tersedia
   const hasUnavailableItem = shopCart.items.some(
@@ -349,7 +355,7 @@ export default function ShopCartClient({
   );
 
   // Apakah kedai benar-benar bisa menerima order
-  const canOrder = !isNotActive && !isOutsideHours && !hasUnavailableItem && !isBusy;
+  const canOrder = !isNotActive && !isOutsideHours && !hasUnavailableItem;
 
   const isSuspended =
     customerProfile.suspend_until !== null &&
@@ -397,13 +403,12 @@ export default function ShopCartClient({
           <Coffee className="w-4 h-4 text-orange-600" />
           <AlertTitle className="text-orange-800">Kedai Sedang Sibuk</AlertTitle>
           <AlertDescription className="text-orange-700">
-            Maaf, kedai sedang sangat ramai dan menutup pesanan baru untuk
-            sementara. Silakan coba beberapa saat lagi.
+            Maaf, kedai sedang sangat ramai. Pesanan hanya dapat dilakukan untuk Take Away (ambil di kedai) untuk sementara waktu.
           </AlertDescription>
         </Alert>
       )}
 
-      {!canOrder && !isBusy && (
+      {!canOrder && (
         <Alert
           variant={
             status === "SUSPENDED" || hasUnavailableItem
@@ -555,6 +560,7 @@ export default function ShopCartClient({
         postOrderType={postOrderType}
         setPostOrderType={setPostOrderType}
         selectTablePageUrl={`/kantin/${shopCart.shop.canteen.slug}/pilih-meja?callbackUrl=/keranjang/${shopCart.id}`}
+        isBusy={isBusy}
       />
 
       {!isGuest && !customerProfile.has_used_referral && (

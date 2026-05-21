@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/empty";
 import { GetOrderTrackingData } from "@/features/order/types/order-queries-types";
 import CompleteOrderDialog from "@/features/order/ui/complete-order-dialog";
+import CancelOrderDialog from "@/features/order/ui/cancel-order-dialog";
 import ConfirmOrderDialog from "@/features/order/ui/confirm-order-dialog";
 import ConfirmPaymentDialog from "@/features/order/ui/confirm-payment-dialog";
 import RejectOrderDialog from "@/features/order/ui/reject-order-dialog";
@@ -258,7 +259,17 @@ export default function ShopOrderTrackingClient({
 
                 <div className="space-y-3">
                   {order.status === "PROCESSING" && (
-                    <CompleteOrderDialog order_id={order.id} />
+                    <div className="grid grid-cols-2 gap-3">
+                      <CancelOrderDialog
+                        order_id={order.id}
+                        order_status={order.status}
+                        user_id={order.shop?.owner?.user_id as string}
+                        userRole="SHOP_OWNER"
+                        defaultDisbursementMode={order.shop?.refund_disbursement_mode}
+                        className="w-full"
+                      />
+                      <CompleteOrderDialog order_id={order.id} />
+                    </div>
                   )}
 
                   {order.status === "WAITING_SHOP_CONFIRMATION" &&

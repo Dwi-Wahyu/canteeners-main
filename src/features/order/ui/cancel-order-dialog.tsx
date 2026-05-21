@@ -97,16 +97,18 @@ export default function CancelOrderDialog({
           trigger: "Batalkan & Refund",
           title: "Batalkan Pesanan & Kembalikan Dana?",
           description:
-            "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib mengembalikan dana kepada pelanggan.",
+            "Anda bertindak sebagai Pemilik Kedai. Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib melakukan proses pengembalian dana (refund) kepada pelanggan.",
           action: "Ya, Batalkan & Refund",
+          placeholder: "Contoh: Stok bahan makanan habis, kedai terlalu ramai, dll...",
         };
       }
       return {
         trigger: "Batalkan Pesanan",
         title: "Batalkan Pesanan Pelanggan?",
         description:
-          "Berikan alasan yang jelas mengapa Anda perlu membatalkan pesanan ini.",
-        action: "Batalkan Pesanan",
+          "Anda bertindak sebagai Pemilik Kedai. Silakan masukkan alasan pembatalan agar pelanggan mengetahui mengapa pesanan mereka dibatalkan.",
+        action: "Ya, Batalkan Pesanan",
+        placeholder: "Contoh: Kedai akan segera tutup, menu tidak tersedia, dll...",
       };
     }
 
@@ -116,16 +118,28 @@ export default function CancelOrderDialog({
         trigger: "Batalkan & Refund",
         title: "Batalkan Pesanan Anda?",
         description:
-          "Pesanan sudah melewati estimasi waktu. Anda dapat membatalkan pesanan dan dana akan dikembalikan.",
-        action: "Ya, Batalkan Sekarang",
+          "Sebagai Pelanggan, pesanan Anda sudah melewati estimasi waktu persiapan kedai. Anda berhak membatalkan pesanan ini dan mengajukan pengembalian dana (refund).",
+        action: "Ya, Batalkan & Refund",
+        placeholder: "Contoh: Waktu persiapan makanan terlalu lama, salah memilih menu, dll...",
       };
     }
+
+    // Status-specific customer labels when not processing
+    let description = "Sebagai Pelanggan, pesanan yang dibatalkan tidak dapat dikembalikan atau dilanjutkan kembali.";
+    if (order_status === "PENDING_CONFIRMATION") {
+      description = "Sebagai Pelanggan, Anda membatalkan pesanan dalam masa tenggang 15 detik. Pesanan akan segera dibatalkan secara otomatis.";
+    } else if (order_status === "WAITING_PAYMENT" || order_status === "PAYMENT_REJECTED") {
+      description = "Sebagai Pelanggan, Anda membatalkan pesanan yang belum dibayar. Pembatalan ini akan membatalkan seluruh transaksi.";
+    } else if (order_status === "WAITING_SHOP_CONFIRMATION") {
+      description = "Sebagai Pelanggan, Anda membatalkan pesanan yang sedang menunggu konfirmasi kedai.";
+    }
+
     return {
       trigger: "Batalkan Pesanan",
-      title: "Yakin ingin membatalkan?",
-      description:
-        "Pesanan yang dibatalkan tidak dapat dikembalikan. Silakan masukkan alasan pembatalan.",
-      action: "Ya, Batalkan",
+      title: "Yakin ingin membatalkan pesanan?",
+      description,
+      action: "Ya, Batalkan Pesanan",
+      placeholder: "Contoh: Salah memesan menu, ingin mengubah metode pembayaran, dll...",
     };
   };
 
@@ -157,7 +171,7 @@ export default function CancelOrderDialog({
               disabled={isPending}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Contoh: Stok habis, Terlalu lama, dll..."
+              placeholder={labels.placeholder}
               className="h-28"
             />
           </div>

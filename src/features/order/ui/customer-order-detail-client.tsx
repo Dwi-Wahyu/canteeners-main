@@ -56,33 +56,6 @@ export default function CustomerOrderDetailClient({
   const prevStatusRef = useRef<OrderStatus>(order.status);
 
   useEffect(() => {
-    // if (prevStatusRef.current !== "COMPLETED" && order.status === "COMPLETED") {
-    //   showNotification({
-    //     title: "Pesanan Selesai!",
-    //     message:
-    //       "Hore! Pesananmu sudah selesai. Selamat menikmati hidanganmu! 😊",
-    //     type: "success",
-    //     actionButtons: (
-    //       <div className="flex flex-col gap-2 w-full">
-    //         <Button
-    //           asChild
-    //           className="w-full"
-    //           onClick={() => hideNotification()}
-    //         >
-    //           <Link href="/testimoni">Beri Kritik & Saran</Link>
-    //         </Button>
-    //         <Button
-    //           variant="ghost"
-    //           className="w-full"
-    //           onClick={() => hideNotification()}
-    //         >
-    //           Tutup
-    //         </Button>
-    //       </div>
-    //     ),
-    //   });
-    // }
-
     if (prevStatusRef.current !== "CANCELLED" && order.status === "CANCELLED") {
       const isShopCancellation =
         order.cancelled_by_id === order.shop.owner?.user_id;
@@ -283,10 +256,28 @@ export default function CustomerOrderDetailClient({
         )}
 
         {order.status === "CANCELLED" &&
-          order.cancelled_by_id === order.shop.owner.user_id && (
+          order.cancelled_by_id === order.shop.owner?.user_id && (
             <Alert variant={"destructive"}>
               <ShoppingCartExclamationIcon />
               <AlertTitle>Pesanan Dibatalkan Oleh Pemilik Kedai</AlertTitle>
+              <AlertDescription>{order.cancelled_reason}</AlertDescription>
+            </Alert>
+          )}
+
+        {order.status === "CANCELLED" &&
+          order.cancelled_by_id === order.customer.user.id && (
+            <Alert variant={"destructive"}>
+              <ShoppingCartExclamationIcon />
+              <AlertTitle>Pesanan Dibatalkan Oleh Anda</AlertTitle>
+              <AlertDescription>{order.cancelled_reason}</AlertDescription>
+            </Alert>
+          )}
+
+        {order.status === "CANCELLED" &&
+          order.cancelled_by_id === "SYSTEM" && (
+            <Alert variant={"destructive"}>
+              <CircleAlert className="w-4 h-4 text-destructive" />
+              <AlertTitle>Pesanan Dibatalkan Otomatis oleh Sistem</AlertTitle>
               <AlertDescription>{order.cancelled_reason}</AlertDescription>
             </Alert>
           )}

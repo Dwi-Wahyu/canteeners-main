@@ -57,7 +57,13 @@ export function CartSummary({ cartId }: { cartId: string }) {
         ? `${shopNames[0]} +${shopNames.length - 1} lainnya`
         : "Keranjang";
 
-  if (totalItems === 0) return null;
+  if (totalItems === 0) {
+    return (
+      <div className="fixed bottom-[88px] left-0 right-0 px-4 z-40 invisible pointer-events-none">
+        <div id="cart-summary" className="h-14 rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <>
