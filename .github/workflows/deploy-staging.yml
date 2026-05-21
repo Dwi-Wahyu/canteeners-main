@@ -67,6 +67,8 @@ jobs:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          timeout: 20m
+          command_timeout: 15m
           script: |
             export XDG_RUNTIME_DIR=/run/user/$(id -u)
 
