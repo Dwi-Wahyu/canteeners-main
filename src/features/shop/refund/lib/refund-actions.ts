@@ -177,7 +177,9 @@ export async function createRefundRequest(
     }
 
     // Sync to Firestore
-    console.log(`[createRefundRequest] Starting Firestore sync for order ${payload.order_id}`);
+    console.log(
+      `[createRefundRequest] Starting Firestore sync for order ${payload.order_id}`,
+    );
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(payload.order_id);
 
@@ -202,22 +204,34 @@ export async function createRefundRequest(
           { merge: true },
         ),
       ]);
-      console.log(`[createRefundRequest] Firestore sync successful for refund ${refund.id}`);
+      console.log(
+        `[createRefundRequest] Firestore sync successful for refund ${refund.id}`,
+      );
     } catch (firestoreError) {
-      console.error(`[createRefundRequest] Firestore sync FAILED for refund ${refund.id}:`, firestoreError);
+      console.error(
+        `[createRefundRequest] Firestore sync FAILED for refund ${refund.id}:`,
+        firestoreError,
+      );
     }
 
     // Schedule reminder job 12 hours after refund is created (non-blocking)
-    refundQueue.add(
-      "notify-pending-refund",
-      { refundId: refund.id },
-      {
-        delay: 12 * 60 * 60 * 1000,
-        jobId: `refund-reminder-${refund.id}`,
-        removeOnComplete: true,
-        removeOnFail: false,
-      },
-    ).catch((err: any) => console.error(`[createRefundRequest] Queue add FAILED for refund ${refund.id}:`, err));
+    refundQueue
+      .add(
+        "notify-pending-refund",
+        { refundId: refund.id },
+        {
+          delay: 12 * 60 * 60 * 1000,
+          jobId: `refund-reminder-${refund.id}`,
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      )
+      .catch((err: any) =>
+        console.error(
+          `[createRefundRequest] Queue add FAILED for refund ${refund.id}:`,
+          err,
+        ),
+      );
 
     // Send notification to shop owner (asynchronously)
     const notificationData = {
@@ -246,8 +260,17 @@ export async function createRefundRequest(
     const notificationRef = adminDb.collection("notifications");
     notificationRef
       .add(notificationData)
-      .then(() => console.log(`[createRefundRequest] Notification sent for refund ${refund.id}`))
-      .catch((err: any) => console.error(`[createRefundRequest] Notification FAILED for refund ${refund.id}:`, err));
+      .then(() =>
+        console.log(
+          `[createRefundRequest] Notification sent for refund ${refund.id}`,
+        ),
+      )
+      .catch((err: any) =>
+        console.error(
+          `[createRefundRequest] Notification FAILED for refund ${refund.id}:`,
+          err,
+        ),
+      );
 
     revalidateRefundPaths(order.id);
 
@@ -366,7 +389,9 @@ export async function updateRefundStatus(
     };
 
     // Sync to Firestore
-    console.log(`[updateRefundStatus] Starting Firestore sync for refund ${refund.id}`);
+    console.log(
+      `[updateRefundStatus] Starting Firestore sync for refund ${refund.id}`,
+    );
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
@@ -386,16 +411,30 @@ export async function updateRefundStatus(
           { merge: true },
         ),
       ]);
-      console.log(`[updateRefundStatus] Firestore status sync successful for refund ${refund.id}`);
+      console.log(
+        `[updateRefundStatus] Firestore status sync successful for refund ${refund.id}`,
+      );
     } catch (firestoreError) {
-      console.error(`[updateRefundStatus] Firestore status sync FAILED for refund ${refund.id}:`, firestoreError);
+      console.error(
+        `[updateRefundStatus] Firestore status sync FAILED for refund ${refund.id}:`,
+        firestoreError,
+      );
     }
 
     // Send notification to customer (asynchronously)
     notificationRef
       .add(notificationData)
-      .then(() => console.log(`[updateRefundStatus] Notification sent for refund ${refund.id}`))
-      .catch((err) => console.error(`[updateRefundStatus] Notification FAILED for refund ${refund.id}:`, err));
+      .then(() =>
+        console.log(
+          `[updateRefundStatus] Notification sent for refund ${refund.id}`,
+        ),
+      )
+      .catch((err) =>
+        console.error(
+          `[updateRefundStatus] Notification FAILED for refund ${refund.id}:`,
+          err,
+        ),
+      );
 
     revalidateRefundPaths(refund.order_id);
 
@@ -441,13 +480,10 @@ export async function processRefund(
       return errorResponse("Refund tidak ditemukan");
     }
 
-    // Lock if admin has made a decision
-    const hasAdminIntervened = refund.history.some(
-      (h) => h.actor_role === "ADMIN",
-    );
-    if (hasAdminIntervened) {
+    // Only lock if status is already PROCESSED, COMPLETED, or CANCELLED
+    if (["PROCESSED", "COMPLETED", "CANCELLED"].includes(refund.status)) {
       return errorResponse(
-        "Status refund sudah final karena keputusan admin dan tidak dapat diubah lagi",
+        "Refund sudah diproses atau dibatalkan dan tidak dapat diubah lagi",
       );
     }
 
@@ -465,6 +501,7 @@ export async function processRefund(
       data: {
         status: "PROCESSED",
         disbursement_proof_url: payload.disbursement_proof_url,
+        processed_at: new Date(),
         history: {
           create: {
             status: "PROCESSED",
@@ -515,7 +552,9 @@ export async function processRefund(
     };
 
     // Sync to Firestore
-    console.log(`[processRefund] Starting Firestore sync for refund ${refund.id}`);
+    console.log(
+      `[processRefund] Starting Firestore sync for refund ${refund.id}`,
+    );
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
@@ -536,17 +575,31 @@ export async function processRefund(
           { merge: true },
         ),
       ]);
-      console.log(`[processRefund] Firestore status sync successful for refund ${refund.id}`);
+      console.log(
+        `[processRefund] Firestore status sync successful for refund ${refund.id}`,
+      );
     } catch (syncError) {
-      console.error(`[processRefund] Firestore status sync FAILED for refund ${refund.id}:`, syncError);
+      console.error(
+        `[processRefund] Firestore status sync FAILED for refund ${refund.id}:`,
+        syncError,
+      );
       // Tetap lanjutkan ke notifikasi meskipun sync status gagal (Prisma sudah sukses)
     }
 
     // Send notification to customer (asynchronously, don't let it block too long if it's slow)
     notificationRef
       .add(notificationData)
-      .then(() => console.log(`[processRefund] Notification sent for refund ${refund.id}`))
-      .catch((err) => console.error(`[processRefund] Notification FAILED for refund ${refund.id}:`, err));
+      .then(() =>
+        console.log(
+          `[processRefund] Notification sent for refund ${refund.id}`,
+        ),
+      )
+      .catch((err) =>
+        console.error(
+          `[processRefund] Notification FAILED for refund ${refund.id}:`,
+          err,
+        ),
+      );
 
     // Wait for notification with a reasonable timeout or just proceed
     // Di sini kita biarkan saja notificationPromise jalan, tapi kita revalidate path sekarang
@@ -646,7 +699,9 @@ export async function cancelRefund(
     // const notificationPromise = notificationRef.add(notificationData);
 
     // Sync to Firestore
-    console.log(`[cancelRefund] Starting Firestore sync for refund ${refund.id}`);
+    console.log(
+      `[cancelRefund] Starting Firestore sync for refund ${refund.id}`,
+    );
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
@@ -666,9 +721,14 @@ export async function cancelRefund(
           { merge: true },
         ),
       ]);
-      console.log(`[cancelRefund] Firestore sync successful for refund ${refund.id}`);
+      console.log(
+        `[cancelRefund] Firestore sync successful for refund ${refund.id}`,
+      );
     } catch (firestoreError) {
-      console.error(`[cancelRefund] Firestore sync FAILED for refund ${refund.id}:`, firestoreError);
+      console.error(
+        `[cancelRefund] Firestore sync FAILED for refund ${refund.id}:`,
+        firestoreError,
+      );
     }
 
     revalidateRefundPaths(refund.order_id);
@@ -773,7 +833,9 @@ export async function escalateRefund(
     };
 
     // Sync to Firestore
-    console.log(`[escalateRefund] Starting Firestore sync for refund ${refund.id}`);
+    console.log(
+      `[escalateRefund] Starting Firestore sync for refund ${refund.id}`,
+    );
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
@@ -793,16 +855,30 @@ export async function escalateRefund(
           { merge: true },
         ),
       ]);
-      console.log(`[escalateRefund] Firestore sync successful for refund ${refund.id}`);
+      console.log(
+        `[escalateRefund] Firestore sync successful for refund ${refund.id}`,
+      );
     } catch (firestoreError) {
-      console.error(`[escalateRefund] Firestore sync FAILED for refund ${refund.id}:`, firestoreError);
+      console.error(
+        `[escalateRefund] Firestore sync FAILED for refund ${refund.id}:`,
+        firestoreError,
+      );
     }
 
     // Send notification (asynchronously)
     notificationRef
       .add(notificationData)
-      .then(() => console.log(`[escalateRefund] Notification sent for refund ${refund.id}`))
-      .catch((err) => console.error(`[escalateRefund] Notification FAILED for refund ${refund.id}:`, err));
+      .then(() =>
+        console.log(
+          `[escalateRefund] Notification sent for refund ${refund.id}`,
+        ),
+      )
+      .catch((err) =>
+        console.error(
+          `[escalateRefund] Notification FAILED for refund ${refund.id}:`,
+          err,
+        ),
+      );
 
     revalidateRefundPaths(refund.order_id);
 
@@ -962,7 +1038,9 @@ export async function completeRefund(
     });
 
     // Sync to Firestore
-    console.log(`[completeRefund] Starting Firestore sync for refund ${refund.id}`);
+    console.log(
+      `[completeRefund] Starting Firestore sync for refund ${refund.id}`,
+    );
     const refundRef = adminDb.collection("refunds").doc(refund.id);
     const orderRef = adminDb.collection("orders").doc(refund.order_id);
 
@@ -982,9 +1060,14 @@ export async function completeRefund(
           { merge: true },
         ),
       ]);
-      console.log(`[completeRefund] Firestore sync successful for refund ${refund.id}`);
+      console.log(
+        `[completeRefund] Firestore sync successful for refund ${refund.id}`,
+      );
     } catch (firestoreError) {
-      console.error(`[completeRefund] Firestore sync FAILED for refund ${refund.id}:`, firestoreError);
+      console.error(
+        `[completeRefund] Firestore sync FAILED for refund ${refund.id}:`,
+        firestoreError,
+      );
     }
 
     revalidateRefundPaths(refund.order_id);

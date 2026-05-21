@@ -56,32 +56,32 @@ export default function CustomerOrderDetailClient({
   const prevStatusRef = useRef<OrderStatus>(order.status);
 
   useEffect(() => {
-    if (prevStatusRef.current !== "COMPLETED" && order.status === "COMPLETED") {
-      showNotification({
-        title: "Pesanan Selesai!",
-        message:
-          "Hore! Pesananmu sudah selesai. Selamat menikmati hidanganmu! 😊",
-        type: "success",
-        actionButtons: (
-          <div className="flex flex-col gap-2 w-full">
-            <Button
-              asChild
-              className="w-full"
-              onClick={() => hideNotification()}
-            >
-              <Link href="/testimoni">Beri Kritik & Saran</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={() => hideNotification()}
-            >
-              Tutup
-            </Button>
-          </div>
-        ),
-      });
-    }
+    // if (prevStatusRef.current !== "COMPLETED" && order.status === "COMPLETED") {
+    //   showNotification({
+    //     title: "Pesanan Selesai!",
+    //     message:
+    //       "Hore! Pesananmu sudah selesai. Selamat menikmati hidanganmu! 😊",
+    //     type: "success",
+    //     actionButtons: (
+    //       <div className="flex flex-col gap-2 w-full">
+    //         <Button
+    //           asChild
+    //           className="w-full"
+    //           onClick={() => hideNotification()}
+    //         >
+    //           <Link href="/testimoni">Beri Kritik & Saran</Link>
+    //         </Button>
+    //         <Button
+    //           variant="ghost"
+    //           className="w-full"
+    //           onClick={() => hideNotification()}
+    //         >
+    //           Tutup
+    //         </Button>
+    //       </div>
+    //     ),
+    //   });
+    // }
 
     if (prevStatusRef.current !== "CANCELLED" && order.status === "CANCELLED") {
       const isShopCancellation =

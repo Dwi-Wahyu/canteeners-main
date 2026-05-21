@@ -22,6 +22,7 @@ import NavButton from "@/components/nav-button";
 import ToggleShopStatus from "@/features/shop/ui/toggle-shop-open";
 import { prisma } from "@/lib/prisma";
 import { cn } from "@/lib/utils";
+import { DashboardNotificationButton } from "@/features/notification/ui/dashboard-notification-button";
 
 export default async function DashboardKedai() {
   const session = await auth();
@@ -83,9 +84,12 @@ export default async function DashboardKedai() {
 
   return (
     <div className="space-y-5">
-      <div className="mb-5">
-        <h2 className="text-2xl font-medium tracking-tight">Dashboard</h2>
-        <div className="text-muted-foreground">Ringkasan bisnis hari ini</div>
+      <div className="mb-5 flex justify-between items-start">
+        <div>
+          <h2 className="text-2xl font-medium tracking-tight">Dashboard</h2>
+          <div className="text-muted-foreground">Ringkasan bisnis hari ini</div>
+        </div>
+        <DashboardNotificationButton />
       </div>
 
       <ToggleShopStatus
@@ -158,8 +162,6 @@ export default async function DashboardKedai() {
         </CardHeader>
         <CardContent className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <CashIcon />
-
             <h1 className="text-lg font-semibold">
               {formatRupiah(getUnpaidBillingTotals._sum.net_total || 0)}
             </h1>

@@ -20,6 +20,8 @@ export default function useWatchNotification() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isFirstRun = useRef(true);
+  const seenNotificationIds = useRef<Set<string>>(new Set());
+  const listenerStartTime = useRef<number>(Date.now());
   const showNotification = useNotificationDialogStore((state) => state.show);
   const hideNotification = useNotificationDialogStore((state) => state.hide);
   const router = useRouter();
@@ -52,13 +54,32 @@ export default function useWatchNotification() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (isFirstRun.current) {
+        snapshot.docs.forEach((doc) => {
+          seenNotificationIds.current.add(doc.id);
+        });
         isFirstRun.current = false;
         return;
       }
 
       if (snapshot.empty) return;
 
-      const data = snapshot.docs[0].data() as AppNotification;
+      const addedChange = snapshot.docChanges().find((change) => change.type === "added");
+      if (!addedChange) return;
+
+      const docId = addedChange.doc.id;
+      if (seenNotificationIds.current.has(docId)) return;
+
+      const data = addedChange.doc.data() as AppNotification;
+      const createdAtMillis = data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now();
+
+      // Ignore notifications that were created before the listener started
+      if (createdAtMillis < listenerStartTime.current - 10000) {
+        seenNotificationIds.current.add(docId);
+        return;
+      }
+
+      // Mark as seen
+      seenNotificationIds.current.add(docId);
 
       // Handle sound for new orders
       if (data.type === "ORDER" && data.subType === "CREATED") {
@@ -130,6 +151,8 @@ export default function useWatchNotification() {
 
     return () => {
       unsubscribe();
+      seenNotificationIds.current.clear();
+      listenerStartTime.current = Date.now();
       isFirstRun.current = true;
     };
   }, [user, showNotification, hideNotification, router]);

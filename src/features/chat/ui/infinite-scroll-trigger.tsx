@@ -1,6 +1,6 @@
 // features/chat/ui/infinite-scroll-trigger.tsx
 import { useEffect, useRef } from "react";
-import { Loader2 } from "lucide-react";
+import { Dot, Loader2 } from "lucide-react";
 
 interface InfiniteScrollTriggerProps {
   onIntersect: () => void;
@@ -29,7 +29,7 @@ export function InfiniteScrollTrigger({
         // Mulai load lebih awal 200px sebelum elemen terlihat
         rootMargin: "0px 0px 200px 0px",
         threshold: 0,
-      }
+      },
     );
 
     observer.observe(element);
@@ -38,17 +38,15 @@ export function InfiniteScrollTrigger({
 
   if (!hasMore) {
     return (
-      <div className="p-4 text-center text-sm text-gray-400">
-        Semua percakapan telah dimuat
+      <div className="p-4 flex justify-center">
+        <Dot className="text-muted" />
       </div>
     );
   }
 
   return (
     <div ref={triggerRef} className="p-4 flex justify-center">
-      {isLoading && (
-        <Loader2 className="size-5 animate-spin text-gray-400" />
-      )}
+      {isLoading && <Loader2 className="size-5 animate-spin text-gray-400" />}
     </div>
   );
 }

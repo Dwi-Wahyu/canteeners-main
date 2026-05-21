@@ -7,7 +7,6 @@ import { Separator } from "@/components/ui/separator";
 import { RefundStatusBadge } from "@/features/shop/refund/ui/refund-status-badge";
 import { RespondRefundDialog } from "@/features/shop/refund/ui/respond-refund-dialog";
 import { ProcessRefundDialog } from "@/features/shop/refund/ui/process-refund-dialog";
-import { EscalateRefundDialog } from "@/features/shop/refund/ui/escalate-refund-dialog";
 import {
   cancelRefund,
   completeRefund,
@@ -28,6 +27,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useWatchRefundUpdate } from "@/hooks/use-watch-refund-update";
 import { GetRefundById } from "../types/refund-queries-types";
+import Link from "next/link";
 
 interface RefundDetailsProps {
   refund: GetRefundById;
@@ -43,7 +43,6 @@ export function RefundDetails({
 
   const [respondDialogOpen, setRespondDialogOpen] = useState(false);
   const [processDialogOpen, setProcessDialogOpen] = useState(false);
-  const [escalateDialogOpen, setEscalateDialogOpen] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
 
@@ -453,10 +452,16 @@ export function RefundDetails({
         {canEscalate && (
           <Button
             variant="destructive"
-            onClick={() => setEscalateDialogOpen(true)}
+            asChild
           >
-            <AlertTriangle />
-            Eskalasi ke Admin
+            <Link href={
+              userRole === "CUSTOMER"
+                ? `/order/${refund.order_id}/refund/eskalasi`
+                : `/dashboard-kedai/order/${refund.order_id}/refund/eskalasi`
+            }>
+              <AlertTriangle />
+              Eskalasi ke Admin
+            </Link>
           </Button>
         )}
       </div>
@@ -472,12 +477,6 @@ export function RefundDetails({
         open={processDialogOpen}
         onOpenChange={setProcessDialogOpen}
         refund={refund}
-      />
-
-      <EscalateRefundDialog
-        open={escalateDialogOpen}
-        onOpenChange={setEscalateDialogOpen}
-        refundId={refund.id}
       />
     </div>
   );

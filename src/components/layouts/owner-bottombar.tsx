@@ -11,12 +11,10 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import { useTotalUnreadChatCount } from "@/features/chat/hooks/use-total-unread-chat-count";
-import { useUnreadNotificationCount } from "@/features/notification/hooks/use-unread-notification-count";
 
 export default function OwnerBottomBar() {
   const currentPathname = usePathname();
   const unreadChatCount = useTotalUnreadChatCount();
-  const unreadNotificationCount = useUnreadNotificationCount();
 
   const navItems = [
     {
@@ -88,13 +86,8 @@ export default function OwnerBottomBar() {
           >
             <IconComponent className="w-6 h-6" />
             {isChat && unreadChatCount > 0 && (
-              <span className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white shadow-sm">
+              <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white shadow-sm">
                 {unreadChatCount > 99 ? "99+" : unreadChatCount}
-              </span>
-            )}
-            {item.label === "Beranda" && unreadNotificationCount > 0 && (
-              <span className="absolute top-1 right-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm">
-                {unreadNotificationCount > 99 ? "99+" : unreadNotificationCount}
               </span>
             )}
           </Link>

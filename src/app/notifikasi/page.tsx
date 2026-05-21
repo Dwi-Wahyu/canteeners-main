@@ -1,6 +1,9 @@
 import NotificationList from "@/features/notification/ui/notification-list";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { DeleteAllNotificationsButton } from "@/features/notification/components/delete-all-notifications-button";
 
 export default async function NotificationPage() {
   return (
@@ -12,10 +15,25 @@ export default async function NotificationPage() {
           </Link>
           <h1 className="text-xl font-semibold">Notifikasi</h1>
         </div>
+
+        <DeleteAllNotificationsButton />
       </div>
 
-      <div className="p-4">
-        <NotificationList />
+      <div className="p-4 space-y-4">
+        <Suspense
+          fallback={
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                ))}
+              </div>
+            </div>
+          }
+        >
+          <NotificationList />
+        </Suspense>
       </div>
     </div>
   );

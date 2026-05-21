@@ -65,10 +65,7 @@ export default function OrderReviewSection({
         {testimony && (
           <div className="space-y-4">
             <div className="space-y-1">
-              <h1 className="font-bold text-gray-900 flex items-center gap-2">
-                <StarFilledIcon className="size-4 text-orange-400" />
-                Ulasan Pelanggan
-              </h1>
+              <Label className="mb-4">Ulasan Pelanggan</Label>
               <div className="flex items-center gap-1">
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((rate) => (
@@ -95,9 +92,7 @@ export default function OrderReviewSection({
 
         {!testimony && !isUserCustomer && (
           <div className="space-y-1">
-            <h3 className="font-bold text-gray-900 flex items-center gap-2">
-              Ulasan & Rating
-            </h3>
+            <Label>Ulasan & Rating</Label>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Customer belum menambahkan ulasan atau rating
             </p>
@@ -107,9 +102,7 @@ export default function OrderReviewSection({
         {!testimony && isUserCustomer && (
           <>
             <div className="space-y-1 mb-4">
-              <h3 className="font-bold text-gray-900 flex items-center gap-2">
-                Ulasan & Rating
-              </h3>
+              <Label>Ulasan & Rating</Label>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Bagikan pengalaman Anda memesan di kedai ini.
               </p>
@@ -139,9 +132,6 @@ export default function OrderReviewSection({
             </div>
 
             <div className="mb-4">
-              <Label htmlFor="ulasan" className="text-xs font-semibold">
-                Ulasan
-              </Label>
               <Textarea
                 id="ulasan"
                 placeholder="Tulis ulasan Anda di sini..."

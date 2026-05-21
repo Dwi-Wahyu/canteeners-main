@@ -10,6 +10,7 @@ import { ReportUserInput } from "../types/user-schema";
 import { auth } from "@/config/auth";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { syncUserNameInFirestore } from "@/lib/firebase/sync-user-name";
 
 export async function createGuestCustomer({
   firebaseUserUid,
@@ -149,6 +150,12 @@ export async function changeGuestName({
         name,
       },
     });
+
+    try {
+      await syncUserNameInFirestore(id, name);
+    } catch (error) {
+      console.error("Failed to sync guest name to Firestore:", error);
+    }
 
     return successResponse(undefined, "Berhasil menyimpan nama");
   } catch (error) {

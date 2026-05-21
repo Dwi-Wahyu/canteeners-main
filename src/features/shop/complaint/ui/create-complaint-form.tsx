@@ -19,13 +19,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { AlertCircle, Loader, Loader2, Upload, X } from "lucide-react";
+import { AlertCircle, Loader } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Image from "next/image";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 import { useRouter } from "next/navigation";
+import { FileUploadImage } from "@/components/file-upload-image";
 
 interface CreateComplaintFormProps {
   orderId: string;
@@ -36,10 +35,6 @@ export default function CreateComplaintForm({
 }: CreateComplaintFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<{
-    url: string;
-    name: string;
-  } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<ShopComplaintInput>({
@@ -51,23 +46,13 @@ export default function CreateComplaintForm({
     },
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      toast.error("Format file tidak valid. Gunakan JPG, PNG, atau WebP.");
+  const handleFilesChange = async (files: File[]) => {
+    if (files.length === 0) {
+      form.setValue("proof_url", "");
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Ukuran file maksimal 5MB.");
-      return;
-    }
-
+    const file = files[0];
     setIsUploading(true);
 
     try {
@@ -87,23 +72,13 @@ export default function CreateComplaintForm({
       }
 
       const filename = data.data.url.split("/").pop();
-      setUploadedFile({
-        url: data.data.url,
-        name: file.name,
-      });
       form.setValue("proof_url", filename);
-      toast.success("Bukti berhasil diunggah");
     } catch (error) {
       console.error("Upload error:", error);
       toast.error("Gagal mengunggah bukti. Silakan coba lagi.");
     } finally {
       setIsUploading(false);
     }
-  };
-
-  const removeUploadedFile = () => {
-    setUploadedFile(null);
-    form.setValue("proof_url", "");
   };
 
   const onSubmit = async (data: ShopComplaintInput) => {
@@ -121,7 +96,6 @@ export default function CreateComplaintForm({
       if (result.success) {
         toast.success("Komplain berhasil diajukan");
         form.reset();
-        setUploadedFile(null);
         router.push(`/order/${orderId}`);
         router.refresh();
       } else {
@@ -143,7 +117,9 @@ export default function CreateComplaintForm({
           name="cause"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Deskripsi Keluhan *</FormLabel>
+              <FormLabel>
+                Deskripsi Keluhan<span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Jelaskan masalah yang Anda alami dengan pesanan ini..."
@@ -162,66 +138,13 @@ export default function CreateComplaintForm({
         <div className="space-y-2">
           <FormLabel>Bukti (Opsional)</FormLabel>
           <FormDescription>
-            Upload foto sebagai bukti keluhan (JPG, PNG, WEBP - Maks 5MB)
+            Upload foto sebagai bukti keluhan (JPG, PNG - Maks 5MB)
           </FormDescription>
-
-          {uploadedFile ? (
-            <div className="relative border rounded-lg p-3 bg-muted/50">
-              <div className="flex items-start gap-3">
-                <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
-                  <img
-                    src={uploadedFile.url}
-                    alt="Bukti komplain"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {uploadedFile.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Berhasil diunggah
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0"
-                  onClick={removeUploadedFile}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="border-2 border-dashed rounded-lg p-6 text-center hover:bg-muted/50 transition-colors">
-              <Input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleFileUpload}
-                disabled={isUploading}
-                className="hidden"
-                id="proof-upload"
-              />
-              <label
-                htmlFor="proof-upload"
-                className="cursor-pointer flex flex-col items-center gap-2"
-              >
-                {isUploading ? (
-                  <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-                ) : (
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                )}
-                <div className="text-sm">
-                  <span className="font-medium text-primary">
-                    Klik untuk upload
-                  </span>
-                  <p className="text-muted-foreground">atau drag and drop</p>
-                </div>
-              </label>
-            </div>
-          )}
+          <FileUploadImage
+            multiple={false}
+            onFilesChange={handleFilesChange}
+            placeholder="Klik untuk upload atau drag and drop"
+          />
         </div>
 
         <Alert>
@@ -239,8 +162,10 @@ export default function CreateComplaintForm({
             className="w-full"
             disabled={isSubmitting || isUploading}
           >
-            {isSubmitting && <Loader className="h-4 w-4 animate-spin" />}
-            Kirim Komplain
+            {(isSubmitting || isUploading) && (
+              <Loader className="h-4 w-4 animate-spin mr-2" />
+            )}
+            {isUploading ? "Mengunggah..." : "Kirim Komplain"}
           </Button>
           <Button
             type="button"

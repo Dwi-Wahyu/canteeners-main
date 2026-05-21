@@ -2,17 +2,17 @@ import { adminDb } from "@/lib/firebase/admin";
 import { FieldValue } from "firebase-admin/firestore";
 
 /**
- * Update nama customer di seluruh Firestore chat docs
- * yang masih menyimpan nama guest lama.
- *
- * Dipanggil setelah guest berhasil di-convert ke user terdaftar.
+ * Update profil customer (nama & avatar) di seluruh Firestore chat docs
+ * yang masih menyimpan data lama.
  *
  * @param userId - ID user (sama antara Prisma dan Firestore)
- * @param newName - Nama baru dari Google account
+ * @param newName - Nama baru
+ * @param newAvatar - Avatar baru (opsional)
  */
 export async function syncUserNameInFirestore(
   userId: string,
   newName: string,
+  newAvatar?: string,
 ): Promise<void> {
   const db = adminDb;
 
@@ -27,10 +27,16 @@ export async function syncUserNameInFirestore(
   const batch = db.batch();
 
   snapshot.docs.forEach((doc) => {
-    batch.update(doc.ref, {
+    const updateData: any = {
       [`participantsInfo.${userId}.name`]: newName,
       lastUpdatedAt: FieldValue.serverTimestamp(),
-    });
+    };
+
+    if (newAvatar) {
+      updateData[`participantsInfo.${userId}.avatar`] = newAvatar;
+    }
+
+    batch.update(doc.ref, updateData);
   });
 
   await batch.commit();

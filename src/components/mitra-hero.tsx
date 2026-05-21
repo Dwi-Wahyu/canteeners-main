@@ -1,19 +1,33 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 
 /* ── Floating Particle ────────────────────────────────────── */
-function Particle({ x, y, size, opacity, duration, delay }: {
-  x: number; y: number; size: number; opacity: number;
-  duration: number; delay: number;
+function Particle({
+  x,
+  y,
+  size,
+  opacity,
+  duration,
+  delay,
+}: {
+  x: number;
+  y: number;
+  size: number;
+  opacity: number;
+  duration: number;
+  delay: number;
 }) {
   return (
     <div
       className="absolute rounded-full bg-white pointer-events-none"
       style={{
-        left: `${x}%`, top: `${y}%`,
-        width: size, height: size,
+        left: `${x}%`,
+        top: `${y}%`,
+        width: size,
+        height: size,
         opacity,
         animation: `floatParticle ${duration}s ${delay}s ease-in-out infinite alternate`,
       }}
@@ -79,7 +93,7 @@ export default function MitraHero() {
     setTouchEnd(null);
     if ("targetTouches" in e) setTouchStart(e.targetTouches[0].clientX);
     else setTouchStart((e as React.MouseEvent).clientX);
-    
+
     if (autoPlayRef.current) clearInterval(autoPlayRef.current);
   };
 
@@ -100,16 +114,23 @@ export default function MitraHero() {
     const distance = touchStart - touchEnd;
     if (distance > minSwipeDistance) nextSlide();
     else if (distance < -minSwipeDistance) prevSlide();
-    
+
     setTouchStart(null);
     setTouchEnd(null);
     startAutoPlay();
   };
 
-  const dragOffset = isSwiping && touchStart !== null && touchEnd !== null ? touchEnd - touchStart : 0;
+  const dragOffset =
+    isSwiping && touchStart !== null && touchEnd !== null
+      ? touchEnd - touchStart
+      : 0;
 
   /* Typing badge */
-  const taglines = ["#1 Mitra Kantin Digital", "Kelola Pesanan Lebih Mudah", "Tingkatkan Omzet Bisnismu"];
+  const taglines = [
+    "#1 Mitra Kantin Digital",
+    "Kelola Pesanan Lebih Mudah",
+    "Tingkatkan Omzet Bisnismu",
+  ];
   const [tagIdx, setTagIdx] = useState(0);
   const [displayed, setDisplayed] = useState("");
   const [typing, setTyping] = useState(true);
@@ -119,7 +140,10 @@ export default function MitraHero() {
     let i = typing ? displayed.length : displayed.length;
     if (typing) {
       if (displayed.length < target.length) {
-        const t = setTimeout(() => setDisplayed(target.slice(0, displayed.length + 1)), 60);
+        const t = setTimeout(
+          () => setDisplayed(target.slice(0, displayed.length + 1)),
+          60,
+        );
         return () => clearTimeout(t);
       } else {
         const t = setTimeout(() => setTyping(false), 2000);
@@ -134,7 +158,7 @@ export default function MitraHero() {
         setTyping(true);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayed, typing, tagIdx]);
 
   /* particles (stable, computed once) */
@@ -146,11 +170,11 @@ export default function MitraHero() {
       opacity: 0.06 + (i % 5) * 0.035,
       duration: 4 + (i % 5),
       delay: (i * 0.4) % 3,
-    }))
+    })),
   ).current;
 
   return (
-    <section 
+    <section
       className="relative w-full min-h-screen flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -161,35 +185,42 @@ export default function MitraHero() {
       onMouseLeave={handleTouchEnd}
     >
       {/* Slide Stack */}
-      <div 
-        className={`absolute inset-0 z-0 flex ${isSwiping ? '' : 'transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]'}`}
-        style={{ width: `${heroSlides.length * 100}%`, transform: `translateX(calc(-${(slideIdx * 100) / heroSlides.length}% + ${dragOffset}px))` }}
+      <div
+        className={`absolute inset-0 z-0 flex ${isSwiping ? "" : "transition-transform duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]"}`}
+        style={{
+          width: `${heroSlides.length * 100}%`,
+          transform: `translateX(calc(-${(slideIdx * 100) / heroSlides.length}% + ${dragOffset}px))`,
+        }}
       >
         {heroSlides.map((slide, i) => (
-          <div
-            key={i}
-            className="relative w-full h-full flex-1"
-          >
-            <img
+          <div key={i} className="relative w-full h-full flex-1">
+            <Image
               src={slide.img}
               alt={slide.alt}
-              className="w-full h-full object-cover select-none pointer-events-none"
+              fill
+              priority={i === 0}
+              className="object-cover select-none pointer-events-none"
               draggable={false}
+              sizes="100vw"
+              quality={85}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/75 pointer-events-none" />
-            <div className={`absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t ${slide.accent} to-transparent pointer-events-none`} />
+            <div className="absolute inset-0 bg-linear-to-b from-black/65 via-black/50 to-black/75 pointer-events-none" />
+            <div
+              className={`absolute bottom-0 left-0 right-0 h-1/3 bg-linear-to-t ${slide.accent} to-transparent pointer-events-none`}
+            />
           </div>
         ))}
       </div>
 
       {/* Floating Particles */}
-      <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-        {particles.map((p, i) => <Particle key={i} {...p} />)}
+      <div className="absolute inset-0 z-1 pointer-events-none overflow-hidden">
+        {particles.map((p, i) => (
+          <Particle key={i} {...p} />
+        ))}
       </div>
 
       {/* Hero Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center text-white pt-24 pb-16 min-h-[75vh] md:min-h-0 flex flex-col justify-between md:justify-center items-center md:gap-8">
-        
         {/* Top Section */}
         <div className="pt-2 md:pt-0 w-full mb-0 md:mb-2">
           {/* Typing Badge */}
@@ -205,8 +236,7 @@ export default function MitraHero() {
             className="font-headline text-4xl md:text-5xl lg:text-7xl font-extrabold tracking-tight leading-[1.15] md:leading-[1.1] opacity-0 translate-y-6 drop-shadow-2xl"
             style={{ animation: "heroFadeUp 0.7s 0.4s forwards ease-out" }}
           >
-            Jadilah Bagian dari{" "}
-            <br className="hidden sm:block" />
+            Jadilah Bagian dari <br className="hidden sm:block" />
             <span className="text-[#ffb4ab]">Revolusi Kantin</span>
           </h1>
         </div>
@@ -263,7 +293,10 @@ export default function MitraHero() {
               onClick={() => goToSlide(i)}
               aria-label={`Go to slide ${i + 1}`}
               className="relative h-1.5 rounded-full transition-all duration-500 overflow-hidden"
-              style={{ width: i === slideIdx ? 32 : 8, background: i === slideIdx ? "white" : "rgba(255,255,255,0.35)" }}
+              style={{
+                width: i === slideIdx ? 32 : 8,
+                background: i === slideIdx ? "white" : "rgba(255,255,255,0.35)",
+              }}
             >
               {i === slideIdx && (
                 <span
@@ -278,7 +311,9 @@ export default function MitraHero() {
 
       {/* Slide counter top-right */}
       <div className="absolute top-28 right-6 md:right-10 z-20 text-white/50 text-sm font-mono font-bold">
-        <span className="text-white">{String(slideIdx + 1).padStart(2, "0")}</span>
+        <span className="text-white">
+          {String(slideIdx + 1).padStart(2, "0")}
+        </span>
         <span className="mx-1">/</span>
         <span>{String(heroSlides.length).padStart(2, "0")}</span>
       </div>

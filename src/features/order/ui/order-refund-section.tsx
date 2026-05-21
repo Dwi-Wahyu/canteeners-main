@@ -100,12 +100,11 @@ export function OrderRefundSection({
   const isCustomer = userRole === "CUSTOMER";
 
   return (
-    <Card className="shadow-sm">
+    <Card>
       <CardContent className="space-y-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <h3 className="font-bold text-gray-900 flex items-center gap-2">
-              <DollarSign className="size-4 text-green-600" />
               Informasi Refund
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">

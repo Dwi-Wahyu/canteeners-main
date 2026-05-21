@@ -4,6 +4,7 @@ import AnimateOnScroll from "@/components/animate-on-scroll";
 import CanteenScrollSection from "@/components/canteen-scroll-section";
 import { getJoinedShops } from "@/features/canteen/lib/mitra-queries";
 import { getImageUrl } from "@/helper/get-image-url";
+import Image from "next/image";
 import { MapPin } from "lucide-react";
 import MitraHero from "@/components/mitra-hero";
 
@@ -119,10 +120,12 @@ export default async function MitraRegistrationPage() {
                 <AnimateOnScroll key={idx} animation="fade-up" delay={idx * 80}>
                   <div className="bg-white rounded-2xl overflow-hidden card-shadow group hover:-translate-y-1 transition-all duration-300">
                     <div className="relative h-48 w-full overflow-hidden">
-                      <img
+                      <Image
                         src={getImageUrl("/shop/" + shop.image_url)}
                         alt={shop.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       <div className="absolute top-3 right-3">
                         <span className="inline-flex items-center gap-1 bg-white/85 backdrop-blur-sm text-[#0b1c30] text-xs font-semibold px-3 py-1.5 rounded-full">
@@ -190,10 +193,13 @@ export default async function MitraRegistrationPage() {
               </p>
 
               <div className="flex items-center justify-center gap-5">
-                <img
+                <Image
                   src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80"
                   alt="Ibu Siti"
-                  className="w-16 h-16 rounded-full object-cover border-2 border-[#e5eeff]"
+                  width={64}
+                  height={64}
+                  className="rounded-full object-cover border-2 border-[#e5eeff]"
+                  unoptimized
                 />
                 <div className="text-left">
                   <h4 className="font-headline font-bold text-[#0b1c30] text-lg">

@@ -125,11 +125,26 @@ export function FileUploadImage({
             </div>
           ) : hasPreview ? (
             <div className="flex flex-col items-center justify-center gap-2">
-              <img
-                src={previewUrl!}
-                alt="Preview"
-                className="max-h-28 object-contain rounded-md"
-              />
+              <div className="relative group w-fit">
+                <img
+                  src={previewUrl!}
+                  alt="Preview"
+                  className="max-h-28 object-contain rounded-md"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow-md z-20"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDelete();
+                  }}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </div>
               {files.length > 0 && (
                 <FileUploadItem value={files[0]}>
                   <FileUploadItemMetadata />
@@ -171,19 +186,7 @@ export function FileUploadImage({
         </p>
       )}
 
-      {!multiple && hasPreview && (
-        <div className="mt-2 flex justify-center">
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={handleDelete}
-            className="flex items-center gap-1"
-          >
-            <X className="w-4 h-4" /> Hapus Gambar
-          </Button>
-        </div>
-      )}
+
     </div>
   );
 }

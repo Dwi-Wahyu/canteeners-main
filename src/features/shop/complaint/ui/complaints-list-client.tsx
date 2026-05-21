@@ -67,7 +67,7 @@ export default function ComplaintsListClient({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 flex flex-col">
       {complaints.map((complaint) => {
         const StatusIcon =
           complaintStatusMap[complaint.status]?.icon || AlertCircle;
@@ -86,11 +86,13 @@ export default function ComplaintsListClient({
                       {complaint.order.customer.user.avatar ? (
                         <Image
                           src={
-                            complaint.order.customer.user.avatar.includes("http")
+                            complaint.order.customer.user.avatar.includes(
+                              "http",
+                            )
                               ? complaint.order.customer.user.avatar
                               : getImageUrl(
                                   "/avatar/" +
-                                    complaint.order.customer.user.avatar
+                                    complaint.order.customer.user.avatar,
                                 )
                           }
                           alt={complaint.order.customer.user.name}
@@ -149,7 +151,9 @@ export default function ComplaintsListClient({
                     <div className="shrink-0">
                       <div className="h-12 w-12 rounded overflow-hidden bg-muted border">
                         <Image
-                          src={getImageUrl("/complaint-proof/" + complaint.proof_url)}
+                          src={getImageUrl(
+                            "/complaint-proof/" + complaint.proof_url,
+                          )}
                           alt="Bukti"
                           width={48}
                           height={48}

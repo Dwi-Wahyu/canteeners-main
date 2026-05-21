@@ -49,11 +49,18 @@ export default async function OrderHistoryPage({
     <div className="min-h-screen bg-gray-50 pb-32">
       <main className="max-w-md mx-auto p-5 space-y-6">
         {/* Header Section */}
-        <div className="pt-2">
+        {/* <div className="pt-2">
           <h1 className="text-2xl font-bold text-gray-900">Riwayat Pesanan</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Pantau status dan riwayat kulineranmu
           </p>
+        </div> */}
+
+        <div className="mb-4">
+          <h1 className="text-xl font-bold text-gray-900">Riwayat Pesanan</h1>
+          <div className="text-sm text-gray-500">
+            Pantau status dan riwayat kulineranmu
+          </div>
         </div>
 
         {/* Filters */}
@@ -147,9 +154,6 @@ export default async function OrderHistoryPage({
                             </span>
                           )}
                         </div>
-                      </div>
-                      <div className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md uppercase">
-                        Detail
                       </div>
                     </div>
                   </CardContent>

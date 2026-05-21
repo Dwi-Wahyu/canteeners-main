@@ -5,7 +5,7 @@ import ShopComplaintSection from "@/features/order/ui/shop-complaint-section";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/config/auth";
 import { OrderRefundSection } from "@/features/order/ui/order-refund-section";
-import { ChevronLeft, MessageCircle } from "lucide-react";
+import { ChevronLeft, ListOrdered, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
 export default async function ShopOrderDetailPage({
@@ -43,12 +43,21 @@ export default async function ShopOrderDetailPage({
           <ChevronLeft className="w-4 h-4" /> Kembali
         </Link>
 
-        <Link
-          href={"/dashboard-kedai/chat/" + order.conversation_id}
-          className="text-muted-foreground"
-        >
-          <MessageCircle className="w-5 h-5" />
-        </Link>
+        <div className="flex gap-4 items-center">
+          <Link
+            href={"/dashboard-kedai/order"}
+            className="text-muted-foreground"
+          >
+            <ListOrdered className="w-5 h-5" />
+          </Link>
+
+          <Link
+            href={"/dashboard-kedai/chat/" + order.conversation_id}
+            className="text-muted-foreground"
+          >
+            <MessageCircle className="w-5 h-5" />
+          </Link>
+        </div>
       </div>
 
       <div className="mb-2">

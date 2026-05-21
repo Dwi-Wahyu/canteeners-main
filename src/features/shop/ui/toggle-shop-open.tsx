@@ -10,6 +10,8 @@ import { ShopStatus } from "@/generated/prisma";
 import { toggleAutoAccept, toggleShopStatus } from "../lib/shop-actions";
 import NavButton from "@/components/nav-button";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export default function ToggleShopStatus({
   id,
@@ -52,7 +54,7 @@ export default function ToggleShopStatus({
       const result = await toggleAutoAccept(id, isAutoAccept);
 
       if (result.success) {
-        toast.success(result.message);
+        // toast.success(result.message);
         if (typeof result.data === "boolean") {
           setIsAutoAccept(result.data);
         }
@@ -107,7 +109,7 @@ export default function ToggleShopStatus({
           <div className="flex flex-col gap-3">
             <div className="flex gap-3 items-center">
               <div>
-                <h1 className="font-medium">Status Kedai</h1>
+                <Label className="mb-2 block">Status Kedai</Label>
                 <h1 className={`text-xl font-bold ${statusConfig.color}`}>
                   {statusConfig.label}
                 </h1>
@@ -163,38 +165,34 @@ export default function ToggleShopStatus({
           <Separator />
 
           {/* Terima Otomatis */}
-          <div className="flex justify-between items-center">
-            <div className="flex gap-3 items-center">
-              <div
-                className={`w-3 h-3 rounded-full ${
-                  isAutoAccept
-                    ? "bg-primary shadow-[0_0_8px_rgba(var(--primary),0.4)]"
-                    : "bg-slate-300 dark:bg-slate-700"
-                }`}
-              ></div>
-              <div>
-                <h1 className="text-sm font-semibold">Terima Otomatis</h1>
-                <p className="text-xs text-muted-foreground">
-                  Proses pesanan tanpa konfirmasi manual
-                </p>
+          <div className="flex justify-between items-center gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1
+                  className="text-sm font-semibold cursor-pointer"
+                  onClick={handleAutoAcceptToggle}
+                >
+                  Terima Otomatis
+                </h1>
               </div>
+              <p
+                className="text-xs text-muted-foreground cursor-pointer"
+                onClick={handleAutoAcceptToggle}
+              >
+                Proses pesanan tanpa konfirmasi manual
+              </p>
             </div>
 
-            <Button
-              size={"sm"}
-              variant={isAutoAccept ? "default" : "outline"}
-              onClick={handleAutoAcceptToggle}
-              disabled={isAutoPending}
-              className="min-w-[90px]"
-            >
-              {isAutoPending ? (
-                <Loader2 className="animate-spin w-4 h-4" />
-              ) : isAutoAccept ? (
-                "Aktif"
-              ) : (
-                "Nonaktif"
-              )}
-            </Button>
+            {isAutoPending ? (
+              <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
+            ) : (
+              <Checkbox
+                checked={isAutoAccept}
+                onCheckedChange={handleAutoAcceptToggle}
+                disabled={isAutoPending}
+                className="w-6 h-6"
+              />
+            )}
           </div>
 
           <Separator />
@@ -202,7 +200,6 @@ export default function ToggleShopStatus({
           {/* Jam Operasional */}
           <div className="flex justify-between items-center">
             <div className="flex gap-3 items-center">
-              <Edit className="w-4 h-4 text-muted-foreground ml-0.5" />
               <div>
                 <h1 className="text-sm font-semibold">Jam Operasional</h1>
                 <p className="text-xs text-muted-foreground">

@@ -144,7 +144,7 @@ export default function CancelOrderDialog({
           {labels.trigger}
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-[90vw] rounded-2xl overflow-y-auto max-h-[90vh]">
+      <AlertDialogContent>
         <AlertDialogHeader className="text-start">
           <AlertDialogTitle>{labels.title}</AlertDialogTitle>
           <AlertDialogDescription className="text-sm">
@@ -208,14 +208,12 @@ export default function CancelOrderDialog({
           )}
 
           {isProcessing && (
-            <div className="mt-4 bg-blue-50 p-3 rounded-xl">
-              <Link
-                className="text-[11px] text-blue-600 font-medium flex items-center gap-1"
-                href={"/syarat-dan-ketentuan"}
-              >
-                Lihat Syarat & Ketentuan Refund
-              </Link>
-            </div>
+            <Link
+              className="underline text-sm text-muted-foreground underline-offset-2 w-fit mt-2"
+              href={"/syarat-dan-ketentuan/refund"}
+            >
+              Lihat Syarat & Ketentuan Refund
+            </Link>
           )}
         </AlertDialogHeader>
         <AlertDialogFooter className="flex sm:flex-row gap-3 mt-6">

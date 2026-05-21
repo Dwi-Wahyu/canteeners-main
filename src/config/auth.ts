@@ -273,12 +273,15 @@ export const authConfig: NextAuthConfig = {
           if (guestUser && !guestUser.username) {
             if (!existingUser) {
               // CASE 1: New user, convert guest to full user
+              const newName = user.name as string;
+              const newAvatar = user.image || "avatars/default-avatar.jpg";
+
               await prisma.user.update({
                 where: { id: guestId },
                 data: {
                   username: userEmail,
-                  name: user.name as string,
-                  avatar: user.image || "avatars/default-avatar.jpg",
+                  name: newName,
+                  avatar: newAvatar,
                   last_login: new Date(),
                 },
               });
@@ -291,16 +294,21 @@ export const authConfig: NextAuthConfig = {
 
               cookieStore.delete("guestId");
               try {
-                await syncUserNameInFirestore(guestId, user.name as string);
+                await syncUserNameInFirestore(guestId, newName, newAvatar);
               } catch (error) {
                 // Non-fatal: Prisma sudah terupdate, Firestore sync bisa retry manual
-                console.error("Failed to sync user name to Firestore (CASE 1):", error);
+                console.error(
+                  "Failed to sync user name to Firestore (CASE 1):",
+                  error,
+                );
               }
               return true;
             } else {
               // CASE 2: Existing user, merge guest data into existing account
               const guestCustomer = guestUser.customer;
               const existingCustomer = existingUser.customer;
+              const newName = user.name as string;
+              const newAvatar = user.image || "avatars/default-avatar.jpg";
 
               if (guestCustomer && existingCustomer) {
                 await prisma.$transaction(async (tx) => {
@@ -362,9 +370,16 @@ export const authConfig: NextAuthConfig = {
 
               try {
                 // userId yang dipakai di Firestore adalah existingUser.id (bukan guestId yang sudah didelete)
-                await syncUserNameInFirestore(existingUser.id, user.name as string);
+                await syncUserNameInFirestore(
+                  existingUser.id,
+                  newName,
+                  newAvatar,
+                );
               } catch (error) {
-                console.error("Failed to sync user name to Firestore (CASE 2):", error);
+                console.error(
+                  "Failed to sync user name to Firestore (CASE 2):",
+                  error,
+                );
               }
 
               cookieStore.delete("guestId");
@@ -402,10 +417,17 @@ export const authConfig: NextAuthConfig = {
           }
         } else if (!existingUser.name || existingUser.name === "") {
           // Update existing user profile if name is missing
+          const newName = user.name as string;
           await prisma.user.update({
             where: { id: existingUser.id },
-            data: { name: user.name as string },
+            data: { name: newName },
           });
+
+          try {
+            await syncUserNameInFirestore(existingUser.id, newName);
+          } catch (error) {
+            console.error("Failed to sync missing user name to Firestore:", error);
+          }
         }
       }
       return true;

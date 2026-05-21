@@ -106,7 +106,7 @@ export default function RejectOrderDialog({ order_id }: { order_id: string }) {
             onClick={handleConfirm}
             disabled={isPending}
           >
-            {isPending ? <Loader2 className="animate-spin" /> : "Yakin"}
+            {isPending ? <Loader2 className="animate-spin" /> : "Tolak"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

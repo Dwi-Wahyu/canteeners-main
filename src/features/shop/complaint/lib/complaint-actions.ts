@@ -12,6 +12,7 @@ import {
 import { adminDb } from "@/lib/firebase/admin";
 import { prisma } from "@/lib/prisma";
 import { FieldValue } from "firebase-admin/firestore";
+import { revalidatePath } from "next/cache";
 
 export async function createShopComplaint(payload: ShopComplaintInput) {
   try {
@@ -72,7 +73,7 @@ export async function createShopComplaint(payload: ShopComplaintInput) {
 }
 
 export async function updateShopComplaint(
-  payload: UpdateComplaintInput
+  payload: UpdateComplaintInput,
 ): Promise<ServerActionReturn<void>> {
   try {
     const updated = await prisma.shopComplaint.update({
@@ -102,48 +103,51 @@ export async function updateShopComplaint(
       },
     });
 
-    const notificationRef = adminDb.collection("notifications");
+    // const notificationRef = adminDb.collection("notifications");
 
-    // Create notification based on status
-    let notificationTitle = "";
-    let notificationBody = "";
-    let notificationIntent: "INFO" | "SUCCESS" | "WARNING" = "INFO";
+    // // Create notification based on status
+    // let notificationTitle = "";
+    // let notificationBody = "";
+    // let notificationIntent: "INFO" | "SUCCESS" | "WARNING" = "INFO";
 
-    switch (payload.status) {
-      case "UNDER_REVIEW":
-        notificationTitle = "Komplain Sedang Ditinjau";
-        notificationBody = "Pemilik kedai sedang meninjau komplain Anda";
-        notificationIntent = "INFO";
-        break;
+    // switch (payload.status) {
+    //   case "UNDER_REVIEW":
+    //     notificationTitle = "Komplain Sedang Ditinjau";
+    //     notificationBody = "Pemilik kedai sedang meninjau komplain Anda";
+    //     notificationIntent = "INFO";
+    //     break;
 
-      case "RESOLVED":
-        notificationTitle = "Komplain Diselesaikan";
-        notificationBody = "Komplain Anda telah diselesaikan oleh pihak kedai";
-        notificationIntent = "SUCCESS";
-        break;
+    //   case "RESOLVED":
+    //     notificationTitle = "Komplain Diselesaikan";
+    //     notificationBody = "Komplain Anda telah diselesaikan oleh pihak kedai";
+    //     notificationIntent = "SUCCESS";
+    //     break;
 
-      case "REJECTED":
-        notificationTitle = "Komplain Ditolak";
-        notificationBody =
-          "Komplain Anda ditolak. Lihat tanggapan kedai untuk detail lebih lanjut";
-        notificationIntent = "WARNING";
-        break;
-    }
+    //   case "REJECTED":
+    //     notificationTitle = "Komplain Ditolak";
+    //     notificationBody =
+    //       "Komplain Anda ditolak. Lihat tanggapan kedai untuk detail lebih lanjut";
+    //     notificationIntent = "WARNING";
+    //     break;
+    // }
 
-    // Send notification to customer
-    const notificationData = {
-      recipientId: updated.order.customer.user_id,
-      type: "COMPLAINT",
-      subType: payload.status,
-      title: notificationTitle,
-      body: notificationBody,
-      isRead: false,
-      intent: notificationIntent,
-      resourcePath: `/order/${updated.order_id}`,
-      createdAt: FieldValue.serverTimestamp(),
-    };
+    // // Send notification to customer
+    // const notificationData = {
+    //   recipientId: updated.order.customer.user_id,
+    //   type: "COMPLAINT",
+    //   subType: payload.status,
+    //   title: notificationTitle,
+    //   body: notificationBody,
+    //   isRead: false,
+    //   intent: notificationIntent,
+    //   resourcePath: `/order/${updated.order_id}`,
+    //   createdAt: FieldValue.serverTimestamp(),
+    // };
 
-    await notificationRef.add(notificationData);
+    // await notificationRef.add(notificationData);
+
+    revalidatePath(`/dashboard-kedai/order/${updated.order.id}`);
+    revalidatePath(`/order/${updated.order.id}`);
 
     return successResponse(undefined, "Sukses memperbarui komplain");
   } catch (error) {

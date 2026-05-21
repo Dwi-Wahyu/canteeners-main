@@ -85,13 +85,13 @@ export default function RespondComplaintDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full">
-          <MessageSquare className="mr-2 h-4 w-4" />
-          Tanggapi Komplain
+      <DialogTrigger asChild className="float-end">
+        <Button>
+          <MessageSquare />
+          Tanggapi
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Tanggapi Komplain Pelanggan</DialogTitle>
           <DialogDescription>
@@ -107,11 +107,13 @@ export default function RespondComplaintDialog({
               name="feedback"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tanggapan *</FormLabel>
+                  <FormLabel>
+                    Tanggapan<span className="text-red-500">*</span>
+                  </FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Jelaskan tanggapan Anda terhadap komplain ini..."
-                      className="min-h-[120px] resize-none"
+                      className="min-h-30 resize-none"
                       {...field}
                     />
                   </FormControl>
@@ -128,7 +130,9 @@ export default function RespondComplaintDialog({
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status *</FormLabel>
+                  <FormLabel>
+                    Status<span className="text-red-500">*</span>
+                  </FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}

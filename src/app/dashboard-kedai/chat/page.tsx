@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,10 +17,21 @@ import {
   isOpponentTyping,
 } from "@/features/chat/lib/chat-helper";
 import { Badge } from "@/components/ui/badge";
+import { useDebounce } from "@/hooks/use-debounce";
 
 export default function OwnerChatListPage() {
   const { chats, isLoading, isLoadingMore, user, loadMore, hasMore } =
     useChatListPaginated();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  const filteredChats = chats.filter((chat) => {
+    if (!user) return false;
+    const opponentInfo = getOpponentInfo(chat, user.uid);
+    if (!opponentInfo) return false;
+    return opponentInfo.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
+  });
 
   if (isLoading) {
     return (
@@ -37,9 +49,11 @@ export default function OwnerChatListPage() {
             <span className="sr-only">User</span>
           </div>
           <Input
+            key="search-loading"
             type="text"
-            placeholder="Cari Pelanggan atau Nomor Meja"
+            placeholder="Cari Pelanggan"
             className="peer pl-9 bg-card"
+            disabled
           />
         </div>
 
@@ -69,9 +83,11 @@ export default function OwnerChatListPage() {
             <span className="sr-only">User</span>
           </div>
           <Input
+            key="search-no-user"
             type="text"
-            placeholder="Cari Pelanggan atau Nomor Meja"
+            placeholder="Cari Pelanggan"
             className="peer pl-9 bg-card"
+            disabled
           />
         </div>
 
@@ -97,20 +113,25 @@ export default function OwnerChatListPage() {
           <span className="sr-only">User</span>
         </div>
         <Input
+          key="search-active"
           type="text"
-          placeholder="Cari Pelanggan atau Nomor Meja"
+          placeholder="Cari Pelanggan"
           className="peer pl-9 bg-card"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
       <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-        {chats.length === 0 ? (
+        {filteredChats.length === 0 ? (
           <div className="p-10 text-center text-gray-500">
-            Belum ada percakapan dari pelanggan.
+            {chats.length === 0
+              ? "Belum ada percakapan dari pelanggan."
+              : "Tidak ada percakapan dengan nama tersebut."}
           </div>
         ) : (
           <div className="divide-y">
-            {chats.map((chat) => {
+            {filteredChats.map((chat) => {
               const unreadCount = getMyUnreadCount(chat, user.uid);
 
               const isTyping = isOpponentTyping(chat, user.uid);
@@ -189,8 +210,8 @@ export default function OwnerChatListPage() {
         )}
       </div>
 
-      {/* Infinite scroll trigger — hanya tampil saat ada chat */}
-      {chats.length > 0 && (
+      {/* Infinite scroll trigger — hanya tampil saat ada chat dan tidak sedang mencari */}
+      {chats.length > 0 && !searchQuery && (
         <InfiniteScrollTrigger
           onIntersect={loadMore}
           isLoading={isLoadingMore}
