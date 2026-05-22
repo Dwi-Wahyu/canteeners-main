@@ -270,7 +270,10 @@ export default function CanteenClient({
     };
     shopCart.items.push(newItem);
 
-    const totalCartQty = shopCart.items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    const totalCartQty = shopCart.items.reduce(
+      (sum: number, item: any) => sum + item.quantity,
+      0,
+    );
     const prevTotalCartQty = totalCartQty - 1;
 
     const prevCommissionPerUnit = prevTotalCartQty > 2 ? 500 : 1000;
@@ -285,7 +288,7 @@ export default function CanteenClient({
         const prevItemCommission = item.quantity * prevCommissionPerUnit;
         basePriceSum = item.subtotal - prevItemCommission;
       }
-      item.subtotal = basePriceSum + (item.quantity * newCommissionPerUnit);
+      item.subtotal = basePriceSum + item.quantity * newCommissionPerUnit;
       newTotalPrice += item.subtotal;
     });
 
@@ -312,7 +315,10 @@ export default function CanteenClient({
         cartId = createdCartId;
 
         // Copy cache from temp-guest-cart to real cartId
-        const tempCartData = queryClient.getQueryData(["cart", "temp-guest-cart"]);
+        const tempCartData = queryClient.getQueryData([
+          "cart",
+          "temp-guest-cart",
+        ]);
         if (tempCartData) {
           const realCartData = {
             ...(tempCartData as any),
@@ -335,7 +341,9 @@ export default function CanteenClient({
       if (result.success) {
         queryClient.invalidateQueries({ queryKey: ["cart", cartId] });
       } else {
-        throw new Error(result.error.message || "Gagal menambahkan ke keranjang");
+        throw new Error(
+          result.error.message || "Gagal menambahkan ke keranjang",
+        );
       }
     } catch (error: any) {
       // Rollback on error
@@ -348,7 +356,9 @@ export default function CanteenClient({
         changeActiveCartId(null);
         queryClient.removeQueries({ queryKey: ["cart", "temp-guest-cart"] });
       }
-      toast.error(error.message || "Terjadi kesalahan saat menambahkan ke keranjang");
+      toast.error(
+        error.message || "Terjadi kesalahan saat menambahkan ke keranjang",
+      );
     } finally {
       setLoadingProductId(null);
     }
@@ -574,7 +584,7 @@ export default function CanteenClient({
                 >
                   <div className="bg-white rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.07)] overflow-hidden flex gap-0 transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)]">
                     {/* Shop Image */}
-                    <div className="w-[110px] h-[110px] flex-shrink-0 overflow-hidden bg-[#e6eff8]">
+                    <div className="w-27.5 h-27.5 shrink-0 overflow-hidden bg-[#e6eff8]">
                       <img
                         src={getImageUrl("/shop/" + shop.image_url)}
                         alt={shop.name}
@@ -603,7 +613,7 @@ export default function CanteenClient({
                         </div>
 
                         {shop.minimum_price && shop.maximum_price && (
-                          <div className="flex items-center gap-1 mt-1">
+                          <div className="flex items-center gap-0.5 mt-1">
                             <CashIcon className="w-3.5 h-3.5 text-[#926f69]" />
                             <span className="text-[11px] text-[#5d3f3b]">
                               {formatRupiah(shop.minimum_price)} –{" "}
@@ -634,7 +644,7 @@ export default function CanteenClient({
                         <div className="flex items-center gap-1">
                           <Star className="size-3 text-[#bb0004] fill-[#bb0004]" />
                           <span className="text-[11px] font-semibold text-[#141d23]">
-                            {shop.average_rating ?? "—"}
+                            {shop.average_rating ? shop.average_rating.toFixed(1) : "—"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">

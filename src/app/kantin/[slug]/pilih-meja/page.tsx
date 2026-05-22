@@ -34,7 +34,7 @@ export default async function ChooseTablePage({
   return (
     <div>
       <div className="w-full p-4 gap-2 flex items-center bg-linear-to-r text-primary-foreground from-primary to-primary/90">
-        <HistoryBackButton />
+        <HistoryBackButton className="text-primary-foreground" />
 
         <h1 className="text-xl leading-tight">Pilih Meja </h1>
       </div>
