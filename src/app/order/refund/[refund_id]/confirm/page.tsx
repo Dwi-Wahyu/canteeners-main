@@ -27,12 +27,11 @@ export default function ConfirmRefundPage({
         const result = await completeRefund({ refund_id });
 
         if (result.success) {
-          toast.success("Refund berhasil dikonfirmasi");
+          // toast.success("Refund berhasil dikonfirmasi");
+          router.replace(backUrl);
         } else {
           toast.error(result.error.message || "Gagal mengonfirmasi refund");
         }
-        
-        router.replace(backUrl);
       } catch (error) {
         console.error("ConfirmRefundPage Error:", error);
         toast.error("Terjadi kesalahan");
@@ -48,7 +47,9 @@ export default function ConfirmRefundPage({
       <Loader2 className="w-10 h-10 animate-spin text-primary" />
       <div className="text-center">
         <h1 className="text-lg font-bold">Mengonfirmasi Refund...</h1>
-        <p className="text-sm text-muted-foreground">Mohon tunggu sebentar, kami sedang memproses permintaan Anda.</p>
+        <p className="text-sm text-muted-foreground">
+          Mohon tunggu sebentar, kami sedang memproses permintaan Anda.
+        </p>
       </div>
     </div>
   );

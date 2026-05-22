@@ -201,11 +201,6 @@ export default function CustomerProfilePage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {isSuspended && (
-                      <Badge variant="destructive" className="text-[8px] h-4">
-                        DIBLOKIR
-                      </Badge>
-                    )}
                     <ChevronRight className="size-4 text-muted-foreground" />
                   </div>
                 </Link>

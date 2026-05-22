@@ -1,10 +1,8 @@
 import EmptyCart from "../../features/cart/ui/empty-cart";
 import { auth } from "@/config/auth";
-import { redirect } from "next/navigation";
 import { getCart } from "@/features/cart/lib/cart-queries";
 import { getImageUrl } from "@/helper/get-image-url";
 import { BottomNav } from "@/components/layouts/bottom-nav";
-import { ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CartShopCard from "@/features/cart/ui/cart-shop-card";
 

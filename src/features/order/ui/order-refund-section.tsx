@@ -123,7 +123,7 @@ export function OrderRefundSection({
         {order.refund?.history && order.refund.history.length > 0 && (
           <div className="space-y-4 pt-2">
             <Label>Riwayat Perubahan</Label>
-            <div className="space-y-4 relative before:absolute before:inset-0 before:ml-[11px] before:-translate-x-px before:h-full before:w-0.5 before:bg-muted">
+            <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2.75 before:-translate-x-px before:h-full before:w-0.5 before:bg-muted">
               {order.refund.history.map((item, idx) => (
                 <div key={item.id} className="relative flex items-start gap-4">
                   <div

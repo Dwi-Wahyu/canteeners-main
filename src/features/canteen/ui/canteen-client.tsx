@@ -490,7 +490,7 @@ export default function CanteenClient({
                 <h3 className="font-semibold text-[#141d23] text-sm">
                   Menu Tidak Ditemukan
                 </h3>
-                <p className="text-xs text-[#926f69] mt-1 max-w-[200px] mx-auto">
+                <p className="text-xs text-[#926f69] mt-1 max-w-50 mx-auto">
                   Coba ubah kata kunci pencarian atau hapus filter kategori.
                 </p>
               </div>
@@ -569,7 +569,7 @@ export default function CanteenClient({
                 <h3 className="font-semibold text-[#141d23] text-sm">
                   Kedai Tidak Ditemukan
                 </h3>
-                <p className="text-xs text-[#926f69] mt-1 max-w-[200px] mx-auto">
+                <p className="text-xs text-[#926f69] mt-1 max-w-50 mx-auto">
                   Coba ubah kata kunci atau hapus filter.
                 </p>
               </div>
@@ -644,7 +644,9 @@ export default function CanteenClient({
                         <div className="flex items-center gap-1">
                           <Star className="size-3 text-[#bb0004] fill-[#bb0004]" />
                           <span className="text-[11px] font-semibold text-[#141d23]">
-                            {shop.average_rating ? shop.average_rating.toFixed(1) : "—"}
+                            {shop.average_rating
+                              ? shop.average_rating.toFixed(1)
+                              : "—"}
                           </span>
                         </div>
                         <div className="flex items-center gap-1">

@@ -10,6 +10,7 @@ import { FirebaseAuthSync } from "@/hooks/firebase-auth-sync";
 import { NotificationWatcher } from "@/features/notification/ui/notification-watcher";
 import { ToastContainer } from "@/components/ui/custom-toast-container";
 import NewVoucherPopup from "@/components/new-voucher-popup";
+import UnluckyVoucherPopup from "@/components/unlucky-voucher-popup";
 import EventParticipationPopup from "@/components/event-participation-popup";
 import { Toaster } from "sonner";
 
@@ -32,6 +33,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             {children}
             <NotificationDialog />
             <NewVoucherPopup />
+            <UnluckyVoucherPopup />
             <Suspense>
               <EventParticipationPopup />
             </Suspense>

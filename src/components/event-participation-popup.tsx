@@ -167,9 +167,7 @@ export default function EventParticipationPopup() {
                 disabled={remainingSlots <= 0}
                 className="h-11"
               >
-                {remainingSlots > 0
-                  ? "Mendaftar dan Dapatkan Diskon"
-                  : "Kuota Habis"}
+                {remainingSlots > 0 ? "Daftar Sekarang" : "Kuota Habis"}
               </Button>
               <button
                 onClick={() => setIsOpen(false)}

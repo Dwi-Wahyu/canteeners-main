@@ -81,33 +81,6 @@ export default function ComplaintsListClient({
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
-                    {/* Customer Avatar */}
-                    <div className="relative h-10 w-10 rounded-full overflow-hidden bg-muted shrink-0">
-                      {complaint.order.customer.user.avatar ? (
-                        <Image
-                          src={
-                            complaint.order.customer.user.avatar.includes(
-                              "http",
-                            )
-                              ? complaint.order.customer.user.avatar
-                              : getImageUrl(
-                                  "/avatar/" +
-                                    complaint.order.customer.user.avatar,
-                                )
-                          }
-                          alt={complaint.order.customer.user.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center bg-primary/10 text-primary font-semibold">
-                          {complaint.order.customer.user.name
-                            .charAt(0)
-                            .toUpperCase()}
-                        </div>
-                      )}
-                    </div>
-
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
@@ -124,6 +97,7 @@ export default function ComplaintsListClient({
                           })}
                         </span>
                       </div>
+
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                         {complaint.cause}
                       </p>
@@ -139,9 +113,6 @@ export default function ComplaintsListClient({
                           {complaintStatusMap[complaint.status]?.label ||
                             complaint.status}
                         </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          Order #{complaint.order.id.slice(0, 8)}
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -150,7 +121,7 @@ export default function ComplaintsListClient({
                   {complaint.proof_url && (
                     <div className="shrink-0">
                       <div className="h-12 w-12 rounded overflow-hidden bg-muted border">
-                        <Image
+                        <img
                           src={getImageUrl(
                             "/complaint-proof/" + complaint.proof_url,
                           )}

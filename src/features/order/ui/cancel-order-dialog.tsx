@@ -97,18 +97,20 @@ export default function CancelOrderDialog({
           trigger: "Batalkan & Refund",
           title: "Batalkan Pesanan & Kembalikan Dana?",
           description:
-            "Anda bertindak sebagai Pemilik Kedai. Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib melakukan proses pengembalian dana (refund) kepada pelanggan.",
+            "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib melakukan proses pengembalian dana (refund) kepada pelanggan.",
           action: "Ya, Batalkan & Refund",
-          placeholder: "Contoh: Stok bahan makanan habis, kedai terlalu ramai, dll...",
+          placeholder:
+            "Contoh: Stok bahan makanan habis, kedai terlalu ramai, dll...",
         };
       }
       return {
         trigger: "Batalkan Pesanan",
         title: "Batalkan Pesanan Pelanggan?",
         description:
-          "Anda bertindak sebagai Pemilik Kedai. Silakan masukkan alasan pembatalan agar pelanggan mengetahui mengapa pesanan mereka dibatalkan.",
+          "Silakan masukkan alasan pembatalan agar pelanggan mengetahui mengapa pesanan mereka dibatalkan.",
         action: "Ya, Batalkan Pesanan",
-        placeholder: "Contoh: Kedai akan segera tutup, menu tidak tersedia, dll...",
+        placeholder:
+          "Contoh: Kedai akan segera tutup, menu tidak tersedia, dll...",
       };
     }
 
@@ -120,18 +122,26 @@ export default function CancelOrderDialog({
         description:
           "Sebagai Pelanggan, pesanan Anda sudah melewati estimasi waktu persiapan kedai. Anda berhak membatalkan pesanan ini dan mengajukan pengembalian dana (refund).",
         action: "Ya, Batalkan & Refund",
-        placeholder: "Contoh: Waktu persiapan makanan terlalu lama, salah memilih menu, dll...",
+        placeholder:
+          "Contoh: Waktu persiapan makanan terlalu lama, salah memilih menu, dll...",
       };
     }
 
     // Status-specific customer labels when not processing
-    let description = "Sebagai Pelanggan, pesanan yang dibatalkan tidak dapat dikembalikan atau dilanjutkan kembali.";
+    let description =
+      "Sebagai Pelanggan, pesanan yang dibatalkan tidak dapat dikembalikan atau dilanjutkan kembali.";
     if (order_status === "PENDING_CONFIRMATION") {
-      description = "Sebagai Pelanggan, Anda membatalkan pesanan dalam masa tenggang 15 detik. Pesanan akan segera dibatalkan secara otomatis.";
-    } else if (order_status === "WAITING_PAYMENT" || order_status === "PAYMENT_REJECTED") {
-      description = "Sebagai Pelanggan, Anda membatalkan pesanan yang belum dibayar. Pembatalan ini akan membatalkan seluruh transaksi.";
+      description =
+        "Sebagai Pelanggan, Anda membatalkan pesanan dalam masa tenggang 15 detik. Pesanan akan segera dibatalkan secara otomatis.";
+    } else if (
+      order_status === "WAITING_PAYMENT" ||
+      order_status === "PAYMENT_REJECTED"
+    ) {
+      description =
+        "Sebagai Pelanggan, Anda membatalkan pesanan yang belum dibayar. Pembatalan ini akan membatalkan seluruh transaksi.";
     } else if (order_status === "WAITING_SHOP_CONFIRMATION") {
-      description = "Sebagai Pelanggan, Anda membatalkan pesanan yang sedang menunggu konfirmasi kedai.";
+      description =
+        "Sebagai Pelanggan, Anda membatalkan pesanan yang sedang menunggu konfirmasi kedai.";
     }
 
     return {
@@ -139,7 +149,8 @@ export default function CancelOrderDialog({
       title: "Yakin ingin membatalkan pesanan?",
       description,
       action: "Ya, Batalkan Pesanan",
-      placeholder: "Contoh: Salah memesan menu, ingin mengubah metode pembayaran, dll...",
+      placeholder:
+        "Contoh: Salah memesan menu, ingin mengubah metode pembayaran, dll...",
     };
   };
 
@@ -166,7 +177,9 @@ export default function CancelOrderDialog({
           </AlertDialogDescription>
 
           <div className="space-y-1.5 mt-4">
-            <Label>Alasan Pembatalan</Label>
+            <Label>
+              Alasan Pembatalan<span className="text-red-500">*</span>
+            </Label>
             <Textarea
               disabled={isPending}
               value={reason}

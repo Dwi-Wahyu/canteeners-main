@@ -56,29 +56,29 @@ export default function CustomerOrderDetailClient({
   const prevStatusRef = useRef<OrderStatus>(order.status);
 
   useEffect(() => {
-    if (prevStatusRef.current !== "CANCELLED" && order.status === "CANCELLED") {
-      const isShopCancellation =
-        order.cancelled_by_id === order.shop.owner?.user_id;
-      if (isShopCancellation) {
-        showNotification({
-          title: "Pesanan Dibatalkan Kedai",
-          message:
-            "Maaf, pesananmu dibatalkan oleh kedai. Dana akan dikembalikan sesuai metode yang dipilih.",
-          type: "error",
-          actionButtons: (
-            <div className="flex flex-col gap-2 w-full">
-              <Button
-                asChild
-                className="w-full"
-                onClick={() => hideNotification()}
-              >
-                <Link href={`/order/${order.id}`}>Lihat Detail</Link>
-              </Button>
-            </div>
-          ),
-        });
-      }
-    }
+    // if (prevStatusRef.current !== "CANCELLED" && order.status === "CANCELLED") {
+    //   const isShopCancellation =
+    //     order.cancelled_by_id === order.shop.owner?.user_id;
+    //   if (isShopCancellation) {
+    //     showNotification({
+    //       title: "Pesanan Dibatalkan Kedai",
+    //       message:
+    //         "Maaf, pesananmu dibatalkan oleh kedai. Dana akan dikembalikan sesuai metode yang dipilih.",
+    //       type: "error",
+    //       actionButtons: (
+    //         <div className="flex flex-col gap-2 w-full">
+    //           <Button
+    //             asChild
+    //             className="w-full"
+    //             onClick={() => hideNotification()}
+    //           >
+    //             <Link href={`/order/${order.id}`}>Lihat Detail</Link>
+    //           </Button>
+    //         </div>
+    //       ),
+    //     });
+    //   }
+    // }
 
     prevStatusRef.current = order.status;
   }, [
@@ -273,14 +273,13 @@ export default function CustomerOrderDetailClient({
             </Alert>
           )}
 
-        {order.status === "CANCELLED" &&
-          order.cancelled_by_id === "SYSTEM" && (
-            <Alert variant={"destructive"}>
-              <CircleAlert className="w-4 h-4 text-destructive" />
-              <AlertTitle>Pesanan Dibatalkan Otomatis oleh Sistem</AlertTitle>
-              <AlertDescription>{order.cancelled_reason}</AlertDescription>
-            </Alert>
-          )}
+        {order.status === "CANCELLED" && order.cancelled_by_id === "SYSTEM" && (
+          <Alert variant={"destructive"}>
+            <CircleAlert className="w-4 h-4 text-destructive" />
+            <AlertTitle>Pesanan Dibatalkan Otomatis</AlertTitle>
+            <AlertDescription>{order.cancelled_reason}</AlertDescription>
+          </Alert>
+        )}
 
         {order.status === "PAYMENT_REJECTED" && (
           <Alert variant={"destructive"}>

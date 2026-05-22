@@ -45,7 +45,7 @@ export default async function ViolationsPage() {
 
       <div className="max-w-md mx-auto px-5 pt-24 space-y-6">
         {/* Suspension Status */}
-        {isSuspended ? (
+        {isSuspended && (
           <Alert variant="destructive" className="border-red-200 bg-red-50">
             <AlertTitle className="text-red-800 font-bold">
               Akun Dibekukan Sementara
@@ -74,18 +74,6 @@ export default async function ViolationsPage() {
               )}
             </AlertDescription>
           </Alert>
-        ) : (
-          <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-center gap-4">
-            <div className="size-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-              <CheckCircle className="size-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-green-900">Status Akun Baik</h3>
-              <p className="text-xs text-green-700">
-                Patuhi terus aturan untuk kenyamanan bersama.
-              </p>
-            </div>
-          </div>
         )}
 
         <div className="space-y-4">
@@ -96,12 +84,18 @@ export default async function ViolationsPage() {
           </div>
 
           {violations.length === 0 ? (
-            <Card className="border-dashed border-2 bg-transparent">
-              <CardContent className="flex flex-col items-center justify-center py-10 text-center text-muted-foreground">
-                <Gavel className="size-10 mb-2 opacity-20" />
-                <p>Belum ada catatan pelanggaran.</p>
-              </CardContent>
-            </Card>
+            <div className="bg-green-50 border border-green-100 rounded-2xl p-4 flex items-center gap-4">
+              <div className="size-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                <CheckCircle className="size-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-green-900">Status Akun Baik</h3>
+                <p className="text-xs text-green-700">
+                  Belum ada catatan pelanggaran. Patuhi terus aturan demi
+                  kenyamanan bersama.
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="gap-3 flex flex-col">
               {violations.map((v) => (
@@ -140,15 +134,12 @@ export default async function ViolationsPage() {
             mengakibatkan sanksi pembekuan akun sementara jika dilakukan
             berulang kali. Pelajari aturan selengkapnya di Syarat & Ketentuan.
           </p>
-          <Button
-            asChild
-            variant="link"
-            className="text-blue-600 h-auto p-0 pl-0 font-medium text-xs"
+          <Link
+            className="text-xs text-blue-700 flex gap-2 items-center"
+            href="/syarat-dan-ketentuan/pelanggan?back_url=/profil/pelanggaran"
           >
-            <Link href="/syarat-dan-ketentuan/pelanggan?back_url=/profil/pelanggaran">
-              Baca Syarat & Ketentuan <ChevronRight className="size-3" />
-            </Link>
-          </Button>
+            Baca Syarat & Ketentuan <ChevronRight className="size-3" />
+          </Link>
         </div>
       </div>
     </div>

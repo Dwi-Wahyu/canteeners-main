@@ -72,7 +72,7 @@ export function ProcessRefundDialog({
 
       if (files.length > 0) {
         const file = files[0];
-        
+
         const validTypes = ["image/jpeg", "image/jpg", "image/png"];
         if (!validTypes.includes(file.type)) {
           form.setError("disbursement_proof_url", {
@@ -112,7 +112,10 @@ export function ProcessRefundDialog({
 
         if (!uploadResponse.ok) {
           form.setError("disbursement_proof_url", {
-            message: uploadData.message || uploadData.error || "Gagal mengunggah file.",
+            message:
+              uploadData.message ||
+              uploadData.error ||
+              "Gagal mengunggah file.",
           });
           setIsSubmitting(false);
           return;
@@ -181,7 +184,8 @@ export function ProcessRefundDialog({
               {refund.disbursement_mode === "TRANSFER" && (
                 <Field>
                   <FormLabel className="mb-2 block">
-                    Bukti Transfer <span className="text-destructive ml-1">*</span>
+                    Bukti Transfer{" "}
+                    <span className="text-destructive ml-1">*</span>
                   </FormLabel>
                   <FileUploadImage
                     multiple={false}
@@ -193,7 +197,10 @@ export function ProcessRefundDialog({
 
                   {form.getFieldState("disbursement_proof_url").error && (
                     <FieldError>
-                      {form.getFieldState("disbursement_proof_url").error?.message}
+                      {
+                        form.getFieldState("disbursement_proof_url").error
+                          ?.message
+                      }
                     </FieldError>
                   )}
                 </Field>
@@ -215,7 +222,7 @@ export function ProcessRefundDialog({
                 )}
               </Alert>
 
-              <DialogFooter className="gap-2 flex sm:gap-0">
+              <DialogFooter className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -225,14 +232,10 @@ export function ProcessRefundDialog({
                   Batal
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                  ) : null}
-                  {refund.disbursement_mode === "TRANSFER" ? (
-                    "Kirim Bukti"
-                  ) : (
-                    "Konfirmasi Penerimaan"
-                  )}
+                  {isSubmitting ? <Loader2 className="animate-spin" /> : null}
+                  {refund.disbursement_mode === "TRANSFER"
+                    ? "Kirim Bukti"
+                    : "Konfirmasi Diterima"}
                 </Button>
               </DialogFooter>
             </form>

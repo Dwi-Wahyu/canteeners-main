@@ -1,10 +1,8 @@
 import { getShopOrderDetail } from "@/features/order/lib/order-queries";
 import OrderReviewSection from "@/features/order/ui/order-review-section";
 import ShopOrderDetailClient from "@/features/order/ui/shop-order-detail-client";
-import ShopComplaintSection from "@/features/order/ui/shop-complaint-section";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/config/auth";
-import { OrderRefundSection } from "@/features/order/ui/order-refund-section";
 import { ChevronLeft, ListOrdered, MessageCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -60,9 +58,7 @@ export default async function ShopOrderDetailPage({
         </div>
       </div>
 
-      <div className="mb-2">
-        <h2 className="text-2xl font-medium tracking-tight">Detail Order</h2>
-      </div>
+      <h2 className="text-2xl font-medium tracking-tight">Detail Order</h2>
 
       <div className="space-y-5">
         <ShopOrderDetailClient order={order} />

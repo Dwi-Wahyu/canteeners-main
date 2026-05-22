@@ -138,14 +138,13 @@ export default function ShopOrderDetailClient({
           </Alert>
         )}
 
-      {order.status === "CANCELLED" &&
-        order.cancelled_by_id === "SYSTEM" && (
-          <Alert variant={"destructive"}>
-            <CircleAlert className="w-4 h-4 text-destructive" />
-            <AlertTitle>Pesanan Dibatalkan Otomatis oleh Sistem</AlertTitle>
-            <AlertDescription>{order.cancelled_reason}</AlertDescription>
-          </Alert>
-        )}
+      {order.status === "CANCELLED" && order.cancelled_by_id === "SYSTEM" && (
+        <Alert variant={"destructive"}>
+          <CircleAlert className="w-4 h-4 text-destructive" />
+          <AlertTitle>Pesanan Dibatalkan Otomatis</AlertTitle>
+          <AlertDescription>{order.cancelled_reason}</AlertDescription>
+        </Alert>
+      )}
 
       <div>
         <h1 className="font-semibold mb-1">Pesanan</h1>
