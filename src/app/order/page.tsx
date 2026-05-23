@@ -95,42 +95,35 @@ export default async function OrderHistoryPage({
                 <Card className="overflow-hidden mb-4 hover:shadow-md transition-shadow active:scale-[0.98] border-none shadow-sm">
                   <CardContent>
                     <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="relative size-12 rounded-xl overflow-hidden border border-gray-100 bg-gray-50">
-                          <img
-                            src={getImageUrl("/shop/" + order.shop.image_url)}
-                            alt={order.shop.name}
-                            className="object-cover w-full h-full"
-                          />
-                        </div>
-                        <div>
-                          <h2 className="font-bold text-gray-900 leading-tight">
-                            {order.shop.name}
-                          </h2>
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">
-                            {formatDateToYYYYMMDD(order.created_at)}
-                          </p>
-                        </div>
+                      <div className="flex flex-col gap-1">
+                        <h2 className="font-bold text-gray-900 leading-tight">
+                          {order.shop.name}
+                        </h2>
+
+                        <CustomBadge
+                          value={order.status}
+                          successValues={["COMPLETED"]}
+                          destructiveValues={[
+                            "REJECTED",
+                            "CANCELLED",
+                            "PAYMENT_REJECTED",
+                          ]}
+                          outlineValues={[
+                            "PENDING_CONFIRMATION",
+                            "WAITING_PAYMENT",
+                          ]}
+                        >
+                          {
+                            orderStatusMapping[
+                              order.status as keyof typeof orderStatusMapping
+                            ]
+                          }
+                        </CustomBadge>
+
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mt-0.5">
+                          {formatDateToYYYYMMDD(order.created_at)}
+                        </p>
                       </div>
-                      <CustomBadge
-                        value={order.status}
-                        successValues={["COMPLETED"]}
-                        destructiveValues={[
-                          "REJECTED",
-                          "CANCELLED",
-                          "PAYMENT_REJECTED",
-                        ]}
-                        outlineValues={[
-                          "PENDING_CONFIRMATION",
-                          "WAITING_PAYMENT",
-                        ]}
-                      >
-                        {
-                          orderStatusMapping[
-                            order.status as keyof typeof orderStatusMapping
-                          ]
-                        }
-                      </CustomBadge>
                     </div>
 
                     <div className="border-t border-dashed border-gray-100 pt-3 flex justify-between items-end">

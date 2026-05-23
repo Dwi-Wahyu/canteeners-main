@@ -1,7 +1,7 @@
 import { auth } from "@/config/auth";
 import { getCustomerOrderDetail } from "@/features/order/lib/order-queries";
 import CustomerOrderDetailClient from "@/features/order/ui/customer-order-detail-client";
-import { getShopConfirmationTimeoutMinutes } from "@/lib/settings";
+import { getShopConfirmationTimeoutMinutes, getShopOrderAcceptanceTimeoutMinutes } from "@/lib/settings";
 import { ChevronLeft, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -29,6 +29,7 @@ export default async function OrderDetailPage({
   }
 
   const shopConfirmationTimeout = await getShopConfirmationTimeoutMinutes();
+  const shopOrderAcceptanceTimeout = await getShopOrderAcceptanceTimeoutMinutes();
 
   return (
     <div>
@@ -48,6 +49,7 @@ export default async function OrderDetailPage({
       <CustomerOrderDetailClient
         order={order}
         shopConfirmationTimeout={shopConfirmationTimeout}
+        shopOrderAcceptanceTimeout={shopOrderAcceptanceTimeout}
       />
     </div>
   );

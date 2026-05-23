@@ -40,9 +40,11 @@ import { VisuallyHidden } from "radix-ui";
 export default function CustomerOrderDetailClient({
   order: initialOrder,
   shopConfirmationTimeout = 30,
+  shopOrderAcceptanceTimeout = 10,
 }: {
   order: GetCustomerOrderDetail;
   shopConfirmationTimeout?: number;
+  shopOrderAcceptanceTimeout?: number;
 }) {
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
   const order = orderData
@@ -133,7 +135,8 @@ export default function CustomerOrderDetailClient({
   );
 
   const isGracePeriod = elapsedSeconds <= 15;
-  const isWaitPeriod = elapsedSeconds > 15 && elapsedSeconds < 600;
+  const isWaitPeriod =
+    elapsedSeconds > 15 && elapsedSeconds < shopOrderAcceptanceTimeout * 60;
 
   const showWaitResponseAlert =
     isWaitPeriod && !isLate && order.status === "PENDING_CONFIRMATION";
@@ -215,11 +218,11 @@ export default function CustomerOrderDetailClient({
             <AlertDescription className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Pesanan Anda sedang menunggu konfirmasi dari pihak kedai. Mohon
-                tunggu sebentar.
+                tunggu sebentar. Jika batas waktu habis, pesanan akan otomatis ditolak.
               </p>
               <div className="flex items-center gap-2 pt-1">
                 <h1 className="text-lg font-bold text-primary tabular-nums tracking-tight">
-                  {formatTime(600 - elapsedSeconds)}
+                  {formatTime(shopOrderAcceptanceTimeout * 60 - elapsedSeconds)}
                 </h1>
                 <span className="text-[10px] font-bold text-muted-foreground uppercase bg-gray-100 px-2 py-0.5 rounded">
                   Sisa Waktu Tunggu

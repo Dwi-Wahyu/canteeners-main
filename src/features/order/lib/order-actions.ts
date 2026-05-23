@@ -103,6 +103,13 @@ export async function confirmOrder({
       data: { status: newStatus, confirmed_at: new Date() },
     });
 
+    // Remove auto-reject job if it exists since shop has confirmed the order
+    try {
+      await orderQueue.remove(`auto-reject-${order_id}`);
+    } catch (queueError) {
+      console.error("Failed to remove auto-reject job from orderQueue:", queueError);
+    }
+
     const timeoutMinutes = await getPaymentTimeoutMinutes();
 
     // Add job to BullMQ queue for automatic cancellation
@@ -492,6 +499,7 @@ export async function rejectOrder({
     // Remove job from BullMQ queue
     try {
       await orderQueue.remove(order_id);
+      await orderQueue.remove(`auto-reject-${order_id}`);
     } catch (queueError) {
       console.error("Failed to remove job from orderQueue:", queueError);
     }
@@ -658,6 +666,7 @@ export async function cancelOrder({
     // Remove job from BullMQ queue
     try {
       await orderQueue.remove(order_id);
+      await orderQueue.remove(`auto-reject-${order_id}`);
     } catch (queueError) {
       console.error("Failed to remove job from orderQueue:", queueError);
     }

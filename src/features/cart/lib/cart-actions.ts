@@ -20,7 +20,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { calculateItemCommission, calculateCommission } from "@/helper/pricing-helper";
 import { orderQueue } from "@/lib/queue";
-import { getPaymentTimeoutMinutes } from "@/lib/settings";
+import { getPaymentTimeoutMinutes, getShopOrderAcceptanceTimeoutMinutes } from "@/lib/settings";
 
 /**
  * Helper internal untuk menghitung ulang semua subtotal item dan total harga keranjang
@@ -326,6 +326,23 @@ export async function processShopCart({
         );
       } catch (queueError) {
         console.error("Failed to add job to orderQueue in processShopCart:", queueError);
+      }
+    } else {
+      // Jika auto-accept tidak aktif, tambahkan job untuk otomatis tolak pesanan jika kedai tidak merespons
+      const timeoutMinutes = await getShopOrderAcceptanceTimeoutMinutes();
+      try {
+        await orderQueue.add(
+          "auto-reject-unconfirmed-order",
+          { orderId: order_id },
+          {
+            delay: timeoutMinutes * 60 * 1000,
+            jobId: `auto-reject-${order_id}`,
+            removeOnComplete: true,
+            removeOnFail: true,
+          },
+        );
+      } catch (queueError) {
+        console.error("Failed to add auto-reject-unconfirmed-order job to orderQueue:", queueError);
       }
     }
 
