@@ -59,6 +59,8 @@ export class LocalStorageService implements StorageService {
       ".gif",
       ".svg",
       ".webp",
+      ".heic",
+      ".heif",
     ];
     const fileExtension = extname(file.name).toLowerCase();
 
@@ -77,7 +79,16 @@ export class LocalStorageService implements StorageService {
    * @returns Promise yang resolve dengan nama file yang diunggah, atau reject dengan error.
    */
   public async uploadMedia(file: File, subfolder: string): Promise<string> {
-    const allowedImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".svg"];
+    const allowedImageExtensions = [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".gif",
+      ".svg",
+      ".webp",
+      ".heic",
+      ".heif",
+    ];
     const allowedVideoExtensions = [".mp4", ".avi", ".mov", ".webm", ".mkv"];
     const allowedExtensions = [
       ...allowedImageExtensions,
@@ -119,7 +130,7 @@ export class LocalStorageService implements StorageService {
     formData.append("file", file);
 
     try {
-      const response = await fetch(`${this.backendUrl}/files/upload`, {
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });

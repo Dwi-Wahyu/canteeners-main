@@ -17,6 +17,7 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { Button } from "@/components/ui/button";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"; // Ensure accessible titles
 import { Attachment } from "../types";
+import { HEICMessageImage } from "./heic-message-image";
 
 interface MediaGalleryProps {
   isOpen: boolean;
@@ -78,7 +79,7 @@ export function MediaGallery({
                       className="max-h-full max-w-full rounded-md object-contain"
                     />
                   ) : (
-                    <img
+                    <HEICMessageImage
                       src={getImageUrl("/message-media-image/" + item.url)}
                       alt="attachment"
                       className="max-h-full max-w-full rounded-md object-contain"

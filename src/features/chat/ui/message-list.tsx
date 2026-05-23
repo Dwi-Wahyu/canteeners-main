@@ -18,6 +18,7 @@ import { PlayCircle, Check, CheckCheck } from "lucide-react";
 import CustomerOrderChatBubble from "./customer-order-chat-bubble";
 import ShopOrderChatBubble from "./shop-order-chat-bubble";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { HEICMessageImage } from "./heic-message-image";
 
 export function MessageList({
   chatId,
@@ -235,7 +236,7 @@ export function MessageList({
                             </div>
                           </div>
                         ) : (
-                          <img
+                          <HEICMessageImage
                             src={mediaUrl}
                             alt="attachment"
                             className="w-full h-full object-cover"

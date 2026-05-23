@@ -66,6 +66,10 @@ export async function createShopComplaint(payload: ShopComplaintInput) {
 
     await notificationRef.add(notificationData);
 
+    revalidatePath(`/order/${payload.order_id}`);
+    revalidatePath(`/order/${payload.order_id}/komplain`);
+    revalidatePath(`/dashboard-kedai/order/${payload.order_id}`);
+
     return successResponse(created, "Sukses menambahkan komplain");
   } catch (error) {
     return errorResponse("Terjadi kesalahan saat menambahkan komplain");
