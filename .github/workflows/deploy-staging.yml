@@ -81,11 +81,18 @@ jobs:
           script: |
             export XDG_RUNTIME_DIR=/run/user/$(id -u)
 
+            # Cek disk dulu — batalkan jika > 80%
+            USAGE=$(df / | awk 'NR==2 {print $5}' | tr -d '%')
+            if [ "$USAGE" -gt 80 ]; then
+              echo "❌ Disk usage ${USAGE}% — bersihkan dulu"
+              podman image prune -f
+            fi
+
             podman login ghcr.io -u dwi-wahyu -p ${{ secrets.GHCR_TOKEN }}
 
             # Pull images terbaru
-            podman pull ghcr.io/dwi-wahyu/canteeners-main:staging
-            podman pull ghcr.io/dwi-wahyu/canteeners-migrator:staging
+            podman pull ghcr.io/dwi-wahyu/canteeners-main:staging || exit 1
+            podman pull ghcr.io/dwi-wahyu/canteeners-migrator:staging || exit 1
 
             # Restart pod dengan image terbaru
             podman kube down /var/www/canteeners/podman/staging/pod.yaml
@@ -100,3 +107,6 @@ jobs:
               -e DATABASE_URL='postgresql://canteeners_staging:canteeners_staging123@localhost:5432/canteeners_staging?schema=public' \
               ghcr.io/dwi-wahyu/canteeners-migrator:staging \
               bunx prisma migrate deploy
+
+            # Bersihkan image lama setelah deploy sukses
+            podman image prune -f

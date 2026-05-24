@@ -48,18 +48,7 @@ export default async function OrderComplaintPage({
       </div>
 
       <div className="p-5">
-        <Card>
-          <CardHeader>
-            <CardTitle>Form Komplain</CardTitle>
-            <CardDescription>
-              Sampaikan keluhan Anda tentang pesanan ini. Kami akan segera
-              menindaklanjuti.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CreateComplaintForm orderId={order_id} />
-          </CardContent>
-        </Card>
+        <CreateComplaintForm orderId={order_id} />
       </div>
     </div>
   );

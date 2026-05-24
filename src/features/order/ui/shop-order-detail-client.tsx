@@ -410,11 +410,8 @@ export default function ShopOrderDetailClient({
             onClick={handleCompleteOrder}
             disabled={isPending}
           >
-            {isPending ? (
-              <Loader className="animate-spin" />
-            ) : (
-              "Pesanan Selesai"
-            )}
+            {isPending && <Loader className="animate-spin" />}
+            Pesanan Selesai
           </Button>
         </div>
       )}

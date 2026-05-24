@@ -2,7 +2,6 @@ import { auth } from "@/config/auth";
 import { getCustomerOrderHistory } from "@/features/order/lib/order-queries";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { getImageUrl } from "@/helper/get-image-url";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { formatDateToYYYYMMDD } from "@/helper/date-helper";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
@@ -19,6 +18,11 @@ export default async function OrderHistoryPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const session = await auth();
+
+  if (session && session.user.role === "SHOP_OWNER") {
+    redirect("/dashboard-kedai");
+  }
+
   const params = await searchParams;
 
   const page = Number(params.page) || 1;

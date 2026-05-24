@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import CanteenClient from "../../../features/canteen/ui/canteen-client";
 import { getCanteenBySlug } from "@/features/canteen/lib/canteen-queries";
 import { SearchParams } from "nuqs";
@@ -20,6 +20,10 @@ export default async function CanteenDetailPage({
   const search = await ShopSearchParams.parse(searchParams);
 
   const session = await auth();
+
+  if (session && session.user.role === "SHOP_OWNER") {
+    redirect("/dashboard-kedai");
+  }
 
   const validSlug = ["kantin-kudapan", "kantin-sosiologi", "kantin-sastra"];
 

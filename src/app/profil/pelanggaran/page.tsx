@@ -4,30 +4,24 @@ import {
   getCustomerSuspensionStatus,
 } from "@/features/user/lib/user-queries";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  AlertTriangle,
-  ChevronRight,
-  Clock,
-  Gavel,
-  ShieldAlert,
-  Info,
-  CheckCircle,
-} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertTriangle, ChevronRight, Info, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { customerViolationTitleMapping } from "@/constant/customer-violation-mapping";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 
 export default async function ViolationsPage() {
   const session = await auth();
 
   if (!session || !session.user.id) {
     redirect("/login-pelanggan");
+  }
+
+  if (session && session.user.role === "SHOP_OWNER") {
+    redirect("/dashboard-kedai");
   }
 
   const [violations, suspension] = await Promise.all([

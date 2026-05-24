@@ -5,13 +5,7 @@ import { ChevronLeft, DollarSign } from "lucide-react";
 import { RefundDetails } from "@/features/shop/refund/ui/refund-details";
 import { CreateRefundForm } from "@/features/shop/refund/ui/create-refund-form";
 import { getRefundById } from "@/features/shop/refund/lib/refund-queries";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { prisma } from "@/lib/prisma";
 
 export default async function CustomerRefundPage({
@@ -77,28 +71,17 @@ export default async function CustomerRefundPage({
           <Link href={`/order/${order_id}`}>
             <ChevronLeft />
           </Link>
-          <h1 className="text-xl font-semibold">Refund</h1>
+
+          {refund ? (
+            <h1 className="text-xl font-semibold">Detail Refund</h1>
+          ) : (
+            <h1 className="text-xl font-semibold">Ajukan Refund</h1>
+          )}
         </div>
       </div>
 
       <div className="p-5">
-        {canRequestRefund && (
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {/* "Detail Refund" */}
-                Ajukan Refund
-              </CardTitle>
-              <CardDescription>
-                {/* Informasi lengkap permintaan pengembalian dana Anda */}
-                Ajukan permintaan pengembalian dana untuk pesanan ini
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CreateRefundForm order={order} />
-            </CardContent>
-          </Card>
-        )}
+        {canRequestRefund && <CreateRefundForm order={order} />}
 
         {/* Refund Not Available */}
         {!refund && !canRequestRefund && (
@@ -110,19 +93,7 @@ export default async function CustomerRefundPage({
           </div>
         )}
 
-        {refund && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Detail Refund</CardTitle>
-              <CardDescription>
-                Informasi lengkap permintaan pengembalian dana Anda
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RefundDetails refund={refund} userRole="CUSTOMER" />
-            </CardContent>
-          </Card>
-        )}
+        {refund && <RefundDetails refund={refund} userRole="CUSTOMER" />}
       </div>
     </div>
   );

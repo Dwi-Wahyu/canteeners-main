@@ -195,7 +195,7 @@ export function CreateRefundForm({
       "disbursement_mode",
       "complaint_proof_url",
     ];
-    
+
     const firstErrorField = FIELD_ORDER.find((field) => errors[field]);
     if (firstErrorField) {
       const element = document.getElementById(`field-${firstErrorField}`);
@@ -252,7 +252,10 @@ export function CreateRefundForm({
 
       {showForm && (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit, onError)}
+            className="space-y-4"
+          >
             {/* Order Summary */}
             <div className="bg-muted/50 rounded-lg p-4 space-y-2">
               <p className="text-sm font-medium">Informasi Pesanan</p>
@@ -287,8 +290,12 @@ export function CreateRefundForm({
                     onValueChange={(value) => {
                       field.onChange(value);
                       setSelectedItems(new Set());
-                      form.setValue("amount", undefined, { shouldValidate: true });
-                      form.setValue("affected_item_ids", [], { shouldValidate: true });
+                      form.setValue("amount", undefined, {
+                        shouldValidate: true,
+                      });
+                      form.setValue("affected_item_ids", [], {
+                        shouldValidate: true,
+                      });
                     }}
                     value={field.value}
                   >
@@ -431,7 +438,7 @@ export function CreateRefundForm({
               render={({ field }) => (
                 <FormItem id="field-disbursement_mode">
                   <FormLabel>
-                    Mode Pengembalian Dana{" "}
+                    Metode Pengembalian Dana{" "}
                     <span className="text-red-500">*</span>
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
@@ -472,9 +479,13 @@ export function CreateRefundForm({
                         const file = files[0] || null;
                         setSelectedFile(file);
                         if (file) {
-                          form.setValue("complaint_proof_url", file.name, { shouldValidate: true });
+                          form.setValue("complaint_proof_url", file.name, {
+                            shouldValidate: true,
+                          });
                         } else {
-                          form.setValue("complaint_proof_url", "", { shouldValidate: true });
+                          form.setValue("complaint_proof_url", "", {
+                            shouldValidate: true,
+                          });
                         }
                       }}
                       placeholder="Klik untuk upload atau drag and drop foto bukti refund (Maks 5MB)"

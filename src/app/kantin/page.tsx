@@ -6,11 +6,16 @@ import { auth } from "@/config/auth";
 
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import CanteenBanner from "@/features/banner/ui/canteen-banner";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function CanteenPage() {
   const session = await auth();
+
+  if (session && session.user.role === "SHOP_OWNER") {
+    redirect("/dashboard-kedai");
+  }
 
   const [canteensData, categoriesData] = await Promise.all([
     getCanteens(),

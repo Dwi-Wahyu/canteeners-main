@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Check, X, AlertCircle, Loader } from "lucide-react";
+import { Check, X, AlertCircle, Loader, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Image from "next/image";
 import { getImageUrl } from "@/helper/get-image-url";
@@ -139,9 +139,9 @@ export function RespondRefundDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-137.5">
         <DialogHeader>
-          <DialogTitle>Tinjau Permintaan Refund</DialogTitle>
+          <DialogTitle className="text-start">Tinjau Pengajuan</DialogTitle>
           <DialogDescription>
-            Tinjau detail permintaan refund dan berikan tanggapan Anda.
+            {/* Tinjau detail permintaan refund dan berikan tanggapan Anda. */}
           </DialogDescription>
         </DialogHeader>
 
@@ -179,7 +179,7 @@ export function RespondRefundDialog({
           </div>
 
           {/* Affected Items */}
-          {affectedItems && affectedItems.length > 0 && (
+          {/* {affectedItems && affectedItems.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium">Item yang Bermasalah:</p>
               <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
@@ -201,7 +201,7 @@ export function RespondRefundDialog({
                 ))}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Reject Reason Form */}
           {showRejectReason && (
@@ -253,11 +253,12 @@ export function RespondRefundDialog({
                     disabled={isSubmitting}
                     onClick={() => form.setValue("status", "REJECTED")}
                   >
-                    {isSubmitting && (
-                      <Loader className="h-4 w-4 animate-spin" />
+                    {isSubmitting ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <X />
                     )}
-                    <X className="h-4 w-4" />
-                    Tolak Refund
+                    Tolak
                   </Button>
                 </DialogFooter>
               </form>
@@ -283,11 +284,11 @@ export function RespondRefundDialog({
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
-                  <Loader className="h-4 w-4 animate-spin" />
+                  <Loader2 className="animate-spin" />
                 ) : (
-                  <Check className="h-4 w-4" />
+                  <Check />
                 )}
-                Setujui Refund
+                Konfirmasi
               </Button>
             </DialogFooter>
           )}

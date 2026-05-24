@@ -17,13 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormDescription,
-  FormField,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form, FormLabel } from "@/components/ui/form";
 import { toast } from "sonner";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -167,7 +161,7 @@ export function ProcessRefundDialog({
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">
-                Mode Pengembalian:
+                Metode Pengembalian:
               </span>
               <span className="text-sm font-medium">
                 {

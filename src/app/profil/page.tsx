@@ -29,9 +29,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ReferralStatusCard from "@/features/user/ui/referral-status-card";
 import UserVouchersSection from "@/features/user/ui/user-vouchers-section";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 export default function CustomerProfilePage() {
   const { data: session, status } = useSession();
+
+  const router = useRouter();
+
   const [referralStatus, setReferralStatus] = useState<{
     referral_code: string | null;
     completed_orders_count: number;
@@ -51,6 +55,10 @@ export default function CustomerProfilePage() {
       fetchStatus();
     } else {
       setLoading(false);
+    }
+
+    if (session?.user.role === "SHOP_OWNER") {
+      router.replace("/dashboard-kedai");
     }
   }, [session?.user?.id, session?.user?.name, session?.user?.username]);
 

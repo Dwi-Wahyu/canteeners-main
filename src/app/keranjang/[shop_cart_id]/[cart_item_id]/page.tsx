@@ -1,16 +1,23 @@
 import NavButton from "@/components/nav-button";
+import { auth } from "@/config/auth";
 import { getCartItem } from "@/features/cart/lib/cart-queries";
 import CartItemClient from "@/features/cart/ui/cart-item-client";
 import DeleteCartItemDialog from "@/features/cart/ui/delete-cart-item-dialog";
 import { ChevronLeft } from "lucide-react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export default async function CartItemDetail({
   params,
 }: {
   params: Promise<{ shop_cart_id: string; cart_item_id: string }>;
 }) {
+  const session = await auth();
+
   const { cart_item_id, shop_cart_id } = await params;
+
+  if (session && session.user.role === "SHOP_OWNER") {
+    redirect("/dashboard-kedai");
+  }
 
   const data = await getCartItem(cart_item_id);
 

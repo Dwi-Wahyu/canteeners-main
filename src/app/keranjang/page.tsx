@@ -5,9 +5,14 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { BottomNav } from "@/components/layouts/bottom-nav";
 import { Badge } from "@/components/ui/badge";
 import CartShopCard from "@/features/cart/ui/cart-shop-card";
+import { redirect } from "next/navigation";
 
 export default async function CartPage() {
   const session = await auth();
+
+  if (session && session.user.role === "SHOP_OWNER") {
+    redirect("/dashboard-kedai");
+  }
 
   const data = session?.user.cartId ? await getCart(session.user.cartId) : null;
 

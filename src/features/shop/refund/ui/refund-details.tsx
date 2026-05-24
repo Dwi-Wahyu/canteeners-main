@@ -1,9 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { RefundStatusBadge } from "@/features/shop/refund/ui/refund-status-badge";
 import { RespondRefundDialog } from "@/features/shop/refund/ui/respond-refund-dialog";
 import { ProcessRefundDialog } from "@/features/shop/refund/ui/process-refund-dialog";
@@ -149,9 +147,13 @@ export function RefundDetails({
         </Alert>
       )}
 
-      {/* Header with Status */}
-      <div className="flex items-center justify-between">
-        <RefundStatusBadge status={refund.status as any} />
+      <div>
+        <Label className="mb-2">Status</Label>
+
+        {/* Header with Status */}
+        <div className="flex items-center justify-between">
+          <RefundStatusBadge status={refund.status} />
+        </div>
       </div>
 
       {/* Amount & Basic Info */}
@@ -163,7 +165,7 @@ export function RefundDetails({
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">Mode Pengembalian</p>
+          <p className="text-sm text-muted-foreground">Metode Pengembalian</p>
           <p className="font-medium">
             {
               refundDisbursementModeMapping[
@@ -173,8 +175,6 @@ export function RefundDetails({
           </p>
         </div>
       </div>
-
-      <Separator />
 
       {/* Reason & Description */}
       <div className="space-y-3">
@@ -192,9 +192,7 @@ export function RefundDetails({
         {refund.description && (
           <div>
             <p className="text-sm text-muted-foreground mb-1">Deskripsi</p>
-            <p className="text-sm bg-muted p-3 rounded-lg">
-              {refund.description}
-            </p>
+            <p className="text-sm font-medium">{refund.description}</p>
           </div>
         )}
       </div>
@@ -450,16 +448,14 @@ export function RefundDetails({
 
         {/* Escalate (Both) */}
         {canEscalate && (
-          <Button
-            variant="destructive"
-            asChild
-          >
-            <Link href={
-              userRole === "CUSTOMER"
-                ? `/order/${refund.order_id}/refund/eskalasi`
-                : `/dashboard-kedai/order/${refund.order_id}/refund/eskalasi`
-            }>
-              <AlertTriangle />
+          <Button variant="destructive" asChild>
+            <Link
+              href={
+                userRole === "CUSTOMER"
+                  ? `/order/${refund.order_id}/refund/eskalasi`
+                  : `/dashboard-kedai/order/${refund.order_id}/refund/eskalasi`
+              }
+            >
               Eskalasi ke Admin
             </Link>
           </Button>

@@ -99,6 +99,48 @@ export function OrderRefundSection({
   const isProcessed = order.refund?.status === "PROCESSED";
   const isCustomer = userRole === "CUSTOMER";
 
+  const getRefundMessage = (status: RefundStatus, isCustomer: boolean) => {
+    if (isCustomer) {
+      switch (status) {
+        case "PENDING":
+          return "Permintaan refund Anda sedang ditinjau oleh kedai. Silakan cek detail untuk status terbaru.";
+        case "APPROVED":
+          return "Permintaan refund Anda telah disetujui. Sedang menunggu pengiriman dana.";
+        case "REJECTED":
+          return "Permintaan refund Anda ditolak. Silakan cek detail untuk informasi lebih lanjut.";
+        case "PROCESSED":
+          return "Dana telah dikirim. Harap konfirmasi jika Anda sudah menerimanya.";
+        case "COMPLETED":
+          return "Refund telah selesai dan dana telah diterima.";
+        case "CANCELLED":
+          return "Permintaan refund Anda telah dibatalkan.";
+        case "ESCALATED":
+          return "Permintaan refund Anda sedang ditinjau oleh Admin. Silakan cek detail untuk status terbaru.";
+        default:
+          return "Dana Anda sedang diproses. Silakan cek detail untuk status terbaru.";
+      }
+    } else {
+      switch (status) {
+        case "PENDING":
+          return "Pelanggan mengajukan permintaan refund. Silakan cek detail untuk memberikan tanggapan.";
+        case "APPROVED":
+          return "Permintaan refund telah disetujui. Silakan cek detail untuk memproses pengiriman dana.";
+        case "REJECTED":
+          return "Anda telah menolak permintaan refund pelanggan.";
+        case "PROCESSED":
+          return "Dana refund telah dikirim. Menunggu konfirmasi penerimaan dari pelanggan.";
+        case "COMPLETED":
+          return "Proses refund telah selesai.";
+        case "CANCELLED":
+          return "Permintaan refund dibatalkan oleh pelanggan.";
+        case "ESCALATED":
+          return "Permintaan refund telah dieskalasi ke Admin. Silakan cek detail untuk status terbaru.";
+        default:
+          return "Proses refund sedang berjalan. Silakan cek detail untuk status terbaru.";
+      }
+    }
+  };
+
   return (
     <Card>
       <CardContent className="space-y-4">
@@ -109,15 +151,13 @@ export function OrderRefundSection({
             </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
               {order.refund
-                ? order.refund.status === "PROCESSED" && isCustomer
-                  ? "Dana telah dikirim. Harap konfirmasi jika Anda sudah menerimanya."
-                  : "Dana Anda sedang diproses. Silakan cek detail untuk status terbaru."
+                ? getRefundMessage(order.refund.status, isCustomer)
                 : isCancelled
                   ? "Pesanan dibatalkan. Dana Anda akan segera dikembalikan secara otomatis."
                   : "Klik tombol di bawah jika Anda ingin mengajukan pengembalian dana."}
             </p>
           </div>
-          {order.refund && <RefundStatusBadge status={order.refund.status} />}
+          {/* {order.refund && <RefundStatusBadge status={order.refund.status} />} */}
         </div>
 
         {order.refund?.history && order.refund.history.length > 0 && (
@@ -192,8 +232,8 @@ export function OrderRefundSection({
           >
             {order.refund ? (
               <>
-                <ExternalLink className="h-4 w-4" />
-                Lihat Status Refund
+                <ExternalLink />
+                Lihat Detail
               </>
             ) : (
               <>Ajukan Refund</>

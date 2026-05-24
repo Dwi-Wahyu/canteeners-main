@@ -72,7 +72,10 @@ export default function CreateProductForm({
 
         if (!uploadResponse.ok) {
           form.setError("image_url", {
-            message: uploadData.message || uploadData.error || "Gagal mengunggah file melalui API.",
+            message:
+              uploadData.message ||
+              uploadData.error ||
+              "Gagal mengunggah file melalui API.",
           });
           return;
         }
@@ -136,7 +139,9 @@ export default function CreateProductForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nama</FormLabel>
+              <FormLabel>
+                Nama<span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -164,7 +169,9 @@ export default function CreateProductForm({
           name="price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Harga</FormLabel>
+              <FormLabel>
+                Harga<span className="text-red-500">*</span>
+              </FormLabel>
               <FormControl>
                 <div className="relative">
                   <div className="text-muted-foreground pointer-events-none absolute inset-y-0 left-0 flex items-center justify-center pl-3 peer-disabled:opacity-50">
@@ -227,7 +234,9 @@ export default function CreateProductForm({
         />
 
         <div className="w-full">
-          <FormLabel className="mb-2">Gambar</FormLabel>
+          <FormLabel className="mb-2">
+            Gambar<span className="text-red-500">*</span>
+          </FormLabel>
 
           <FileUploadImage
             multiple={false}

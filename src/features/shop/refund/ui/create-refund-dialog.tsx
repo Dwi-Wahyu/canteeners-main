@@ -403,7 +403,7 @@ export default function CreateRefundDialog({
               name="disbursement_mode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Mode Pengembalian Dana *</FormLabel>
+                  <FormLabel>Metode Pengembalian Dana *</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>

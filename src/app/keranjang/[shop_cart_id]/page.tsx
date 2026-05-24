@@ -27,6 +27,10 @@ export default async function GuestShopCartPage({
     redirect("/kantin/kantin-kudapan");
   }
 
+  if (session && session.user.role === "SHOP_OWNER") {
+    redirect("/dashboard-kedai");
+  }
+
   const { shop_cart_id } = await params;
 
   const shopCart = await getShopCart({
