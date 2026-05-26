@@ -31,8 +31,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useNotificationDialogStore } from "@/stores/use-notification-store";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import PaymentCountdown from "@/app/order/[order_id]/pembayaran/payment-countdown";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "radix-ui";
@@ -218,7 +216,8 @@ export default function CustomerOrderDetailClient({
             <AlertDescription className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Pesanan Anda sedang menunggu konfirmasi dari pihak kedai. Mohon
-                tunggu sebentar. Jika batas waktu habis, pesanan akan otomatis ditolak.
+                tunggu sebentar. Jika batas waktu habis, pesanan akan otomatis
+                ditolak.
               </p>
               <div className="flex items-center gap-2 pt-1">
                 <h1 className="text-lg font-bold text-primary tabular-nums tracking-tight">

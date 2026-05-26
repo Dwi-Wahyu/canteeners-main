@@ -68,17 +68,7 @@ export default async function CustomerEscalateRefundPage({
       </div>
 
       <div className="p-5">
-        <Card>
-          <CardHeader>
-            <CardTitle>Eskalasi ke Admin</CardTitle>
-            <CardDescription>
-              Laporkan refund ini ke admin jika Anda mendeteksi adanya kecurangan atau aktivitas yang mencurigakan dari pihak kedai.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EscalateRefundForm refundId={refund.id} backUrl={finalBackUrl} />
-          </CardContent>
-        </Card>
+        <EscalateRefundForm refundId={refund.id} backUrl={finalBackUrl} />
       </div>
     </div>
   );

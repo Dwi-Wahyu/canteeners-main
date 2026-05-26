@@ -97,7 +97,7 @@ export default function CancelOrderDialog({
           trigger: "Batalkan & Refund",
           title: "Batalkan Pesanan & Kembalikan Dana?",
           description:
-            "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib melakukan proses pengembalian dana (refund) kepada pelanggan.",
+            "Pesanan ini sudah dibayar. Jika dibatalkan, Anda wajib melakukan proses pengembalian dana kepada pelanggan. Minta nomor rekening pelanggan melalui chat jika memilih metode transfer.",
           action: "Ya, Batalkan & Refund",
           placeholder:
             "Contoh: Stok bahan makanan habis, kedai terlalu ramai, dll...",
@@ -191,8 +191,8 @@ export default function CancelOrderDialog({
 
           {isOwner && isProcessing && (
             <div className="space-y-3 mt-4">
-              <Label className="text-[10px] font-bold text-muted-foreground uppercase ml-1">
-                Metode Pengembalian Dana
+              <Label className=" ml-1">
+                Metode Pengembalian Dana<span className="text-red-500">*</span>
               </Label>
               <RadioGroup
                 disabled={isPending}
@@ -210,9 +210,9 @@ export default function CancelOrderDialog({
                   />
                   <Label
                     htmlFor="cash"
-                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    className="flex gap-2 items-center rounded-xl border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                   >
-                    <Banknote className="mb-2 h-6 w-6" />
+                    <Banknote className=" h-6 w-6" />
                     <span className="text-xs font-bold">Tunai</span>
                   </Label>
                 </div>
@@ -224,9 +224,9 @@ export default function CancelOrderDialog({
                   />
                   <Label
                     htmlFor="transfer"
-                    className="flex flex-col items-center justify-between rounded-xl border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
+                    className="flex gap-2 items-center rounded-xl border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary"
                   >
-                    <CreditCard className="mb-2 h-6 w-6" />
+                    <CreditCard className=" h-6 w-6" />
                     <span className="text-xs font-bold">Transfer</span>
                   </Label>
                 </div>
@@ -243,10 +243,10 @@ export default function CancelOrderDialog({
             </Link>
           )}
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex sm:flex-row gap-3 mt-6">
+        <AlertDialogFooter className="grid grid-cols-2 gap-4 mt-6">
           <AlertDialogCancel asChild>
             <Button variant={"outline"} disabled={isPending}>
-              Kembali
+              Tutup
             </Button>
           </AlertDialogCancel>
           <Button

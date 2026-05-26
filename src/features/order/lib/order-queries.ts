@@ -131,6 +131,11 @@ export async function getShopOrderDetail(id: string) {
       complaint: true,
       refund: {
         include: {
+          affected_items: {
+            select: {
+              order_item_id: true,
+            },
+          },
           history: {
             select: {
               id: true,
@@ -214,6 +219,11 @@ export async function getCustomerOrderDetail(id: string) {
       testimony: true,
       refund: {
         include: {
+          affected_items: {
+            select: {
+              order_item_id: true,
+            },
+          },
           history: {
             select: {
               id: true,
@@ -354,6 +364,11 @@ export async function getOrderDetail(id: string) {
       complaint: true,
       refund: {
         include: {
+          affected_items: {
+            select: {
+              order_item_id: true,
+            },
+          },
           history: {
             select: {
               id: true,

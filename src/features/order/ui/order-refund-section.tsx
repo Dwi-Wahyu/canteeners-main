@@ -5,7 +5,12 @@ import { RefundStatusBadge } from "@/features/shop/refund/ui/refund-status-badge
 import { DollarSign, ExternalLink } from "lucide-react";
 import NavButton from "@/components/nav-button";
 
-import { OrderStatus, RefundStatus } from "@/generated/prisma";
+import {
+  OrderStatus,
+  RefundDisbursementMode,
+  RefundStatus,
+  RefundReason,
+} from "@/generated/prisma";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 
@@ -18,15 +23,26 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useWatchRefundUpdate } from "@/hooks/use-watch-refund-update";
 import { GetRefundById } from "@/features/shop/refund/types/refund-queries-types";
+import { ProcessRefundDialog } from "@/features/shop/refund/ui/process-refund-dialog";
+import { RespondRefundDialog } from "@/features/shop/refund/ui/respond-refund-dialog";
 
 interface OrderRefundSectionProps {
   order: {
     id: string;
     status: OrderStatus;
+    order_items?: any[];
     refund?: {
       id: string;
       status: RefundStatus;
       updated_at?: Date | string | null;
+      disbursement_mode: RefundDisbursementMode;
+      amount: number;
+      reason: RefundReason;
+      description: string | null;
+      complaint_proof_url: string | null;
+      affected_items?: {
+        order_item_id: string;
+      }[];
       history?: {
         id: string;
         status: RefundStatus;
@@ -51,7 +67,10 @@ export function OrderRefundSection({
 
   const order = {
     ...initialOrder,
-    refund: refundData || initialOrder.refund,
+    refund: (refundData || initialOrder.refund) ? ({
+      ...initialOrder.refund,
+      ...refundData,
+    } as OrderRefundSectionProps["order"]["refund"]) : null,
   };
 
   const [isCompleting, setIsCompleting] = useState(false);
@@ -96,7 +115,11 @@ export function OrderRefundSection({
     return null;
   }
 
+  const [processDialogOpen, setProcessDialogOpen] = useState(false);
+  const [respondDialogOpen, setRespondDialogOpen] = useState(false);
+
   const isProcessed = order.refund?.status === "PROCESSED";
+  const isApproved = order.refund?.status === "APPROVED";
   const isCustomer = userRole === "CUSTOMER";
 
   const getRefundMessage = (status: RefundStatus, isCustomer: boolean) => {
@@ -222,6 +245,48 @@ export function OrderRefundSection({
               {isCompleting && <Loader2 className="animate-spin" />}
               Konfirmasi Dana Diterima
             </Button>
+          )}
+
+          {order.refund?.status === "PENDING" && !isCustomer && (
+            <>
+              <Button
+                className="w-full"
+                variant="default"
+                onClick={() => setRespondDialogOpen(true)}
+              >
+                Tinjau Pengajuan Refund
+              </Button>
+              {order.refund && (
+                <RespondRefundDialog
+                  open={respondDialogOpen}
+                  onOpenChange={setRespondDialogOpen}
+                  refund={{
+                    ...order.refund,
+                    order: {
+                      id: order.id,
+                      order_items: order.order_items,
+                    },
+                  } as any}
+                />
+              )}
+            </>
+          )}
+
+          {isApproved && !isCustomer && order.refund && (
+            <>
+              <Button
+                className="w-full"
+                variant="default"
+                onClick={() => setProcessDialogOpen(true)}
+              >
+                Proses Refund
+              </Button>
+              <ProcessRefundDialog
+                open={processDialogOpen}
+                onOpenChange={setProcessDialogOpen}
+                refund={order.refund as any}
+              />
+            </>
           )}
 
           <NavButton

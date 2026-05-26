@@ -4,7 +4,13 @@ import { notFound, redirect } from "next/navigation";
 import { getRefundById } from "@/features/shop/refund/lib/refund-queries";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { CardDescription, CardTitle, Card, CardHeader, CardContent } from "@/components/ui/card";
+import {
+  CardDescription,
+  CardTitle,
+  Card,
+  CardHeader,
+  CardContent,
+} from "@/components/ui/card";
 import { EscalateRefundForm } from "@/features/shop/refund/ui/escalate-refund-form";
 
 export default async function ShopEscalateRefundPage({
@@ -38,7 +44,7 @@ export default async function ShopEscalateRefundPage({
   const finalBackUrl = back_url || `/dashboard-kedai/order/${order_id}/refund`;
 
   return (
-    <div className="space-y-5 p-5">
+    <div className="space-y-4 p-5">
       <div>
         <div className="flex justify-between items-center mb-4">
           <Link
@@ -50,17 +56,15 @@ export default async function ShopEscalateRefundPage({
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Eskalasi ke Admin</CardTitle>
-          <CardDescription>
-            Laporkan refund ini ke admin jika Anda mendeteksi adanya kecurangan atau aktivitas yang mencurigakan.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <EscalateRefundForm refundId={refund.id} backUrl={finalBackUrl} />
-        </CardContent>
-      </Card>
+      <div>
+        <CardTitle className="text-xl">Eskalasi ke Admin</CardTitle>
+        <CardDescription>
+          Laporkan refund ini ke admin jika Anda mendeteksi adanya kecurangan
+          atau aktivitas yang mencurigakan.
+        </CardDescription>
+      </div>
+
+      <EscalateRefundForm refundId={refund.id} backUrl={finalBackUrl} />
     </div>
   );
 }

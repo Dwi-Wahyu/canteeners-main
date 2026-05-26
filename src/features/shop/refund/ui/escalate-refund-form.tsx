@@ -66,15 +66,6 @@ export function EscalateRefundForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Peringatan</AlertTitle>
-          <AlertDescription className="text-sm">
-            Eskalasi ke admin hanya untuk kasus serius seperti dugaan penipuan
-            atau penyalahgunaan. Admin akan meninjau laporan Anda.
-          </AlertDescription>
-        </Alert>
-
         <FormField
           control={form.control}
           name="escalated_reason"
@@ -86,7 +77,7 @@ export function EscalateRefundForm({
               <FormControl>
                 <Textarea
                   placeholder="Jelaskan detail kecurigaan atau masalah yang Anda temukan..."
-                  className="min-h-32 resize-none"
+                  className="min-h-40 resize-none"
                   {...field}
                 />
               </FormControl>
@@ -99,10 +90,12 @@ export function EscalateRefundForm({
           )}
         />
 
-        <Alert>
+        <Alert variant="destructive" className="flex flex-col">
+          <AlertTitle>Peringatan</AlertTitle>
           <AlertDescription className="text-sm">
-            Setelah dieskalasi, refund ini akan ditinjau oleh tim admin. Anda
-            akan dihubungi jika diperlukan informasi tambahan.
+            Eskalasi ke admin hanya untuk kasus serius seperti dugaan penipuan
+            atau penyalahgunaan. Admin akan meninjau laporan Anda. Anda akan
+            dihubungi jika diperlukan informasi tambahan.
           </AlertDescription>
         </Alert>
 
@@ -116,8 +109,8 @@ export function EscalateRefundForm({
             Batal
           </Button>
           <Button type="submit" variant="destructive" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Eskalasi ke Admin
+            {isSubmitting && <Loader2 className="animate-spin" />}
+            Eskalasi
           </Button>
         </div>
       </form>
