@@ -12,6 +12,7 @@
 
 firebase-document-structure.md
 ecosystem.config.js
+ecosystem.config.cjs
 firebase-debug.log
 
 src/generated/prisma
