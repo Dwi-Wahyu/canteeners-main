@@ -99,7 +99,132 @@ export async function seedShops() {
       },
     });
 
-    // Jika update, kita tambahkan payment dan product secara manual jika belum ada
+    // Jika user.owner belum ada atau belum punya shop (karena seedOwners dijalankan terlebih dahulu dan hanya membuat record owner kosong)
+    if (!user.owner) {
+      console.log("Membuat record Owner baru...");
+      const newOwner = await prisma.owner.create({
+        data: {
+          user_id: user.id,
+          shop: {
+            create: {
+              name: "Kedai Subarjo",
+              image_url: "kedai-subarjo.webp",
+              canteen: {
+                connect: {
+                  slug: "kantin-kudapan",
+                },
+              },
+              payments: {
+                create: {
+                  method: "CASH",
+                  active: true,
+                },
+              },
+              products: {
+                create: [
+                  {
+                    name: "Ayam Geprek Sambal Bawang",
+                    description: "Ayam goreng tepung dengan sambal bawang pedas nampol",
+                    image_url: "ayam-geprek.jpg",
+                    price: 15000,
+                    categories: {
+                      create: {
+                        category: {
+                          connect: {
+                            slug: "ayam-geprek",
+                          },
+                        },
+                      },
+                    },
+                  },
+                  {
+                    name: "Es Buah Segar",
+                    description: "Campuran buah-buahan segar dengan sirup dan susu",
+                    image_url: "es-buah.jpg",
+                    price: 10000,
+                    categories: {
+                      create: {
+                        category: {
+                          connect: {
+                            slug: "es-buah",
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        include: {
+          shop: true,
+        },
+      });
+      user.owner = newOwner;
+    } else if (!user.owner.shop) {
+      console.log("Owner ditemukan tetapi Shop belum ada. Membuat Shop 'Kedai Subarjo'...");
+      const newShop = await prisma.shop.create({
+        data: {
+          name: "Kedai Subarjo",
+          image_url: "kedai-subarjo.webp",
+          owner: {
+            connect: {
+              id: user.owner.id,
+            },
+          },
+          canteen: {
+            connect: {
+              slug: "kantin-kudapan",
+            },
+          },
+          payments: {
+            create: {
+              method: "CASH",
+              active: true,
+            },
+          },
+          products: {
+            create: [
+              {
+                name: "Ayam Geprek Sambal Bawang",
+                description: "Ayam goreng tepung dengan sambal bawang pedas nampol",
+                image_url: "ayam-geprek.jpg",
+                price: 15000,
+                categories: {
+                  create: {
+                    category: {
+                      connect: {
+                        slug: "ayam-geprek",
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                name: "Es Buah Segar",
+                description: "Campuran buah-buahan segar dengan sirup dan susu",
+                image_url: "es-buah.jpg",
+                price: 10000,
+                categories: {
+                  create: {
+                    category: {
+                      connect: {
+                        slug: "es-buah",
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      });
+      user.owner.shop = newShop;
+    } else {
+      console.log("Shop 'Kedai Subarjo' sudah ada.");
+    }
+
     if (user.owner?.shop) {
       const shopId = user.owner.shop.id;
 
