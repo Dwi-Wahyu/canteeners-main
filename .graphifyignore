@@ -1,0 +1,11 @@
+node_modules/
+.next/
+.vscode/
+.docs/
+podman/
+instruksi
+.git/
+graphify-out/
+*.lock
+*_snapshot.json
+*.json

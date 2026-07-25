@@ -35,7 +35,7 @@ export default function CustomerChatListPage() {
   if (isLoading) {
     return (
       <div className="p-5">
-        <h1 className="text-xl mb-4">Chat & Orderan</h1>
+        <h1 className="text-xl font-bold text-gray-900">Chat & Orderan</h1>
 
         <div className="space-y-4">
           {[...Array(4)].map((_, i) => (
@@ -51,7 +51,7 @@ export default function CustomerChatListPage() {
   if (!user) {
     return (
       <div className="p-5 ">
-        <h1 className="text-xl mb-4">Chat & Orderan</h1>
+        <h1 className="text-xl font-bold text-gray-900">Chat & Orderan</h1>
 
         <div className="text-center text-muted-foreground py-10">
           <p>Belum ada percakapan.</p>

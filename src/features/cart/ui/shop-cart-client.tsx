@@ -8,7 +8,8 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { formatRupiah } from "@/helper/format-rupiah";
-import SnkCheckoutDialog from "@/features/cart/ui/snk-checkout-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import PostOrderTypeTab from "@/features/cart/ui/post-order-type-tab";
 import { processShopCart } from "@/features/cart/lib/cart-actions";
 import ShopCartPaymentMethod from "@/features/cart/ui/shop-cart-payment-method";
@@ -200,7 +201,7 @@ export default function ShopCartClient({
   nameAlreadySet: boolean;
 }) {
   const router = useRouter();
-  const [showSnk, setShowSnk] = useState(false);
+  const [isAgreed, setIsAgreed] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     shopCart.payment_method,
   );
@@ -267,7 +268,11 @@ export default function ShopCartClient({
   );
 
   function handleClickCheckout() {
-    // Jika belum set nama / masih default = ""
+    if (!isAgreed) {
+      toast.error("Mohon setujui syarat dan ketentuan terlebih dahulu");
+      return;
+    }
+
     if (
       postOrderType === "DELIVERY_TO_TABLE" &&
       customerProfile.table_number === null
@@ -282,12 +287,12 @@ export default function ShopCartClient({
     if (isGuest && isNameInvalid) {
       setShowGuestDetailsFormDialog(true);
     } else {
-      setShowSnk(true);
+      setCheckouted(true);
     }
   }
 
   function saveGuestDetails() {
-    setShowSnk(true);
+    setCheckouted(true);
   }
 
   const [isPending, startTransition] = useTransition();
@@ -306,8 +311,6 @@ export default function ShopCartClient({
         });
 
         if (result.success) {
-          setShowSnk(false);
-
           notificationDialog.success({
             title: "Sukses checkout keranjang",
             message: "Order berhasil dicatat, mengalihkan ke detail order...",
@@ -321,6 +324,7 @@ export default function ShopCartClient({
             }, 2000);
           }
         } else {
+          setCheckouted(false);
           notificationDialog.error({
             title: "Gagal checkout keranjang",
             message: result.error.message,
@@ -375,17 +379,21 @@ export default function ShopCartClient({
 
   return (
     <div className="flex flex-col gap-4">
-      {customerProfile.violations && customerProfile.violations.length >= 2 && !isSuspended && (
-        <Alert className="border-red-200 bg-red-50 text-red-900">
-          <CircleAlert className="w-4 h-4 text-red-600" />
-          <AlertTitle className="text-red-800">Peringatan Pelanggaran</AlertTitle>
-          <AlertDescription className="text-red-700">
-            Anda wajib menyelesaikan pesanan setelah checkout. Jika order
-            dibatalkan sebelum melakukan pembayaran, maka akun akan dibekukan 1
-            hari.
-          </AlertDescription>
-        </Alert>
-      )}
+      {customerProfile.violations &&
+        customerProfile.violations.length >= 2 &&
+        !isSuspended && (
+          <Alert className="border-red-200 bg-red-50 text-red-900">
+            <CircleAlert className="w-4 h-4 text-red-600" />
+            <AlertTitle className="text-red-800">
+              Peringatan Pelanggaran
+            </AlertTitle>
+            <AlertDescription className="text-red-700">
+              Anda wajib menyelesaikan pesanan setelah checkout. Jika order
+              dibatalkan sebelum melakukan pembayaran, maka akun akan dibekukan
+              1 hari.
+            </AlertDescription>
+          </Alert>
+        )}
 
       {isSuspended && (
         <Alert variant="destructive">
@@ -401,9 +409,12 @@ export default function ShopCartClient({
       {isBusy && (
         <Alert className="border-orange-200 bg-orange-50 text-orange-900">
           <Coffee className="w-4 h-4 text-orange-600" />
-          <AlertTitle className="text-orange-800">Kedai Sedang Sibuk</AlertTitle>
+          <AlertTitle className="text-orange-800">
+            Kedai Sedang Sibuk
+          </AlertTitle>
           <AlertDescription className="text-orange-700">
-            Maaf, kedai sedang sangat ramai. Pesanan hanya dapat dilakukan untuk Take Away (ambil di kedai) untuk sementara waktu.
+            Maaf, kedai sedang sangat ramai. Pesanan hanya dapat dilakukan untuk
+            Take Away (ambil di kedai) untuk sementara waktu.
           </AlertDescription>
         </Alert>
       )}
@@ -635,28 +646,61 @@ export default function ShopCartClient({
       )}
 
       {shopCart.order_id === null && (
-        <Button
-          className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
-          size={"lg"}
-          onClick={handleClickCheckout}
-          disabled={
-            isSuspended ||
-            !canOrder ||
-            isPending ||
-            (postOrderType === "DELIVERY_TO_TABLE" &&
-              customerProfile.table_number === null)
-          }
-        >
-          <h1>{shopCart.items.length} Item</h1>
-
-          <div className="flex gap-2 h-4">
-            <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
-
-            <Separator orientation="vertical" />
-
-            <h1 className="font-semibold">Checkout</h1>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Checkbox
+              id="snk-checkbox"
+              checked={isAgreed}
+              onCheckedChange={(checked) => setIsAgreed(checked as boolean)}
+            />
+            <Label
+              htmlFor="snk-checkbox"
+              className="text-xs text-muted-foreground cursor-pointer font-normal"
+            >
+              Saya menyetujui{" "}
+              <Link
+                href="/syarat-dan-ketentuan/pelanggan"
+                className="text-primary font-medium hover:underline"
+                target="_blank"
+              >
+                Syarat & Ketentuan
+              </Link>
+            </Label>
           </div>
-        </Button>
+
+          <Button
+            className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
+            size={"lg"}
+            onClick={handleClickCheckout}
+            disabled={
+              isSuspended ||
+              !canOrder ||
+              isPending ||
+              !isAgreed ||
+              (postOrderType === "DELIVERY_TO_TABLE" &&
+                customerProfile.table_number === null)
+            }
+          >
+            {isPending ? (
+              <div className="flex items-center gap-1">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading
+              </div>
+            ) : (
+              <>
+                <h1>{shopCart.items.length} Item</h1>
+
+                <div className="flex gap-2 h-4 items-center">
+                  <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
+
+                  <Separator orientation="vertical" />
+
+                  <h1 className="font-semibold">Checkout</h1>
+                </div>
+              </>
+            )}
+          </Button>
+        </div>
       )}
 
       <GuestDetailsFormDialog
@@ -664,13 +708,6 @@ export default function ShopCartClient({
         setShowGuestDetailsFormDialog={setShowGuestDetailsFormDialog}
         showGuestDetailsFormDialog={showGuestDetailsFormDialog}
         saveGuestDetails={saveGuestDetails}
-      />
-
-      <SnkCheckoutDialog
-        showSnk={showSnk}
-        setShowSnk={setShowSnk}
-        setCheckouted={setCheckouted}
-        isCheckoutPending={isPending}
       />
     </div>
   );

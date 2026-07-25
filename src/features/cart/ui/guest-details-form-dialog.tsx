@@ -17,6 +17,7 @@ import { changeGuestName } from "@/features/user/lib/user-actions";
 import { toast } from "sonner";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { Loader2 } from "lucide-react";
 
 export function GuestDetailsFormDialog({
   userId,
@@ -35,14 +36,17 @@ export function GuestDetailsFormDialog({
 
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSave() {
+  async function handleSave(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    if (!guestName || isLoading) return;
+
     setIsLoading(true);
 
-    const result = await changeGuestName({ id: userId, name: guestName! });
+    const result = await changeGuestName({ id: userId, name: guestName });
 
     if (result.success) {
       if (session) {
-        update({
+        await update({
           ...session,
           user: {
             ...session.user,
@@ -53,11 +57,10 @@ export function GuestDetailsFormDialog({
 
       setShowGuestDetailsFormDialog(false);
       saveGuestDetails();
-      setIsLoading(false);
     } else {
       toast.error("Terjadi kesalahan saat menyimpan nama");
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }
 
   return (
@@ -65,8 +68,8 @@ export function GuestDetailsFormDialog({
       open={showGuestDetailsFormDialog}
       onOpenChange={setShowGuestDetailsFormDialog}
     >
-      <form>
-        <DialogContent>
+      <DialogContent>
+        <form onSubmit={handleSave}>
           <DialogHeader>
             <DialogTitle className="text-start">Masukkan Nama</DialogTitle>
             <DialogDescription className="text-start">
@@ -74,7 +77,7 @@ export function GuestDetailsFormDialog({
             </DialogDescription>
           </DialogHeader>
 
-          <Field>
+          <Field className="my-4">
             <Input
               id="username"
               autoComplete="off"
@@ -85,20 +88,23 @@ export function GuestDetailsFormDialog({
             {!guestName && <FieldError>Tolong isi nama.</FieldError>}
           </Field>
 
-          <DialogFooter className="flex-row justify-end">
+          <DialogFooter className="flex-row justify-end gap-2">
             <DialogClose asChild>
-              <Button variant="outline">Batal</Button>
+              <Button type="button" variant="outline" disabled={isLoading}>
+                Batal
+              </Button>
             </DialogClose>
             <Button
               type="submit"
               disabled={!guestName || isLoading}
-              onClick={handleSave}
             >
+              {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-1.5" />}
               Simpan
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </form>
+        </form>
+      </DialogContent>
     </Dialog>
   );
 }
+

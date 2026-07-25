@@ -243,7 +243,7 @@ export default function CancelOrderDialog({
             </Link>
           )}
         </AlertDialogHeader>
-        <AlertDialogFooter className="grid grid-cols-2 gap-4 mt-6">
+        <AlertDialogFooter>
           <AlertDialogCancel asChild>
             <Button variant={"outline"} disabled={isPending}>
               Tutup
