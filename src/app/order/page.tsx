@@ -60,15 +60,17 @@ export default async function OrderHistoryPage({
           </p>
         </div> */}
 
-        <div className="mb-4">
-          <h1 className="text-xl font-bold text-gray-900">Riwayat Pesanan</h1>
-          <div className="text-sm text-gray-500">
-            Pantau status dan riwayat kulineranmu
+        {orders.length > 0 && (
+          <div className="mb-4">
+            <h1 className="text-xl font-bold text-gray-900">Riwayat Pesanan</h1>
+            <div className="text-sm text-gray-500">
+              Pantau status dan riwayat kulineranmu
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Filters */}
-        <CustomerOrderFilters />
+        {orders.length > 0 && <CustomerOrderFilters />}
 
         {/* Order List */}
         <div className="space-y-4">

@@ -1,4 +1,6 @@
-export default function ShoppingCartQuestionIcon() {
+import { SVGProps } from "react";
+
+export default function ShoppingCartQuestionIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -10,7 +12,8 @@ export default function ShoppingCartQuestionIcon() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="icon icon-tabler icons-tabler-outline icon-tabler-shopping-cart-question"
+      {...props}
+      className={`icon icon-tabler icons-tabler-outline icon-tabler-shopping-cart-question ${props.className || ""}`}
     >
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />

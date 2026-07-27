@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
   },
 
   images: {
+    qualities: [75, 85],
     // Mengizinkan Next.js mengakses localhost untuk optimasi gambar
     remotePatterns: [
       {
