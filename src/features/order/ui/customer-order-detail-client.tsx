@@ -39,10 +39,12 @@ export default function CustomerOrderDetailClient({
   order: initialOrder,
   shopConfirmationTimeout = 30,
   shopOrderAcceptanceTimeout = 10,
+  serverTime,
 }: {
   order: GetCustomerOrderDetail;
   shopConfirmationTimeout?: number;
   shopOrderAcceptanceTimeout?: number;
+  serverTime?: string;
 }) {
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
   const order = orderData
@@ -91,16 +93,21 @@ export default function CustomerOrderDetailClient({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
   useEffect(() => {
+    const offset = serverTime
+      ? new Date(serverTime).getTime() - new Date().getTime()
+      : 0;
+
     const calculateElapsed = () => {
+      const now = new Date().getTime() + offset;
       const diff = Math.floor(
-        (new Date().getTime() - new Date(order.created_at).getTime()) / 1000,
+        (now - new Date(order.created_at).getTime()) / 1000,
       );
       setElapsedSeconds(diff > 0 ? diff : 0);
     };
     calculateElapsed();
     const timer = setInterval(calculateElapsed, 1000);
     return () => clearInterval(timer);
-  }, [order.created_at]);
+  }, [order.created_at, serverTime]);
 
   useEffect(() => {
     if (

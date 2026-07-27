@@ -50,6 +50,7 @@ export default async function OrderDetailPage({
         order={order}
         shopConfirmationTimeout={shopConfirmationTimeout}
         shopOrderAcceptanceTimeout={shopOrderAcceptanceTimeout}
+        serverTime={new Date().toISOString()}
       />
     </div>
   );
