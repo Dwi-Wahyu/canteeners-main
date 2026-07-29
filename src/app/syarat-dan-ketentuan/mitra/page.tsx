@@ -9,10 +9,7 @@ export default async function SyaratDanKetentuanMitra({
 
   return (
     <div className="min-h-screen bg-background pb-10">
-      <TopbarWithBackButton
-        title="S&K Kemitraan (Mitra)"
-        backUrl={back_url || "/"}
-      />
+      <TopbarWithBackButton title="S&K Kemitraan" backUrl={back_url || "/"} />
 
       <div className="max-w-4xl mx-auto px-5 pt-24 space-y-8 text-gray-800 leading-relaxed text-justify">
         <header>
