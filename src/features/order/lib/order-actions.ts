@@ -21,6 +21,11 @@ import {
   createAndPublishNotification,
   publishRealtime,
 } from "@/lib/realtime/publish-internal";
+import { orderQueue } from "@/lib/queue";
+import {
+  getPaymentTimeoutMinutes,
+  getShopConfirmationTimeoutMinutes,
+} from "@/lib/settings";
 
 function revalidateOrderPaths(orderId: string) {
   const paths = [`/order/${orderId}`, `/dashboard-kedai/order/${orderId}`];
@@ -110,6 +115,29 @@ export async function confirmOrder({
     });
 
     revalidateOrderPaths(order_id);
+
+    // Queue Operations: Remove auto-reject job and schedule cancel-unpaid-order job
+    try {
+      await orderQueue.remove(`auto-reject-${order_id}`);
+    } catch (queueError) {
+      console.error("Failed to remove auto-reject job from orderQueue:", queueError);
+    }
+
+    try {
+      const timeoutMinutes = await getPaymentTimeoutMinutes();
+      await orderQueue.add(
+        "cancel-unpaid-order",
+        { orderId: order_id },
+        {
+          delay: (timeoutMinutes * 60 * 1000) + 15000,
+          jobId: order_id,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+    } catch (queueError) {
+      console.error("Failed to add cancel-unpaid-order job to orderQueue:", queueError);
+    }
 
     return successResponse(undefined, responseMessage);
   } catch (error) {
@@ -222,6 +250,13 @@ export async function confirmPayment({
     });
 
     revalidateOrderPaths(order_id);
+
+    // Queue Operations: Remove auto-refund job since shop confirmed payment
+    try {
+      await orderQueue.remove(`refund-${order_id}`);
+    } catch (queueError) {
+      console.error("Failed to remove refund job from orderQueue:", queueError);
+    }
 
     return successResponse(undefined, "Berhasil konfirmasi pembayaran");
   } catch (error) {
@@ -423,6 +458,15 @@ export async function rejectOrder({
 
     revalidateOrderPaths(order_id);
 
+    // Queue Operations: Remove all pending jobs for this order
+    try {
+      await orderQueue.remove(order_id);
+      await orderQueue.remove(`auto-reject-${order_id}`);
+      await orderQueue.remove(`refund-${order_id}`);
+    } catch (queueError) {
+      console.error("Failed to remove jobs from orderQueue:", queueError);
+    }
+
     return successResponse(undefined, "Berhasil menolak order");
   } catch (error) {
     console.error("rejectOrder Error:", error);
@@ -571,6 +615,15 @@ export async function cancelOrder({
 
     revalidateOrderPaths(order_id);
 
+    // Queue Operations: Remove all pending jobs for this order
+    try {
+      await orderQueue.remove(order_id);
+      await orderQueue.remove(`auto-reject-${order_id}`);
+      await orderQueue.remove(`refund-${order_id}`);
+    } catch (queueError) {
+      console.error("Failed to remove jobs from orderQueue:", queueError);
+    }
+
     return successResponse(undefined, "Sukses membatalkan order");
   } catch (error) {
     console.log(error);
@@ -654,6 +707,30 @@ export async function savePaymentProof({
     });
 
     revalidateOrderPaths(order_id);
+
+    // Queue Operations: Remove cancel-unpaid-order job (since user uploaded proof) and schedule auto-refund job
+    try {
+      await orderQueue.remove(order_id);
+    } catch (queueError) {
+      console.error("Failed to remove cancel-unpaid-order job from orderQueue:", queueError);
+    }
+
+    try {
+      const confTimeoutMinutes = await getShopConfirmationTimeoutMinutes();
+      await orderQueue.remove(`refund-${order_id}`);
+      await orderQueue.add(
+        "auto-refund-unconfirmed-payment",
+        { orderId: order_id },
+        {
+          delay: confTimeoutMinutes * 60 * 1000,
+          jobId: `refund-${order_id}`,
+          removeOnComplete: true,
+          removeOnFail: true,
+        },
+      );
+    } catch (queueError) {
+      console.error("Failed to add auto-refund job to orderQueue:", queueError);
+    }
 
     return successResponse(undefined, "Sukses mengirim bukti pembayaran");
   } catch (error) {

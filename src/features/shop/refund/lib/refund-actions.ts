@@ -14,6 +14,7 @@ import {
 } from "@/helper/action-helper";
 import { prisma } from "@/lib/prisma";
 import { createAndPublishNotification } from "@/lib/realtime/publish-internal";
+import { refundQueue } from "@/lib/queue";
 
 export async function createRefundRequest(
   payload: RefundRequestInput
@@ -145,6 +146,25 @@ export async function createRefundRequest(
         resourcePath: `/dashboard-kedai/order/${order.id}`,
       },
     });
+
+    // Schedule 12-hour reminder for shop owner
+    refundQueue
+      .add(
+        "notify-pending-refund",
+        { refundId: refund.id },
+        {
+          delay: 12 * 60 * 60 * 1000, // 12 Hours
+          jobId: `refund-reminder-${refund.id}`,
+          removeOnComplete: true,
+          removeOnFail: false,
+        },
+      )
+      .catch((err: any) =>
+        console.error(
+          `[createRefundRequest] Queue add FAILED for refund ${refund.id}:`,
+          err,
+        ),
+      );
 
     return successResponse(undefined, "Permintaan refund berhasil diajukan");
   } catch (error) {

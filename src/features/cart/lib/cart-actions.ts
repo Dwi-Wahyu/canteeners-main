@@ -21,6 +21,11 @@ import {
 } from "@/lib/realtime/publish-internal";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { calculateItemCommission } from "@/helper/pricing-helper";
+import { orderQueue } from "@/lib/queue";
+import {
+  getPaymentTimeoutMinutes,
+  getShopOrderAcceptanceTimeoutMinutes,
+} from "@/lib/settings";
 
 /**
  * Helper internal untuk menghitung ulang semua subtotal item dan total harga keranjang
@@ -455,6 +460,43 @@ export async function processShopCart({
           resourcePath: "/dashboard-kedai/chat/" + conversation_id,
         },
       });
+    }
+
+    // Schedule queue job for auto-cancellation or auto-rejection
+    if (order_id) {
+      if (isAutoAccept) {
+        const timeoutMinutes = await getPaymentTimeoutMinutes();
+        try {
+          await orderQueue.add(
+            "cancel-unpaid-order",
+            { orderId: order_id },
+            {
+              delay: (timeoutMinutes * 60 * 1000) + 15000, // 15s grace buffer
+              jobId: order_id,
+              removeOnComplete: true,
+              removeOnFail: true,
+            },
+          );
+        } catch (queueError) {
+          console.error("Failed to add cancel-unpaid-order job to orderQueue:", queueError);
+        }
+      } else {
+        const timeoutMinutes = await getShopOrderAcceptanceTimeoutMinutes();
+        try {
+          await orderQueue.add(
+            "auto-reject-unconfirmed-order",
+            { orderId: order_id },
+            {
+              delay: timeoutMinutes * 60 * 1000,
+              jobId: `auto-reject-${order_id}`,
+              removeOnComplete: true,
+              removeOnFail: true,
+            },
+          );
+        } catch (queueError) {
+          console.error("Failed to add auto-reject-unconfirmed-order job to orderQueue:", queueError);
+        }
+      }
     }
 
     return successResponse(
