@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import MultipleSelector, { Option } from "@/components/multiple-select";
 import { toast } from "sonner";
 import { updateShopSpecializations } from "../../lib/shop-specialization-actions";
-import { Category } from "@/generated/prisma";
+import { Category } from "@prisma/client";
 import { Loader2 } from "lucide-react";
 
 interface ShopSpecializationFormProps {

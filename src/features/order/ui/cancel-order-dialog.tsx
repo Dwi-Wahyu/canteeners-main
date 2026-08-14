@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { useState, useTransition } from "react";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 import { Textarea } from "@/components/ui/textarea";
 
 import Link from "next/link";

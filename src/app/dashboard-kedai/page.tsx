@@ -61,7 +61,7 @@ export default async function DashboardKedai() {
       status: "UNPAID",
     },
     _sum: {
-      total: true,
+      net_total: true,
     },
   });
 
@@ -133,7 +133,7 @@ export default async function DashboardKedai() {
             <CashIcon />
 
             <h1 className="text-lg font-semibold">
-              {formatRupiah(getUnpaidBillingTotals._sum.total || 0)}
+              {formatRupiah(getUnpaidBillingTotals._sum.net_total || 0)}
             </h1>
           </div>
           <NavButton variant="outline" href={"/dashboard-kedai/tagihan"}>

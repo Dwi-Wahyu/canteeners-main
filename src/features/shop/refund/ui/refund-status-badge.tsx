@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { RefundStatus } from "@/generated/prisma";
+import { RefundStatus } from "@prisma/client";
 import { cn } from "@/lib/utils";
 
 interface RefundStatusBadgeProps {
@@ -44,6 +44,11 @@ const statusConfig: Record<
     label: "Dieskalasi ke Admin",
     variant: "outline",
     className: "bg-purple-50 text-purple-700 border-purple-300",
+  },
+  COMPLETED: {
+    label: "Selesai",
+    variant: "default",
+    className: "bg-green-600 hover:bg-green-700",
   },
 };
 

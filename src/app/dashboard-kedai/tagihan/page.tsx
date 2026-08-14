@@ -2,7 +2,7 @@ import { auth } from "@/config/auth";
 import { getShopBillings } from "@/features/shop/billing/lib/billing-queries";
 import { redirect } from "next/navigation";
 import { BillingList } from "@/features/shop/billing/ui/billing-list";
-import { ShopBillingStatus } from "@/generated/prisma";
+import { ShopBillingStatus } from "@prisma/client";
 
 export default async function ShopBillingListPage({
   searchParams,
@@ -23,7 +23,7 @@ export default async function ShopBillingListPage({
 
   const billings = await getShopBillings(
     session.user.shopId,
-    status === "all" || !status ? undefined : (status as ShopBillingStatus)
+    status === "all" || !status ? undefined : (status as ShopBillingStatus),
   );
 
   return (

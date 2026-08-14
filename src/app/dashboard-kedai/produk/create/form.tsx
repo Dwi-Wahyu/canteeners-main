@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Save } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Category } from "@/generated/prisma";
+import { Category } from "@prisma/client";
 import MultipleSelector from "@/components/multiple-select";
 import { FileUploadImage } from "@/components/file-upload-image";
 import { createProduct } from "../../../../features/product/lib/product-actions";

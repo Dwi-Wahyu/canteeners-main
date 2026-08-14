@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { ShopBillingStatus } from "@/generated/prisma";
+import { ShopBillingStatus } from "@prisma/client";
 
 interface BillingStatusBadgeProps {
   status: ShopBillingStatus;

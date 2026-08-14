@@ -56,7 +56,7 @@ model CartItem {
   quantity     Int
   // Harga Satuan Dasar (Snapshot saat ditambahkan)
   price_at_add Float
-  // Quantity * (price_at_add + total_options_price) + Distributed Commission
+  // Quantity * (price_at_add + 1000 + total_options_price)
   subtotal     Float
 
   note String?

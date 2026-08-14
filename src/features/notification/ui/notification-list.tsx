@@ -1,84 +1,47 @@
 "use client";
 
-import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { AppNotification } from "../types";
-import { db } from "@/lib/firebase/client";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bell, ShoppingCart, RefreshCcw, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import { id } from "date-fns/locale";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { id as localeId } from "date-fns/locale";
+import { useSocket } from "@/lib/realtime/socket-context";
+import { useSession } from "next-auth/react";
 
 export default function NotificationList() {
+  const { data: session, status } = useSession();
+  const socket = useSocket();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) setIsLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!user) {
+    if (status === "authenticated") {
       setIsLoading(false);
-      return;
+    } else if (status === "unauthenticated") {
+      setIsLoading(false);
     }
+  }, [status]);
 
-    const notificationsRef = collection(db, "notifications");
-    const q = query(
-      notificationsRef,
-      where("recipientId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
+  useEffect(() => {
+    if (!socket) return;
 
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
-        const docs = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as AppNotification[];
-
-        console.log("📬 Notifications loaded:", docs.length);
-        setNotifications(docs);
-        setIsLoading(false);
-        setError(null);
-      },
-      (err) => {
-        console.error("❌ Firestore notification error:", err);
-        console.error("Error code:", err.code);
-        console.error("Error message:", err.message);
-
-        if (err.message.includes("index")) {
-          setError(
-            "Firestore index required. Check console for the index creation link."
-          );
-        } else {
-          setError(`Error loading notifications: ${err.message}`);
-        }
-
-        setIsLoading(false);
+    const unsubscribe = socket.on("notification", (data: any) => {
+      const notif = data.notification || data;
+      if (notif) {
+        setNotifications((prev) => {
+          if (prev.some((n) => n.id === notif.id)) return prev;
+          return [notif as AppNotification, ...prev];
+        });
       }
-    );
+    });
 
-    return () => unsubscribe();
-  }, [user]);
+    return () => {
+      unsubscribe();
+    };
+  }, [socket]);
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -93,6 +56,15 @@ export default function NotificationList() {
     }
   };
 
+  const parseDate = (raw: any): Date => {
+    if (!raw) return new Date();
+    if (typeof raw === "object" && typeof raw.toDate === "function") {
+      return raw.toDate();
+    }
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4 p-4">
@@ -103,32 +75,9 @@ export default function NotificationList() {
     );
   }
 
-  if (error) {
-    return (
-      <div>
-        <Card className="border-destructive">
-          <CardContent>
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-              <div className="space-y-2">
-                <p className="font-semibold text-destructive">
-                  Error Loading Notifications
-                </p>
-                <p className="text-sm text-muted-foreground">{error}</p>
-                <p className="text-xs text-muted-foreground">
-                  Check the browser console for more details.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (notifications.length === 0) {
     return (
-      <div className="text-center text-muted-foreground">
+      <div className="text-center text-muted-foreground py-8">
         Belum ada notifikasi.
       </div>
     );
@@ -137,20 +86,23 @@ export default function NotificationList() {
   return (
     <div className="space-y-3">
       {notifications.map((notification) => {
-        // Handle Firestore Timestamp to Date conversion safely
-        const date = notification.createdAt?.toDate
-          ? notification.createdAt.toDate()
-          : new Date();
+        const date = parseDate(notification.createdAt || notification.created_at);
+        const targetPath =
+          notification.resourcePath ||
+          (notification.data as any)?.resourcePath ||
+          "#";
 
         return (
           <Link
-            href={notification.resourcePath || "#"}
+            href={targetPath}
             key={notification.id}
             className="block"
           >
             <Card
               className={`hover:bg-muted/50 transition-colors ${
-                !notification.isRead ? "border-l-4 border-l-primary" : ""
+                !(notification.isRead || notification.is_read)
+                  ? "border-l-4 border-l-primary"
+                  : ""
               }`}
             >
               <CardContent className="p-4 flex items-start gap-4">
@@ -167,10 +119,10 @@ export default function NotificationList() {
                     {notification.body}
                   </p>
                   <div className="flex gap-2 pt-1">
-                    <Badge variant="outline" className=" h-5 px-1.5">
+                    <Badge variant="outline" className="h-5 px-1.5 text-xs">
                       {formatDistanceToNow(date, {
                         addSuffix: true,
-                        locale: id,
+                        locale: localeId,
                       })}
                     </Badge>
                   </div>

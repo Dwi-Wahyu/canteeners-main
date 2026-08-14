@@ -1,7 +1,7 @@
 "use server";
 
 import { ShopSearchParamsInput } from "@/features/shop/types/shop-search-params";
-import { Prisma } from "@/generated/prisma";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function getCanteens() {

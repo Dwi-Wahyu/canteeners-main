@@ -1,4 +1,4 @@
-import { ReportReason } from "@/generated/prisma";
+import { ReportReason } from "@prisma/client";
 import z from "zod";
 
 export const ReportUserSchema = z.object({

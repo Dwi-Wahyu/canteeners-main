@@ -105,8 +105,9 @@ export default function OwnerChatListPage() {
 
               const opponentInfo = getOpponentInfo(chat, user.uid);
 
-              const timeDisplay = chat.lastMessageAt
-                ? format(chat.lastMessageAt.toDate(), "dd MMM HH:mm", {
+              const rawDate = chat.last_message_at || chat.lastMessageAt;
+              const timeDisplay = rawDate
+                ? format(new Date(rawDate), "dd MMM HH:mm", {
                     locale: idLocale,
                   })
                 : "";
@@ -154,7 +155,7 @@ export default function OwnerChatListPage() {
                       >
                         {isTyping
                           ? "Sedang mengetik..."
-                          : chat.lastMessage || "Lampiran gambar"}
+                          : chat.last_message || chat.lastMessage || "Lampiran gambar"}
                       </p>
 
                       {unreadCount > 0 && (
@@ -163,7 +164,7 @@ export default function OwnerChatListPage() {
                         </span>
                       )}
 
-                      {chat.lastMessageType === "ORDER" && (
+                      {(chat.last_message_type || chat.lastMessageType) === "ORDER" && (
                         <Badge variant={"outline"}>ORDER</Badge>
                       )}
                     </div>

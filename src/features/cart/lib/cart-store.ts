@@ -1,6 +1,5 @@
 import { createGuestCustomer } from "@/features/user/lib/user-actions";
 import { getCustomerById } from "@/features/user/lib/user-queries";
-import { getAuth, signInAnonymously } from "firebase/auth";
 import { create } from "zustand";
 import { persist, createJSONStorage, devtools } from "zustand/middleware";
 
@@ -49,12 +48,10 @@ export const useCartStore = create<CartStore>()(
         actions: {
           async initializeCart({ name, isGuest, customerId }) {
             if (isGuest) {
-              const auth = getAuth();
-
-              const result = await signInAnonymously(auth);
+              const guestUid = crypto.randomUUID();
 
               const createGuest = await createGuestCustomer({
-                firebaseUserUid: result.user.uid,
+                firebaseUserUid: guestUid,
                 guestName: name,
               });
 
@@ -69,7 +66,7 @@ export const useCartStore = create<CartStore>()(
                 throw new Error("Gagal membuat guest customer");
               }
 
-              return { firebaseUid: result.user.uid };
+              return { firebaseUid: guestUid };
             }
 
             if (!customerId) {

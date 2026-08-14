@@ -2,9 +2,6 @@
 
 import { ChatInput } from "@/features/chat/ui/chat-input";
 import { MessageList } from "@/features/chat/ui/message-list";
-import { db, auth } from "@/lib/firebase/client";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import ChatTopbar from "./chat-topbar";
 import LoadingDetailChatPage from "./loading-detail-chat-page";
@@ -21,35 +18,24 @@ export default function ClientChatPage({
 }) {
   const { data: session, status } = useSession();
   const [chatData, setChatData] = useState<Chat | null>(null);
-
-  const [user, setUser] = useState<User | null>(null);
   const [isChatLoading, setIsChatLoading] = useState(true);
-
-  // Cek Status Login Firebase
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-
-      // Jika session NextAuth sudah ada tapi token firebase tidak ada (sinkronisasi tidak akan jalan)
-      if (status === "authenticated" && !session?.user?.firebaseToken) {
-        setIsChatLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [status, session?.user?.firebaseToken]);
 
   useEffect(() => {
     async function getChat() {
+      if (!session?.user?.id) return;
       try {
-        const chatRef = doc(db, "chats", chatId);
-        const chatSnap = await getDoc(chatRef);
+        setIsChatLoading(true);
+        const backendUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+        const res = await fetch(`${backendUrl}/chats/${chatId}`, {
+          headers: session?.user?.accessToken
+            ? { Authorization: `Bearer ${session.user.accessToken}` }
+            : {},
+        });
 
-        if (chatSnap.exists()) {
-          setChatData(chatSnap.data() as Chat);
-
-          updateDoc(chatRef, {
-            [`lastSeenAt.${user?.uid}`]: serverTimestamp(),
-          });
+        if (res.ok) {
+          const data = await res.json();
+          setChatData(data);
         }
       } catch (error) {
         console.error("Error fetching chat:", error);
@@ -58,15 +44,14 @@ export default function ClientChatPage({
       }
     }
 
-    if (user) {
+    if (status === "authenticated") {
       getChat();
+    } else if (status === "unauthenticated") {
+      setIsChatLoading(false);
     }
-  }, [user, chatId]);
+  }, [status, session?.user?.id, session?.user?.accessToken, chatId]);
 
-  if (
-    status === "loading" ||
-    (status === "authenticated" && !user && session?.user?.firebaseToken)
-  ) {
+  if (status === "loading" || (status === "authenticated" && isChatLoading)) {
     return <LoadingDetailChatPage />;
   }
 
@@ -85,43 +70,31 @@ export default function ClientChatPage({
     );
   }
 
-  if (isChatLoading) {
-    return <LoadingDetailChatPage />;
-  }
-
-  if (!chatData) {
+  if (!chatData || !session?.user?.id) {
     return (
-      <div>
-        <h1>Percakapan tidak ditemukan</h1>
+      <div className="min-h-screen flex items-center justify-center p-5 text-center">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">
+            Percakapan tidak ditemukan
+          </h1>
+        </div>
       </div>
     );
   }
 
+  const currentUserId = session.user.id;
   const isOwner = role === "SHOP_OWNER";
+  const opponentId = getOpponentId(chatData, currentUserId);
+  const opponent = getOpponentInfo(chatData, currentUserId);
 
-  if (!user) {
+  if (!opponentId || !opponent) {
     return (
-      <div>
-        <h1>User tidak ditemukan</h1>
-      </div>
-    );
-  }
-
-  const opponentId = getOpponentId(chatData, user.uid);
-  const opponent = getOpponentInfo(chatData, user.uid);
-
-  if (!opponentId) {
-    return (
-      <div>
-        <h1>Pesan tidak valid</h1>
-      </div>
-    );
-  }
-
-  if (!opponent) {
-    return (
-      <div>
-        <h1>Pesan tidak valid</h1>
+      <div className="min-h-screen flex items-center justify-center p-5 text-center">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">
+            Pesan tidak valid
+          </h1>
+        </div>
       </div>
     );
   }
@@ -130,16 +103,20 @@ export default function ClientChatPage({
     <div className="flex flex-col pt-6 pb-32 min-h-screen">
       <ChatTopbar
         opponent={opponent}
-        lastSeenAt={chatData.lastSeenAt?.[user.uid]}
+        lastSeenAt={chatData.last_message_at || chatData.lastMessageAt}
         opponentId={opponentId}
         chatId={chatId}
       />
 
-      <MessageList chatId={chatId} currentUserId={user.uid} isOwner={isOwner} />
+      <MessageList
+        chatId={chatId}
+        currentUserId={currentUserId}
+        isOwner={isOwner}
+      />
 
       <ChatInput
         chatId={chatId}
-        currentUserId={user.uid}
+        currentUserId={currentUserId}
         opponentId={opponentId}
       />
     </div>

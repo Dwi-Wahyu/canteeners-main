@@ -1,5 +1,4 @@
 import { createGuestCustomer } from "@/features/user/lib/user-actions";
-import { getAuth, signInAnonymously } from "firebase/auth";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -8,12 +7,11 @@ export async function createGuestSession({
 }: {
   name: string;
 }): Promise<{ cartId: string | null; userId: string | null }> {
-  const auth = getAuth();
-
-  const result = await signInAnonymously(auth);
+  // Generate random UUID locally to completely bypass Firebase Auth
+  const guestUid = crypto.randomUUID();
 
   const createGuest = await createGuestCustomer({
-    firebaseUserUid: result.user.uid,
+    firebaseUserUid: guestUid,
     guestName: name,
   });
 

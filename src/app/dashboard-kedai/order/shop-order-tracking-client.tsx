@@ -20,17 +20,10 @@ import ConfirmOrderDialog from "@/features/order/ui/confirm-order-dialog";
 import ConfirmPaymentDialog from "@/features/order/ui/confirm-payment-dialog";
 import RejectOrderDialog from "@/features/order/ui/reject-order-dialog";
 import RejectPaymentDialog from "@/features/order/ui/reject-payment-dialog";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 import { getImageUrl } from "@/helper/get-image-url";
-import { db } from "@/lib/firebase/client";
+import { useSocket } from "@/lib/realtime/socket-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
 import { Clock, SquareArrowOutUpRight, Trash, UserIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
@@ -43,54 +36,32 @@ export default function ShopOrderTrackingClient({
   initialData: GetOrderTrackingData;
 }) {
   const queryClient = useQueryClient();
+  const socket = useSocket();
 
-  // initialData dipakai agar SSR berfungsi (user langsung melihat data tanpa loading spinner)
   const { data: orders, isLoading } = useQuery({
     queryKey: ["shop-order-tracking", shopId],
     queryFn: () => getOrderTrackingData({ shopId }),
     initialData: initialData,
   });
 
-  // 2. Setup Firestore Listener untuk Realtime Update
   useEffect(() => {
-    if (!shopId) return;
+    if (!shopId || !socket) return;
 
-    const ordersRef = collection(db, "orders");
-    const q = query(
-      ordersRef,
-      where("shopId", "==", shopId),
-      orderBy("lastUpdatedAt", "desc"),
-    );
+    const topic = `shop:${shopId}`;
+    socket.join(topic);
 
-    let isInitialSnapshot = true;
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      // Abaikan pending writes (perubahan lokal yang belum sync ke server)
-      if (querySnapshot.metadata.hasPendingWrites) return;
-
-      // Abaikan snapshot pertama kali load, karena data sudah diambil via initialData (SSR)
-      // Ini mencegah double-fetch saat halaman baru dibuka
-      if (isInitialSnapshot) {
-        isInitialSnapshot = false;
-        return;
-      }
-
-      // Jika ada perubahan dokumen di Firestore (add/modify/remove)
-      if (!querySnapshot.empty) {
-        // Invalidate query agar React Query mengambil data terbaru dari Database SQL
-        queryClient.invalidateQueries({
-          queryKey: ["shop-order-tracking", shopId],
-        });
-      }
+    const unsubscribe = socket.on("shop:order-update", () => {
+      queryClient.invalidateQueries({
+        queryKey: ["shop-order-tracking", shopId],
+      });
     });
 
     return () => {
+      socket.leave(topic);
       unsubscribe();
     };
-  }, [shopId, queryClient]);
+  }, [shopId, socket, queryClient]);
 
-  // Jika sedang loading (biasanya tidak terjadi karena ada initialData,
-  // tapi berguna jika key berubah atau cache kosong)
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4">
@@ -101,7 +72,6 @@ export default function ShopOrderTrackingClient({
     );
   }
 
-  // State Kosong
   if (!orders || orders.length === 0) {
     return (
       <Empty className="border">
@@ -123,7 +93,6 @@ export default function ShopOrderTrackingClient({
     );
   }
 
-  // Render List Pesanan
   return (
     <div className="flex flex-col gap-4">
       {orders.map((order) => (
@@ -188,7 +157,6 @@ export default function ShopOrderTrackingClient({
                 </div>
               )}
 
-            {/* AREA DIALOG ACTIONS */}
             <div className="mt-4 pt-2 border-t space-y-3">
               {order.status === "PROCESSING" && (
                 <CompleteOrderDialog order_id={order.id} />

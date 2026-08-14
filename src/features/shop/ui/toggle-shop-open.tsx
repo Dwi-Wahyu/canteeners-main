@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Edit, Loader2 } from "lucide-react";
 import { formatToHour } from "@/helper/hour-helper";
-import { ShopStatus } from "@/generated/prisma";
+import { ShopStatus } from "@prisma/client";
 import { toggleAutoAccept, toggleShopStatus } from "../lib/shop-actions";
 import NavButton from "@/components/nav-button";
 import { Separator } from "@/components/ui/separator";

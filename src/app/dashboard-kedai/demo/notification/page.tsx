@@ -13,7 +13,6 @@ import {
   OrderNotification,
   RefundNotification,
 } from "@/features/notification/types";
-import { Timestamp } from "firebase/firestore";
 import { Chat } from "@/features/chat/types";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 
@@ -28,7 +27,7 @@ export default function DemoNotificationPage() {
     id: "order-1",
     type: "ORDER",
     subType: "CREATED",
-    createdAt: Timestamp.now(),
+    createdAt: new Date(),
     isRead: false,
     recipientId: "owner-1",
     resourcePath: "/dashboard-kedai/order/123",
@@ -48,12 +47,9 @@ export default function DemoNotificationPage() {
   const dummyChat: Chat = {
     id: "chat-1",
     lastMessage: "",
-    lastMessageAt: Timestamp.now(),
+    lastMessageAt: new Date(),
     lastMessageSenderId: "customer-1",
     lastMessageType: "TEXT",
-    lastSeenAt: {
-      "customer-1": Timestamp.now(),
-    },
     unreadCounts: {
       "customer-1": 1,
       "owner-1": 0,
@@ -76,7 +72,7 @@ export default function DemoNotificationPage() {
     id: "refund-1",
     type: "REFUND",
     subType: "REQUESTED",
-    createdAt: Timestamp.now(),
+    createdAt: new Date(),
     recipientId: "owner-1",
     resourcePath: "/dashboard-kedai/order/123/refund",
     title: "Permintaan Refund Baru",
@@ -92,7 +88,7 @@ export default function DemoNotificationPage() {
     id: "complaint-1",
     type: "COMPLAINT",
     subType: "SUBMITTED",
-    createdAt: Timestamp.now(),
+    createdAt: new Date(),
     recipientId: "owner-1",
     resourcePath: "/dashboard-kedai/order/123/complaint",
     title: "Komplain Baru dari Customer",

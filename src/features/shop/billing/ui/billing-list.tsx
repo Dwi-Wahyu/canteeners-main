@@ -17,16 +17,17 @@ import { Filter, ExternalLink, Calendar, DollarSign } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
-import { ShopBillingStatus } from "@/generated/prisma";
+import { ShopBillingStatus } from "@prisma/client";
 
 interface BillingListProps {
   billings: Array<{
     id: string;
     start_date: Date;
     end_date: Date;
-    subtotal: number;
-    refund: number;
-    total: number;
+    commission_total: number;
+    subsidy_total: number;
+    refund_total: number;
+    net_total: number;
     status: ShopBillingStatus;
   }>;
 }
@@ -102,7 +103,7 @@ export function BillingList({ billings }: BillingListProps) {
                               "dd MMM yyyy",
                               {
                                 locale: localeId,
-                              }
+                              },
                             )}{" "}
                             -{" "}
                             {format(new Date(billing.end_date), "dd MMM yyyy", {
@@ -118,23 +119,33 @@ export function BillingList({ billings }: BillingListProps) {
                               Komisi
                             </span>
                             <span className="font-medium">
-                              Rp{billing.subtotal.toLocaleString("id-ID")}
+                              Rp{billing.commission_total.toLocaleString("id-ID")}
                             </span>
                           </div>
-                          {billing.refund > 0 && (
+                          {billing.subsidy_total > 0 && (
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">
+                                Subsidi
+                              </span>
+                              <span className="text-green-500 font-medium">
+                                -Rp{billing.subsidy_total.toLocaleString("id-ID")}
+                              </span>
+                            </div>
+                          )}
+                          {billing.refund_total > 0 && (
                             <div className="flex items-center justify-between text-sm">
                               <span className="text-muted-foreground">
                                 Refund
                               </span>
                               <span className="text-red-500 font-medium">
-                                -Rp{billing.refund.toLocaleString("id-ID")}
+                                -Rp{billing.refund_total.toLocaleString("id-ID")}
                               </span>
                             </div>
                           )}
                           <div className="flex items-center justify-between text-lg pt-1 border-t">
                             <span className="font-semibold">Total</span>
                             <span className="font-bold text-primary">
-                              Rp{billing.total.toLocaleString("id-ID")}
+                              Rp{billing.net_total.toLocaleString("id-ID")}
                             </span>
                           </div>
                         </div>

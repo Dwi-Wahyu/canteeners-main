@@ -1,13 +1,4 @@
 import { useState, useCallback, useRef } from "react";
-import {
-  addDoc,
-  collection,
-  serverTimestamp,
-  doc,
-  updateDoc,
-  increment,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -30,18 +21,11 @@ import {
   type FileUploadProps,
   FileUploadTrigger,
 } from "@/components/ui/file-upload";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { uuidv4 } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { getUserQuickChats } from "../lib/chat-queries";
+import { useSocket } from "@/lib/realtime/socket-context";
+import { useSession } from "next-auth/react";
 
 export function ChatInput({
   chatId,
@@ -52,6 +36,8 @@ export function ChatInput({
   currentUserId: string;
   opponentId: string;
 }) {
+  const { data: session } = useSession();
+  const socket = useSocket();
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -66,29 +52,21 @@ export function ChatInput({
 
   const typingTimeoutRef = useRef<NodeJS.Timeout>(null);
 
-  const updateTypingStatus = async (isTyping: boolean) => {
-    try {
-      const chatRef = doc(db, "chats", chatId);
-      await updateDoc(chatRef, {
-        [`typing.${currentUserId}`]: isTyping,
-      });
-    } catch (error) {
-      console.error("Error updating typing status:", error);
+  const updateTypingStatus = (isTyping: boolean) => {
+    if (socket) {
+      socket.send({ type: "typing", chatId, isTyping });
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
 
-    // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set typing to true immediately
     updateTypingStatus(true);
 
-    // Set typing to false after 3 seconds of inactivity
     typingTimeoutRef.current = setTimeout(() => {
       updateTypingStatus(false);
     }, 2000);
@@ -100,21 +78,11 @@ export function ChatInput({
         setIsUploading(true);
         const uploadPromises = files.map(async (file) => {
           try {
-            // Simulate progress
             const totalChunks = 5;
             for (let i = 0; i < totalChunks; i++) {
               onProgress(file, ((i + 1) / totalChunks) * 100);
               await new Promise((resolve) => setTimeout(resolve, 100));
             }
-
-            // The actual upload will happen when sending the message or we can do it here.
-            // However, standard FileUpload component typically handles visual state.
-            // If we want to upload IMMEDIATELY upon selection (like example), we do it now.
-            // But to match the requirement of "users can send more 1 - 4 media", usually we upload first then send.
-            // Let's stick to the example pattern: upload immediately to get the URL?
-            // Wait, the example just mimics upload progress but doesn't show the API call in the `onUpload` function of existing example?
-            // Ah, the existing example chat-input-example.tsx lines 69-103 ONLY SIMULATES progress.
-            // I need to actually upload to /api/upload.
 
             const path = file.type.startsWith("video/")
               ? "message-media-video"
@@ -133,23 +101,11 @@ export function ChatInput({
             }
 
             const blob = await res.json();
-            // Store the relative path (filename) in blobResult if needed by other components,
-            // but usually components want the URL. The blobResult now has the backend response.
-            // We ensure we have the filename for the backend.
-            if (blob.data.url) {
+            if (blob.data?.url) {
               blob.filename = blob.data.url.split("/").pop();
             }
-            // We need to attach the blob url/details to the file object so we can access it later on submit.
-            // Since File object is read-only, we might need a separate state or augment it if possible,
-            // but better: `setAttachments` tracks the Files.
-            // The `FileUpload` component manages the UI state based on these file objects.
-            // We need to store the upload result.
-            // Let's attach it to the file instance directly as a custom property if we can,
-            // or maintain a map of File -> BlobResult.
 
-            // Javascript allows adding properties to objects.
             Object.assign(file, { blobResult: blob });
-
             onSuccess(file);
           } catch (error) {
             onError(
@@ -181,68 +137,54 @@ export function ChatInput({
 
     setLoading(true);
     try {
-      // Prepare attachments data
       const mediaData = attachments
         .map((file: any) => {
           const blob = file.blobResult;
           return {
-            url: blob?.url,
-            path: blob?.pathname, // Vercel blob returns pathname
+            url: blob?.filename || blob?.data?.url?.split("/").pop() || blob?.url,
+            path: blob?.pathname || blob?.data?.url,
             contentType: blob?.contentType || file.type,
             size: blob?.size || file.size,
           };
         })
-        .filter((m) => m.url); // Ensure we only send successfully uploaded ones
+        .filter((m) => m.url);
 
-      // Tambahkan ke Subcollection Messages
-      const messageData = {
-        senderId: currentUserId,
-        text: text,
-        type: mediaData.length > 0 ? "ATTACHMENT" : "TEXT",
-        // Let's keep existing logic but add media field.
-        // Note: User request says "users can send more 1 - 4 media in single message"
-        // And "no need to store the messages media to postgresql prisma", implying we just store in the message doc.
-        attachments: mediaData,
-        readBy: [currentUserId],
-        createdAt: serverTimestamp(),
-      };
-
-      await addDoc(collection(db, "chats", chatId, "messages"), messageData);
-
-      // Update Parent Chat Document (Metadata)
-      const chatRef = doc(db, "chats", chatId);
-
-      await updateDoc(chatRef, {
-        lastMessage: text
-          ? text
-          : mediaData.length > 0
-          ? "Mengirim lampiran"
-          : "",
-        lastMessageAt: serverTimestamp(),
-        lastMessageType: text ? "TEXT" : "ATTACHMENT",
-        lastMessageSenderId: currentUserId,
-
-        [`unreadCounts.${opponentId}`]: increment(1),
+      const backendUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+      const res = await fetch(`${backendUrl}/chats/${chatId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.user?.accessToken
+            ? `Bearer ${session.user.accessToken}`
+            : "",
+        },
+        body: JSON.stringify({
+          text: text.trim() || undefined,
+          type: mediaData.length > 0 ? "ATTACHMENT" : "TEXT",
+          attachments: mediaData,
+        }),
       });
 
+      if (!res.ok) {
+        throw new Error("Failed to send message");
+      }
+
+      updateTypingStatus(false);
       setText("");
       setAttachments([]);
     } catch (error) {
       console.error("Gagal mengirim pesan:", error);
+      toast.error("Gagal mengirim pesan");
     } finally {
       setLoading(false);
     }
   }
 
-  // Calculate grid columns for preview
   const gridCols =
     attachments.length === 1
       ? "grid-cols-1"
-      : attachments.length === 2
-      ? "grid-cols-2"
       : "grid-cols-2";
-  // User asked for "grid column" based on media sum. 1-4.
-  // 3 could be 2 cols (1 occupies full width? or just 3 grid). Let's use simple grid.
 
   return (
     <div className="p-5 fixed bottom-0 left-0 right-0">
@@ -252,7 +194,7 @@ export function ChatInput({
         onUpload={onUpload}
         onFileReject={onFileReject}
         maxFiles={4}
-        maxSize={5 * 1024 * 1024} // 5MB
+        maxSize={5 * 1024 * 1024}
         className="relative w-full"
         multiple
         disabled={loading || isUploading}
@@ -265,7 +207,6 @@ export function ChatInput({
         </FileUploadDropzone>
 
         <div className="relative flex w-full flex-col gap-2 rounded-md border border-input bg-card px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-ring">
-          {/* Preview Grid */}
           {attachments.length > 0 && (
             <FileUploadList
               orientation="vertical"
@@ -317,7 +258,7 @@ export function ChatInput({
 
           <Textarea
             value={text}
-            onChange={handleInputChange} // Use the new handleInputChange function
+            onChange={handleInputChange}
             placeholder="Tulis pesan..."
             className="min-h-10 w-full resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0 focus-visible:outline-none"
             disabled={loading || isUploading}
@@ -330,28 +271,6 @@ export function ChatInput({
           />
 
           <div className="flex items-center justify-end gap-1.5 pt-2">
-            {/* <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-muted-foreground shrink-0"
-                >
-                  <Paperclip className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuGroup>
-                  <DropdownMenuItem asChild>
-                    <FileUploadTrigger className="w-full cursor-pointer">
-                      <Upload className="mr-2 h-4 w-4" />
-                      <span>Upload Image</span>
-                    </FileUploadTrigger>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu> */}
-
             <Button asChild size={"icon-lg"} variant={"ghost"}>
               <FileUploadTrigger className="cursor-pointer">
                 <Paperclip />

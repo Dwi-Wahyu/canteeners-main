@@ -84,8 +84,9 @@ export default function CustomerChatListPage() {
               const unreadCount = getMyUnreadCount(chat, user.uid);
               const typing = isOpponentTyping(chat, user.uid);
 
-              const timeDisplay = chat.lastMessageAt
-                ? format(chat.lastMessageAt.toDate(), "dd MMM HH:mm", {
+              const rawDate = chat.last_message_at || chat.lastMessageAt;
+              const timeDisplay = rawDate
+                ? format(new Date(rawDate), "dd MMM HH:mm", {
                     locale: idLocale,
                   })
                 : "";
@@ -131,7 +132,7 @@ export default function CustomerChatListPage() {
                       >
                         {typing
                           ? "Sedang mengetik..."
-                          : chat.lastMessage || "Lampiran"}
+                          : chat.last_message || chat.lastMessage || "Lampiran"}
                       </p>
 
                       {unreadCount > 0 && (

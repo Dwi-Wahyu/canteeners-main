@@ -36,7 +36,7 @@ import {
   refundReasonMapping,
   refundDisbursementModeMapping,
 } from "@/constant/refund-mapping";
-import { RefundDisbursementMode, RefundReason } from "@/generated/prisma";
+import { RefundDisbursementMode, RefundReason } from "@prisma/client";
 import { generateFileName, getFileExtension } from "@/helper/file-helper";
 import { uuidv4 } from "zod";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
@@ -389,7 +389,7 @@ export function CreateRefundForm({
                       <SelectItem key={key} value={key}>
                         {label}
                       </SelectItem>
-                    )
+                    ),
                   )}
                 </SelectContent>
               </Select>

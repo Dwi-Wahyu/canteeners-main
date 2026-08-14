@@ -1,21 +1,16 @@
 import NextAuth, { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { compareSync } from "bcryptjs";
+import { sign } from "jsonwebtoken";
 import {
   CreateGuestSessionSchema,
   LoginSchema,
 } from "@/features/auth/types/auth-schemas";
 import { prisma } from "@/lib/prisma";
-import { adminAuth } from "@/lib/firebase/admin";
 import GoogleProvider from "next-auth/providers/google";
 
 async function getFirebaseToken({ uid }: { uid: string }) {
-  try {
-    return await adminAuth.createCustomToken(uid);
-  } catch (error) {
-    console.error("Error creating firebase token:", error);
-    return undefined;
-  }
+  return undefined;
 }
 
 export const authConfig: NextAuthConfig = {
@@ -214,6 +209,7 @@ export const authConfig: NextAuthConfig = {
         session.user.name = token.name as string;
         session.user.role = token.role as string;
         session.user.avatar = token.avatar as string;
+        session.user.accessToken = token.accessToken as string;
 
         // Owner payload
         session.user.shopName = token.shopName as string;
@@ -281,6 +277,15 @@ export const authConfig: NextAuthConfig = {
             token.firebaseTokenCreatedAt = Math.floor(Date.now() / 1000);
           }
         }
+      }
+
+      // Generate WebSocket JWT accessToken
+      if (token.id) {
+        const secret = process.env.NEXTAUTH_SECRET || "secret";
+        token.accessToken = sign(
+          { sub: token.id, role: token.role, email: token.email },
+          secret
+        );
       }
 
       // Refresh Firebase Token if it's older than 50 minutes (3000 seconds)

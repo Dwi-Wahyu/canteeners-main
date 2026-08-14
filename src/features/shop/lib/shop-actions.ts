@@ -8,10 +8,10 @@ import {
   ServerActionReturn,
   successResponse,
 } from "@/helper/action-helper";
-import { ShopStatus } from "@/generated/prisma";
+import { ShopStatus } from "@prisma/client";
 
 export async function updateShop(
-  payload: UpdateShopInput
+  payload: UpdateShopInput,
 ): Promise<ServerActionReturn<void>> {
   try {
     const { id, open_time, close_time, ...data } = payload;
@@ -54,7 +54,7 @@ export async function updateShop(
 
 export async function toggleShopStatus(
   id: string,
-  currentStatus: ShopStatus
+  currentStatus: ShopStatus,
 ): Promise<ServerActionReturn<ShopStatus>> {
   try {
     const updated = await prisma.shop.update({
@@ -78,7 +78,7 @@ export async function toggleShopStatus(
 
 export async function toggleAutoAccept(
   id: string,
-  currentValue: boolean
+  currentValue: boolean,
 ): Promise<ServerActionReturn<boolean>> {
   try {
     const updated = await prisma.shop.update({
@@ -94,7 +94,7 @@ export async function toggleAutoAccept(
 
     return successResponse(
       updated.is_auto_accept,
-      `Terima pesanan otomatis ${updated.is_auto_accept ? "aktif" : "nonaktif"}`
+      `Terima pesanan otomatis ${updated.is_auto_accept ? "aktif" : "nonaktif"}`,
     );
   } catch (error) {
     console.error("Error toggleAutoAccept:", error);

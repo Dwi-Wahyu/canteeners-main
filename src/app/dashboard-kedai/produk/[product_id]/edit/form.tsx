@@ -25,7 +25,7 @@ import MultipleSelector from "@/components/multiple-select";
 import { FileUploadImage } from "@/components/file-upload-image";
 import { updateProduct } from "../../../../../features/product/lib/product-actions";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
-import { Category, Product, ProductCategory } from "@/generated/prisma";
+import { Category, Product, ProductCategory } from "@prisma/client";
 import { getImageUrl } from "@/helper/get-image-url";
 import { generateFileName } from "@/helper/file-helper";
 import { del } from "@vercel/blob";
@@ -111,7 +111,7 @@ export default function EditProductForm({
       const result = await updateProduct(
         payload,
         isUpdatingImage,
-        product.image_url
+        product.image_url,
       );
 
       if (result.success) {

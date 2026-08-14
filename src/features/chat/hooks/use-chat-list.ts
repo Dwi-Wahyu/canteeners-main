@@ -1,69 +1,62 @@
-import { auth, db } from "@/lib/firebase/client";
+"use client";
+
 import { Chat } from "../types";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
-import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
+import { useEffect, useState, useCallback } from "react";
+import { useSocket } from "@/lib/realtime/socket-context";
 
 export const useChatList = () => {
   const { data: session, status } = useSession();
-  const [user, setUser] = useState<User | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
-  const [isFirebaseLoading, setIsFirebaseLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const socket = useSocket();
 
-  // Cek Status Login Firebase
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setIsFirebaseLoading(false);
-
-      // Jika session NextAuth sudah ada tapi token firebase tidak ada
-      if (status === "authenticated" && !session?.user?.firebaseToken) {
-        setIsFirebaseLoading(false);
+  const fetchChats = useCallback(async () => {
+    if (!session?.user?.accessToken) return;
+    try {
+      setIsLoading(true);
+      const backendUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+      const res = await fetch(`${backendUrl}/chats`, {
+        headers: {
+          Authorization: `Bearer ${session.user.accessToken}`,
+        },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setChats(data);
       }
-    });
-    return () => unsubscribe();
-  }, [status, session?.user?.firebaseToken]);
+    } catch (e) {
+      console.error("Error fetching chats:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [session?.user?.accessToken]);
 
-  // Ambil Data Chat Realtime
   useEffect(() => {
-    if (!user) return;
+    if (status === "authenticated") {
+      fetchChats();
+    } else if (status === "unauthenticated") {
+      setIsLoading(false);
+    }
+  }, [status, fetchChats]);
 
-    const chatsRef = collection(db, "chats");
+  useEffect(() => {
+    if (!socket || !session?.user?.id) return;
 
-    const q = query(
-      chatsRef,
-      where("participantIds", "array-contains", user.uid),
-      orderBy("lastMessageAt", "desc"),
-    );
+    const unsubscribe = socket.on("chat:new-message", () => {
+      fetchChats();
+    });
 
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const results = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Chat[];
+    return () => {
+      unsubscribe();
+    };
+  }, [socket, session?.user?.id, fetchChats]);
 
-        setChats(results);
-      },
-      (error) => {
-        console.error("Error fetching chats:", error);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [user]);
-
-  // Gabungkan status loading NextAuth dan Firebase
-  const isLoading =
-    status === "loading" || (status === "authenticated" && isFirebaseLoading);
-
-  return { isLoading, chats, user };
+  return {
+    isLoading: status === "loading" || isLoading,
+    chats,
+    user: session?.user ? { uid: session.user.id } : null,
+    refetch: fetchChats,
+  };
 };

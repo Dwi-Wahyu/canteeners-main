@@ -15,7 +15,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ShopTestimony } from "@/generated/prisma";
+import { ShopTestimony } from "@prisma/client";
 import StarIcon from "@/components/icons/star-icon";
 import StarFilledIcon from "@/components/icons/star-filled-icon";
 import { createShopTestimony } from "@/features/testimony/lib/testimony-actions";
@@ -39,7 +39,7 @@ export default function OrderReviewSection({
   const [message, setMessage] = useState("");
 
   const [testimony, setTestimony] = useState<ShopTestimony | null>(
-    prevTestimony
+    prevTestimony,
   );
 
   const { mutateAsync, isPending } = useMutation({

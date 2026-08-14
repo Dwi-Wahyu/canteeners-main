@@ -1,16 +1,7 @@
 "use client";
 
-import { db } from "@/lib/firebase/client";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-import {
-  collection,
-  limit,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
-import { useEffect, useRef, useState } from "react";
+import { useSocket } from "@/lib/realtime/socket-context";
+import { useEffect } from "react";
 import {
   AppNotification,
   ComplaintNotification,
@@ -23,74 +14,46 @@ import { ComplaintNotificationToast } from "../ui/complaint-notification-toast";
 import { RefundNotificationToast } from "../ui/refund-notification-toast";
 
 export default function useWatchNotification() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const isFirstRun = useRef(true);
-
-  // Cek Status Login
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-
-      if (!currentUser) setIsLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+  const socket = useSocket();
 
   useEffect(() => {
-    if (!user) {
-      return;
-    }
+    if (!socket) return;
 
-    const chatsRef = collection(db, "notifications");
+    const unsubscribe = socket.on("notification", (data: any) => {
+      const notification = data.notification || data;
 
-    // nanti batasi 20 dokumen terakhir untuk hemat free tier
-    const q = query(
-      chatsRef,
-      where("recipientId", "==", user.uid),
-      orderBy("createdAt", "desc"),
-      limit(1)
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (isFirstRun.current) {
-        isFirstRun.current = false;
-        return;
-      }
-
-      if (snapshot.empty) return;
-
-      const data = snapshot.docs[0].data() as AppNotification;
-
-      if (data.type === "ORDER") {
-        // Bunyikan suara untuk pesanan baru
-        if (data.subType === "CREATED") {
+      if (notification.type === "ORDER") {
+        if (
+          notification.subtype === "CREATED" ||
+          notification.subType === "CREATED"
+        ) {
           const audio = new Audio("/sounds/pesanan-masuk.mp3");
-          audio.play().catch((err) => console.error("Error playing sound:", err));
+          audio
+            .play()
+            .catch((err) => console.error("Error playing sound:", err));
         }
 
         toast.custom((id) => (
           <OrderNotificationToast
-            notification={data as OrderNotification}
+            notification={notification as OrderNotification}
             onDismiss={() => toast.dismiss(id)}
           />
         ));
       }
 
-      if (data.type === "COMPLAINT") {
+      if (notification.type === "COMPLAINT") {
         toast.custom((id) => (
           <ComplaintNotificationToast
-            notification={data as ComplaintNotification}
+            notification={notification as ComplaintNotification}
             onDismiss={() => toast.dismiss(id)}
           />
         ));
       }
 
-      if (data.type === "REFUND") {
+      if (notification.type === "REFUND") {
         toast.custom((id) => (
           <RefundNotificationToast
-            notification={data as RefundNotification}
+            notification={notification as RefundNotification}
             onDismiss={() => toast.dismiss(id)}
           />
         ));
@@ -99,9 +62,8 @@ export default function useWatchNotification() {
 
     return () => {
       unsubscribe();
-      isFirstRun.current = true;
     };
-  }, [user]);
+  }, [socket]);
 
   return null;
 }

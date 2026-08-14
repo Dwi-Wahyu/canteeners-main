@@ -35,7 +35,7 @@ import { getShopById } from "../lib/shop-queries";
 import { updateShop } from "../lib/shop-actions";
 import { getImageUrl } from "@/helper/get-image-url";
 import { refundDisbursementModeMapping } from "@/constant/refund-mapping";
-import { RefundDisbursementMode, ShopOrderMode } from "@/generated/prisma";
+import { RefundDisbursementMode, ShopOrderMode } from "@prisma/client";
 import { shopOrderModeMapping } from "@/constant/order-mode-mapping";
 
 export default function EditShopForm({
@@ -102,7 +102,7 @@ export default function EditShopForm({
     } else {
       console.log(result.error);
       toast.error(
-        result.error.message || "Terjadi kesalahan saat menyimpan data."
+        result.error.message || "Terjadi kesalahan saat menyimpan data.",
       );
     }
   };

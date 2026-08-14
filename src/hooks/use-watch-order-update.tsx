@@ -2,11 +2,9 @@
 
 import { getOrderDetail } from "@/features/order/lib/order-queries";
 import { GetOrderDetail } from "@/features/order/types/order-queries-types";
-import { db } from "@/lib/firebase/client";
+import { useSocket } from "@/lib/realtime/socket-context";
 import { useQuery } from "@tanstack/react-query";
-import { doc, onSnapshot, Timestamp } from "firebase/firestore";
-import { useEffect, useRef } from "react";
-import { toast } from "sonner";
+import { useEffect } from "react";
 
 type UseWatchOrderUpdateReturn = {
   orderData: GetOrderDetail | null;
@@ -19,7 +17,7 @@ type UseWatchOrderUpdateReturn = {
 export function useWatchOrderUpdate(
   order_id: string
 ): UseWatchOrderUpdateReturn {
-  const lastKnownUpdate = useRef<number>(0);
+  const socket = useSocket();
 
   const {
     data: orderData,
@@ -31,49 +29,25 @@ export function useWatchOrderUpdate(
     queryKey: ["order-detail", order_id],
     queryFn: () => getOrderDetail(order_id),
     enabled: !!order_id,
-    staleTime: 0, // agar selalu anggap data bisa outdated
-    gcTime: 1000 * 60 * 5, // 5 menit
+    staleTime: 0,
+    gcTime: 1000 * 60 * 5,
   });
 
-  // Listener ke Firestore untuk trigger timestamp
   useEffect(() => {
-    if (!order_id) return;
+    if (!order_id || !socket) return;
 
-    const orderRef = doc(db, "orders", order_id);
+    const topic = `order:${order_id}`;
+    socket.join(topic);
 
-    const unsubscribe = onSnapshot(
-      orderRef,
-      (snapshot) => {
-        if (!snapshot.exists()) {
-          return;
-        }
+    const unsubscribe = socket.on("order:update", () => {
+      refetch();
+    });
 
-        const data = snapshot.data();
-        // Cek kedua field yang mungkin digunakan
-        const timestamp = (data?.lastUpdatedTimestamp || data?.lastUpdatedAt) as Timestamp | undefined;
-
-        if (!timestamp) return;
-
-        const updateMillis = timestamp.toMillis();
-
-        // Jika timestamp besar berarti ada perubahan
-        if (lastKnownUpdate.current === 0) {
-          lastKnownUpdate.current = updateMillis;
-          return;
-        }
-
-        if (updateMillis > lastKnownUpdate.current) {
-          lastKnownUpdate.current = updateMillis;
-          refetch();
-        }
-      },
-      (err) => {
-        console.error("Firestore onSnapshot error:", err);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [order_id, refetch]);
+    return () => {
+      socket.leave(topic);
+      unsubscribe();
+    };
+  }, [order_id, socket, refetch]);
 
   const loading = queryLoading || isFetching;
 

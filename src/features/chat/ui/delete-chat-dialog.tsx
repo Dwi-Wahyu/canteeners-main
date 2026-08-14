@@ -12,25 +12,41 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { doc, deleteDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
 import { useState } from "react";
 import { useRouter } from "nextjs-toploader/app";
+import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 export function DeleteChatDialog({ chatId }: { chatId: string }) {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   async function handleDelete() {
     setIsLoading(true);
-    const docRef = doc(db, "chats", chatId);
+    try {
+      const backendUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+      const res = await fetch(`${backendUrl}/chats/${chatId}`, {
+        method: "DELETE",
+        headers: session?.user?.accessToken
+          ? { Authorization: `Bearer ${session.user.accessToken}` }
+          : {},
+      });
 
-    await deleteDoc(docRef);
-
-    setIsOpen(false);
-    router.push("/chat");
-    setIsLoading(false);
+      if (res.ok) {
+        setIsOpen(false);
+        router.push("/chat");
+      } else {
+        toast.error("Gagal menghapus percakapan");
+      }
+    } catch (e) {
+      console.error("Error deleting chat:", e);
+      toast.error("Terjadi kesalahan saat menghapus percakapan");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (

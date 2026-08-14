@@ -1,5 +1,3 @@
-import { Timestamp } from "firebase/firestore";
-
 export type NotificationIntent =
   | "DEFAULT"
   | "INFO"
@@ -7,24 +5,28 @@ export type NotificationIntent =
   | "WARNING"
   | "ERROR";
 
-export type NotificationType = "ORDER" | "REFUND" | "COMPLAINT";
+export type NotificationType = "ORDER" | "REFUND" | "COMPLAINT" | "CHAT";
 
 export type NotificationBase = {
-  id: string; // Firestore Document ID
+  id: string;
   type: NotificationType;
-  subType: string;
-  recipientId: string;
-  resourcePath: string;
-  createdAt: Timestamp; // ISO String
-  expiresAt?: Timestamp; // ISO String (TTL)
+  subType?: string;
+  subtype?: string;
+  recipientId?: string;
+  recipient_id?: string;
+  resourcePath?: string;
+  createdAt?: string | Date | number;
+  created_at?: string | Date | number;
+  expiresAt?: string | Date | number;
   isRead?: boolean;
+  is_read?: boolean;
   title: string;
-  body: string;
+  body?: string | null;
   intent?: NotificationIntent;
   metadata?: Record<string, any>;
+  data?: Record<string, any>;
 };
 
-// --- ORDER ---
 export type OrderNotificationSubType =
   | "CREATED"
   | "ACCEPTED"
@@ -32,7 +34,8 @@ export type OrderNotificationSubType =
   | "PAYMENT_PROOF_SUBMITTED"
   | "PAYMENT_APPROVED"
   | "READY_DINE_IN"
-  | "READY_TAKEAWAY";
+  | "READY_TAKEAWAY"
+  | "CANCELLED";
 
 export interface OrderNotification extends NotificationBase {
   type: "ORDER";
@@ -42,7 +45,6 @@ export interface OrderNotification extends NotificationBase {
   };
 }
 
-// --- REFUND ---
 export type RefundNotificationSubType =
   | "REQUESTED"
   | "REJECTED"
@@ -54,7 +56,6 @@ export interface RefundNotification extends NotificationBase {
   subType: RefundNotificationSubType;
 }
 
-// --- COMPLAINT ---
 export type ComplaintNotificationSubType =
   | "SUBMITTED"
   | "UNDER_REVIEW"

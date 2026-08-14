@@ -20,6 +20,17 @@ export function OrderNotificationToast({
   const colors = notificationIntentColorMap[intent];
   const typeIcon = notificationTypeIconMapping["ORDER"];
 
+  const parseDate = (raw: any): Date => {
+    if (!raw) return new Date();
+    if (typeof raw === "object" && typeof raw.toDate === "function") {
+      return raw.toDate();
+    }
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
+  const date = parseDate(notification.createdAt || notification.created_at);
+
   return (
     <div
       className={cn(
@@ -48,7 +59,7 @@ export function OrderNotificationToast({
               {notification.title}
             </p>
             <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(notification.createdAt.toDate()), {
+              {formatDistanceToNow(date, {
                 addSuffix: true,
                 locale: id,
               })}
@@ -57,7 +68,6 @@ export function OrderNotificationToast({
           <p className="text-sm text-muted-foreground line-clamp-2">
             {notification.body}
           </p>
-          {/* Metadata Display for Order if needed */}
           {notification.metadata && notification.metadata.totalPrice && (
             <div className="mt-2 text-xs font-mono bg-muted p-1 rounded inline-block">
               Total: Rp

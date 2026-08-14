@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useState, useTransition } from "react";
 
-import { PaymentMethod, PostOrderType } from "@/generated/prisma";
+import { PaymentMethod, PostOrderType } from "@prisma/client";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";

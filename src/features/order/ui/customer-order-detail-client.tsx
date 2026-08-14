@@ -3,7 +3,7 @@
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 
 import {
   Item,
@@ -25,11 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatToHour } from "@/helper/hour-helper";
 import { GetCustomerOrderDetail } from "../types/order-queries-types";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
-import {
-  CircleAlert,
-  Edit,
-  StickyNote,
-} from "lucide-react";
+import { CircleAlert, Edit, StickyNote } from "lucide-react";
 import NavButton from "@/components/nav-button";
 import { getImageUrl } from "@/helper/get-image-url";
 import CashIcon from "@/components/icons/cash-icon";

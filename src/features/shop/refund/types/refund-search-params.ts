@@ -1,4 +1,4 @@
-import { RefundStatus } from "@/generated/prisma";
+import { RefundStatus } from "@prisma/client";
 
 import { createSearchParamsCache, parseAsStringEnum } from "nuqs/server";
 

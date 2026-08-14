@@ -46,7 +46,7 @@ import {
   refundReasonMapping,
   refundDisbursementModeMapping,
 } from "@/constant/refund-mapping";
-import { RefundDisbursementMode, RefundReason } from "@/generated/prisma";
+import { RefundDisbursementMode, RefundReason } from "@prisma/client";
 
 interface CreateRefundDialogProps {
   order: {
@@ -270,7 +270,7 @@ export default function CreateRefundDialog({
                           <SelectItem key={key} value={key}>
                             {label}
                           </SelectItem>
-                        )
+                        ),
                       )}
                     </SelectContent>
                   </Select>
@@ -301,7 +301,9 @@ export default function CreateRefundDialog({
                       />
                       <div className="relative h-12 w-12 rounded overflow-hidden shrink-0">
                         <Image
-                          src={getImageUrl("/product/" + item.product.image_url)}
+                          src={getImageUrl(
+                            "/product/" + item.product.image_url,
+                          )}
                           alt={item.product.name}
                           fill
                           className="object-cover"
@@ -359,7 +361,7 @@ export default function CreateRefundDialog({
                           {...field}
                           onChange={(e) =>
                             field.onChange(
-                              parseFloat(e.target.value) || undefined
+                              parseFloat(e.target.value) || undefined,
                             )
                           }
                         />
@@ -414,7 +416,7 @@ export default function CreateRefundDialog({
                           <SelectItem key={key} value={key}>
                             {label}
                           </SelectItem>
-                        )
+                        ),
                       )}
                     </SelectContent>
                   </Select>

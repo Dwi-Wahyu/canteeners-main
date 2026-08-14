@@ -11,7 +11,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { PaymentMethod } from "@/generated/prisma";
+import { PaymentMethod } from "@prisma/client";
 import { CheckCircle, Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { confirmOrder } from "../lib/order-actions";

@@ -3,7 +3,7 @@
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 
 import {
   Item,
@@ -31,7 +31,7 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { completeOrder } from "../lib/order-actions";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
 import CancelOrderDialog from "./cancel-order-dialog";
-import { Loader, Map, StickyNote } from "lucide-react";
+import { Loader2, Map, StickyNote } from "lucide-react";
 import NavButton from "@/components/nav-button";
 import ConfirmPaymentDialog from "./confirm-payment-dialog";
 import RejectPaymentDialog from "./reject-payment-dialog";
@@ -293,7 +293,7 @@ export default function ShopOrderDetailClient({
             disabled={isPending}
           >
             {isPending ? (
-              <Loader className="animate-spin" />
+              <Loader2 className="animate-spin" />
             ) : (
               "Pesanan Selesai"
             )}

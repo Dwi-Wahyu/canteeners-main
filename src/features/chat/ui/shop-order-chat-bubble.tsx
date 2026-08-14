@@ -10,75 +10,41 @@ import ConfirmOrderDialog from "@/features/order/ui/confirm-order-dialog";
 import ConfirmPaymentDialog from "@/features/order/ui/confirm-payment-dialog";
 import RejectOrderDialog from "@/features/order/ui/reject-order-dialog";
 import RejectPaymentDialog from "@/features/order/ui/reject-payment-dialog";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
-import { db } from "@/lib/firebase/client";
+import { useSocket } from "@/lib/realtime/socket-context";
 import { useQuery } from "@tanstack/react-query";
-import { doc, onSnapshot, Timestamp } from "firebase/firestore";
-import { ChevronRight, FileText, MessageCircle } from "lucide-react";
+import { ChevronRight, MessageCircle } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useRef } from "react";
-import { toast } from "sonner";
+import { useEffect } from "react";
 
 export default function ShopOrderChatBubble({
   order_id,
 }: {
   order_id: string;
 }) {
+  const socket = useSocket();
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["chat-bubble-order-summary", order_id],
     queryFn: () => getOrderSummaryForChatBubble(order_id),
   });
 
-  const lastKnownUpdate = useRef<number>(
-    data?.updated_at.getMilliseconds() ?? 0
-  );
-  const isFirstRun = useRef(true);
-
-  // Listener ke Firestore untuk trigger timestamp
   useEffect(() => {
-    if (!order_id) return;
+    if (!order_id || !socket) return;
 
-    const orderRef = doc(db, "orders", order_id);
+    const topic = `order:${order_id}`;
+    socket.join(topic);
 
-    const unsubscribe = onSnapshot(
-      orderRef,
-      (snapshot) => {
-        if (!snapshot.exists()) {
-          toast.error("Order tidak ditemukan di Firestore");
-          return;
-        }
-
-        if (isFirstRun.current) {
-          isFirstRun.current = false;
-          return;
-        }
-
-        const data = snapshot.data();
-        const timestamp = data?.lastUpdatedAt as Timestamp | undefined;
-
-        if (!timestamp) return;
-
-        const updateMillis = timestamp.toMillis();
-
-        // Jika timestamp besar berarti ada perubahan
-        // Handle ketika pertama kali fetch tidak perlu update
-        if (updateMillis > lastKnownUpdate.current) {
-          lastKnownUpdate.current = updateMillis;
-          refetch();
-        }
-      },
-      (err) => {
-        console.error("Firestore onSnapshot error:", err);
-      }
-    );
+    const unsubscribe = socket.on("order:update", () => {
+      refetch();
+    });
 
     return () => {
+      socket.leave(topic);
       unsubscribe();
-      isFirstRun.current = true;
     };
-  }, [order_id, refetch]);
+  }, [order_id, socket, refetch]);
 
   return (
     <div className={`flex flex-col items-start mb-4`}>
@@ -156,7 +122,6 @@ export default function ShopOrderChatBubble({
                   data.payment_method !== "CASH" && (
                     <div className="grid grid-cols-2">
                       <ConfirmPaymentDialog order_id={order_id} />
-
                       <RejectPaymentDialog order_id={order_id} />
                     </div>
                   )}

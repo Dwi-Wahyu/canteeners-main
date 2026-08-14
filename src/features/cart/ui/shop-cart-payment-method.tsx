@@ -4,7 +4,7 @@ import {
   paymentMethodMapping,
 } from "@/constant/payment-method";
 import { toast } from "sonner";
-import { PaymentMethod } from "@/generated/prisma";
+import { PaymentMethod } from "@prisma/client";
 import { GetShopCartAvaillablePaymentsType } from "../types/cart-queries-types";
 
 export default function ShopCartPaymentMethod({

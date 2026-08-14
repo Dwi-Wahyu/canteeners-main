@@ -1,10 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
 import { toast } from "sonner";
 import { createGuestSession } from "@/helper/create-guest-session";
 import {
@@ -20,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Field, FieldError } from "@/components/ui/field";
 import { MessageCircle } from "lucide-react";
 import Link from "next/link";
-import { getAuth, onAuthStateChanged, User } from "firebase/auth";
+import { useSession } from "next-auth/react";
 
 export default function CreateShopConversation({
   ownerAvatar,
@@ -35,25 +33,13 @@ export default function CreateShopConversation({
   userId: string | undefined;
   displayName: string | undefined;
 }) {
+  const { data: session } = useSession();
   const activeUserId = useRef(initialUserId);
-
   const router = useRouter();
 
   const [guestName, setGuestName] = useState(displayName ?? "");
   const [showDialog, setShowDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const [user, setUser] = useState<User | null>(null);
-
-  // Cek Status Login
-  useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (!currentUser) setIsLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
 
   async function onClick() {
     if (!activeUserId.current) {
@@ -64,49 +50,38 @@ export default function CreateShopConversation({
   }
 
   async function startChat() {
-    if (!activeUserId.current) {
-      return;
-    }
+    if (!activeUserId.current) return;
 
-    if (!guestName) {
-      return;
-    }
-
-    const chatId = `${activeUserId.current}_${ownerId}`;
-
-    // create chat if not exists
-    const chatRef = doc(db, "chats", chatId);
-    const chatSnap = await getDoc(chatRef);
-
-    if (!chatSnap.exists()) {
-      await setDoc(chatRef, {
-        id: chatId,
-
-        participantIds: [activeUserId.current, ownerId],
-
-        participantsInfo: {
-          [ownerId]: {
-            name: ownerName,
-            avatar: ownerAvatar,
-            role: "SHOP_OWNER",
-          },
-          [activeUserId.current]: {
-            name: guestName,
-            avatar: "avatars/default-avatar.jpg",
-            role: "CUSTOMER",
-          },
+    try {
+      setIsLoading(true);
+      const backendUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+      const res = await fetch(`${backendUrl}/chats`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: session?.user?.accessToken
+            ? `Bearer ${session.user.accessToken}`
+            : "",
         },
-
-        lastMessage: "Memulai percakapan",
-        lastMessageAt: serverTimestamp(),
-        lastMessageType: "TEXT",
-        lastMessageSenderId: activeUserId.current,
+        body: JSON.stringify({
+          owner_id: ownerId,
+          customer_id: activeUserId.current,
+        }),
       });
+
+      if (res.ok) {
+        const chat = await res.json();
+        router.push("/chat/" + chat.id);
+      } else {
+        toast.error("Gagal membuat percakapan");
+      }
+    } catch (error) {
+      console.error("Error starting chat:", error);
+      toast.error("Terjadi kesalahan saat memulai percakapan");
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
-
-    router.push("/chat/" + chatId);
   }
 
   async function saveGuestDetails() {
@@ -124,7 +99,6 @@ export default function CreateShopConversation({
         return;
       }
 
-      // Simpan ke Ref agar klik berikutnya menggunakan ID ini
       activeUserId.current = createdUserId;
     }
 
@@ -138,7 +112,7 @@ export default function CreateShopConversation({
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <form>
+        <form onSubmit={(e) => e.preventDefault()}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="text-start">
@@ -173,7 +147,7 @@ export default function CreateShopConversation({
                   <Button variant="outline">Batal</Button>
                 </DialogClose>
                 <Button
-                  type="submit"
+                  type="button"
                   disabled={!guestName || isLoading}
                   onClick={saveGuestDetails}
                 >

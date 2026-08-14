@@ -1,73 +1,51 @@
-import { db } from "@/lib/firebase/client";
-import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-  where,
-} from "firebase/firestore";
-import { useEffect, useRef } from "react";
+"use client";
+
+import { useSocket } from "@/lib/realtime/socket-context";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { ChatNotificationToast } from "../ui/chat-notification-toast";
 import { Chat } from "@/features/chat/types";
 
 export const useWatchChatNotification = (uid: string | null) => {
-  const previousTimestamps = useRef<Map<string, number>>(new Map());
-  const isFirstRun = useRef(true);
+  const socket = useSocket();
 
   useEffect(() => {
-    if (!uid) {
-      return;
-    }
+    if (!uid || !socket) return;
 
-    const chatsRef = collection(db, "chats");
+    const unsubscribe = socket.on("chat:new-message", (data: any) => {
+      const { message, chatId, senderName, senderAvatar } = data;
+      const senderId = message?.sender_id || message?.senderId;
 
-    // nanti batasi 20 dokumen terakhir untuk hemat free tier
-    const q = query(
-      chatsRef,
-      where("participantIds", "array-contains", uid),
-      orderBy("lastMessageAt", "desc")
-    );
+      if (message && senderId !== uid && message.type !== "ORDER") {
+        const fakeOpponentId = senderId || "opponent";
+        const notificationObj: Chat = {
+          id: chatId || message.chat_id,
+          lastMessage:
+            message.text ||
+            (message.type === "ATTACHMENT" ? "Mengirim lampiran" : "Pesan baru"),
+          participantsInfo: {
+            [fakeOpponentId]: {
+              name: senderName || "Pengirim",
+              avatar: senderAvatar || "avatars/default-avatar.jpg",
+              role: "CUSTOMER",
+            },
+          },
+        };
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (isFirstRun.current) {
-        isFirstRun.current = false;
-        return;
+        toast.custom((id) => (
+          <ChatNotificationToast
+            notification={notificationObj}
+            currentUid={uid}
+            onDismiss={() => toast.dismiss(id)}
+          />
+        ));
       }
-
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          if (change.doc.metadata.hasPendingWrites) return;
-
-          const data = change.doc.data() as Chat;
-          const chatId = change.doc.id;
-
-          // Tidak perlu tampilkan notifikasi order
-          if (data.lastMessageType === "ORDER") {
-            return;
-          }
-
-          const currentTime = data.lastMessageAt.toMillis();
-          const prevTime = previousTimestamps.current.get(chatId) ?? 0;
-
-          if (data.lastMessageSenderId !== uid && currentTime > prevTime) {
-            toast.custom(() => (
-              <ChatNotificationToast notification={data} currentUid={uid} />
-            ));
-          }
-
-          // Update timestamp
-          previousTimestamps.current.set(chatId, currentTime);
-        }
-      });
     });
 
     return () => {
       unsubscribe();
-      previousTimestamps.current.clear();
-      isFirstRun.current = true;
     };
-  }, [uid]);
+  }, [uid, socket]);
 
   return null;
 };

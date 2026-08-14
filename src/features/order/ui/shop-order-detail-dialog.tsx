@@ -18,7 +18,7 @@ import {
   getPaymentMethodIcon,
   paymentMethodMapping,
 } from "@/constant/payment-method";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 import { formatDateTimeIndonesian } from "@/helper/date-helper";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { getImageUrl } from "@/helper/get-image-url";
@@ -125,7 +125,9 @@ export default function ShopOrderDetailDialog({
                         <CardContent className="p-2">
                           <div className="flex gap-4">
                             <Image
-                              src={getImageUrl("/product/" + orderItem.product.image_url)}
+                              src={getImageUrl(
+                                "/product/" + orderItem.product.image_url,
+                              )}
                               alt={orderItem.product.name}
                               width={70}
                               height={70}
@@ -148,7 +150,7 @@ export default function ShopOrderDetailDialog({
                                     <Badge variant={"outline"} key={idx}>
                                       {options.value}
                                     </Badge>
-                                  )
+                                  ),
                                 )}
                               </div>
                             </div>
@@ -178,7 +180,9 @@ export default function ShopOrderDetailDialog({
                   <div>
                     <h1>Bukti</h1>
                     <Image
-                      src={getImageUrl("/payment-proof/" + orderData.payment_proof_url)}
+                      src={getImageUrl(
+                        "/payment-proof/" + orderData.payment_proof_url,
+                      )}
                       alt="Bukti Pembayaran"
                       width={200}
                       height={200}

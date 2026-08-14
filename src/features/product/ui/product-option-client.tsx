@@ -1,4 +1,4 @@
-import { ProductOption, ProductOptionValue } from "@/generated/prisma";
+import { ProductOption, ProductOptionValue } from "@prisma/client";
 
 import CreateProductOptionValueDialog from "./create-product-option-value-dialog";
 

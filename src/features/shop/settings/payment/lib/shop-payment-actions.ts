@@ -1,6 +1,6 @@
 "use server";
 
-import { PaymentMethod } from "@/generated/prisma";
+import { PaymentMethod } from "@prisma/client";
 import {
   errorResponse,
   ServerActionReturn,
@@ -43,7 +43,7 @@ export async function toggleShopPaymentActive({
 
           return successResponse(
             undefined,
-            "Sukses menambahkan metode pembayaran"
+            "Sukses menambahkan metode pembayaran",
           );
 
         case "QRIS":
@@ -62,7 +62,7 @@ export async function toggleShopPaymentActive({
 
           return successResponse(
             undefined,
-            "Sukses menambahkan metode pembayaran"
+            "Sukses menambahkan metode pembayaran",
           );
 
         case "BANK_TRANSFER":
@@ -81,7 +81,7 @@ export async function toggleShopPaymentActive({
 
           return successResponse(
             undefined,
-            "Sukses menambahkan metode pembayaran"
+            "Sukses menambahkan metode pembayaran",
           );
 
         default:

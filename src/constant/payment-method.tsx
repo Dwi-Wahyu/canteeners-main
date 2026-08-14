@@ -1,5 +1,5 @@
 import CashIcon from "@/components/icons/cash-icon";
-import { PaymentMethod } from "@/generated/prisma";
+import { PaymentMethod } from "@prisma/client";
 import { CreditCard, QrCode } from "lucide-react";
 
 export const paymentMethodMapping = {

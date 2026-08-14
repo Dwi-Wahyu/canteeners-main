@@ -1,6 +1,6 @@
 "use server";
 
-import { ShopTestimony } from "@/generated/prisma";
+import { ShopTestimony } from "@prisma/client";
 import {
   errorResponse,
   ServerActionReturn,

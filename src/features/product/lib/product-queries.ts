@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function getShopProducts(shop_id: string, name: string | null) {

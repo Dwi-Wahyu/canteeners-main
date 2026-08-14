@@ -20,6 +20,17 @@ export function RefundNotificationToast({
   const colors = notificationIntentColorMap[intent];
   const typeIcon = notificationTypeIconMapping["REFUND"];
 
+  const parseDate = (raw: any): Date => {
+    if (!raw) return new Date();
+    if (typeof raw === "object" && typeof raw.toDate === "function") {
+      return raw.toDate();
+    }
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
+  const date = parseDate(notification.createdAt || notification.created_at);
+
   return (
     <div
       className={cn(
@@ -48,7 +59,7 @@ export function RefundNotificationToast({
               {notification.title}
             </p>
             <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(notification.createdAt.toDate()), {
+              {formatDistanceToNow(date, {
                 addSuffix: true,
                 locale: id,
               })}

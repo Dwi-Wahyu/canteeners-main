@@ -1,13 +1,12 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import ChatTopbar from "./chat-topbar";
 import { Textarea } from "@/components/ui/textarea";
-import { Timestamp } from "firebase/firestore";
 
 export default function LoadingDetailChatPage() {
   return (
     <div className="pt-5">
       <ChatTopbar
-        lastSeenAt={Timestamp.now()}
+        lastSeenAt={new Date()}
         opponent={{
           avatar: "avatars/default-avatar.jpg",
           name: "Memuat pesan . . .",

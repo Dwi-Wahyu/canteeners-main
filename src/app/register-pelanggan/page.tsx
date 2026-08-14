@@ -9,8 +9,6 @@ import { RegisterSchema, RegisterInput } from "@/features/auth/types/auth-schema
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { auth } from "@/lib/firebase/client";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { registerCustomer } from "@/features/auth/lib/auth-actions";
 import { toast } from "sonner";
 import ContinueWithGoogle from "../login-pelanggan/continue-with-google";
@@ -30,24 +28,12 @@ export default function RegisterPelangganPage() {
 
   async function onSubmit(data: RegisterInput) {
     try {
-      // 1. Register to Firebase Auth first
-      // Firebase needs an email, we'll use username@canteeners.local if username is not an email
-      // But looking at the project, username might be intended to be email. 
-      // For now let's assume username is the email.
-      const firebaseEmail = data.username.includes("@") ? data.username : `${data.username}@canteeners.local`;
-      
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        firebaseEmail,
-        data.password
-      );
-
-      const firebaseUid = userCredential.user.uid;
+      const localUid = crypto.randomUUID();
 
       // 2. Register to our database
       const res = await registerCustomer({
         ...data,
-        firebaseUid,
+        firebaseUid: localUid,
       });
 
       if (!res.success) {

@@ -36,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProductOptionType } from "@/generated/prisma";
+import { ProductOptionType } from "@prisma/client";
 import { productOptionTypeMapping } from "@/constant/product-mapping";
 import { createProductOption } from "../lib/product-actions";
 import {

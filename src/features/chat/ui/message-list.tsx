@@ -1,15 +1,6 @@
-import { useEffect, useRef, useState, useMemo } from "react";
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-  limit,
-  doc,
-  writeBatch,
-  arrayUnion,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase/client";
+"use client";
+
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { getImageUrl } from "@/helper/get-image-url";
 import { format } from "date-fns";
 import { Message, Attachment } from "../types";
@@ -18,6 +9,8 @@ import { PlayCircle, Check, CheckCheck } from "lucide-react";
 import CustomerOrderChatBubble from "./customer-order-chat-bubble";
 import ShopOrderChatBubble from "./shop-order-chat-bubble";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSocket } from "@/lib/realtime/socket-context";
+import { useSession } from "next-auth/react";
 
 export function MessageList({
   chatId,
@@ -28,6 +21,8 @@ export function MessageList({
   currentUserId: string;
   isOwner: boolean;
 }) {
+  const { data: session } = useSession();
+  const socket = useSocket();
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -35,94 +30,110 @@ export function MessageList({
   const [initialMediaIndex, setInitialMediaIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
 
-  // Fetch Pesan Realtime
+  // Fetch initial messages from REST API
+  const fetchMessages = useCallback(async () => {
+    if (!chatId) return;
+    try {
+      const backendUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+      const res = await fetch(`${backendUrl}/chats/${chatId}/messages`, {
+        headers: session?.user?.accessToken
+          ? { Authorization: `Bearer ${session.user.accessToken}` }
+          : {},
+      });
+      if (res.ok) {
+        const msgs = await res.json();
+        setMessages(msgs);
+      }
+    } catch (e) {
+      console.error("Error fetching messages:", e);
+    }
+  }, [chatId, session?.user?.accessToken]);
+
   useEffect(() => {
-    const messagesRef = collection(db, "chats", chatId, "messages");
-    const q = query(messagesRef, orderBy("createdAt", "asc"), limit(100));
+    fetchMessages();
+  }, [fetchMessages]);
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Message[];
-
-      setMessages(msgs);
-    });
-
-    return () => unsubscribe();
-  }, [chatId]);
-
-  // Listen for Typing Status
+  // WebSocket Subscription for Messages & Typing Status
   useEffect(() => {
-    const chatRef = doc(db, "chats", chatId);
-    const unsubscribe = onSnapshot(chatRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        const typingData = data.typing || {};
-        // Check if anyone else is typing
-        const othersTyping = Object.entries(typingData).some(
-          ([userId, typing]) => userId !== currentUserId && typing === true
-        );
-        setIsTyping(othersTyping);
+    if (!chatId || !socket) return;
+
+    const topic = `chat:${chatId}`;
+    socket.join(topic);
+
+    const unsubMessage = socket.on("chat:message", (data: any) => {
+      if (data.message) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === data.message.id)) return prev;
+          return [...prev, data.message];
+        });
       }
     });
-    return () => unsubscribe();
-  }, [chatId, currentUserId]);
 
-  // Auto Scroll ke Bawah
+    const unsubTyping = socket.on("chat:typing", (data: any) => {
+      if (data.userId !== currentUserId) {
+        setIsTyping(!!data.isTyping);
+      }
+    });
+
+    const unsubRead = socket.on("chat:read", (data: any) => {
+      if (data.userId !== currentUserId) {
+        setMessages((prev) => 
+          prev.map(msg => {
+            const readBy = msg.read_by || msg.readBy || [];
+            if (!readBy.includes(data.userId) && (msg.sender_id || msg.senderId) === currentUserId) {
+              return { ...msg, read_by: [...readBy, data.userId], readBy: [...readBy, data.userId] };
+            }
+            return msg;
+          })
+        );
+      }
+    });
+
+    return () => {
+      socket.leave(topic);
+      unsubMessage();
+      unsubTyping();
+      unsubRead();
+    };
+  }, [chatId, socket, currentUserId]);
+
+  // Auto Scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isTyping]); // Scroll when typing status changes too
+  }, [messages, isTyping]);
 
-  // Mark Messages as Read
+  // Mark Messages as Read via REST endpoint
   useEffect(() => {
-    const markMessagesAsRead = async () => {
-      const unreadMessages = messages.filter(
-        (msg) => !msg.readBy.includes(currentUserId)
-      );
-
-      if (unreadMessages.length === 0) return;
-
-      const batch = writeBatch(db);
-
-      // Update each message's readBy
-      unreadMessages.forEach((msg) => {
-        const msgRef = doc(db, "chats", chatId, "messages", msg.id);
-        batch.update(msgRef, {
-          readBy: arrayUnion(currentUserId),
-        });
-      });
-
-      // Reset unread count on parent chat document
-      const chatRef = doc(db, "chats", chatId);
-
-      batch.update(chatRef, {
-        [`unreadCounts.${currentUserId}`]: 0,
-      });
-
+    const markRead = async () => {
+      if (!session?.user?.accessToken || !chatId) return;
       try {
-        await batch.commit();
-      } catch (error) {
-        console.error("Error marking messages as read:", error);
+        const backendUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+        await fetch(`${backendUrl}/chats/${chatId}/read`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.user.accessToken}`,
+          },
+        });
+      } catch (e) {
+        console.error("Error marking chat read:", e);
       }
     };
 
     if (messages.length > 0) {
-      markMessagesAsRead();
+      markRead();
     }
-  }, [messages, chatId, currentUserId, isOwner]);
+  }, [messages.length, chatId, session?.user?.accessToken]);
 
-  // Flatten all attachments from all messages into a single array for the gallery
-  // We also need to map them back to find the index when a user clicks a specific image
   const attachments = useMemo(() => {
     const items: Attachment[] = [];
     messages.forEach((msg) => {
-      if (msg.attachments && msg.attachments.length > 0) {
-        items.push(...msg.attachments);
-      } else if (msg.attachments && msg.attachments.length > 0) {
-        items.push(...msg.attachments);
+      const msgAttachments = msg.attachments || [];
+      if (Array.isArray(msgAttachments) && msgAttachments.length > 0) {
+        items.push(...msgAttachments);
       }
     });
     return items;
@@ -136,11 +147,26 @@ export function MessageList({
     }
   };
 
+  const parseMessageDate = (raw: any): Date | null => {
+    if (!raw) return null;
+    if (typeof raw === "object" && typeof raw.toDate === "function") {
+      return raw.toDate();
+    }
+    if (typeof raw === "object" && typeof raw.seconds === "number") {
+      return new Date(raw.seconds * 1000);
+    }
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
   return (
     <ScrollArea className="container p-5 pt-20 max-w-7xl mx-auto flex flex-col gap-4">
       {messages.map((msg) => {
-        const isSender = msg.senderId === currentUserId;
-        const msgAttachments = msg.attachments || msg.attachments || [];
+        const senderId = msg.sender_id || msg.senderId;
+        const isSender = senderId === currentUserId;
+        const msgAttachments = (msg.attachments as Attachment[]) || [];
+        const readBy = msg.read_by || msg.readBy || [];
+        const createdDate = parseMessageDate(msg.created_at || msg.createdAt);
 
         if (msg.type === "ORDER" && msg.order_id) {
           if (isSender) {
@@ -166,7 +192,6 @@ export function MessageList({
                   : "bg-secondary text-secondary-foreground"
               }`}
             >
-              {/* Render Attachments */}
               {msgAttachments.length > 0 && (
                 <div
                   className={`mb-2 gap-1 grid ${
@@ -187,10 +212,6 @@ export function MessageList({
                       >
                         {isVideo ? (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            {/* Thumbnail generator or just a placeholder if we don't have one?
-                                        Since we don't have a thumbnail service, we can try to use a <video> tag
-                                        with #t=0.1 to show the first frame, but controls disabled.
-                                     */}
                             <video
                               src={`${getImageUrl("/message-media-video/" + item.url)}#t=0.5`}
                               className="w-full h-full object-cover"
@@ -213,24 +234,20 @@ export function MessageList({
                 </div>
               )}
 
-              {/* Render Text */}
               {msg.text && <p className="whitespace-pre-wrap">{msg.text}</p>}
             </div>
 
-            {/* Timestamp & Status */}
             <div
               className={`flex items-center gap-1 mt-1 px-1 text-[10px] text-gray-400 ${
                 isSender ? "justify-end" : "justify-start"
               }`}
             >
               <span>
-                {msg.createdAt
-                  ? format(msg.createdAt.toDate(), "HH:mm")
-                  : "Mengirim..."}
+                {createdDate ? format(createdDate, "HH:mm") : "Mengirim..."}
               </span>
               {isSender && (
                 <span>
-                  {msg.readBy.length > 1 ? (
+                  {readBy.length > 1 ? (
                     <CheckCheck className="w-3 h-3 text-blue-500" />
                   ) : (
                     <Check className="w-3 h-3" />
@@ -242,7 +259,6 @@ export function MessageList({
         );
       })}
 
-      {/* Typing Indicator */}
       {isTyping && (
         <div className="flex items-center gap-2 text-xs text-gray-500 animate-pulse">
           <span className="flex gap-1">
@@ -254,7 +270,6 @@ export function MessageList({
         </div>
       )}
 
-      {/* Element dummy untuk scroll target */}
       <div ref={scrollRef} />
 
       <MediaGallery

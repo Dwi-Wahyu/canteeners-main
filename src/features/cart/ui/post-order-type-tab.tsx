@@ -7,7 +7,7 @@ import CustomerPositionBreadcrumb from "./customer-position-breadcrumb";
 import NavButton from "@/components/nav-button";
 import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 import RunIcon from "@/components/icons/run-icon";
-import { PostOrderType } from "@/generated/prisma";
+import { PostOrderType } from "@prisma/client";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 

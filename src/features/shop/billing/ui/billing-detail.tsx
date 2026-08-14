@@ -58,7 +58,7 @@ export function BillingDetail({ billing }: BillingDetailProps) {
               </span>
             </div>
 
-            {/* Subtotal */}
+            {/* Komisi */}
             <div className="flex justify-between items-center py-2">
               <div className="space-y-1">
                 <p className="font-medium">Komisi Order</p>
@@ -67,12 +67,28 @@ export function BillingDetail({ billing }: BillingDetailProps) {
                 </p>
               </div>
               <span className="font-semibold text-lg">
-                {formatRupiah(billing.subtotal)}
+                {formatRupiah(billing.commission_total)}
               </span>
             </div>
 
+            {/* Subsidi */}
+            {billing.subsidy_total > 0 && (
+              <div className="flex justify-between items-center py-2 border-t">
+                <div className="space-y-1">
+                  <p className="font-medium">Subsidi Platform</p>
+                  <p className="text-xs text-muted-foreground">
+                    Pengurangan subsidi voucher
+                  </p>
+                </div>
+                <span className="font-semibold text-lg text-green-500">
+                  <Minus className="inline h-4 w-4" />
+                  {formatRupiah(billing.subsidy_total)}
+                </span>
+              </div>
+            )}
+
             {/* Refund */}
-            {billing.refund > 0 && (
+            {billing.refund_total > 0 && (
               <div className="flex justify-between items-center py-2 border-t">
                 <div className="space-y-1">
                   <p className="font-medium">Pengurangan Refund</p>
@@ -82,7 +98,7 @@ export function BillingDetail({ billing }: BillingDetailProps) {
                 </div>
                 <span className="font-semibold text-lg text-red-500">
                   <Minus className="inline h-4 w-4" />
-                  {formatRupiah(billing.refund)}
+                  {formatRupiah(billing.refund_total)}
                 </span>
               </div>
             )}
@@ -96,7 +112,7 @@ export function BillingDetail({ billing }: BillingDetailProps) {
                 </p>
               </div>
               <span className="font-bold text-2xl text-primary">
-                {formatRupiah(billing.total)}
+                {formatRupiah(billing.net_total)}
               </span>
             </div>
 

@@ -5,7 +5,7 @@ import {
   PaymentMethod,
   RewardType,
   DiscountType,
-} from "@/generated/prisma";
+} from "@prisma/client";
 import {
   errorResponse,
   ServerActionReturn,
@@ -13,25 +13,25 @@ import {
 } from "@/helper/action-helper";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { adminDb } from "@/lib/firebase/admin";
-import { FieldValue } from "firebase-admin/firestore";
 import { deleteFile } from "@/helper/file-helper";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { startOfWeek, endOfWeek } from "date-fns";
 import { calculateCommission } from "@/helper/pricing-helper";
+import {
+  createAndPublishNotification,
+  publishRealtime,
+} from "@/lib/realtime/publish-internal";
 
-// --- Helper untuk Revalidasi (DRY Principle) ---
 function revalidateOrderPaths(orderId: string) {
   const paths = [`/order/${orderId}`, `/dashboard-kedai/order/${orderId}`];
   paths.forEach((path) => revalidatePath(path));
 }
 
-// --- Helper untuk Validasi Metode Pembayaran ---
 async function validateShopPaymentMethod(
   shopId: string,
   method: PaymentMethod,
 ) {
-  if (method === "CASH") return true; // CASH pembayaran default yang harus ada
+  if (method === "CASH") return true;
 
   const paymentMethod = await prisma.payment.findFirst({
     where: { shop_id: shopId, method: method },
@@ -50,8 +50,6 @@ export async function confirmOrder({
   payment_method: PaymentMethod;
 }): Promise<ServerActionReturn<void>> {
   try {
-    // Validasi Ketersediaan Metode Pembayaran di Awal
-    // Supaya tidak update status order jika metode tidak tersedia
     const isMethodAvailable = await validateShopPaymentMethod(
       shop_id,
       payment_method,
@@ -63,7 +61,6 @@ export async function confirmOrder({
       );
     }
 
-    // Ambil Data Order
     const order = await prisma.order.findUnique({
       where: { id: order_id },
       select: {
@@ -73,7 +70,6 @@ export async function confirmOrder({
 
     if (!order) return errorResponse("Order tidak ditemukan");
 
-    // Tentukan Status & Pesan Berdasarkan Payment Method
     let newStatus: OrderStatus;
     let responseMessage: string;
     let notificationBody: string;
@@ -93,29 +89,25 @@ export async function confirmOrder({
       data: { status: newStatus },
     });
 
-    // Eksekusi Firebase (Notification & Trigger)
-    // jalankan paralel agar lebih cepat menggunakan Promise.all
-    const notificationRef = adminDb.collection("notifications");
-    const orderRef = adminDb.collection("orders").doc(order_id);
-
-    const notificationPromise = notificationRef.add({
-      recipientId: order.customer.user_id,
+    await createAndPublishNotification({
+      recipient_id: order.customer.user_id,
       type: "ORDER",
-      subType: "ACCEPTED",
+      subtype: "ACCEPTED",
       title: "Pesanan Diterima",
       body: notificationBody,
-      isRead: false,
-      intent: "SUCCESS",
-      resourcePath: "/order/" + order_id,
-      createdAt: FieldValue.serverTimestamp(),
-      expiresAt: FieldValue.serverTimestamp(),
+      data: { resourcePath: "/order/" + order_id },
     });
 
-    const triggerPromise = orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
+    await publishRealtime(`order:${order_id}`, {
+      event: "order:update",
+      orderId: order_id,
+      status: newStatus,
     });
-
-    await Promise.all([notificationPromise, triggerPromise]);
+    await publishRealtime(`shop:${shop_id}`, {
+      event: "shop:order-update",
+      orderId: order_id,
+      status: newStatus,
+    });
 
     revalidateOrderPaths(order_id);
 
@@ -134,8 +126,8 @@ export async function confirmPayment({
   estimation: number;
 }): Promise<ServerActionReturn<void>> {
   try {
-    await prisma.$transaction(async (tx) => {
-      const order = await tx.order.update({
+    const order = await prisma.$transaction(async (tx) => {
+      const updatedOrder = await tx.order.update({
         where: {
           id: order_id,
         },
@@ -156,19 +148,16 @@ export async function confirmPayment({
         },
       });
 
-      // --- LOGIKA REFERRAL ---
-      if (order.referral_code_used) {
+      if (updatedOrder.referral_code_used) {
         const referrer = await tx.customer.findUnique({
-          where: { referral_code: order.referral_code_used },
+          where: { referral_code: updatedOrder.referral_code_used },
           select: { id: true, referral_usage_count: true },
         });
 
-        // Pastikan referrer ada dan bukan dirinya sendiri
-        if (referrer && referrer.id !== order.customer_id) {
+        if (referrer && referrer.id !== updatedOrder.customer_id) {
           const newCount = (referrer.referral_usage_count || 0) + 1;
 
           if (newCount >= 3) {
-            // Berikan Reward Cashback ke Referrer
             let refDiscount = await tx.discount.findFirst({
               where: {
                 name: "Referral Reward",
@@ -196,7 +185,6 @@ export async function confirmPayment({
               },
             });
 
-            // Reset Counter
             await tx.customer.update({
               where: { id: referrer.id },
               data: { referral_usage_count: 0 },
@@ -210,29 +198,27 @@ export async function confirmPayment({
         }
       }
 
-      const notificationRef = adminDb.collection("notifications");
+      return updatedOrder;
+    });
 
-      // Send notification
-      const notificationData = {
-        recipientId: order.customer.user_id,
-        type: "ORDER",
-        subType: "ACCEPTED",
-        title: "Pembayaran di Konfirmasi",
-        body: "Kedai sudah mulai menyiapkan pesanan anda",
-        isRead: false,
-        intent: "SUCCESS",
-        resourcePath: "/order/" + order_id,
-        createdAt: FieldValue.serverTimestamp(),
-      };
+    await createAndPublishNotification({
+      recipient_id: order.customer.user_id,
+      type: "ORDER",
+      subtype: "ACCEPTED",
+      title: "Pembayaran di Konfirmasi",
+      body: "Kedai sudah mulai menyiapkan pesanan anda",
+      data: { resourcePath: "/order/" + order_id },
+    });
 
-      await notificationRef.add(notificationData);
-
-      // Update doc order untuk realtime trigger
-      const orderRef = adminDb.collection("orders").doc(order_id);
-
-      await orderRef.update({
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-      });
+    await publishRealtime(`order:${order_id}`, {
+      event: "order:update",
+      orderId: order_id,
+      status: "PROCESSING",
+    });
+    await publishRealtime(`shop:${order.shop_id}`, {
+      event: "shop:order-update",
+      orderId: order_id,
+      status: "PROCESSING",
     });
 
     revalidateOrderPaths(order_id);
@@ -266,11 +252,17 @@ export async function changeOrderEstimation({
       },
     });
 
-    // Update doc order untuk realtime trigger
-    const orderRef = adminDb.collection("orders").doc(order_id);
-
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
+    await publishRealtime(`order:${order_id}`, {
+      event: "order:update",
+      orderId: order_id,
+      status,
+      estimation,
+    });
+    await publishRealtime(`shop:${updated.shop_id}`, {
+      event: "shop:order-update",
+      orderId: order_id,
+      status,
+      estimation,
     });
 
     revalidateOrderPaths(order_id);
@@ -310,7 +302,6 @@ export async function completeOrder({
         },
       });
 
-      // --- LOGIKA BILLING (Tagihan Mingguan) ---
       const totalQty = order.order_items.reduce(
         (sum, item) => sum + item.quantity,
         0,
@@ -318,11 +309,9 @@ export async function completeOrder({
       const commission = calculateCommission(totalQty);
 
       const now = new Date();
-      // Menggunakan weekStartsOn: 1 agar minggu dimulai dari hari Senin
       const startDate = startOfWeek(now, { weekStartsOn: 1 });
       const endDate = endOfWeek(now, { weekStartsOn: 1 });
 
-      // Cari atau buat billing untuk minggu ini
       const existingBilling = await tx.shopBilling.findFirst({
         where: {
           shop_id: order.shop_id,
@@ -335,8 +324,8 @@ export async function completeOrder({
         await tx.shopBilling.update({
           where: { id: existingBilling.id },
           data: {
-            subtotal: { increment: commission },
-            total: { increment: commission },
+            commission_total: { increment: commission },
+            net_total: { increment: commission },
           },
         });
       } else {
@@ -345,9 +334,10 @@ export async function completeOrder({
             shop_id: order.shop_id,
             start_date: startDate,
             end_date: endDate,
-            subtotal: commission,
-            refund: 0,
-            total: commission,
+            commission_total: commission,
+            subsidy_total: 0,
+            refund_total: 0,
+            net_total: commission,
             status: "UNPAID",
           },
         });
@@ -356,28 +346,24 @@ export async function completeOrder({
       return order;
     });
 
-    const notificationRef = adminDb.collection("notifications");
-
-    // Send notification
-    const notificationData = {
-      recipientId: result.customer.user_id,
+    await createAndPublishNotification({
+      recipient_id: result.customer.user_id,
       type: "ORDER",
-      subType: "ACCEPTED",
+      subtype: "ACCEPTED",
       title: "Order Selesai",
       body: "Berikan testimoni untuk kedai atau untuk Canteeners 😊🙏",
-      isRead: false,
-      intent: "SUCCESS",
-      resourcePath: "/order/" + order_id,
-      createdAt: FieldValue.serverTimestamp(),
-    };
+      data: { resourcePath: "/order/" + order_id },
+    });
 
-    await notificationRef.add(notificationData);
-
-    // Update doc order untuk realtime trigger
-    const orderRef = adminDb.collection("orders").doc(order_id);
-
-    await orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
+    await publishRealtime(`order:${order_id}`, {
+      event: "order:update",
+      orderId: order_id,
+      status: "COMPLETED",
+    });
+    await publishRealtime(`shop:${result.shop_id}`, {
+      event: "shop:order-update",
+      orderId: order_id,
+      status: "COMPLETED",
     });
 
     revalidateOrderPaths(order_id);
@@ -415,28 +401,24 @@ export async function rejectOrder({
       },
     });
 
-    const notificationRef = adminDb.collection("notifications");
-
-    // Send notification
-    const notificationData = {
-      recipientId: order.customer.user_id,
+    await createAndPublishNotification({
+      recipient_id: order.customer.user_id,
       type: "ORDER",
-      subType: "ACCEPTED",
+      subtype: "ACCEPTED",
       title: "Pesanan Ditolak",
       body: rejected_reason,
-      isRead: false,
-      intent: "SUCCESS",
-      resourcePath: "/order/" + order_id,
-      createdAt: FieldValue.serverTimestamp(),
-    };
+      data: { resourcePath: "/order/" + order_id },
+    });
 
-    await notificationRef.add(notificationData);
-
-    // Update doc order untuk realtime trigger
-    const orderRef = adminDb.collection("orders").doc(order_id);
-
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
+    await publishRealtime(`order:${order_id}`, {
+      event: "order:update",
+      orderId: order_id,
+      status: "REJECTED",
+    });
+    await publishRealtime(`shop:${order.shop_id}`, {
+      event: "shop:order-update",
+      orderId: order_id,
+      status: "REJECTED",
     });
 
     revalidateOrderPaths(order_id);
@@ -474,28 +456,24 @@ export async function rejectPayment({
       },
     });
 
-    const notificationRef = adminDb.collection("notifications");
-
-    // Send notification
-    const notificationData = {
-      recipientId: order.customer.user_id,
+    await createAndPublishNotification({
+      recipient_id: order.customer.user_id,
       type: "ORDER",
-      subType: "ACCEPTED",
+      subtype: "ACCEPTED",
       title: "Bukti Pembayaran Ditolak",
       body: reason,
-      isRead: false,
-      intent: "SUCCESS",
-      resourcePath: "/order/" + order_id,
-      createdAt: FieldValue.serverTimestamp(),
-    };
+      data: { resourcePath: "/order/" + order_id },
+    });
 
-    await notificationRef.add(notificationData);
-
-    // Update doc order untuk realtime trigger
-    const orderRef = adminDb.collection("orders").doc(order_id);
-
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
+    await publishRealtime(`order:${order_id}`, {
+      event: "order:update",
+      orderId: order_id,
+      status: "PAYMENT_REJECTED",
+    });
+    await publishRealtime(`shop:${order.shop_id}`, {
+      event: "shop:order-update",
+      orderId: order_id,
+      status: "PAYMENT_REJECTED",
     });
 
     revalidateOrderPaths(order_id);
@@ -558,44 +536,37 @@ export async function cancelOrder({
       });
     }
 
-    const notificationRef = adminDb.collection("notifications");
+    const recipientId =
+      cancelled_by_id === updated.customer.user_id
+        ? updated.shop.owner.user_id
+        : updated.customer.user_id;
 
-    // Send notification to shop owner
-    if (cancelled_by_id === updated.customer.user_id) {
-      const notificationData = {
-        recipientId: updated.shop.owner.user_id,
-        type: "ORDER",
-        subType: "CANCELLED",
-        title: `Pelanggan Membatalkan Order`,
-        body: `Lihat Detail Alasan Membatalkan Order`,
-        isRead: false,
-        intent: "ERROR",
-        resourcePath: `/dashboard-kedai/order/${order_id}`,
-        createdAt: FieldValue.serverTimestamp(),
-      };
+    await createAndPublishNotification({
+      recipient_id: recipientId,
+      type: "ORDER",
+      subtype: "CANCELLED",
+      title:
+        cancelled_by_id === updated.customer.user_id
+          ? `Pelanggan Membatalkan Order`
+          : `Kedai Membatalkan Order`,
+      body: `Lihat Detail Alasan Membatalkan Order`,
+      data: {
+        resourcePath:
+          cancelled_by_id === updated.customer.user_id
+            ? `/dashboard-kedai/order/${order_id}`
+            : `/order/${order_id}`,
+      },
+    });
 
-      await notificationRef.add(notificationData);
-    } else {
-      const notificationData = {
-        recipientId: updated.customer.user_id,
-        type: "ORDER",
-        subType: "CANCELLED",
-        title: `Kedai Membatalkan Order`,
-        body: `Lihat Detail Alasan Membatalkan Order`,
-        isRead: false,
-        intent: "ERROR",
-        resourcePath: `/order/${order_id}`,
-        createdAt: FieldValue.serverTimestamp(),
-      };
-
-      await notificationRef.add(notificationData);
-    }
-
-    // Update doc order untuk realtime trigger
-    const orderRef = adminDb.collection("orders").doc(order_id);
-
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
+    await publishRealtime(`order:${order_id}`, {
+      event: "order:update",
+      orderId: order_id,
+      status: "CANCELLED",
+    });
+    await publishRealtime(`shop:${updated.shop_id}`, {
+      event: "shop:order-update",
+      orderId: order_id,
+      status: "CANCELLED",
     });
 
     revalidateOrderPaths(order_id);
@@ -603,7 +574,6 @@ export async function cancelOrder({
     return successResponse(undefined, "Sukses membatalkan order");
   } catch (error) {
     console.log(error);
-
     return errorResponse("Terjadi kesalahan");
   }
 }
@@ -649,7 +619,6 @@ export async function savePaymentProof({
       return errorResponse("Order tidak ditemukan");
     }
 
-    // hapus nanti file yang lama, pastikan pake trycatch biar ga error
     if (order.payment_proof_url) {
       await deleteFile(order.payment_proof_url);
     }
@@ -664,36 +633,31 @@ export async function savePaymentProof({
       },
     });
 
-    const notificationRef = adminDb.collection("notifications");
-
-    // Update doc order untuk realtime trigger
-    const orderRef = adminDb.collection("orders").doc(order_id);
-
-    orderRef.update({
-      lastUpdatedAt: FieldValue.serverTimestamp(),
-    });
-
-    // Send notification
-    const notificationData = {
-      recipientId: order.shop.owner.user_id,
+    await createAndPublishNotification({
+      recipient_id: order.shop.owner.user_id,
       type: "ORDER",
-      subType: "PAYMENT_PROOF_SUBMITTED",
+      subtype: "PAYMENT_PROOF_SUBMITTED",
       title: `Pelanggan Mengirim Bukti Pembayaran`,
       body: `Tolong validasi bukti pembayaran ${order.customer.user.name}`,
-      isRead: false,
-      intent: "SUCCESS",
-      resourcePath: `/dashboard-kedai/order/${order_id}/pembayaran`,
-      createdAt: FieldValue.serverTimestamp(),
-    };
+      data: { resourcePath: `/dashboard-kedai/order/${order_id}/pembayaran` },
+    });
 
-    await notificationRef.add(notificationData);
+    await publishRealtime(`order:${order_id}`, {
+      event: "order:update",
+      orderId: order_id,
+      status: "WAITING_SHOP_CONFIRMATION",
+    });
+    await publishRealtime(`shop:${order.shop_id}`, {
+      event: "shop:order-update",
+      orderId: order_id,
+      status: "WAITING_SHOP_CONFIRMATION",
+    });
 
     revalidateOrderPaths(order_id);
 
     return successResponse(undefined, "Sukses mengirim bukti pembayaran");
   } catch (error) {
     console.log(error);
-
     return errorResponse("Silakan Hubungi CS, Atau coba lagi nanti");
   }
 }

@@ -1,23 +1,13 @@
 import { useEffect, useState, useRef } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { db } from "@/lib/firebase/client";
 import { ComplaintNotification } from "../types";
+import { useSocket } from "@/lib/realtime/socket-context";
 
 export const useComplaintNotification = (options?: {
   onNewNotification?: (notification: ComplaintNotification) => void;
 }) => {
-  const [notifications, setNotifications] = useState<ComplaintNotification[]>(
-    []
-  );
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any | null>(null);
+  const [notifications, setNotifications] = useState<ComplaintNotification[]>([]);
+  const [loading, setLoading] = useState(false);
+  const socket = useSocket();
   const contentRef = useRef(options?.onNewNotification);
 
   useEffect(() => {
@@ -25,57 +15,20 @@ export const useComplaintNotification = (options?: {
   }, [options?.onNewNotification]);
 
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = auth.onAuthStateChanged((u) => {
-      setUser(u);
-      if (!u) setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+    if (!socket) return;
 
-  useEffect(() => {
-    if (!user) return;
-
-    const notificationsRef = collection(db, "notifications");
-    const q = query(
-      notificationsRef,
-      where("recipientId", "==", user.uid),
-      where("type", "==", "COMPLAINT"),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        if (contentRef.current) {
-          snapshot.docChanges().forEach((change) => {
-            if (change.type === "added") {
-              const data = change.doc.data() as ComplaintNotification;
-              const now = Date.now();
-              const createdAt = new Date(data.createdAt.toDate()).getTime();
-              if (now - createdAt < 30000) {
-                contentRef.current?.({ ...data, id: change.doc.id });
-              }
-            }
-          });
-        }
-
-        const results = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as ComplaintNotification[];
-
-        setNotifications(results);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching complaint notifications:", error);
-        setLoading(false);
+    const unsubscribe = socket.on("notification", (data: any) => {
+      const notif = data.notification || data;
+      if (notif && notif.type === "COMPLAINT") {
+        setNotifications((prev) => [notif as ComplaintNotification, ...prev]);
+        contentRef.current?.(notif as ComplaintNotification);
       }
-    );
+    });
 
-    return () => unsubscribe();
-  }, [user]);
+    return () => {
+      unsubscribe();
+    };
+  }, [socket]);
 
   return { notifications, loading };
 };

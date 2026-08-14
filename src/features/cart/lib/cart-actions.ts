@@ -14,9 +14,11 @@ import {
   RewardType,
   DiscountType,
   OrderStatus,
-} from "@/generated/prisma";
-import { adminDb } from "@/lib/firebase/admin";
-import { FieldValue } from "firebase-admin/firestore";
+} from "@prisma/client";
+import {
+  publishRealtime,
+  createAndPublishNotification,
+} from "@/lib/realtime/publish-internal";
 import { formatRupiah } from "@/helper/format-rupiah";
 import { calculateItemCommission } from "@/helper/pricing-helper";
 
@@ -37,7 +39,10 @@ async function recalculateShopCart(tx: any, shopCartId: string) {
     orderBy: { id: "asc" },
   });
 
-  const totalCartQty = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+  const totalCartQty = items.reduce(
+    (sum: number, item: any) => sum + item.quantity,
+    0,
+  );
   let shopCartTotalPrice = 0;
 
   for (const item of items) {
@@ -46,10 +51,7 @@ async function recalculateShopCart(tx: any, shopCartId: string) {
       0,
     );
 
-    const itemCommission = calculateItemCommission(
-      item.quantity,
-      totalCartQty,
-    );
+    const itemCommission = calculateItemCommission(item.quantity, totalCartQty);
 
     const newItemSubtotal =
       item.quantity * (item.price_at_add + totalOptionsPrice) + itemCommission;
@@ -91,8 +93,16 @@ export async function processShopCart({
 }): Promise<
   ServerActionReturn<{ conversation_id?: string; order_id?: string }>
 > {
-  let conversation_id;
-  let order_id;
+  let conversation_id: string | undefined;
+  let order_id: string | undefined;
+  let customer_user_id: string | undefined;
+  let owner_user_id: string | undefined;
+  let chatMessage = "Order masuk. Mohon konfirmasi apakah pesanan tersedia";
+  let notificationBody: string | undefined;
+  let shopCartItemsCount = 0;
+  let shopCartItemsSubtotal = 0;
+  let isAutoAccept = false;
+  let shopId = "";
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -166,44 +176,65 @@ export async function processShopCart({
       }
 
       const { customer_id } = shopCart.cart;
-      const customer_user_id = shopCart.cart.customer.user_id;
-      const owner_user_id = shopCart.shop.owner.user_id;
+      customer_user_id = shopCart.cart.customer.user_id;
+      owner_user_id = shopCart.shop.owner.user_id;
+      shopId = shopCart.shop.id;
+      isAutoAccept = shopCart.shop.is_auto_accept;
+      shopCartItemsCount = shopCart.items.length;
+      shopCartItemsSubtotal = shopCart.items.reduce(
+        (acc: number, item: any) => acc + item.subtotal,
+        0,
+      );
 
       // Handle Conversation (Chat)
-      const chatId = `${customer_user_id}_${owner_user_id}`;
-      conversation_id = chatId;
+      const [participant_one_id, participant_two_id] =
+        customer_user_id < owner_user_id
+          ? [customer_user_id, owner_user_id]
+          : [owner_user_id, customer_user_id];
 
-      const chatRef = adminDb.collection("chats").doc(chatId);
-      const chatSnap = await chatRef.get();
+      const existingChat = await tx.chat.findFirst({
+        where: {
+          participant_one_id,
+          participant_two_id,
+          type: "CUSTOMER_OWNER",
+        },
+      });
 
-      // Buat percakapan jika belum ada
-      if (!chatSnap.exists) {
-        await chatRef.set({
-          id: chatId,
-
-          participantsInfo: {
-            [customer_user_id]: {
-              name: shopCart.cart.customer.user.name,
-              avatar: shopCart.cart.customer.user.avatar,
-              role: "CUSTOMER",
-            },
-            [owner_user_id]: {
-              name: shopCart.shop.owner.user.name,
-              avatar: shopCart.shop.owner.user.avatar,
-              role: "SHOP_OWNER",
+      if (!existingChat) {
+        const createdChat = await tx.chat.create({
+          data: {
+            participant_one_id,
+            participant_two_id,
+            type: "CUSTOMER_OWNER",
+            last_message:
+              "Order masuk, Mohon konfirmasi apakah pesanan tersedia",
+            last_message_type: "ORDER",
+            last_message_sender_id: customer_user_id,
+            last_message_at: new Date(),
+            unread_counts: {
+              [customer_user_id]: 0,
+              [owner_user_id]: 1,
             },
           },
-
-          participantIds: [customer_user_id, owner_user_id],
-
-          lastMessage: "Order masuk, Mohon konfirmasi apakah pesanan tersedia",
-          lastMessageAt: FieldValue.serverTimestamp(),
-          lastMessageType: "ORDER",
-          lastMessageSenderId: customer_user_id,
-
-          unreadCounts: {
-            [customer_user_id]: 0,
-            [owner_user_id]: 1,
+        });
+        conversation_id = createdChat.id;
+      } else {
+        conversation_id = existingChat.id;
+        await tx.chat.update({
+          where: { id: existingChat.id },
+          data: {
+            last_message:
+              "Order masuk, Mohon konfirmasi apakah pesanan tersedia",
+            last_message_type: "ORDER",
+            last_message_sender_id: customer_user_id,
+            last_message_at: new Date(),
+            unread_counts: {
+              ...(existingChat.unread_counts as Record<string, number>),
+              [owner_user_id]:
+                ((existingChat.unread_counts as Record<string, number>)?.[
+                  owner_user_id
+                ] || 0) + 1,
+            },
           },
         });
       }
@@ -264,8 +295,8 @@ export async function processShopCart({
 
       // Tentukan Status Awal Order
       let initialStatus: OrderStatus = "PENDING_CONFIRMATION";
-      let chatMessage = "Order masuk. Mohon konfirmasi apakah pesanan tersedia";
-      let notificationBody = `Pesanan ${shopCart.items.length} item oleh ${
+      chatMessage = "Order masuk. Mohon konfirmasi apakah pesanan tersedia";
+      notificationBody = `Pesanan ${shopCart.items.length} item oleh ${
         shopCart.cart.customer.user.name
       } dengan total ${formatRupiah(
         shopCart.total_price - total_discount_amount,
@@ -307,7 +338,7 @@ export async function processShopCart({
           floor: postOrderType === "DELIVERY_TO_TABLE" ? floor : null,
           table_number:
             postOrderType === "DELIVERY_TO_TABLE" ? table_number : null,
-          conversation_id: chatId,
+          conversation_id: conversation_id,
           referral_code_used: referralCode, // Catat kode referral untuk diproses saat bayar
           applied_discounts: {
             create: appliedDiscountsData.map((d) => ({
@@ -362,57 +393,69 @@ export async function processShopCart({
       revalidatePath("/keranjang/" + shopCart.id);
 
       // Kirim pesan otomatis
-      const messageData = {
-        senderId: customer_user_id,
-        text: chatMessage,
-        type: "ORDER",
-        order_id,
-        attachments: [],
-        readBy: [customer_user_id],
-        createdAt: FieldValue.serverTimestamp(),
-      };
-
-      await chatRef.collection("messages").add(messageData);
-
-      // Buat doc order untuk realtime trigger
-      const orderRef = adminDb.collection("orders").doc(order_id);
-
-      orderRef.set({
-        // wajib ada di setiap lifecycle
-        lastUpdatedAt: FieldValue.serverTimestamp(),
-        shopId: shopCart.shop.id,
-        status: order.status,
-      });
-
-      // Buat doc notification untuk notifikasi realtime pemilik kedai
-      const notificationRef = adminDb.collection("notifications").doc(order_id);
-
-      notificationRef.set({
-        recipientId: owner_user_id,
-
-        type: "ORDER",
-        subType: shopCart.shop.is_auto_accept ? "ACCEPTED" : "CREATED",
-        resourcePath: "/dashboard-kedai/chat/" + chatId,
-        createdAt: FieldValue.serverTimestamp(),
-        isRead: false,
-
-        title: shopCart.shop.is_auto_accept
-          ? "Pesanan Baru Diterima"
-          : "Pesanan Baru Masuk",
-        body: notificationBody,
-        intent: shopCart.shop.is_auto_accept ? "SUCCESS" : "INFO",
-
-        senderInfo: {
-          name: shopCart.cart.customer.user.name,
-        },
-
-        metadata: {
-          orderId: order_id,
-          itemCount: shopCart.items.length,
-          totalPrice: order.total_price,
+      const msgId = crypto.randomUUID();
+      await tx.message.create({
+        data: {
+          id: msgId,
+          chat_id: conversation_id,
+          sender_id: customer_user_id,
+          text: chatMessage,
+          type: "ORDER",
+          order_id,
+          attachments: [],
+          read_by: [customer_user_id],
+          created_at: new Date(),
         },
       });
     });
+
+    // Publish WebSocket events after transaction completes
+    if (conversation_id && order_id) {
+      await publishRealtime(`chat:${conversation_id}`, {
+        event: "chat:message",
+        message: {
+          id: crypto.randomUUID(),
+          chat_id: conversation_id,
+          sender_id: customer_user_id,
+          text: chatMessage,
+          type: "ORDER",
+          order_id,
+          attachments: [],
+          read_by: [customer_user_id],
+          created_at: new Date(),
+        },
+      });
+
+      await publishRealtime(`order:${order_id}`, {
+        event: "order:update",
+        order: {
+          id: order_id,
+          status: isAutoAccept ? "ACCEPTED" : "CREATED",
+        },
+      });
+
+      await publishRealtime(`shop:${shopId}`, {
+        event: "shop:update",
+        order: {
+          id: order_id,
+          status: isAutoAccept ? "ACCEPTED" : "CREATED",
+        },
+      });
+
+      await createAndPublishNotification({
+        recipient_id: owner_user_id || "",
+        type: "ORDER",
+        subtype: isAutoAccept ? "ACCEPTED" : "CREATED",
+        title: isAutoAccept ? "Pesanan Baru Diterima" : "Pesanan Baru Masuk",
+        body: notificationBody || "",
+        data: {
+          orderId: order_id,
+          itemCount: shopCartItemsCount,
+          totalPrice: shopCartItemsSubtotal,
+          resourcePath: "/dashboard-kedai/chat/" + conversation_id,
+        },
+      });
+    }
 
     return successResponse(
       { conversation_id, order_id },

@@ -12,15 +12,13 @@ import {
   ServerActionReturn,
   successResponse,
 } from "@/helper/action-helper";
-import { adminDb } from "@/lib/firebase/admin";
 import { prisma } from "@/lib/prisma";
-import { FieldValue } from "firebase-admin/firestore";
+import { createAndPublishNotification } from "@/lib/realtime/publish-internal";
 
 export async function createRefundRequest(
   payload: RefundRequestInput
 ): Promise<ServerActionReturn<void>> {
   try {
-    // Fetch order with necessary relations
     const order = await prisma.order.findUnique({
       where: {
         id: payload.order_id,
@@ -56,19 +54,16 @@ export async function createRefundRequest(
       return errorResponse("Pesanan tidak ditemukan");
     }
 
-    // Validate order status
     if (order.status !== "COMPLETED") {
       return errorResponse(
         "Refund hanya dapat diminta untuk pesanan yang sudah selesai"
       );
     }
 
-    // Check if refund already exists
     if (order.refund) {
       return errorResponse("Refund sudah pernah diajukan untuk pesanan ini");
     }
 
-    // Calculate refund amount based on reason
     let refundAmount: number;
     const isItemLevel = [
       "DAMAGED_FOOD",
@@ -77,7 +72,6 @@ export async function createRefundRequest(
     ].includes(payload.reason);
 
     if (isItemLevel) {
-      // Calculate from affected items
       if (
         !payload.affected_item_ids ||
         payload.affected_item_ids.length === 0
@@ -98,7 +92,6 @@ export async function createRefundRequest(
         0
       );
     } else {
-      // Use provided amount
       if (!payload.amount) {
         return errorResponse("Jumlah refund harus diisi");
       }
@@ -112,7 +105,6 @@ export async function createRefundRequest(
       refundAmount = payload.amount;
     }
 
-    // Create refund
     const refund = await prisma.refund.create({
       data: {
         order_id: payload.order_id,
@@ -125,7 +117,6 @@ export async function createRefundRequest(
       },
     });
 
-    // Create affected item records if applicable
     if (
       isItemLevel &&
       payload.affected_item_ids &&
@@ -139,28 +130,21 @@ export async function createRefundRequest(
       });
     }
 
-    // Send notification to shop owner
-    const notificationRef = adminDb.collection("notifications");
-    const notificationData = {
-      recipientId: order.shop.owner_id,
+    await createAndPublishNotification({
+      recipient_id: order.shop.owner_id,
       type: "REFUND",
-      subType: "REQUESTED",
+      subtype: "REQUESTED",
       title: "Permintaan Refund Baru",
       body: `Customer mengajukan refund sebesar Rp ${refundAmount.toLocaleString(
         "id-ID"
       )} untuk pesanan #${order.id.substring(0, 8)}`,
-      isRead: false,
-      intent: "WARNING",
-      resourcePath: `/dashboard-kedai/order/${order.id}`,
-      createdAt: FieldValue.serverTimestamp(),
-      metadata: {
+      data: {
         refundId: refund.id,
         amount: refundAmount,
         reason: payload.reason,
+        resourcePath: `/dashboard-kedai/order/${order.id}`,
       },
-    };
-
-    await notificationRef.add(notificationData);
+    });
 
     return successResponse(undefined, "Permintaan refund berhasil diajukan");
   } catch (error) {
@@ -201,8 +185,7 @@ export async function updateRefundStatus(
       );
     }
 
-    // Update refund status
-    const updated = await prisma.refund.update({
+    await prisma.refund.update({
       where: {
         id: payload.refund_id,
       },
@@ -214,43 +197,32 @@ export async function updateRefundStatus(
       },
     });
 
-    // Send notification to customer
-    const notificationRef = adminDb.collection("notifications");
-
     let notificationTitle: string;
     let notificationBody: string;
-    let notificationIntent: "SUCCESS" | "WARNING";
 
     if (payload.status === "APPROVED") {
       notificationTitle = "Refund Disetujui";
       notificationBody = `Permintaan refund Anda sebesar Rp ${refund.amount.toLocaleString(
         "id-ID"
       )} telah disetujui`;
-      notificationIntent = "SUCCESS";
     } else {
       notificationTitle = "Refund Ditolak";
       notificationBody =
         "Permintaan refund Anda ditolak. Lihat alasan untuk detail lebih lanjut";
-      notificationIntent = "WARNING";
     }
 
-    const notificationData = {
-      recipientId: refund.order.customer.user_id,
+    await createAndPublishNotification({
+      recipient_id: refund.order.customer.user_id,
       type: "REFUND",
-      subType: payload.status === "APPROVED" ? "APPROVED" : "REJECTED",
+      subtype: payload.status === "APPROVED" ? "APPROVED" : "REJECTED",
       title: notificationTitle,
       body: notificationBody,
-      isRead: false,
-      intent: notificationIntent,
-      resourcePath: `/order/${refund.order_id}`,
-      createdAt: FieldValue.serverTimestamp(),
-      metadata:
-        payload.status === "REJECTED"
-          ? { rejectedReason: payload.rejected_reason }
-          : { amount: refund.amount },
-    };
-
-    await notificationRef.add(notificationData);
+      data: {
+        resourcePath: `/order/${refund.order_id}`,
+        rejectedReason: payload.rejected_reason,
+        amount: refund.amount,
+      },
+    });
 
     return successResponse(
       undefined,
@@ -296,7 +268,6 @@ export async function processRefund(
       );
     }
 
-    // Update to PROCESSED status
     await prisma.refund.update({
       where: {
         id: payload.refund_id,
@@ -307,29 +278,22 @@ export async function processRefund(
       },
     });
 
-    // Send notification to customer
-    const notificationRef = adminDb.collection("notifications");
-    const notificationData = {
-      recipientId: refund.order.customer.user_id,
+    await createAndPublishNotification({
+      recipient_id: refund.order.customer.user_id,
       type: "REFUND",
-      subType: "DISBURSED",
+      subtype: "DISBURSED",
       title: "Dana Refund Telah Dikirim",
       body: `Dana refund sebesar Rp${refund.amount.toLocaleString(
         "id-ID"
       )} telah dikirim melalui ${
         refund.disbursement_mode === "CASH" ? "tunai" : "transfer"
       }`,
-      isRead: false,
-      intent: "SUCCESS",
-      resourcePath: `/order/${refund.order_id}`,
-      createdAt: FieldValue.serverTimestamp(),
-      metadata: {
+      data: {
+        resourcePath: `/order/${refund.order_id}`,
         amount: refund.amount,
         disbursementMode: refund.disbursement_mode,
       },
-    };
-
-    await notificationRef.add(notificationData);
+    });
 
     return successResponse(undefined, "Refund berhasil diproses");
   } catch (error) {
@@ -370,7 +334,6 @@ export async function cancelRefund(
       );
     }
 
-    // Update to CANCELLED status
     await prisma.refund.update({
       where: {
         id: payload.refund_id,
@@ -380,21 +343,14 @@ export async function cancelRefund(
       },
     });
 
-    // Send notification to shop owner
-    const notificationRef = adminDb.collection("notifications");
-    const notificationData = {
-      recipientId: refund.order.shop.owner_id,
+    await createAndPublishNotification({
+      recipient_id: refund.order.shop.owner_id,
       type: "REFUND",
-      subType: "CANCELLED",
+      subtype: "CANCELLED",
       title: "Refund Dibatalkan",
       body: "Customer membatalkan permintaan refund untuk pesanan ini",
-      isRead: false,
-      intent: "INFO",
-      resourcePath: `/dashboard-kedai/order/${refund.order_id}`,
-      createdAt: FieldValue.serverTimestamp(),
-    };
-
-    await notificationRef.add(notificationData);
+      data: { resourcePath: `/dashboard-kedai/order/${refund.order_id}` },
+    });
 
     return successResponse(undefined, "Refund berhasil dibatalkan");
   } catch (error) {
@@ -421,7 +377,6 @@ export async function escalateRefund(
       return errorResponse("Refund dengan status ini tidak dapat dieskalasi");
     }
 
-    // Update to ESCALATED status
     await prisma.refund.update({
       where: {
         id: payload.refund_id,
@@ -431,8 +386,6 @@ export async function escalateRefund(
         escalated_reason: payload.escalated_reason,
       },
     });
-
-    // Note: No notification sent - admin system handles separately
 
     return successResponse(undefined, "Refund berhasil dieskalasi ke admin");
   } catch (error) {

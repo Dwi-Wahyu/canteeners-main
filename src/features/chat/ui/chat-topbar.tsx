@@ -1,20 +1,17 @@
 "use client";
 
-import { ChevronLeft, EllipsisVertical, Trash, Trash2 } from "lucide-react";
+import { ChevronLeft, EllipsisVertical } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/helper/get-image-url";
 import { ParticipantInfo } from "../types";
 import { formatDistanceToNow } from "date-fns";
 import { id as localeId } from "date-fns/locale";
-import { Timestamp } from "firebase/firestore";
 import { usePathname } from "next/navigation";
 import { ReportUserDialog } from "./report-user-dialog";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeleteChatDialog } from "./delete-chat-dialog";
@@ -26,11 +23,22 @@ export default function ChatTopbar({
   chatId,
 }: {
   opponent: ParticipantInfo;
-  lastSeenAt: Timestamp;
+  lastSeenAt?: any;
   opponentId?: string;
   chatId?: string;
 }) {
   const pathname = usePathname();
+
+  const parseDate = (raw: any): Date | null => {
+    if (!raw) return null;
+    if (typeof raw === "object" && typeof raw.toDate === "function") {
+      return raw.toDate();
+    }
+    const d = new Date(raw);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  const lastSeenDate = parseDate(lastSeenAt);
 
   return (
     <div className="p-4 fixed justify-between top-0 left-0 w-full flex items-center border-b bg-white shadow-sm z-10">
@@ -55,10 +63,11 @@ export default function ChatTopbar({
           <div>
             <h1 className="font-semibold text-lg">{opponent.name}</h1>
 
-            {lastSeenAt && (
-              <h1 className="text-primary">
-                {formatDistanceToNow(lastSeenAt.toDate(), {
+            {lastSeenDate && (
+              <h1 className="text-primary text-xs">
+                {formatDistanceToNow(lastSeenDate, {
                   locale: localeId,
+                  addSuffix: true,
                 })}
               </h1>
             )}
@@ -72,7 +81,6 @@ export default function ChatTopbar({
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-3 flex flex-col mt-2 w-fit">
           {opponentId && <ReportUserDialog reportedUserId={opponentId} />}
-
           {chatId && <DeleteChatDialog chatId={chatId} />}
         </DropdownMenuContent>
       </DropdownMenu>

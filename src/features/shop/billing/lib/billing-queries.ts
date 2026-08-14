@@ -1,11 +1,11 @@
 "use server";
 
-import { ShopBillingStatus } from "@/generated/prisma";
+import { ShopBillingStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export async function getShopBillings(
   shopId: string,
-  status?: ShopBillingStatus
+  status?: ShopBillingStatus,
 ) {
   try {
     const billings = await prisma.shopBilling.findMany({
