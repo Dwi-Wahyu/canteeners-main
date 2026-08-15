@@ -26,8 +26,10 @@ export class RealtimeClient {
 
   private open() {
     if (!this.token) return;
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3003";
-    const url = `${wsUrl}/ws?token=${this.token}`;
+    let wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3003";
+    wsUrl = wsUrl.replace(/\/+$/, "");
+    const wsPath = wsUrl.endsWith("/ws") ? "" : "/ws";
+    const url = `${wsUrl}${wsPath}?token=${this.token}`;
 
     if (this.ws) {
       this.ws.close();

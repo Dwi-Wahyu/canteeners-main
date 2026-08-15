@@ -2,7 +2,11 @@ import { prisma } from "@/lib/prisma";
 
 export async function publishRealtime(topic: string, data: any) {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+    const rawUrl =
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      "http://localhost:3002";
+    const backendUrl = rawUrl.replace(/\/+$/, "");
     await fetch(`${backendUrl}/internal/publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
