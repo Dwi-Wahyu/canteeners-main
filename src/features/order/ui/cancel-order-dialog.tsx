@@ -20,14 +20,24 @@ import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { Loader } from "lucide-react";
 import { cancelOrder } from "../lib/order-actions";
 
+import { cn } from "@/lib/utils";
+
 export default function CancelOrderDialog({
   order_id,
   user_id,
   order_status,
+  userRole,
+  defaultDisbursementMode,
+  isLate,
+  className,
 }: {
   order_id: string;
   user_id: string;
   order_status: OrderStatus;
+  userRole?: string;
+  defaultDisbursementMode?: any;
+  isLate?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");

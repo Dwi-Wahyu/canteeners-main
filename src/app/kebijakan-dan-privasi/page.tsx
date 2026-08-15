@@ -1,170 +1,245 @@
-export default function KebijakanPrivasi() {
+import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
+
+export const dynamic = "force-dynamic";
+
+export default async function KebijakanPrivasi({
+  searchParams,
+}: {
+  searchParams: Promise<{ back_url?: string }>;
+}) {
+  const { back_url } = await searchParams;
+
   return (
-    <div className="max-w-4xl mx-auto p-8 text-gray-800 leading-relaxed">
-      <header className="mb-8 border-b-2 border-blue-500 pb-4">
-        <h1 className="text-3xl font-bold uppercase mb-2">
-          Privacy Policy Canvas
-        </h1>
-        <h2 className="text-2xl font-semibold text-">Canteeners</h2>
-        <p className="mt-4 text-gray-600 italic">
-          Ringkasan visual untuk memahami pilar-pilar utama Kebijakan Privasi
-          Canteeners.
-        </p>
-      </header>
+    <div className="min-h-screen bg-background pb-10">
+      <TopbarWithBackButton
+        title="Kebijakan Privasi Pengguna"
+        backUrl={back_url || "/"}
+      />
 
-      {/* 1. Data Apa yang Dikumpulkan? */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3 border-l-4 border-blue-600 pl-3">
-          1. Data Apa yang Dikumpulkan?
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-bold mb-2 text-blue-800">
-              Data Akun Pengguna:
-            </h4>
-            <ul className="list-disc pl-5 space-y-1 text-sm">
-              <li>Username </li>
-              <li>Alamat Email </li>
-              <li>Password yang terenkripsi </li>
-            </ul>
+      <div className="px-5 pt-24 space-y-8">
+        <header>
+          <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            Bagaimana Kami Melindungi Data Anda dengan Ketat dan Transparan
+          </h2>
+        </header>
+
+        <section className="mb-8">
+          <p className="mb-4">
+            Keamanan dan privasi data Anda adalah prioritas utama kami.
+            Kebijakan Privasi ini menjelaskan bagaimana platform Kantiners
+            mengumpulkan, menggunakan, membagikan, dan melindungi informasi
+            pribadi Pengguna saat menggunakan layanan kami.
+          </p>
+          <p className="italic">
+            Dengan mengakses atau menggunakan aplikasi Kantiners, Anda
+            menyetujui praktik pengelolaan data yang dijelaskan dalam dokumen
+            ini.
+          </p>
+        </section>
+
+        {/* 1. Data Apa yang Kami Kumpulkan? */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            1. Data Apa yang Kami Kumpulkan?
+          </h3>
+          <p className="mb-4">
+            Untuk memberikan pengalaman pemesanan yang cepat dan aman, kami
+            merancang sistem pengumpulan data yang sangat minim dan efisien.
+            Kami mengumpulkan informasi dalam dua kategori utama:
+          </p>
+          <div className="space-y-4">
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+              <h4 className="font-bold mb-2">Data Akses & Akun Pengguna:</h4>
+              <p className="text-sm mb-2">
+                Kami mendesain platform ini agar inklusif dan mudah diakses.
+                Anda dapat menggunakan layanan kami secara instan melalui{" "}
+                <strong>Mode Tamu (Guest Mode)</strong>, di mana kami tidak
+                mengumpulkan data profil atau akun apa pun dari Anda.
+              </p>
+              <p className="text-sm">
+                Namun, jika Anda memilih untuk mendaftar guna mendapatkan
+                pengalaman yang lebih lengkap (seperti menyimpan riwayat
+                pesanan), akses akun hanya membutuhkan{" "}
+                <strong>Alamat Email aktif Anda</strong>. Kami tidak menggunakan
+                sistem kata sandi (password) dan tidak meminta data pribadi
+                tambahan lainnya.
+              </p>
+            </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <h4 className="font-bold mb-2 text-gray-800">
+                Data Transaksional:
+              </h4>
+              <p className="text-sm">
+                Saat Anda melakukan pemesanan (baik menggunakan akun maupun
+                melalui Guest Mode), kami mengumpulkan Detail Pesanan, Nomor
+                Meja, serta foto Bukti Pembayaran.
+              </p>
+            </div>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-bold mb-2 text-gray-800">
-              Data Transaksional:
-            </h4>
-            <ul className="list-disc pl-5 space-y-1 text-sm">
-              <li>Detail Pesanan </li>
-              <li>Nomor Meja </li>
-              <li>Bukti Pembayaran </li>
-            </ul>
+        </section>
+
+        {/* 2. Mengapa Kami Membutuhkan Data Anda? */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            2. Mengapa Kami Membutuhkan Data Anda?
+          </h3>
+          <p className="mb-3">
+            Informasi yang kami kumpulkan digunakan semata-mata untuk kelancaran
+            layanan, meliputi:
+          </p>
+          <ul className="list-disc pl-8 space-y-2">
+            <li>
+              <strong>Memproses Pesanan:</strong> Meneruskan detail pesanan Anda
+              ke pihak kedai yang tepat agar makanan dapat disiapkan.
+            </li>
+            <li>
+              <strong>Operasional Layanan:</strong> Memastikan pesanan Anda
+              diantarkan secara presisi ke nomor meja yang tepat.
+            </li>
+            <li>
+              <strong>Verifikasi Pembayaran:</strong> Memastikan bahwa transaksi
+              pemesanan yang dilakukan adalah valid dan sah.
+            </li>
+            <li>
+              <strong>Mengelola Akun:</strong> Memverifikasi identitas Anda saat
+              proses login melalui email, serta mengirimkan komunikasi penting
+              terkait status pesanan Anda.
+            </li>
+          </ul>
+        </section>
+
+        {/* 3. Dengan Siapa Data Anda Dibagikan? */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            3. Dengan Siapa Data Anda Dibagikan?
+          </h3>
+          <p className="mb-4">
+            Kantiners tidak pernah menjual data pribadi Anda. Data hanya
+            dibagikan untuk keperluan operasional kepada:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-bold text-gray-700 mb-1">
+                Pihak Eksternal (Mitra Kantin):
+              </h4>
+              <p className="text-sm">
+                Kami hanya membagikan Detail Pesanan dan Nomor Meja kepada
+                penjual.
+              </p>
+            </div>
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-bold text-gray-700 mb-1">
+                Pihak Internal (Tim Aplikasi):
+              </h4>
+              <p className="text-sm">
+                Akses data diberikan secara sangat terbatas hanya kepada
+                developer atau tim teknis Kantiners untuk tujuan pemeliharaan
+                sistem dan operasional.
+              </p>
+            </div>
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-bold text-gray-700 mb-1">Otoritas hukum:</h4>
+              <p className="text-sm">
+                Bila diwajibkan oleh hukum, pengadilan, atau regulator.
+              </p>
+            </div>
+            <div className="p-4 border border-gray-200 rounded-lg">
+              <h4 className="font-bold text-gray-700 mb-1">
+                Penyedia layanan pihak ketiga:
+              </h4>
+              <p className="text-sm">
+                Server hosting, email, notifikasi, analitik, dan keamanan. Data
+                dibatasi dan tunduk kerahasiaan.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 2. Mengapa Data Dibutuhkan? */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3 border-l-4 border-blue-600 pl-3">
-          2. Mengapa Data Dibutuhkan?
-        </h3>
-        <ul className="list-disc pl-8 space-y-2">
-          <li>
-            <strong>Memproses Pesanan:</strong> Meneruskan detail pesanan ke
-            kedai yang benar.
-          </li>
-          <li>
-            <strong>Mengelola Akun:</strong> Mengamankan login dan komunikasi
-            penting terkait akun.
-          </li>
-          <li>
-            <strong>Verifikasi Pembayaran:</strong> Memastikan transaksi pesanan
-            valid.
-          </li>
-          <li>
-            <strong>Operasional Layanan:</strong> Memastikan pesanan diantar ke
-            meja yang tepat.
-          </li>
-        </ul>
-      </section>
+        {/* 4. Bagaimana Kami Mengamankan Data Anda? */}
+        <section className="mb-8 bg-primary text-primary-foreground p-6 rounded-xl shadow-md">
+          <h3 className="text-xl font-bold mb-3">
+            4. Bagaimana Kami Mengamankan Data Anda?
+          </h3>
+          <p className="mb-4 text-blue-100">
+            Kami menerapkan standar keamanan teknis untuk melindungi data Anda:
+          </p>
+          <ul className="list-disc pl-6 space-y-4">
+            <li>
+              <strong>Keamanan Tanpa Kata Sandi (Passwordless):</strong> Dengan
+              tidak menggunakan kata sandi (password) untuk login, akun Anda
+              terhindar dari risiko pencurian atau peretasan kata sandi. Akses
+              sepenuhnya bergantung pada keamanan email pribadi Anda.
+            </li>
+            <li>
+              <strong>Pembatasan Akses:</strong> Data sistem dan transaksi hanya
+              dapat diakses oleh personel internal yang memiliki otorisasi dan
+              kepentingan operasional langsung.
+            </li>
+          </ul>
+        </section>
 
-      {/* 3. Dengan Siapa Data Dibagikan? */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3 border-l-4 border-blue-600 pl-3">
-          3. Dengan Siapa Data Dibagikan?
-        </h3>
-        <div className="space-y-4">
-          <div className="p-4 border border-gray-200 rounded-lg">
-            <h4 className="font-bold text-gray-700">
-              Pihak Eksternal (Kantin):
-            </h4>
-            <p className="text-sm">
-              Dibagikan data berupa Nama Pemesan, Detail Pesanan, dan Nomor Meja
-              untuk keperluan penyiapan pesanan.
-            </p>
-          </div>
-          <div className="p-4 border border-gray-200 rounded-lg">
-            <h4 className="font-bold text-gray-700">
-              Pihak Internal (Tim Aplikasi):
-            </h4>
-            <p className="text-sm">
-              Akses terbatas hanya diberikan kepada developer untuk tujuan
-              operasional dan pemeliharaan sistem.
-            </p>
-          </div>
-        </div>
-      </section>
+        {/* 5. Berapa Lama Data Anda Disimpan? */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            5. Berapa Lama Data Anda Disimpan?
+          </h3>
+          <ul className="list-disc pl-8 space-y-2">
+            <li>
+              <strong>Data Akun:</strong> Informasi alamat email Anda akan terus
+              disimpan selama akun Anda masih berstatus aktif di platform kami.
+            </li>
+            <li>
+              <strong>Riwayat Percakapan (Chat):</strong> Untuk menghemat ruang
+              penyimpanan dan menjaga privasi, riwayat percakapan antara
+              Pengguna dan Mitra Kedai akan dihapus secara otomatis dari sistem
+              setelah 30 hari terhitung sejak tanggal transaksi dilakukan.
+            </li>
+          </ul>
+        </section>
 
-      {/* 4. Bagaimana Data Diamankan? */}
-      <section className="mb-8 bg-blue-900 text-white p-6 rounded-xl shadow-md">
-        <h3 className="text-xl font-bold mb-3">4. Bagaimana Data Diamankan?</h3>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>
-            <strong>Pembatasan Akses:</strong> Data hanya dapat diakses oleh
-            personel yang memiliki otorisasi dan kepentingan langsung.
-          </li>
-          <li>
-            <strong>Enkripsi Password:</strong> Kata sandi pengguna disimpan
-            dalam format yang terenkripsi dan tidak dapat dibaca oleh sistem
-            maupun admin.
-          </li>
-        </ul>
-      </section>
+        {/* 6. Hak dan Kontrol Pengguna */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            6. Hak dan Kontrol Pengguna
+          </h3>
+          <p className="mb-3">
+            Anda memiliki kendali penuh atas informasi pribadi Anda di dalam
+            platform:
+          </p>
+          <ul className="list-disc pl-8 space-y-2">
+            <li>
+              <strong>Akses Data:</strong> Anda memiliki kendali penuh atas akun
+              Anda. Mengingat satu-satunya data profil yang terikat adalah
+              alamat email, riwayat pesanan Anda akan selalu tersinkronisasi
+              dengan email tersebut.
+            </li>
+            <li>
+              <strong>Penghapusan Akun:</strong> Saat ini, fitur penghapusan
+              akun mandiri di dalam aplikasi belum tersedia. Namun, Anda tetap
+              memiliki hak untuk menghapus akun beserta data riwayat transaksi
+              Anda dengan cara mengajukan permohonan manual melalui tim Customer
+              Service kami.
+            </li>
+          </ul>
+        </section>
 
-      {/* 5. Berapa Lama Data Disimpan? */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3 border-l-4 border-blue-600 pl-3">
-          5. Berapa Lama Data Disimpan?
-        </h3>
-        <ul className="list-disc pl-8 space-y-2">
-          <li>
-            <strong>Data Akun:</strong> Disimpan selama akun pengguna masih
-            aktif.
-          </li>
-          <li>
-            <strong>Riwayat Percakapan:</strong> Dihapus secara otomatis dari
-            sistem setelah 30 hari sejak tanggal transaksi.{" "}
-          </li>
-        </ul>
-      </section>
+        {/* 7. Pembaruan Kebijakan */}
+        <section className="mb-8">
+          <h3 className="text-xl font-bold mb-3 border-l-4 border-primary pl-3">
+            7. Pembaruan Kebijakan
+          </h3>
+          <p>
+            Kantiners berhak memperbarui Kebijakan Privasi ini di masa mendatang
+            apabila terdapat penambahan fitur baru yang memengaruhi cara kami
+            memproses data pengguna. Setiap perubahan material akan
+            diberitahukan kepada Pengguna melalui aplikasi.
+          </p>
+        </section>
 
-      {/* 6. Apa Hak & Kontrol Pengguna? */}
-      <section className="mb-8">
-        <h3 className="text-xl font-bold mb-3 border-l-4 border-blue-600 pl-3">
-          6. Apa Hak & Kontrol Pengguna?
-        </h3>
-        <ul className="list-disc pl-8 space-y-2">
-          <li>
-            <strong>Akses & Perubahan Data:</strong> Pengguna dapat melihat dan
-            mengubah data profil seperti username, email, password, dan WhatsApp
-            di halaman pengaturan akun.
-          </li>
-          <li>
-            <strong>Penghapusan Akun:</strong> Fitur hapus mandiri belum
-            tersedia. Penghapusan akun dapat diajukan secara manual dengan
-            menghubungi tim kami.
-          </li>
-        </ul>
-      </section>
-
-      {/* 7. Cara Menghubungi Kami */}
-      <section className="mb-8 p-6 bg-gray-50 border border-gray-300 rounded-lg text-center">
-        <h3 className="text-xl font-bold mb-3">7. Cara Menghubungi Kami</h3>
-        <p className="mb-4 text-sm">
-          Untuk semua pertanyaan dan permintaan terkait privasi, hubungi kami
-          melalui:
-        </p>
-        <div className="flex flex-col md:flex-row justify-center gap-4">
-          <span className="font-semibold">WhatsApp: +62 812-3456-7890</span>
-          <span className="hidden md:inline">|</span>
-          <span className="font-semibold">Email: support@canteeners.com</span>
-        </div>
-      </section>
-
-      <footer className="mt-12 pt-6 border-t text-sm text-gray-500 italic">
-        <p>
-          8. Kebijakan ini dapat diperbarui di masa mendatang jika ada
-          penambahan fitur baru yang memengaruhi data pengguna.
-        </p>
-      </footer>
+        <footer className="mt-12 pt-6 border-t text-xs text-gray-500 text-center italic">
+          <p>Kebijakan Privasi Pengguna • Versi 1.0</p>
+        </footer>
+      </div>
     </div>
   );
 }

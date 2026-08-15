@@ -4,10 +4,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-poppins: "Poppins", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-plus-jakarta-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-poppins:
+    "Poppins", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
   --success: oklch(0.673 0.162 144.23);
   --success-foreground: oklch(1 0 0);
@@ -69,10 +68,13 @@
   --sidebar-border: #e6bdb8;
   --sidebar-ring: #dc2626;
 
-  --font-sans: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif,
+    system-ui, sans-serif;
   --font-serif: Merriweather, serif;
   --font-mono: Source Code Pro, monospace;
-  --font-headline: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", sans-serif;
+  --font-headline:
+    var(--font-plus-jakarta-sans), "Plus Jakarta Sans", sans-serif;
   --font-body: var(--font-inter), "Inter", sans-serif;
 
   --radius: 0.5rem;
@@ -84,12 +86,13 @@
   --shadow-color: #0b1c30;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.06),
-    0 1px 2px -1px hsl(0 0% 0% / 0.06);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.06), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
+  --shadow-sm:
+    0 1px 3px 0px hsl(0 0% 0% / 0.06), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
+  --shadow:
+    0 1px 3px 0px hsl(0 0% 0% / 0.06), 0 1px 2px -1px hsl(0 0% 0% / 0.06);
   --shadow-md: 0 10px 40px -10px rgba(11, 28, 48, 0.06);
   --shadow-lg: 0 20px 60px -15px rgba(11, 28, 48, 0.08);
-  --shadow-xl: 0 30px 80px -20px rgba(11, 28, 48, 0.10);
+  --shadow-xl: 0 30px 80px -20px rgba(11, 28, 48, 0.1);
   --shadow-2xl: 0 40px 100px -25px rgba(11, 28, 48, 0.12);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
@@ -135,7 +138,9 @@
   --sidebar-border: #2d3748;
   --sidebar-ring: #ef4444;
 
-  --font-sans: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif,
+    system-ui, sans-serif;
   --font-serif: Merriweather, serif;
   --font-mono: Source Code Pro, monospace;
   --radius: 0.5rem;
@@ -214,8 +219,15 @@ body {
     @apply bg-background text-foreground;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", var(--font-poppins), sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family:
+      var(--font-plus-jakarta-sans), "Plus Jakarta Sans", var(--font-poppins),
+      sans-serif;
   }
 }
 
@@ -285,9 +297,58 @@ body {
   }
 
   @keyframes light-shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-4px);
+    }
+    75% {
+      transform: translateX(4px);
+    }
+  }
+
+  @keyframes heartbeat {
+    0% {
+      transform: scale(1);
+    }
+    15% {
+      transform: scale(1.02);
+    }
+    30% {
+      transform: scale(1);
+    }
+    45% {
+      transform: scale(1.03);
+    }
+    70% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes urgent-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-2px);
+    }
+    75% {
+      transform: translateX(2px);
+    }
+  }
+
+  .animate-urgent-shake {
+    animation: urgent-shake 0.15s ease-in-out infinite;
+  }
+
+  .animate-heartbeat {
+    animation: heartbeat 1.5s ease-in-out infinite;
   }
 
   .animate-progress {

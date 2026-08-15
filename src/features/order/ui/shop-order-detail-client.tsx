@@ -5,23 +5,12 @@ import { orderStatusMapping } from "@/constant/order-status-mapping";
 import CustomBadge from "@/components/custom-badge";
 import { OrderStatus } from "@prisma/client";
 
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemFooter,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item";
-
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { postOrderTypeMapping } from "@/constant/post-order-type-mapping";
 import CustomerPositionBreadcrumb from "@/features/cart/ui/customer-position-breadcrumb";
 import ConfirmOrderDialog from "./confirm-order-dialog";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 
 import RejectOrderDialog from "./reject-order-dialog";
@@ -31,13 +20,24 @@ import { getImageUrl } from "@/helper/get-image-url";
 import { completeOrder } from "../lib/order-actions";
 import ShoppingCartExclamationIcon from "@/components/icons/shopping-cart-exclamation-icon";
 import CancelOrderDialog from "./cancel-order-dialog";
-import { Loader2, Map, StickyNote } from "lucide-react";
-import NavButton from "@/components/nav-button";
+import { CircleAlert, Loader, Map, StickyNote } from "lucide-react";
 import ConfirmPaymentDialog from "./confirm-payment-dialog";
 import RejectPaymentDialog from "./reject-payment-dialog";
 import { useWatchOrderUpdate } from "@/hooks/use-watch-order-update";
 import OrderEstimationCountDown from "./order-estimation-countdown";
+import ShopComplaintSection from "./shop-complaint-section";
+import { OrderRefundSection } from "./order-refund-section";
 import { formatToHour } from "@/helper/hour-helper";
+import { formatRupiah } from "@/helper/format-rupiah";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { ImageLightbox } from "@/features/canteen/ui/image-lightbox";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "radix-ui";
 
 export default function ShopOrderDetailClient({
   order: initialOrder,
@@ -47,7 +47,22 @@ export default function ShopOrderDetailClient({
   const [isPending, startTransition] = useTransition();
 
   const { orderData } = useWatchOrderUpdate(initialOrder.id);
+  const [isOpenProof, setIsOpenProof] = useState(false);
   const order = (orderData as unknown as GetShopOrderDetail) || initialOrder;
+
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+
+  const groupedItems = order.order_items.reduce(
+    (acc, item) => {
+      const productName = item.product.name;
+      if (!acc[productName]) {
+        acc[productName] = [];
+      }
+      acc[productName].push(item);
+      return acc;
+    },
+    {} as Record<string, typeof order.order_items>,
+  );
 
   async function handleCompleteOrder() {
     startTransition(async () => {
@@ -71,6 +86,14 @@ export default function ShopOrderDetailClient({
 
   return (
     <div className="flex flex-col gap-2 mb-5">
+      {lightboxSrc && (
+        <ImageLightbox
+          src={lightboxSrc}
+          alt={`Denah Lantai ${order.customer?.floor}`}
+          onClose={() => setLightboxSrc(null)}
+        />
+      )}
+
       <div>
         <h1 className="font-semibold">Status</h1>
         <CustomBadge
@@ -100,45 +123,101 @@ export default function ShopOrderDetailClient({
           <Alert variant={"destructive"}>
             <ShoppingCartExclamationIcon />
             <AlertTitle>Pesanan Dibatalkan Oleh Pelanggan</AlertTitle>
-            <AlertDescription>{order.rejected_reason}</AlertDescription>
+            <AlertDescription>{order.cancelled_reason}</AlertDescription>
           </Alert>
         )}
+
+      {order.status === "CANCELLED" &&
+        order.cancelled_by_id === order.shop.owner_id && (
+          <Alert variant={"destructive"}>
+            <ShoppingCartExclamationIcon />
+            <AlertTitle>Pesanan Dibatalkan Oleh Anda</AlertTitle>
+            <AlertDescription>{order.cancelled_reason}</AlertDescription>
+          </Alert>
+        )}
+
+      {order.status === "CANCELLED" && order.cancelled_by_id === "SYSTEM" && (
+        <Alert variant={"destructive"}>
+          <CircleAlert className="w-4 h-4 text-destructive" />
+          <AlertTitle>Pesanan Dibatalkan Otomatis</AlertTitle>
+          <AlertDescription>{order.cancelled_reason}</AlertDescription>
+        </Alert>
+      )}
 
       <div>
         <h1 className="font-semibold mb-1">Pesanan</h1>
 
         <div className="flex flex-col gap-2">
-          {order.order_items.map((item, idx) => (
-            <Item key={idx} variant={"outline"}>
-              <ItemMedia variant={"image"}>
-                <Image
-                  src={getImageUrl("/product/" + item.product.image_url)}
-                  width={100}
-                  height={100}
-                  alt="product image"
-                />
-              </ItemMedia>
-              <ItemContent>
-                <ItemTitle>{item.product.name}</ItemTitle>
-                <ItemDescription>{item.subtotal}</ItemDescription>
-              </ItemContent>
-              <ItemActions>
-                <h1 className="text-lg font-semibold mr-1">{item.quantity}x</h1>
-              </ItemActions>
-              {item.note && (
-                <ItemFooter className="flex gap-2 justify-start">
-                  <StickyNote className="w-4 h-4" />
-                  <h1>{item.note}</h1>
-                </ItemFooter>
-              )}
-            </Item>
-          ))}
+          <Accordion type="multiple" className="w-full">
+            {Object.entries(groupedItems).map(([productName, items], idx) => {
+              const firstItem = items[0];
+              const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
+              const totalSubtotal = items.reduce(
+                (sum, i) => sum + i.subtotal,
+                0,
+              );
+
+              return (
+                <AccordionItem
+                  value={`item-${idx}`}
+                  key={idx}
+                  className="border rounded-lg px-4 mb-2 last:border-b"
+                >
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex gap-4 items-center">
+                      <img
+                        src={getImageUrl(
+                          "/product/" + firstItem.product.image_url,
+                        )}
+                        alt={productName}
+                        className="rounded-lg object-cover aspect-square w-16 h-16"
+                        onError={(e) =>
+                          (e.currentTarget.src = "/placeholder-image.webp")
+                        }
+                      />
+                      <div className="flex flex-col text-left">
+                        <h1 className="font-semibold">{productName}</h1>
+                        <p className="text-sm text-muted-foreground">
+                          {totalQty} Item • {formatRupiah(totalSubtotal)}
+                        </p>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="flex flex-col gap-2">
+                      {items.map((item, itemIdx) => (
+                        <div
+                          key={itemIdx}
+                          className="flex flex-col gap-1 py-2 border-b last:border-0"
+                        >
+                          <div className="flex justify-between items-center">
+                            <h1 className="text-sm font-medium">
+                              {item.quantity}x
+                            </h1>
+                            <h1 className="text-sm font-semibold">
+                              {formatRupiah(item.subtotal)}
+                            </h1>
+                          </div>
+                          {item.note && (
+                            <div className="flex gap-1 items-center text-xs text-muted-foreground">
+                              <StickyNote className="w-3 h-3" />
+                              <p>{item.note}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </div>
       </div>
 
       <div>
         <h1 className="font-semibold">Total Harga</h1>
-        <h1>{order.total_price}</h1>
+        <h1>{formatRupiah(order.total_price)}</h1>
       </div>
 
       <div>
@@ -156,6 +235,8 @@ export default function ShopOrderDetailClient({
                 order_id={order.id}
                 order_status={order.status}
                 user_id={order.shop.owner_id}
+                userRole="SHOP_OWNER"
+                defaultDisbursementMode={order.shop.refund_disbursement_mode}
               />
 
               <ConfirmPaymentDialog order_id={order.id} />
@@ -173,12 +254,34 @@ export default function ShopOrderDetailClient({
             </div>
           ) : (
             <div>
-              <img
-                src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
-                width={400}
-                height={300}
-                alt="payment proof"
-              />
+              <div className="mt-2 relative w-full h-fit max-w-50 overflow-hidden rounded-lg border shadow-sm group">
+                <img
+                  src={getImageUrl("/payment-proof/" + order.payment_proof_url)}
+                  alt="Bukti Pembayaran"
+                  className="object-cover cursor-pointer transition-transform group-hover:scale-105"
+                  onClick={() => setIsOpenProof(true)}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1 italic">
+                *Klik gambar untuk memperbesar
+              </p>
+
+              <Dialog open={isOpenProof} onOpenChange={setIsOpenProof}>
+                <DialogContent className="max-w-[95vw] sm:max-w-3xl p-0 overflow-visible border-none bg-transparent shadow-none [&>button]:text-white [&>button]:bg-black/20 [&>button]:rounded-full [&>button]:p-2 [&>button]:top-[-40px] [&>button]:right-0 sm:[&>button]:right-[-40px] sm:[&>button]:top-0">
+                  <VisuallyHidden.Root>
+                    <DialogTitle>Bukti Pembayaran</DialogTitle>
+                  </VisuallyHidden.Root>
+                  <div className="relative w-full h-full max-h-[85vh] flex items-center justify-center">
+                    <img
+                      src={getImageUrl(
+                        "/payment-proof/" + order.payment_proof_url,
+                      )}
+                      alt="Bukti Pembayaran Full"
+                      className="max-w-full max-h-[85vh] object-contain rounded-md"
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               {order.status === "WAITING_SHOP_CONFIRMATION" && (
                 <div className="grid grid-cols-2 gap-4 mt-2">
@@ -211,6 +314,7 @@ export default function ShopOrderDetailClient({
                   <OrderEstimationCountDown
                     estimation={order.estimation}
                     processed_at={order.processed_at}
+                    userRole="SHOP_OWNER"
                   />
                 )}
               </div>
@@ -237,13 +341,24 @@ export default function ShopOrderDetailClient({
                 table_number={order.customer.table_number ?? 1}
               />
               <div className="mt-1">
-                <NavButton
-                  href={`/kantin/${order.shop.canteen.id}/denah`}
+                <Button
+                  variant="outline"
                   size="sm"
+                  onClick={() => {
+                    const maps = (order.shop.canteen as any).maps;
+                    const floorPlan = maps?.find(
+                      (m: any) => m.floor === order.customer?.floor,
+                    );
+                    if (floorPlan) {
+                      setLightboxSrc(
+                        getImageUrl("/canteen-map/" + floorPlan.image_url),
+                      );
+                    }
+                  }}
                 >
-                  <Map />
+                  <Map className="mr-2 w-3 h-3" />
                   Lihat Denah
-                </NavButton>
+                </Button>
               </div>
             </div>
           ) : (
@@ -285,6 +400,8 @@ export default function ShopOrderDetailClient({
             order_id={order.id}
             order_status={order.status}
             user_id={order.shop.owner_id}
+            userRole="SHOP_OWNER"
+            defaultDisbursementMode={order.shop.refund_disbursement_mode}
           />
 
           <Button
@@ -292,14 +409,15 @@ export default function ShopOrderDetailClient({
             onClick={handleCompleteOrder}
             disabled={isPending}
           >
-            {isPending ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              "Pesanan Selesai"
-            )}
+            {isPending && <Loader className="animate-spin" />}
+            Pesanan Selesai
           </Button>
         </div>
       )}
+
+      <ShopComplaintSection order={order} />
+
+      <OrderRefundSection order={order as any} userRole="SHOP_OWNER" />
     </div>
   );
 }
