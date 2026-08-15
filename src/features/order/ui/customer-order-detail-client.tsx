@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { postOrderTypeMapping } from "@/constant/post-order-type-mapping";
 import CustomerPositionBreadcrumb from "@/features/cart/ui/customer-position-breadcrumb";
@@ -33,7 +33,7 @@ import {
 import { useNotificationDialogStore } from "@/stores/use-notification-store";
 import PaymentCountdown from "@/app/order/[order_id]/pembayaran/payment-countdown";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { VisuallyHidden } from "radix-ui";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 export default function CustomerOrderDetailClient({
   order: initialOrder,

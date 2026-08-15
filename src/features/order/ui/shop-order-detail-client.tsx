@@ -3,7 +3,7 @@
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { paymentMethodMapping } from "@/constant/payment-method";
@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/accordion";
 import { ImageLightbox } from "@/features/canteen/ui/image-lightbox";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { VisuallyHidden } from "radix-ui";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 
 export default function ShopOrderDetailClient({
   order: initialOrder,

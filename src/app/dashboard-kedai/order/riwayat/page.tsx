@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import OrderHistoryFilters from "./order-history-filters";
 import { startOfDay, endOfDay, startOfWeek, startOfMonth } from "date-fns";
 import CustomBadge from "@/components/custom-badge";
-import { OrderStatus } from "@/generated/prisma";
+import { OrderStatus } from "@prisma/client";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 import OrderHistoryPagination from "./order-history-pagination";
 
