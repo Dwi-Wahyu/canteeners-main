@@ -12,7 +12,7 @@ import {
 export default function EmptyCart({ shopping_url }: { shopping_url: string }) {
   return (
     <div className="p-5">
-      <h1 className="text-xl mb-4">Keranjang</h1>
+      <h1 className="text-xl font-semibold mb-4">Keranjang</h1>
 
       <Empty className="border">
         <EmptyHeader>

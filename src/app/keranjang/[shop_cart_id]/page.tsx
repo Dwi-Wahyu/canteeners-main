@@ -67,7 +67,7 @@ export default async function GuestShopCartPage({
       <div className="p-5">
         <ShopCartClient
           userId={session.user.id}
-          customerProfile={customerProfile}
+          customerProfile={customerProfile as any}
           shopCart={shopCart}
           nameAlreadySet={session.user.name !== ""}
         />

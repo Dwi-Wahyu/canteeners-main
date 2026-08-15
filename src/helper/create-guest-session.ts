@@ -4,15 +4,24 @@ import { toast } from "sonner";
 
 export async function createGuestSession({
   name,
+  tableData,
+  guestId,
 }: {
   name: string;
+  tableData?: {
+    canteen_id: number;
+    floor: number;
+    table_number: number;
+  };
+  guestId?: string;
 }): Promise<{ cartId: string | null; userId: string | null }> {
-  // Generate random UUID locally to completely bypass Firebase Auth
-  const guestUid = crypto.randomUUID();
+  // Use existing guestId if available, otherwise generate random UUID locally
+  const guestUid = guestId || crypto.randomUUID();
 
   const createGuest = await createGuestCustomer({
     firebaseUserUid: guestUid,
     guestName: name,
+    tableData,
   });
 
   if (!createGuest.success) {

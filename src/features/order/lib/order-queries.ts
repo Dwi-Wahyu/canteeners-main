@@ -2,26 +2,85 @@
 
 import { prisma } from "@/lib/prisma";
 
-export async function getShopOrderHistory(shopId: string) {
-  return await prisma.order.findMany({
-    where: {
-      shop_id: shopId,
-      status: "COMPLETED",
-    },
-    select: {
-      created_at: true,
-      total_price: true,
-      customer: {
-        select: {
-          user: {
-            select: {
-              name: true,
+export async function getShopOrderHistory(
+  shopId: string,
+  filters?: {
+    status?: string;
+    search?: string;
+    startDate?: Date;
+    endDate?: Date;
+    page?: number;
+    limit?: number;
+  },
+) {
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 10;
+  const skip = (page - 1) * limit;
+
+  const where = {
+    shop_id: shopId,
+    status: filters?.status
+      ? (filters.status as any)
+      : { in: ["COMPLETED", "REJECTED", "CANCELLED"] },
+    AND: [
+      filters?.search
+        ? {
+            customer: {
+              user: {
+                name: {
+                  contains: filters.search,
+                  mode: "insensitive",
+                },
+              },
+            },
+          }
+        : {},
+      filters?.startDate || filters?.endDate
+        ? {
+            created_at: {
+              gte: filters.startDate,
+              lte: filters.endDate,
+            },
+          }
+        : {},
+    ],
+  };
+
+  const [data, total] = await Promise.all([
+    prisma.order.findMany({
+      where: where as any,
+      orderBy: {
+        created_at: "desc",
+      },
+      skip,
+      take: limit,
+      select: {
+        id: true,
+        created_at: true,
+        total_price: true,
+        status: true,
+        customer: {
+          select: {
+            user: {
+              select: {
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+    prisma.order.count({
+      where: where as any,
+    }),
+  ]);
+
+  return {
+    data,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  };
 }
 
 export async function getShopOrderDetail(id: string) {
@@ -51,18 +110,50 @@ export async function getShopOrderDetail(id: string) {
             select: {
               id: true,
               name: true,
+              maps: {
+                select: {
+                  floor: true,
+                  image_url: true,
+                },
+              },
             },
           },
           name: true,
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
           refund_disbursement_mode: true,
         },
       },
       testimony: true,
       complaint: true,
-      refund: true,
+      refund: {
+        include: {
+          affected_items: {
+            select: {
+              order_item_id: true,
+            },
+          },
+          history: {
+            select: {
+              id: true,
+              status: true,
+              note: true,
+              actor_role: true,
+              actor_name: true,
+              created_at: true,
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+          },
+        },
+      },
       customer: {
         select: {
+          user_id: true,
           table_number: true,
           floor: true,
 
@@ -116,19 +207,45 @@ export async function getCustomerOrderDetail(id: string) {
               account_number: true,
             },
           },
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
           refund_disbursement_mode: true,
         },
       },
       complaint: true,
       testimony: true,
-      refund: true,
+      refund: {
+        include: {
+          affected_items: {
+            select: {
+              order_item_id: true,
+            },
+          },
+          history: {
+            select: {
+              id: true,
+              status: true,
+              note: true,
+              actor_role: true,
+              actor_name: true,
+              created_at: true,
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+          },
+        },
+      },
       customer: {
         select: {
           user: {
             select: {
               name: true,
               avatar: true,
+              id: true,
             },
           },
           table_number: true,
@@ -154,7 +271,11 @@ export async function getOrderSummaryForChatBubble(id: string) {
       shop: {
         select: {
           id: true,
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
         },
       },
       post_order_type: true,
@@ -213,10 +334,20 @@ export async function getOrderDetail(id: string) {
               id: true,
               slug: true,
               name: true,
+              maps: {
+                select: {
+                  floor: true,
+                  image_url: true,
+                },
+              },
             },
           },
           name: true,
-          owner_id: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
           refund_disbursement_mode: true,
           payments: {
             select: {
@@ -231,9 +362,31 @@ export async function getOrderDetail(id: string) {
       },
       testimony: true,
       complaint: true,
-      refund: true,
+      refund: {
+        include: {
+          affected_items: {
+            select: {
+              order_item_id: true,
+            },
+          },
+          history: {
+            select: {
+              id: true,
+              status: true,
+              note: true,
+              actor_role: true,
+              actor_name: true,
+              created_at: true,
+            },
+            orderBy: {
+              created_at: "desc",
+            },
+          },
+        },
+      },
       customer: {
         select: {
+          user_id: true,
           table_number: true,
           floor: true,
 
@@ -257,11 +410,20 @@ export async function getOrderAndPaymentMethod(order_id: string) {
     select: {
       conversation_id: true,
       status: true,
+      confirmed_at: true,
       payment_method: true,
       payment_proof_url: true,
+      rejected_reason: true,
       total_price: true,
+      payment_histories: {
+        orderBy: {
+          created_at: "desc",
+        },
+      },
       shop: {
         select: {
+          name: true,
+          image_url: true,
           payments: {
             select: {
               method: true,
@@ -316,17 +478,18 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
     where: {
       shop_id: shopId,
       status: {
-        notIn: ["COMPLETED", "REJECTED"],
+        notIn: ["COMPLETED", "REJECTED", "CANCELLED"],
       },
     },
     orderBy: {
-      updated_at: "desc",
+      updated_at: "asc",
     },
     select: {
       id: true,
       status: true,
       post_order_type: true,
       estimation: true,
+      processed_at: true,
       payment_method: true,
       payment_proof_url: true,
       customer: {
@@ -340,23 +503,14 @@ export async function getOrderTrackingData({ shopId }: { shopId: string }) {
           },
         },
       },
-    },
-  });
-}
-
-export async function getCustomerOrderHistory(customerId: string) {
-  return await prisma.order.findMany({
-    where: {
-      customer_id: customerId,
-    },
-    orderBy: {
-      created_at: "desc",
-    },
-    include: {
       shop: {
         select: {
-          name: true,
-          image_url: true,
+          owner: {
+            select: {
+              user_id: true,
+            },
+          },
+          refund_disbursement_mode: true,
         },
       },
       order_items: {
@@ -364,6 +518,7 @@ export async function getCustomerOrderHistory(customerId: string) {
           quantity: true,
           product: {
             select: {
+              image_url: true,
               name: true,
             },
           },
@@ -371,4 +526,71 @@ export async function getCustomerOrderHistory(customerId: string) {
       },
     },
   });
+}
+
+export async function getCustomerOrderHistory(
+  customerId: string,
+  filters?: {
+    startDate?: Date;
+    endDate?: Date;
+    page?: number;
+    limit?: number;
+  },
+) {
+  const page = filters?.page || 1;
+  const limit = filters?.limit || 10;
+  const skip = (page - 1) * limit;
+
+  const where = {
+    customer_id: customerId,
+    AND: [
+      filters?.startDate || filters?.endDate
+        ? {
+            created_at: {
+              gte: filters.startDate,
+              lte: filters.endDate,
+            },
+          }
+        : {},
+    ],
+  };
+
+  const [data, total] = await Promise.all([
+    prisma.order.findMany({
+      where: where as any,
+      orderBy: {
+        created_at: "desc",
+      },
+      skip,
+      take: limit,
+      include: {
+        shop: {
+          select: {
+            name: true,
+            image_url: true,
+          },
+        },
+        order_items: {
+          select: {
+            quantity: true,
+            product: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.order.count({
+      where: where as any,
+    }),
+  ]);
+
+  return {
+    data,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  };
 }

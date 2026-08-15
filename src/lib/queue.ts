@@ -44,6 +44,14 @@ class FallbackQueue {
     return 0;
   }
 
+  get client(): Promise<any> {
+    return Promise.resolve({
+      get: async (key: string) => null,
+      set: async (key: string, value: string, ...args: any[]) => "OK",
+      del: async (key: string) => 0,
+    });
+  }
+
   async close() {
     return undefined;
   }

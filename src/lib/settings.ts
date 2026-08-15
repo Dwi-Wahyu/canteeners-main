@@ -11,7 +11,7 @@ export async function getGlobalSetting(key: string, defaultValue: string): Promi
 
   try {
     // 1. Coba ambil dari Redis
-    const cachedValue = await redis.get(cacheKey);
+    const cachedValue = redis && typeof redis.get === "function" ? await redis.get(cacheKey) : null;
     if (cachedValue !== null) {
       return cachedValue;
     }
@@ -24,7 +24,9 @@ export async function getGlobalSetting(key: string, defaultValue: string): Promi
     const finalValue = setting ? setting.value : defaultValue;
 
     // 3. Simpan ke Redis untuk penggunaan berikutnya (TTL 1 jam)
-    await redis.set(cacheKey, finalValue, "EX", 3600);
+    if (redis && typeof redis.set === "function") {
+      await redis.set(cacheKey, finalValue, "EX", 3600);
+    }
 
     return finalValue;
   } catch (error) {

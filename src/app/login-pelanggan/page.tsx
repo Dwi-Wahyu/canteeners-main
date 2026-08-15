@@ -1,60 +1,54 @@
 "use client";
 
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
-import { LoginSchema, LoginInput } from "@/features/auth/types/auth-schemas";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import ContinueWithGoogle from "./continue-with-google";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { createGuestSession } from "@/helper/create-guest-session";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPelangganPage() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-
-  const form = useForm<LoginInput>({
-    resolver: zodResolver(LoginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  });
-
-  async function onSubmit(data: LoginInput) {
-    const res = await signIn("credentials", {
-      username: data.username,
-      password: data.password,
-      redirect: false,
-    });
-
-    if (res?.error) {
-      form.setError("username", {
-        type: "manual",
-        message: "Username atau Password salah",
-      });
-      form.setError("password", {
-        type: "manual",
-        message: "Username atau Password salah",
-      });
-    } else {
-      router.push("/dashboard-pelanggan");
-    }
-  }
-
   const session = useSession();
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   useEffect(() => {
-    if (session.status === "authenticated" && session.data?.user?.username !== "") {
-      router.push("/kantin");
+    if (
+      session.status === "authenticated" &&
+      session.data?.user?.username?.includes("@")
+    ) {
+      router.push("/kantin/kantin-kudapan");
     }
   }, [session, session.status, session.data?.user?.username, router]);
 
+  async function handleGuestLogin() {
+    setIsGuestLoading(true);
+    try {
+      const guestId = localStorage.getItem("guestId");
+      const result = await createGuestSession({
+        name: "Tamu",
+        guestId: guestId || undefined,
+      });
+
+      if (result.userId) {
+        localStorage.setItem("guestId", result.userId);
+        // Gunakan window.location agar session benar-benar ke-refresh
+        window.location.href = "/kantin/kantin-kudapan";
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsGuestLoading(false);
+    }
+  }
+
   return (
     <div
-      className="min-h-svh relative overflow-hidden flex flex-col"
+      className="h-svh w-full relative overflow-hidden flex flex-col"
       style={{
         background:
           "linear-gradient(135deg, #f8f9ff 0%, #eff4ff 50%, #dce9ff 100%)",
@@ -62,8 +56,8 @@ export default function LoginPelangganPage() {
     >
       {/* Abstract Background Blobs */}
       <div
+        className="absolute pointer-events-none"
         style={{
-          position: "absolute",
           top: "-10%",
           left: "-10%",
           width: "70vw",
@@ -76,8 +70,8 @@ export default function LoginPelangganPage() {
         }}
       />
       <div
+        className="absolute pointer-events-none"
         style={{
-          position: "absolute",
           bottom: "-20%",
           right: "-10%",
           width: "80vw",
@@ -90,42 +84,43 @@ export default function LoginPelangganPage() {
         }}
       />
 
-      {/* Brand Header */}
-      <header className="md:relative absolute top-0 left-0 w-full pt-10 px-6 z-20 text-center pointer-events-none">
+      {/* 1. Header Area - Top Aligned */}
+      <header className="w-full flex justify-center pt-8 md:pt-12 relative z-10 shrink-0">
         <Link
           href="/"
-          className="inline-flex flex-row items-center gap-3 pointer-events-auto"
+          className="flex flex-col items-center gap-4 text-center group transition-transform duration-300 hover:scale-105"
         >
-          <div className="relative w-10 h-10">
+          <div className="relative w-20 h-20 md:w-24 md:h-24 drop-shadow-2xl">
             <Image
-              src="/app-logo.svg"
+              src="/logo.png"
               alt="Canteeners Logo"
               fill
               className="object-contain"
+              priority
             />
           </div>
           <h1
-            className="font-headline font-extrabold text-2xl md:text-3xl tracking-tight"
+            className="font-headline font-extrabold text-3xl md:text-4xl tracking-tighter"
             style={{ color: "#0b1c30" }}
           >
-            Can<span style={{ color: "#b70011" }}>teen</span>eers
+            Can<span style={{ color: "#b70011" }}>teeners</span>
           </h1>
         </Link>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center items-center w-full max-w-md mx-auto px-6 py-8 relative z-10">
-        {/* Glassmorphism Login Card */}
+      {/* 2. Main Area - Center Aligned Card */}
+      <main className="flex-1 flex flex-col justify-center items-center w-full max-w-md mx-auto px-6 relative z-10">
         <div
-          className="w-full p-8 flex flex-col gap-4 relative overflow-hidden rounded-2xl"
+          className="w-full p-8 flex flex-col gap-4 relative overflow-hidden rounded-3xl"
           style={{
             background: "rgba(255, 255, 255, 0.75)",
             backdropFilter: "blur(24px)",
             WebkitBackdropFilter: "blur(24px)",
             border: "1px solid rgba(255, 255, 255, 0.4)",
-            boxShadow: "0 32px 64px -12px rgba(11, 28, 48, 0.08)",
+            boxShadow: "0 32px 64px -12px rgba(11, 28, 48, 0.12)",
           }}
         >
-          <div className="text-center mb-2">
+          <div className="text-center mb-4">
             <h2
               className="font-headline font-bold text-2xl tracking-tight"
               style={{ color: "#0b1c30" }}
@@ -137,208 +132,60 @@ export default function LoginPelangganPage() {
             </p>
           </div>
 
-          {/* Form */}
-          <form
-            id="login-pelanggan-form"
-            className="flex flex-col gap-5 w-full"
-            onSubmit={form.handleSubmit(onSubmit)}
-          >
-            {/* Username Field */}
-            <Controller
-              name="username"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <div className="flex flex-col gap-1.5">
-                  <label
-                    htmlFor="username"
-                    className="text-sm font-semibold ml-1 font-headline"
-                    style={{ color: "#0b1c30" }}
-                  >
-                    Username
-                  </label>
-                  <div className="relative">
-                    <Mail
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-                      style={{ color: "#555f6f" }}
-                    />
-                    <input
-                      {...field}
-                      id="username"
-                      type="text"
-                      placeholder="username anda"
-                      autoComplete="off"
-                      aria-invalid={fieldState.invalid}
-                      className="w-full rounded-xl py-3.5 pl-12 pr-4 text-sm transition-all duration-200"
-                      style={{
-                        background: "#ffffff",
-                        border: fieldState.invalid
-                          ? "1px solid #ba1a1a"
-                          : "1px solid rgba(230, 189, 184, 0.3)",
-                        color: "#0b1c30",
-                        outline: "none",
-                        fontFamily: "Inter, sans-serif",
-                      }}
-                      onFocus={(e) => {
-                        if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor = "#b70011";
-                          e.currentTarget.style.boxShadow =
-                            "0 0 0 4px rgba(183, 0, 17, 0.1)";
-                        }
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = "none";
-                        if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor =
-                            "rgba(230, 189, 184, 0.3)";
-                        }
-                      }}
-                    />
-                  </div>
-                  {fieldState.error?.message && (
-                    <p className="text-xs ml-1" style={{ color: "#ba1a1a" }}>
-                      {fieldState.error.message}
-                    </p>
-                  )}
-                </div>
-              )}
-            />
-
-            {/* Password Field */}
-            <Controller
-              name="password"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex justify-between items-center ml-1">
-                    <label
-                      htmlFor="password"
-                      className="text-sm font-semibold font-headline"
-                      style={{ color: "#0b1c30" }}
-                    >
-                      Password
-                    </label>
-                    <a
-                      href="#"
-                      className="text-xs font-semibold transition-colors font-headline"
-                      style={{ color: "#b70011" }}
-                    >
-                      Lupa Password?
-                    </a>
-                  </div>
-                  <div className="relative">
-                    <Lock
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-                      style={{ color: "#555f6f" }}
-                    />
-                    <input
-                      {...field}
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      autoComplete="off"
-                      aria-invalid={fieldState.invalid}
-                      className="w-full rounded-xl py-3.5 pl-12 pr-12 text-sm transition-all duration-200"
-                      style={{
-                        background: "#ffffff",
-                        border: fieldState.invalid
-                          ? "1px solid #ba1a1a"
-                          : "1px solid rgba(230, 189, 184, 0.3)",
-                        color: "#0b1c30",
-                        outline: "none",
-                        fontFamily: "Inter, sans-serif",
-                      }}
-                      onFocus={(e) => {
-                        if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor = "#b70011";
-                          e.currentTarget.style.boxShadow =
-                            "0 0 0 4px rgba(183, 0, 17, 0.1)";
-                        }
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.boxShadow = "none";
-                        if (!fieldState.invalid) {
-                          e.currentTarget.style.borderColor =
-                            "rgba(230, 189, 184, 0.3)";
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
-                      style={{ color: "#555f6f" }}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                  {fieldState.error?.message && (
-                    <p className="text-xs ml-1" style={{ color: "#ba1a1a" }}>
-                      {fieldState.error.message}
-                    </p>
-                  )}
-                </div>
-              )}
-            />
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              form="login-pelanggan-form"
-              disabled={form.formState.isSubmitting}
-              className="w-full rounded-full py-4 font-headline font-bold text-base tracking-wide text-white transition-all duration-300 disabled:opacity-70"
-              style={{
-                background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
-                boxShadow: "0 8px 24px -4px rgba(183, 0, 17, 0.25)",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                  "0 12px 32px -4px rgba(183, 0, 17, 0.35)";
-                (e.currentTarget as HTMLButtonElement).style.transform =
-                  "translateY(-1px)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                  "0 8px 24px -4px rgba(183, 0, 17, 0.25)";
-                (e.currentTarget as HTMLButtonElement).style.transform =
-                  "translateY(0)";
-              }}
-            >
-              {form.formState.isSubmitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Memuat...
-                </span>
-              ) : (
-                "Masuk"
-              )}
-            </button>
-          </form>
-
           <ContinueWithGoogle />
 
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-500">
-              Belum punya akun?{" "}
-              <Link
-                href="/register-pelanggan"
-                className="font-bold text-primary hover:underline"
-              >
-                Daftar Sekarang
-              </Link>
-            </p>
+          <div className="relative flex items-center justify-center w-full my-1">
+            <Separator className="absolute" />
+            <span className="relative z-10 bg-white px-4 text-muted-foreground text-sm font-medium rounded-full">
+              Atau
+            </span>
           </div>
+
+          <Button
+            variant="default"
+            disabled={isGuestLoading}
+            className="w-full h-12 font-headline font-bold text-base rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+            style={{
+              background: "linear-gradient(135deg, #b70011 0%, #dc2626 100%)",
+              color: "#ffffff",
+            }}
+            onClick={handleGuestLogin}
+          >
+            {isGuestLoading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Menyiapkan...
+              </span>
+            ) : (
+              "Lanjutkan Mode Tamu"
+            )}
+          </Button>
         </div>
       </main>
 
-      {/* Visual Spacer to balance header height on desktop for centering */}
+      {/* 3. Footer Spacer - To balance the vertical center of the Card */}
       <div
-        className="hidden md:block h-32 pointer-events-none"
+        className="h-28 md:h-36 shrink-0 pointer-events-none"
         aria-hidden="true"
       />
+
+      {/* Copyright Text */}
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-6 md:left-auto md:translate-x-0 md:right-6 md:bottom-8 pointer-events-none select-none z-10">
+        <p
+          className="text-[10px] font-body font-bold tracking-[0.2em] md:tracking-[0.3em] uppercase opacity-50 whitespace-nowrap"
+          style={{
+            color: "#0b1c30",
+          }}
+        >
+          <span className="md:hidden">© 2025 Canteeners</span>
+          <span
+            className="hidden md:inline-block"
+            style={{ writingMode: "vertical-rl" }}
+          >
+            © 2025 Canteeners — All Rights Reserved
+          </span>
+        </p>
+      </div>
     </div>
   );
 }

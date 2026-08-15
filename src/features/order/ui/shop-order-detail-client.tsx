@@ -3,7 +3,7 @@
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus } from "@/generated/prisma";
 
 import { Button } from "@/components/ui/button";
 import { paymentMethodMapping } from "@/constant/payment-method";
@@ -74,6 +74,7 @@ export default function ShopOrderDetailClient({
         notificationDialog.success({
           title: "Order Telah Selesai !",
           message: "Terima kasih sudah bekerja sama dengan canteeners 😊🙏",
+          showLoadingBar: true,
         });
       } else {
         notificationDialog.error({
@@ -89,7 +90,7 @@ export default function ShopOrderDetailClient({
       {lightboxSrc && (
         <ImageLightbox
           src={lightboxSrc}
-          alt={`Denah Lantai ${order.customer?.floor}`}
+          alt={`Denah Lantai ${order.customer.floor}`}
           onClose={() => setLightboxSrc(null)}
         />
       )}
@@ -128,7 +129,7 @@ export default function ShopOrderDetailClient({
         )}
 
       {order.status === "CANCELLED" &&
-        order.cancelled_by_id === order.shop.owner_id && (
+        order.cancelled_by_id === order.shop.owner?.user_id && (
           <Alert variant={"destructive"}>
             <ShoppingCartExclamationIcon />
             <AlertTitle>Pesanan Dibatalkan Oleh Anda</AlertTitle>
@@ -234,7 +235,7 @@ export default function ShopOrderDetailClient({
               <CancelOrderDialog
                 order_id={order.id}
                 order_status={order.status}
-                user_id={order.shop.owner_id}
+                user_id={order.shop.owner?.user_id as string}
                 userRole="SHOP_OWNER"
                 defaultDisbursementMode={order.shop.refund_disbursement_mode}
               />
@@ -345,9 +346,8 @@ export default function ShopOrderDetailClient({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const maps = (order.shop.canteen as any).maps;
-                    const floorPlan = maps?.find(
-                      (m: any) => m.floor === order.customer?.floor,
+                    const floorPlan = order.shop.canteen.maps.find(
+                      (m) => m.floor === order.customer.floor,
                     );
                     if (floorPlan) {
                       setLightboxSrc(
@@ -399,7 +399,7 @@ export default function ShopOrderDetailClient({
           <CancelOrderDialog
             order_id={order.id}
             order_status={order.status}
-            user_id={order.shop.owner_id}
+            user_id={order.shop.owner?.user_id as string}
             userRole="SHOP_OWNER"
             defaultDisbursementMode={order.shop.refund_disbursement_mode}
           />
@@ -417,7 +417,7 @@ export default function ShopOrderDetailClient({
 
       <ShopComplaintSection order={order} />
 
-      <OrderRefundSection order={order as any} userRole="SHOP_OWNER" />
+      <OrderRefundSection order={order} userRole="SHOP_OWNER" />
     </div>
   );
 }

@@ -12,12 +12,12 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import { validateReferralCode } from "@/features/user/lib/user-actions";
 
 interface ReferralSectionProps {
@@ -107,31 +107,28 @@ export default function ReferralSection({
               className="w-full py-6 border-dashed border-2 hover:bg-gray-50 flex justify-between px-4 rounded-2xl group transition-all active:scale-[0.98]"
             >
               <div className="flex items-center gap-3">
-                <Gift
-                  className="text-blue-500 group-hover:scale-110 transition-transform"
+                <TicketPercent
+                  className=" group-hover:scale-110 transition-transform"
                   size={20}
                 />
                 <span className="text-sm font-semibold">
                   Punya Kode Referral?
                 </span>
               </div>
-              <TicketPercent className="text-gray-400" size={18} />
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-[90vw] rounded-2xl p-6">
             <DialogHeader>
-              <DialogTitle className="text-center text-lg font-bold">
-                Masukkan Kode Referral
-              </DialogTitle>
+              <DialogTitle>Masukkan Kode Referral</DialogTitle>
+              <DialogDescription>
+                Gunakan kode referral temanmu untuk membantu mereka mendapatkan
+                cashback sebesar Rp 10.000.
+              </DialogDescription>
             </DialogHeader>
             <form
               onSubmit={handleApplyReferral}
               className="flex flex-col gap-4 py-4"
             >
-              <p className="text-sm text-gray-500 text-center">
-                Gunakan kode referral temanmu untuk mendapatkan potongan harga
-                sebesar Rp 10.000.
-              </p>
               <div className={shouldShake ? "animate-light-shake" : ""}>
                 <div className="flex flex-col gap-2">
                   <Input

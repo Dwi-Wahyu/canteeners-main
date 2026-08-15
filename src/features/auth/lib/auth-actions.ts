@@ -8,6 +8,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { RegisterInput, RegisterSchema } from "../types/auth-schemas";
+import { processEventParticipation } from "@/features/user/lib/event-actions";
 
 export async function registerCustomer(
   payload: RegisterInput & { firebaseUid: string },
@@ -52,9 +53,16 @@ export async function registerCustomer(
       },
     });
 
+    try {
+      await processEventParticipation(payload.firebaseUid);
+    } catch (error) {
+      console.error("Error triggering event participation:", error);
+    }
+
     return successResponse(undefined, "Registrasi berhasil");
   } catch (error) {
     console.error("Error during registration:", error);
     return errorResponse("Terjadi kesalahan saat melakukan registrasi");
   }
 }
+

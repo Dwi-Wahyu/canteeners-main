@@ -1,27 +1,26 @@
 import EmptyCart from "../../features/cart/ui/empty-cart";
 import { auth } from "@/config/auth";
-import { redirect } from "next/navigation";
 import { getCart } from "@/features/cart/lib/cart-queries";
 import { getImageUrl } from "@/helper/get-image-url";
 import { BottomNav } from "@/components/layouts/bottom-nav";
-import { ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import CartShopCard from "@/features/cart/ui/cart-shop-card";
+import { redirect } from "next/navigation";
 
 export default async function CartPage() {
   const session = await auth();
 
-  if (!session) {
-    redirect("/login-pelanggan");
+  if (session && session.user.role === "SHOP_OWNER") {
+    redirect("/dashboard-kedai");
   }
 
-  const data = session.user.cartId ? await getCart(session.user.cartId) : null;
+  const data = session?.user.cartId ? await getCart(session.user.cartId) : null;
 
   if (!data || (data && data.shop_carts.length === 0)) {
     return (
       <div className="flex flex-col">
         <div className="flex-1 w-full justify-center">
-          <EmptyCart shopping_url={"/kantin"} />
+          <EmptyCart shopping_url={"/kantin/kantin-kudapan"} />
         </div>
         <BottomNav />
       </div>
@@ -33,8 +32,7 @@ export default async function CartPage() {
       <div className="flex-1 p-5 pb-24">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
-          <ShoppingCart className="w-5 h-5 text-primary" />
-          <h1 className="text-lg font-semibold">Keranjang</h1>
+          <h1 className="text-xl font-semibold">Keranjang</h1>
           <Badge variant="secondary" className="ml-auto">
             {data.shop_carts.length} Kedai
           </Badge>
@@ -42,7 +40,6 @@ export default async function CartPage() {
 
         <div className="flex flex-col gap-4">
           {data.shop_carts.map((shopCart, idx) => {
-
             // Ambil maks 3 produk unik untuk preview
             const seen = new Set<string>();
             const uniqueProducts: {

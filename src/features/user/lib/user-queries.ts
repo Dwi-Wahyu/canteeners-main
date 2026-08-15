@@ -34,12 +34,27 @@ export async function getCustomerProfile(id: string) {
       id,
     },
     include: {
+      user: {
+        select: {
+          username: true,
+          name: true,
+          avatar: true,
+        },
+      },
       discounts: {
         where: {
           is_used: false,
+          discount: {
+            status: "ACTIVE",
+          },
         },
         include: {
           discount: true,
+        },
+      },
+      violations: {
+        where: {
+          type: "ORDER_CANCEL_WITHOUT_PAY",
         },
       },
     },
@@ -88,7 +103,12 @@ export async function getCustomerReferralStatus(userId: string) {
       referral_code: true,
       referral_usage_count: true,
       discounts: {
-        where: { is_used: false },
+        where: {
+          is_used: false,
+          discount: {
+            status: "ACTIVE",
+          },
+        },
         include: {
           discount: true,
         },
@@ -118,6 +138,66 @@ export async function getCustomerReferralStatus(userId: string) {
       value: cd.discount.value,
       type: cd.discount.type,
       description: cd.discount.description,
+      status: cd.discount.status,
+      min_purchase: cd.discount.min_purchase,
+      max_discount: cd.discount.max_discount,
+      end_date: cd.discount.end_date,
     })),
   };
+}
+
+export async function getCustomerViolations(userId: string) {
+  return await prisma.customerViolation.findMany({
+    where: {
+      customer: {
+        user_id: userId,
+      },
+    },
+    orderBy: {
+      timestamp: "desc",
+    },
+  });
+}
+
+export async function getCustomerViolationDetail(id: number) {
+  return await prisma.customerViolation.findUnique({
+    where: { id },
+    include: {
+      customer: {
+        select: {
+          suspend_until: true,
+          suspend_reason: true,
+        },
+      },
+    },
+  });
+}
+
+export async function getCustomerSuspensionStatus(userId: string) {
+  return await prisma.customer.findUnique({
+    where: { user_id: userId },
+    select: {
+      suspend_until: true,
+      suspend_reason: true,
+    },
+  });
+}
+
+export async function getUserReports(reporterId: string) {
+  return await prisma.userReport.findMany({
+    where: {
+      reporter_id: reporterId,
+    },
+    include: {
+      reported_user: {
+        select: {
+          name: true,
+          avatar: true,
+        },
+      },
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+  });
 }

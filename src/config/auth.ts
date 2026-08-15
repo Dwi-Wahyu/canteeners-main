@@ -8,6 +8,7 @@ import {
 } from "@/features/auth/types/auth-schemas";
 import { prisma } from "@/lib/prisma";
 import GoogleProvider from "next-auth/providers/google";
+import { processEventParticipation } from "@/features/user/lib/event-actions";
 
 async function getFirebaseToken({ uid }: { uid: string }) {
   return undefined;
@@ -192,6 +193,12 @@ export const authConfig: NextAuthConfig = {
               },
             },
           });
+
+          try {
+            await processEventParticipation(user.id as string);
+          } catch (error) {
+            console.error("Error triggering event participation:", error);
+          }
         } else if (!existingUser.name || existingUser.name === "") {
           // Update nama jika kosong di database
           await prisma.user.update({

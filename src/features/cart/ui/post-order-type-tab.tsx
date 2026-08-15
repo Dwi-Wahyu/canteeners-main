@@ -17,12 +17,14 @@ export default function PostOrderTypeTab({
   customerProfile,
   canteen_name,
   selectTablePageUrl,
+  isBusy,
 }: {
   postOrderType: PostOrderType;
   setPostOrderType: (type: PostOrderType) => void;
   customerProfile: GetCustomerProfileType;
   canteen_name: string;
   selectTablePageUrl: string;
+  isBusy?: boolean;
 }) {
   return (
     <div>
@@ -36,7 +38,7 @@ export default function PostOrderTypeTab({
         onValueChange={(value) => setPostOrderType(value as PostOrderType)}
       >
         <TabsList>
-          <TabsTrigger value="DELIVERY_TO_TABLE">
+          <TabsTrigger value="DELIVERY_TO_TABLE" disabled={isBusy}>
             <HandPlatter />
             Makan Di Meja
           </TabsTrigger>
@@ -61,14 +63,11 @@ export default function PostOrderTypeTab({
                   </NavButton>
                 </div>
               ) : (
-                /* === CTA Banner: Belum pilih meja === */
                 <div className="rounded-xl border-2 border-dashed border-amber-400 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-600 p-4 flex flex-col items-center gap-3 text-center">
-                  {/* Ikon peringatan */}
                   <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
                     <AlertTriangle className="w-6 h-6 text-amber-500" />
                   </div>
 
-                  {/* Teks */}
                   <div>
                     <p className="font-semibold text-sm text-amber-800 dark:text-amber-300">
                       Kamu belum memilih meja!
@@ -78,7 +77,6 @@ export default function PostOrderTypeTab({
                     </p>
                   </div>
 
-                  {/* Tombol utama */}
                   <Button
                     asChild
                     size="sm"
@@ -90,7 +88,6 @@ export default function PostOrderTypeTab({
                     </Link>
                   </Button>
 
-                  {/* Atau scan QR */}
                   <div className="flex items-center gap-1.5 text-xs text-amber-700/70 dark:text-amber-400/70">
                     <QrCode className="w-3 h-3" />
                     <span>atau scan QR Code di meja kamu</span>

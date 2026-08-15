@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { orderStatusMapping } from "@/constant/order-status-mapping";
 
 import CustomBadge from "@/components/custom-badge";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus } from "@/generated/prisma";
 import { paymentMethodMapping } from "@/constant/payment-method";
 import { postOrderTypeMapping } from "@/constant/post-order-type-mapping";
 import CustomerPositionBreadcrumb from "@/features/cart/ui/customer-position-breadcrumb";
@@ -56,11 +56,35 @@ export default function CustomerOrderDetailClient({
   const prevStatusRef = useRef<OrderStatus>(order.status);
 
   useEffect(() => {
+    // if (prevStatusRef.current !== "CANCELLED" && order.status === "CANCELLED") {
+    //   const isShopCancellation =
+    //     order.cancelled_by_id === order.shop.owner?.user_id;
+    //   if (isShopCancellation) {
+    //     showNotification({
+    //       title: "Pesanan Dibatalkan Kedai",
+    //       message:
+    //         "Maaf, pesananmu dibatalkan oleh kedai. Dana akan dikembalikan sesuai metode yang dipilih.",
+    //       type: "error",
+    //       actionButtons: (
+    //         <div className="flex flex-col gap-2 w-full">
+    //           <Button
+    //             asChild
+    //             className="w-full"
+    //             onClick={() => hideNotification()}
+    //           >
+    //             <Link href={`/order/${order.id}`}>Lihat Detail</Link>
+    //           </Button>
+    //         </div>
+    //       ),
+    //     });
+    //   }
+    // }
+
     prevStatusRef.current = order.status;
   }, [
     order.status,
     order.cancelled_by_id,
-    order.shop.owner_id,
+    order.shop.owner?.user_id,
     showNotification,
     hideNotification,
   ]);
@@ -173,7 +197,7 @@ export default function CustomerOrderDetailClient({
                 </p>
                 <CancelOrderDialog
                   order_id={order.id}
-                  user_id={order.customer_id}
+                  user_id={order.customer.user.id}
                   order_status={order.status}
                   userRole="CUSTOMER"
                   isLate={isLate}
@@ -234,7 +258,7 @@ export default function CustomerOrderDetailClient({
         )}
 
         {order.status === "CANCELLED" &&
-          order.cancelled_by_id === order.shop.owner_id && (
+          order.cancelled_by_id === order.shop.owner?.user_id && (
             <Alert variant={"destructive"}>
               <ShoppingCartExclamationIcon />
               <AlertTitle>Pesanan Dibatalkan Oleh Pemilik Kedai</AlertTitle>
@@ -243,7 +267,7 @@ export default function CustomerOrderDetailClient({
           )}
 
         {order.status === "CANCELLED" &&
-          order.cancelled_by_id === order.customer_id && (
+          order.cancelled_by_id === order.customer.user.id && (
             <Alert variant={"destructive"}>
               <ShoppingCartExclamationIcon />
               <AlertTitle>Pesanan Dibatalkan Oleh Anda</AlertTitle>
@@ -493,7 +517,7 @@ export default function CustomerOrderDetailClient({
         {canCancel && !isGracePeriod && (
           <CancelOrderDialog
             order_id={order.id}
-            user_id={order.customer_id}
+            user_id={order.customer.user.id}
             order_status={order.status}
             userRole="CUSTOMER"
             isLate={isLate}

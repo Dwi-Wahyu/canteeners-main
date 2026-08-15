@@ -2,7 +2,7 @@ import { format, formatISO, parse } from "date-fns";
 
 export function formatToHour(date: Date | null | undefined) {
   if (!date) {
-    return "N/A"; // atau string lain yang sesuai, misalnya "--:--"
+    return "N/A";
   }
   return format(date, "HH:mm");
 }
@@ -27,4 +27,15 @@ export function formatToDatetimeHour(timeString: string | null) {
 
     return null;
   }
+}
+
+export function isTimeWithinRange(now: Date, openTime?: Date | null, closeTime?: Date | null): boolean {
+  if (!openTime || !closeTime) return true;
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const openMinutes = new Date(openTime).getHours() * 60 + new Date(openTime).getMinutes();
+  const closeMinutes = new Date(closeTime).getHours() * 60 + new Date(closeTime).getMinutes();
+  if (openMinutes <= closeMinutes) {
+    return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+  }
+  return currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
 }

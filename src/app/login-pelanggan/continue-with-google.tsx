@@ -1,20 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { loginWithGoogle } from "./actions";
 
 export default function ContinueWithGoogle() {
   return (
     <form action={loginWithGoogle} className="">
-      <div className="relative flex items-center justify-center w-full">
-        <Separator className="absolute" />
-        <span className="relative z-10 bg-background px-2 text-muted-foreground text-sm ">
-          Atau
-        </span>
-      </div>
-
       <Button
         type="submit"
-        className="w-full h-11 font-semibold rounded-xl mt-4"
+        className="w-full h-11 font-semibold rounded-xl flex items-center justify-center gap-3 cursor-pointer"
         variant={"outline"}
       >
         <svg

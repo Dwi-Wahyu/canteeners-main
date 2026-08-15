@@ -8,7 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { formatRupiah } from "@/helper/format-rupiah";
-import SnkCheckoutDialog from "@/features/cart/ui/snk-checkout-dialog";
 import PostOrderTypeTab from "@/features/cart/ui/post-order-type-tab";
 import { processShopCart } from "@/features/cart/lib/cart-actions";
 import ShopCartPaymentMethod from "@/features/cart/ui/shop-cart-payment-method";
@@ -16,14 +15,24 @@ import NavButton from "@/components/nav-button";
 import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Store, Loader2, Pencil, StickyNote } from "lucide-react";
-import { formatToHour } from "@/helper/hour-helper";
+import {
+  Store,
+  Loader2,
+  Pencil,
+  StickyNote,
+  Trash2,
+  CircleAlert,
+  ShieldAlert,
+  Coffee,
+} from "lucide-react";
+import { formatToHour, isTimeWithinRange } from "@/helper/hour-helper";
 import ReferralSection from "./referral-section";
 import { toast } from "sonner";
 import { useRouter } from "nextjs-toploader/app";
@@ -31,27 +40,49 @@ import VoucherSelectionDialog from "./voucher-selection-dialog";
 import { calculateCommission } from "@/helper/pricing-helper";
 import { getImageUrl } from "@/helper/get-image-url";
 import { Input } from "@/components/ui/input";
-import { changeCartItemDetails } from "@/features/cart/lib/cart-actions";
+import {
+  changeCartItemDetails,
+  deleteCartItem,
+} from "@/features/cart/lib/cart-actions";
 import {
   GetShopCartType,
   GetShopCartItemType,
 } from "../types/cart-queries-types";
+import { cn } from "@/lib/utils";
 
 function CartItemRow({
   item,
   shopCartId,
-  disabled,
+  isLocked,
+  isLastItem,
 }: {
   item: GetShopCartItemType;
   shopCartId: string;
-  disabled: boolean;
+  isLocked: boolean;
+  isLastItem: boolean;
 }) {
   const router = useRouter();
   const [qty, setQty] = useState(item.quantity);
   const [isPending, startTransition] = useTransition();
 
+  const isAvailable = (item.product as any).is_available;
+
+  async function handleDeleteItem() {
+    if (isLocked || isLastItem) return;
+
+    startTransition(async () => {
+      const result = await deleteCartItem(item.id);
+
+      if (result.success) {
+        router.refresh();
+      } else {
+        toast.error(result.error.message);
+      }
+    });
+  }
+
   async function handleChangeQuantity(newQty: number) {
-    if (newQty < 1) return;
+    if (newQty < 1 || !isAvailable || isLocked) return;
 
     setQty(newQty);
 
@@ -63,10 +94,8 @@ function CartItemRow({
       });
 
       if (result.success) {
-        // toast.success("Perubahan disimpan");
         router.refresh();
       } else {
-        // toast.error("Gagal menyimpan perubahan");
         setQty(item.quantity);
       }
     });
@@ -92,11 +121,32 @@ function CartItemRow({
           <p className="font-medium text-sm">{formatRupiah(item.subtotal)}</p>
         </div>
 
-        <Link href={`/keranjang/${shopCartId}/${item.id}`}>
-          <Button size="icon" variant="ghost" className="h-8 w-8">
-            <Pencil className="w-4 h-4 text-muted-foreground" />
+        <div className="flex gap-1">
+          <Link href={`/keranjang/${shopCartId}/${item.id}`}>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              disabled={isLocked || !isAvailable}
+            >
+              <Pencil className="w-4 h-4 text-muted-foreground" />
+            </Button>
+          </Link>
+
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 hover:bg-red-50 group transition-colors"
+            onClick={handleDeleteItem}
+            disabled={isLocked || isPending || isLastItem}
+          >
+            {isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Trash2 className="w-4 h-4 text-muted-foreground group-hover:text-red-500" />
+            )}
           </Button>
-        </Link>
+        </div>
       </div>
 
       <div className="flex gap-2 items-center">
@@ -105,7 +155,7 @@ function CartItemRow({
           variant="outline"
           className="h-8 w-8"
           onClick={() => handleChangeQuantity(qty - 1)}
-          disabled={qty <= 1 || isPending || disabled}
+          disabled={qty <= 1 || isPending || isLocked || !isAvailable}
         >
           -
         </Button>
@@ -115,14 +165,14 @@ function CartItemRow({
           onChange={(e) => handleChangeQuantity(Number(e.target.value))}
           className="w-12 h-8 text-center p-0 text-xs"
           min={1}
-          disabled={isPending || disabled}
+          disabled={isPending || isLocked || !isAvailable}
         />
         <Button
           size="icon"
           variant="outline"
           className="h-8 w-8"
           onClick={() => handleChangeQuantity(qty + 1)}
-          disabled={isPending || disabled}
+          disabled={isPending || isLocked || !isAvailable}
         >
           +
         </Button>
@@ -139,11 +189,15 @@ export default function ShopCartClient({
 }: {
   userId: string;
   shopCart: GetShopCartType;
-  customerProfile: GetCustomerProfileType;
+  customerProfile: GetCustomerProfileType & {
+    user?: { name?: string | null; username?: string | null };
+    has_used_referral?: boolean;
+    violations?: any[];
+  };
   nameAlreadySet: boolean;
 }) {
   const router = useRouter();
-  const [showSnk, setShowSnk] = useState(false);
+  const [isSnkAgreed, setIsSnkAgreed] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     shopCart.payment_method,
   );
@@ -154,6 +208,9 @@ export default function ShopCartClient({
 
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [selectedDiscountIds, setSelectedDiscountIds] = useState<string[]>([]);
+
+  const userObj = (customerProfile as any).user;
+  const isGuest = !userObj?.username;
 
   const handleApplyReferral = (code: string) => {
     setAppliedCode(code);
@@ -171,18 +228,34 @@ export default function ShopCartClient({
     }
   };
 
-  // Hitung total potongan dari voucher yang dipilih
+  const totalQty = shopCart.items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalCommission = calculateCommission(totalQty);
+  const itemsOnlyTotal = shopCart.total_price - totalCommission;
+
+  const ITEM_ONLY_DISCOUNT_CODES = ["EVENT_REWARD_VOUCHER"];
+
   const finalDiscount = (customerProfile.discounts || [])
     .filter((cd) => selectedDiscountIds.includes(cd.id))
     .reduce((sum, cd: any) => {
-      if (cd.discount.type === "FIXED") return sum + cd.discount.value;
-      const pct = (shopCart.total_price * cd.discount.value) / 100;
-      return (
-        sum +
-        (cd.discount.max_discount
+      const isItemOnly =
+        cd.discount.code && ITEM_ONLY_DISCOUNT_CODES.includes(cd.discount.code);
+      const discountBase = isItemOnly ? itemsOnlyTotal : shopCart.total_price;
+
+      let amount = 0;
+      if (cd.discount.type === "FIXED") {
+        amount = cd.discount.value;
+      } else {
+        const pct = (discountBase * cd.discount.value) / 100;
+        amount = cd.discount.max_discount
           ? Math.min(pct, cd.discount.max_discount)
-          : pct)
-      );
+          : pct;
+      }
+
+      if (isItemOnly && amount > itemsOnlyTotal) {
+        amount = itemsOnlyTotal;
+      }
+
+      return sum + amount;
     }, 0);
 
   const [postOrderType, setPostOrderType] = useState<PostOrderType>(
@@ -190,7 +263,6 @@ export default function ShopCartClient({
   );
 
   function handleClickCheckout() {
-    // Jika belum set nama / masih default = ""
     if (
       postOrderType === "DELIVERY_TO_TABLE" &&
       customerProfile.table_number === null
@@ -199,15 +271,23 @@ export default function ShopCartClient({
       return;
     }
 
-    if (!nameAlreadySet) {
+    if (!isSnkAgreed) {
+      toast.error("Tolong setujui Syarat & Ketentuan terlebih dahulu");
+      return;
+    }
+
+    const userName = userObj?.name;
+    const isNameInvalid = !userName || userName === "Tamu";
+
+    if (isGuest && isNameInvalid) {
       setShowGuestDetailsFormDialog(true);
     } else {
-      setShowSnk(true);
+      setCheckouted(true);
     }
   }
 
   function saveGuestDetails() {
-    setShowSnk(true);
+    setCheckouted(true);
   }
 
   const [isPending, startTransition] = useTransition();
@@ -226,8 +306,6 @@ export default function ShopCartClient({
         });
 
         if (result.success) {
-          setShowSnk(false);
-
           notificationDialog.success({
             title: "Sukses checkout keranjang",
             message: "Order berhasil dicatat, mengalihkan ke detail order...",
@@ -238,9 +316,10 @@ export default function ShopCartClient({
             setTimeout(() => {
               notificationDialog.hide();
               router.push("/order/" + result.data?.order_id);
-            }, 2000);
+            }, 1500);
           }
         } else {
+          setCheckouted(false);
           notificationDialog.error({
             title: "Gagal checkout keranjang",
             message: result.error.message,
@@ -253,15 +332,29 @@ export default function ShopCartClient({
   const now = new Date();
   const { status, open_time, close_time, suspended_reason } = shopCart.shop;
 
-  // Apakah di luar jam operasional
   const isOutsideHours =
-    open_time && close_time && (now < open_time || now > close_time);
+    open_time && close_time && !isTimeWithinRange(now, open_time, close_time);
 
-  // Apakah status memang tidak aktif (Manual/Sistem)
-  const isNotActive = status !== "ACTIVE";
+  const isNotActive = (status as string) !== "ACTIVE" && (status as string) !== "BUSY";
+  const isBusy = (status as string) === "BUSY";
 
-  // Apakah kedai benar-benar bisa menerima order
-  const canOrder = !isNotActive && !isOutsideHours;
+  useEffect(() => {
+    if (isBusy) {
+      setPostOrderType("TAKEAWAY");
+    }
+  }, [isBusy]);
+
+  const hasUnavailableItem = shopCart.items.some(
+    (item: any) => !item.product.is_available,
+  );
+
+  const canOrder = !isNotActive && !isOutsideHours && !hasUnavailableItem;
+
+  const isSuspended =
+    customerProfile.suspend_until !== null &&
+    new Date(customerProfile.suspend_until) > new Date();
+
+  const violations = (customerProfile as any).violations;
 
   const groupedItems = shopCart.items.reduce(
     (acc, item) => {
@@ -277,19 +370,65 @@ export default function ShopCartClient({
 
   return (
     <div className="flex flex-col gap-4">
+      {violations && violations.length >= 2 && !isSuspended && (
+        <Alert className="border-red-200 bg-red-50 text-red-900">
+          <CircleAlert className="w-4 h-4 text-red-600" />
+          <AlertTitle className="text-red-800">Peringatan Pelanggaran</AlertTitle>
+          <AlertDescription className="text-red-700">
+            Anda wajib menyelesaikan pesanan setelah checkout. Jika order
+            dibatalkan sebelum melakukan pembayaran, maka akun akan dibekukan 1
+            hari.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isSuspended && (
+        <Alert variant="destructive">
+          <ShieldAlert className="w-4 h-4" />
+          <AlertTitle>Akun Dibekukan</AlertTitle>
+          <AlertDescription>
+            {customerProfile.suspend_reason ||
+              "Akun Anda sedang dibekukan sementara karena pelanggaran kebijakan."}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isBusy && (
+        <Alert className="border-orange-200 bg-orange-50 text-orange-900">
+          <Coffee className="w-4 h-4 text-orange-600" />
+          <AlertTitle className="text-orange-800">Kedai Sedang Sibuk</AlertTitle>
+          <AlertDescription className="text-orange-700">
+            Maaf, kedai sedang sangat ramai. Pesanan hanya dapat dilakukan untuk Take Away (ambil di kedai) untuk sementara waktu.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {!canOrder && (
-        <Alert variant={status === "SUSPENDED" ? "destructive" : "default"}>
-          <Store />
+        <Alert
+          variant={
+            status === "SUSPENDED" || hasUnavailableItem
+              ? "destructive"
+              : "default"
+          }
+        >
+          {hasUnavailableItem ? <CircleAlert /> : <Store />}
           <AlertTitle>
             {status === "SUSPENDED"
               ? "Kedai Ditangguhkan"
-              : "Kedai Sedang Tutup"}
+              : hasUnavailableItem
+                ? "Item Tidak Tersedia"
+                : "Kedai Sedang Tutup"}
           </AlertTitle>
           <AlertDescription>
             {status === "SUSPENDED" ? (
               <span>
                 {suspended_reason ||
                   "Kedai ini sementara tidak dapat menerima pesanan."}
+              </span>
+            ) : hasUnavailableItem ? (
+              <span>
+                Ada item di keranjang Anda yang saat ini tidak tersedia. Silakan
+                hapus item tersebut untuk melanjutkan checkout.
               </span>
             ) : status === "INACTIVE" ? (
               <span>
@@ -305,6 +444,7 @@ export default function ShopCartClient({
           </AlertDescription>
         </Alert>
       )}
+
       <div className="">
         <h1 className="font-semibold mb-2">Daftar Pesanan</h1>
 
@@ -318,26 +458,48 @@ export default function ShopCartClient({
                 0,
               );
 
+              const isAvailable = (firstItem.product as any).is_available;
+
               return (
                 <AccordionItem
                   value={`item-${idx}`}
                   key={idx}
-                  className="border rounded-lg px-4 mb-2 last:border-b"
+                  className={cn(
+                    "border rounded-lg px-4 mb-2 last:border-b",
+                    !isAvailable && "bg-red-50/50 border-red-200",
+                  )}
                 >
                   <AccordionTrigger className="hover:no-underline py-4">
                     <div className="flex gap-4 items-center">
-                      <img
-                        src={getImageUrl(
-                          "/product/" + firstItem.product.image_url,
-                        )}
-                        alt={productName}
-                        className="rounded-lg object-cover aspect-square w-16 h-16"
-                        onError={(e) =>
-                          (e.currentTarget.src = "/placeholder-image.webp")
-                        }
-                      />
+                      <div className="relative">
+                        <img
+                          src={getImageUrl(
+                            "/product/" + firstItem.product.image_url,
+                          )}
+                          alt={productName}
+                          className={cn(
+                            "rounded-lg object-cover aspect-square w-16 h-16",
+                            !isAvailable && "grayscale",
+                          )}
+                          onError={(e) =>
+                            (e.currentTarget.src = "/placeholder-image.webp")
+                          }
+                        />
+                      </div>
                       <div className="flex flex-col text-left">
-                        <h1 className="font-semibold">{productName}</h1>
+                        {!isAvailable && (
+                          <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm w-fit font-bold mb-1">
+                            Tidak Tersedia
+                          </span>
+                        )}
+                        <h1
+                          className={cn(
+                            "font-semibold",
+                            !isAvailable && "text-red-900",
+                          )}
+                        >
+                          {productName}
+                        </h1>
                         <p className="text-sm text-muted-foreground">
                           {totalQty} Item • {formatRupiah(totalSubtotal)}
                         </p>
@@ -351,7 +513,8 @@ export default function ShopCartClient({
                           key={item.id}
                           item={item}
                           shopCartId={shopCart.id}
-                          disabled={shopCart.order_id !== null}
+                          isLocked={shopCart.order_id !== null}
+                          isLastItem={shopCart.items.length === 1}
                         />
                       ))}
                     </div>
@@ -390,66 +553,58 @@ export default function ShopCartClient({
         postOrderType={postOrderType}
         setPostOrderType={setPostOrderType}
         selectTablePageUrl={`/kantin/${shopCart.shop.canteen.slug}/pilih-meja?callbackUrl=/keranjang/${shopCart.id}`}
+        isBusy={isBusy}
       />
 
-      {/* <VoucherSelectionDialog
-        vouchers={(customerProfile.discounts || []).filter((d) => !d.is_used) as any}
-        selectedIds={selectedDiscountIds}
-        onToggle={toggleDiscount}
-        totalPrice={shopCart.total_price}
-      /> */}
+      {!isGuest && !customerProfile.has_used_referral && (
+        <ReferralSection
+          appliedCode={appliedCode}
+          onApply={handleApplyReferral}
+          onRemove={removeReferral}
+        />
+      )}
 
-      {/* <ReferralSection
-        appliedCode={appliedCode}
-        onApply={handleApplyReferral}
-        onRemove={removeReferral}
-      /> */}
+      {!isGuest && (
+        <VoucherSelectionDialog
+          vouchers={
+            (customerProfile.discounts || []).filter((d) => !d.is_used) as any
+          }
+          selectedIds={selectedDiscountIds}
+          onToggle={toggleDiscount}
+          totalPrice={shopCart.total_price}
+        />
+      )}
 
-      <div className="flex flex-col gap-1">
-        <div className="flex justify-between items-center text-muted-foreground">
-          <h1>Biaya Tambahan</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="font-semibold text-sm">Ringkasan Harga</h1>
 
-          <div className="flex flex-col items-end">
-            <h1>Rp 1.000 / item</h1>
+        <div className="flex justify-between items-center text-sm text-muted-foreground">
+          <h1>Total Harga Menu ({totalQty} Item)</h1>
+          <h1>{formatRupiah(itemsOnlyTotal)}</h1>
+        </div>
+
+        <div className="flex justify-between items-center text-sm text-muted-foreground">
+          <div className="flex flex-col">
+            <h1>Total Biaya Layanan</h1>
             <span className="text-[10px]">
               Potongan 50% jika total lebih dari 2 item
             </span>
           </div>
-        </div>
-
-        <div className="flex justify-between items-center text-muted-foreground">
-          <h1>Total Biaya Tambahan</h1>
-
-          <h1>
-            {formatRupiah(
-              calculateCommission(
-                shopCart.items.reduce((sum, item) => sum + item.quantity, 0),
-              ),
-            )}
-          </h1>
-        </div>
-
-        <div className="flex justify-between items-center text-muted-foreground">
-          <h1>Subtotal</h1>
-
-          <h1>{formatRupiah(shopCart.total_price)}</h1>
+          <h1>{formatRupiah(totalCommission)}</h1>
         </div>
 
         {finalDiscount > 0 && (
-          <div className="flex justify-between items-center text-blue-600 font-semibold animate-in slide-in-from-right-2 duration-300">
+          <div className="flex justify-between items-center text-sm text-blue-600 font-semibold animate-in slide-in-from-right-2 duration-300">
             <h1>Total Potongan</h1>
             <h1>-{formatRupiah(finalDiscount)}</h1>
           </div>
         )}
 
-        <div className="flex font-semibold justify-between items-center text-muted-foreground mt-2 border-t pt-2">
-          <h1>
-            Total Harga{" "}
-            {shopCart.items.reduce((sum, item) => sum + item.quantity, 0) * 1}{" "}
-            Item
+        <div className="flex font-bold justify-between items-center text-gray-900 mt-1 border-t pt-3">
+          <h1>Total Pembayaran</h1>
+          <h1 className="text-lg text-primary">
+            {formatRupiah(shopCart.total_price - finalDiscount)}
           </h1>
-
-          <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
         </div>
       </div>
 
@@ -473,22 +628,62 @@ export default function ShopCartClient({
       )}
 
       {shopCart.order_id === null && (
-        <Button
-          className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
-          size={"lg"}
-          onClick={handleClickCheckout}
-          disabled={customerProfile.suspend_until !== null || !canOrder}
-        >
-          <h1>{shopCart.items.length} Item</h1>
-
-          <div className="flex gap-2 h-4">
-            <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
-
-            <Separator orientation="vertical" />
-
-            <h1 className="font-semibold">Checkout</h1>
+        <div className="flex flex-col gap-3 mt-2">
+          {/* Inline S&K Checkbox */}
+          <div className="flex items-center space-x-2 bg-muted/30 p-3 rounded-lg border border-border">
+            <Checkbox
+              id="snk-agreement"
+              checked={isSnkAgreed}
+              onCheckedChange={(checked) => setIsSnkAgreed(!!checked)}
+            />
+            <label
+              htmlFor="snk-agreement"
+              className="text-xs text-muted-foreground leading-snug cursor-pointer select-none"
+            >
+              Saya menyetujui{" "}
+              <Link
+                href="/syarat-dan-ketentuan/pelanggan"
+                target="_blank"
+                className="text-primary font-medium underline"
+              >
+                Syarat & Ketentuan
+              </Link>{" "}
+              layanan pemesanan Canteeners.
+            </label>
           </div>
-        </Button>
+
+          <Button
+            className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
+            size={"lg"}
+            onClick={handleClickCheckout}
+            disabled={
+              isSuspended ||
+              !canOrder ||
+              isPending ||
+              !isSnkAgreed ||
+              (postOrderType === "DELIVERY_TO_TABLE" &&
+                customerProfile.table_number === null)
+            }
+          >
+            <h1>{shopCart.items.length} Item</h1>
+
+            <div className="flex gap-2 h-4 items-center">
+              <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
+
+              <Separator orientation="vertical" />
+
+              <h1 className="font-semibold">
+                {isPending ? (
+                  <span className="flex items-center gap-1">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Proses...
+                  </span>
+                ) : (
+                  "Checkout"
+                )}
+              </h1>
+            </div>
+          </Button>
+        </div>
       )}
 
       <GuestDetailsFormDialog
@@ -496,13 +691,6 @@ export default function ShopCartClient({
         setShowGuestDetailsFormDialog={setShowGuestDetailsFormDialog}
         showGuestDetailsFormDialog={showGuestDetailsFormDialog}
         saveGuestDetails={saveGuestDetails}
-      />
-
-      <SnkCheckoutDialog
-        showSnk={showSnk}
-        setShowSnk={setShowSnk}
-        setCheckouted={setCheckouted}
-        isCheckoutPending={isPending}
       />
     </div>
   );

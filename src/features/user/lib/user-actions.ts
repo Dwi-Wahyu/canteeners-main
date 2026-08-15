@@ -13,9 +13,15 @@ import { revalidatePath } from "next/cache";
 export async function createGuestCustomer({
   firebaseUserUid,
   guestName,
+  tableData,
 }: {
   firebaseUserUid: string;
   guestName: string;
+  tableData?: {
+    canteen_id: number;
+    floor: number;
+    table_number: number;
+  };
 }): Promise<
   ServerActionReturn<{
     user_id: string;
@@ -52,6 +58,12 @@ export async function createGuestCustomer({
     const createdCustomer = await prisma.customer.create({
       data: {
         user_id: createdUser.id,
+        ...(tableData && {
+          canteen_id: tableData.canteen_id,
+          floor: tableData.floor,
+          table_number: tableData.table_number,
+          last_visit_at: new Date(),
+        }),
       },
     });
 
@@ -258,3 +270,101 @@ export async function validateReferralCode(
     return errorResponse("Terjadi kesalahan saat validasi kode referral");
   }
 }
+
+export async function getUnseenVouchers(): Promise<ServerActionReturn<any[]>> {
+  const session = await auth();
+  if (!session || session.user.role !== "CUSTOMER") {
+    return errorResponse("Sesi tidak valid");
+  }
+
+  try {
+    const unseenVouchers = await prisma.customerDiscount.findMany({
+      where: {
+        customer: {
+          user_id: session.user.id,
+        },
+        is_seen: false,
+      },
+      include: {
+        discount: true,
+        event_usage: true,
+      },
+    });
+
+    const unseenEventResults = await prisma.eventUsage.findMany({
+      where: {
+        user_id: session.user.id,
+        is_seen: false,
+        customer_discount_id: null,
+      },
+    });
+
+    const combined = [
+      ...unseenVouchers.map((v) => ({ ...v, popupType: "VOUCHER" })),
+      ...unseenEventResults.map((e) => ({
+        id: e.id,
+        event_usage: e,
+        popupType: "EVENT_LOST",
+      })),
+    ];
+
+    return successResponse(combined, "Berhasil mengambil voucher baru");
+  } catch (error) {
+    console.error(error);
+    return errorResponse("Terjadi kesalahan");
+  }
+}
+
+export async function markVouchersAsSeen(
+  ids: { voucherIds: string[]; eventUsageIds: string[] },
+): Promise<ServerActionReturn<void>> {
+  try {
+    if (ids.voucherIds.length > 0) {
+      await prisma.customerDiscount.updateMany({
+        where: {
+          id: { in: ids.voucherIds },
+        },
+        data: {
+          is_seen: true,
+        },
+      });
+    }
+
+    if (ids.eventUsageIds.length > 0) {
+      await prisma.eventUsage.updateMany({
+        where: {
+          id: { in: ids.eventUsageIds },
+        },
+        data: {
+          is_seen: true,
+        },
+      });
+    }
+
+    // Juga tandai event_usage yang terhubung dengan voucher
+    const vouchersWithEvent = await prisma.customerDiscount.findMany({
+      where: { id: { in: ids.voucherIds } },
+      select: { event_usage: { select: { id: true } } },
+    });
+
+    const linkedEventUsageIds = vouchersWithEvent
+      .map((v) => v.event_usage?.id)
+      .filter(Boolean) as string[];
+
+    if (linkedEventUsageIds.length > 0) {
+      await prisma.eventUsage.updateMany({
+        where: { id: { in: linkedEventUsageIds } },
+        data: { is_seen: true },
+      });
+    }
+
+    return successResponse(
+      undefined,
+      "Berhasil menandai voucher sebagai dilihat",
+    );
+  } catch (error) {
+    console.error(error);
+    return errorResponse("Terjadi kesalahan");
+  }
+}
+

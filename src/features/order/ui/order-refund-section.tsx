@@ -20,7 +20,7 @@ interface OrderRefundSectionProps {
     refund?: {
       id: string;
       status: string;
-    };
+    } | null;
   };
   userRole: "CUSTOMER" | "SHOP_OWNER";
 }
