@@ -1,11 +1,13 @@
 import TopbarWithBackButton from "@/components/layouts/topbar-with-backbutton";
 import { getShopOrderDetail } from "@/features/order/lib/order-queries";
-import OrderReviewSection from "@/features/order/ui/order-review-section";
 import ShopOrderDetailClient from "@/features/order/ui/shop-order-detail-client";
 import ShopComplaintSection from "@/features/order/ui/shop-complaint-section";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/config/auth";
 import { OrderRefundSection } from "@/features/order/ui/order-refund-section";
+import OrderReviewSection from "@/features/order/ui/order-review-section";
+import Link from "next/link";
+import { MessageSquare } from "lucide-react";
 
 export default async function ShopOrderDetailPage({
   params,
@@ -27,10 +29,21 @@ export default async function ShopOrderDetailPage({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 pt-16">
       <TopbarWithBackButton
         title="Detail Order"
-        backUrl={"/dashboard-kedai/chat/" + order.conversation_id}
+        backUrl="/dashboard-kedai/order"
+        actionButton={
+          order.conversation_id ? (
+            <Link
+              href={"/dashboard-kedai/chat/" + order.conversation_id}
+              className="flex items-center gap-1.5 bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded-full text-sm font-medium transition-colors"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>Chat</span>
+            </Link>
+          ) : undefined
+        }
       />
 
       <div className="space-y-5">
