@@ -547,10 +547,49 @@ export async function addToCart({
         0,
       );
 
+      // 1. Pastikan record Cart yang valid tersedia di database (resolve jika cartId yang dikirim adalah customer_id / user_id)
+      let cart = await tx.cart.findUnique({
+        where: { id: cartId },
+      });
+
+      if (!cart) {
+        cart = await tx.cart.findUnique({
+          where: { customer_id: cartId },
+        });
+      }
+
+      if (!cart) {
+        const customer = await tx.customer.findFirst({
+          where: {
+            OR: [{ id: cartId }, { user_id: cartId }],
+          },
+          include: { cart: true },
+        });
+
+        if (customer) {
+          if (customer.cart) {
+            cart = customer.cart;
+          } else {
+            cart = await tx.cart.create({
+              data: {
+                customer_id: customer.id,
+                status: "ACTIVE",
+              },
+            });
+          }
+        }
+      }
+
+      if (!cart) {
+        throw new Error("Keranjang atau data pelanggan tidak ditemukan");
+      }
+
+      const validCartId = cart.id;
+
       // Cari shop cart
       let shopCart = await tx.shopCart.findFirst({
         where: {
-          cart_id: cartId,
+          cart_id: validCartId,
           shop_id: shopId,
           order_id: null,
         },
@@ -559,7 +598,7 @@ export async function addToCart({
       if (!shopCart) {
         shopCart = await tx.shopCart.create({
           data: {
-            cart_id: cartId,
+            cart_id: validCartId,
             shop_id: shopId,
             total_price: 0,
           },

@@ -138,6 +138,17 @@ export const authConfig: NextAuthConfig = {
           },
         });
 
+        let cartId = user.customer?.cart?.id;
+        if (user.customer && !cartId) {
+          const newCart = await prisma.cart.create({
+            data: {
+              customer_id: user.customer.id,
+              status: "ACTIVE",
+            },
+          });
+          cartId = newCart.id;
+        }
+
         return {
           id: user.id,
           username: user.username ?? "",
@@ -150,7 +161,7 @@ export const authConfig: NextAuthConfig = {
           shopName: user.owner?.shop?.name,
           // Customer payload
           customerId: user.customer?.id,
-          cartId: user.customer?.cart?.id || user.customer?.id,
+          cartId: cartId,
 
           firebaseToken,
           firebaseTokenCreatedAt: Math.floor(Date.now() / 1000),
@@ -276,7 +287,18 @@ export const authConfig: NextAuthConfig = {
           token.role = dbUser.role;
           token.avatar = dbUser.avatar;
           token.customerId = dbUser.customer?.id;
-          token.cartId = dbUser.customer?.cart?.id;
+
+          let cartId = dbUser.customer?.cart?.id;
+          if (dbUser.customer && !cartId) {
+            const newCart = await prisma.cart.create({
+              data: {
+                customer_id: dbUser.customer.id,
+                status: "ACTIVE",
+              },
+            });
+            cartId = newCart.id;
+          }
+          token.cartId = cartId;
 
           if (!token.firebaseToken || !token.firebaseTokenCreatedAt) {
             const firebaseToken = await getFirebaseToken({ uid: dbUser.id });
