@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -22,10 +22,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { CheckCircle, Loader2, Upload, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Image from "next/image";
 import { refundDisbursementModeMapping } from "@/constant/refund-mapping";
-import { getFileExtension } from "@/helper/file-helper";
-import { uuidv4 } from "zod";
 
 interface ProcessRefundDialogProps {
   open: boolean;
@@ -45,11 +42,8 @@ export function ProcessRefundDialog({
   onSuccess,
 }: ProcessRefundDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<{
-    url: string;
-    name: string;
-  } | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const form = useForm<ProcessRefundInput>({
     resolver: zodResolver(ProcessRefundSchema),
@@ -59,7 +53,15 @@ export function ProcessRefundDialog({
     },
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -80,40 +82,24 @@ export function ProcessRefundDialog({
       return;
     }
 
-    setIsUploading(true);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
 
-    try {
-      const formData = new FormData();
-      formData.append("path", "disbursement-proof");
-      formData.append("file", file);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const data = await response.json();
-      const filename = data.data.url.split("/").pop();
-      setUploadedFile({
-        url: data.data.url,
-        name: file.name,
-      });
-      form.setValue("disbursement_proof_url", filename);
-      toast.success("Bukti berhasil diunggah");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Gagal mengunggah bukti. Silakan coba lagi.");
-    } finally {
-      setIsUploading(false);
+    setSelectedFile(file);
+    if (file.type.startsWith("image/")) {
+      setPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setPreviewUrl(null);
     }
   };
 
-  const removeUploadedFile = () => {
-    setUploadedFile(null);
+  const removeSelectedFile = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
     form.setValue("disbursement_proof_url", "");
   };
 
@@ -121,20 +107,47 @@ export function ProcessRefundDialog({
     setIsSubmitting(true);
 
     try {
-      const result = await processRefund(data);
+      let finalProofFilename = "";
+
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("path", "disbursement-proof");
+        formData.append("file", selectedFile);
+
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error("Gagal mengunggah bukti transfer");
+        }
+
+        const uploadData = await uploadRes.json();
+        if (uploadData.data?.url) {
+          finalProofFilename = uploadData.data.url.split("/").pop() || "";
+        }
+      }
+
+      const payload = {
+        ...data,
+        disbursement_proof_url: finalProofFilename,
+      };
+
+      const result = await processRefund(payload);
 
       if (result.success) {
         toast.success("Refund berhasil diproses");
         form.reset();
-        setUploadedFile(null);
+        removeSelectedFile();
         onOpenChange(false);
         onSuccess?.();
       } else {
         toast.error(result.error.message || "Gagal memproses refund");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submit error:", error);
-      toast.error("Terjadi kesalahan. Silakan coba lagi.");
+      toast.error(error.message || "Terjadi kesalahan. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);
     }
@@ -177,39 +190,38 @@ export function ProcessRefundDialog({
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* File Upload */}
+              {/* File Selection & Preview */}
               <div className="space-y-2">
                 <FormLabel>Bukti Transfer (Opsional)</FormLabel>
                 <FormDescription>
-                  Upload bukti transfer atau pembayaran (JPG, PNG, WEBP, PDF -
+                  Pilih bukti transfer atau pembayaran (JPG, PNG, WEBP, PDF -
                   Maks 5MB)
                 </FormDescription>
 
-                {uploadedFile ? (
+                {selectedFile ? (
                   <div className="relative border rounded-lg p-3 bg-muted/50">
                     <div className="flex items-start gap-3">
-                      {uploadedFile.url.endsWith(".pdf") ? (
-                        <div className="h-16 w-16 rounded bg-red-100 flex items-center justify-center shrink-0">
+                      {selectedFile.type === "application/pdf" ? (
+                        <div className="h-16 w-16 rounded bg-red-100 flex items-center justify-center shrink-0 border">
                           <span className="text-xs font-medium text-red-900">
                             PDF
                           </span>
                         </div>
-                      ) : (
-                        <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
-                          <Image
-                            src={uploadedFile.url}
+                      ) : previewUrl ? (
+                        <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0 border">
+                          <img
+                            src={previewUrl}
                             alt="Bukti transfer"
-                            fill
-                            className="object-cover"
+                            className="w-full h-full object-cover"
                           />
                         </div>
-                      )}
+                      ) : null}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
-                          {uploadedFile.name}
+                          {selectedFile.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Berhasil diunggah
+                          {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Siap diunggah
                         </p>
                       </div>
                       <Button
@@ -217,7 +229,8 @@ export function ProcessRefundDialog({
                         variant="ghost"
                         size="icon"
                         className="shrink-0"
-                        onClick={removeUploadedFile}
+                        onClick={removeSelectedFile}
+                        disabled={isSubmitting}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -228,8 +241,8 @@ export function ProcessRefundDialog({
                     <Input
                       type="file"
                       accept="image/jpeg,image/jpg,image/png,image/webp,application/pdf"
-                      onChange={handleFileUpload}
-                      disabled={isUploading}
+                      onChange={handleFileSelect}
+                      disabled={isSubmitting}
                       className="hidden"
                       id="proof-upload"
                     />
@@ -237,17 +250,13 @@ export function ProcessRefundDialog({
                       htmlFor="proof-upload"
                       className="cursor-pointer flex flex-col items-center gap-2"
                     >
-                      {isUploading ? (
-                        <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-                      ) : (
-                        <Upload className="h-8 w-8 text-muted-foreground" />
-                      )}
+                      <Upload className="h-8 w-8 text-muted-foreground" />
                       <div className="text-sm">
                         <span className="font-medium text-primary">
-                          Klik untuk upload
+                          Klik untuk pilih bukti
                         </span>
                         <p className="text-muted-foreground">
-                          atau drag and drop
+                          Maksimal 5MB (JPG, PNG, WebP, PDF)
                         </p>
                       </div>
                     </label>
@@ -268,11 +277,11 @@ export function ProcessRefundDialog({
                   type="button"
                   variant="outline"
                   onClick={() => onOpenChange(false)}
-                  disabled={isSubmitting || isUploading}
+                  disabled={isSubmitting}
                 >
                   Batal
                 </Button>
-                <Button type="submit" disabled={isSubmitting || isUploading}>
+                <Button type="submit" disabled={isSubmitting}>
                   {isSubmitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}

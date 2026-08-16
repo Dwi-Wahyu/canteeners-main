@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -31,14 +31,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { AlertCircle, Loader2, Upload, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import Image from "next/image";
 import {
   refundReasonMapping,
   refundDisbursementModeMapping,
 } from "@/constant/refund-mapping";
 import { RefundDisbursementMode, RefundReason } from "@prisma/client";
-import { generateFileName, getFileExtension } from "@/helper/file-helper";
-import { uuidv4 } from "zod";
 import { containsBadWords } from "@/lib/moderation/contains-bad-words";
 
 interface CreateRefundFormProps {
@@ -74,11 +71,8 @@ export function CreateRefundForm({
   onCancel,
 }: CreateRefundFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<{
-    url: string;
-    name: string;
-  } | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   const form = useForm<RefundRequestInput>({
@@ -88,8 +82,7 @@ export function CreateRefundForm({
       reason: undefined,
       description: "",
       complaint_proof_url: "",
-      disbursement_mode: order.shop
-        .refund_disbursement_mode as RefundDisbursementMode,
+      disbursement_mode: (order.shop?.refund_disbursement_mode as RefundDisbursementMode) || "CASH",
       affected_item_ids: [],
       amount: undefined,
     },
@@ -98,6 +91,15 @@ export function CreateRefundForm({
   const selectedReason = form.watch("reason");
   const isItemLevel =
     selectedReason && ITEM_LEVEL_REASONS.includes(selectedReason);
+
+  // Clean up object URL when component unmounts or previewUrl changes
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   // Calculate amount from selected items
   const calculatedAmount = useMemo(() => {
@@ -119,7 +121,7 @@ export function CreateRefundForm({
     form.setValue("affected_item_ids", Array.from(newSelected));
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -134,70 +136,77 @@ export function CreateRefundForm({
       return;
     }
 
-    setIsUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("path", "complaint-proof");
-      formData.append("file", file);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
-      const data = await response.json();
-      const filename = data.data.url.split("/").pop();
-      setUploadedFile({
-        url: data.data.url,
-        name: file.name,
-      });
-      form.setValue("complaint_proof_url", filename);
-      toast.success("Bukti berhasil diunggah");
-    } catch (error) {
-      console.error("Upload error:", error);
-      toast.error("Gagal mengunggah bukti. Silakan coba lagi.");
-    } finally {
-      setIsUploading(false);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
     }
+
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
   };
 
-  const removeUploadedFile = () => {
-    setUploadedFile(null);
+  const removeSelectedFile = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setSelectedFile(null);
+    setPreviewUrl(null);
     form.setValue("complaint_proof_url", "");
   };
 
   const onSubmit = async (data: RefundRequestInput) => {
     setIsSubmitting(true);
 
-    if (data.description) {
-      if (containsBadWords(data.description)) {
-        form.setError("description", {
-          message: "Mengandung ujaran kebencian",
-        });
-        return;
-      }
+    if (data.description && containsBadWords(data.description)) {
+      form.setError("description", {
+        message: "Mengandung ujaran kebencian",
+      });
+      setIsSubmitting(false);
+      return;
     }
 
     try {
-      const result = await createRefundRequest(data);
+      let finalProofFilename = "";
+
+      // Perform backend upload ONLY upon form submission
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append("path", "complaint-proof");
+        formData.append("file", selectedFile);
+
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error("Gagal mengunggah bukti gambar");
+        }
+
+        const uploadData = await uploadRes.json();
+        if (uploadData.data?.url) {
+          finalProofFilename = uploadData.data.url.split("/").pop() || "";
+        }
+      }
+
+      const payload = {
+        ...data,
+        complaint_proof_url: finalProofFilename,
+      };
+
+      const result = await createRefundRequest(payload);
 
       if (result.success) {
         toast.success("Permintaan refund berhasil diajukan");
         form.reset();
-        setUploadedFile(null);
+        removeSelectedFile();
         setSelectedItems(new Set());
         onSuccess?.();
       } else {
         toast.error(result.error.message || "Gagal mengajukan refund");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Submit error:", error);
-      toast.error("Terjadi kesalahan. Silakan coba lagi.");
+      toast.error(error.message || "Terjadi kesalahan. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);
     }
@@ -243,7 +252,7 @@ export function CreateRefundForm({
                   form.setValue("amount", undefined);
                   form.setValue("affected_item_ids", []);
                 }}
-                value={field.value}
+                value={field.value || ""}
               >
                 <FormControl>
                   <SelectTrigger className="w-full">
@@ -332,6 +341,7 @@ export function CreateRefundForm({
                       placeholder="0"
                       className="pl-10"
                       {...field}
+                      value={field.value ?? ""}
                       onChange={(e) =>
                         field.onChange(parseFloat(e.target.value) || undefined)
                       }
@@ -377,7 +387,7 @@ export function CreateRefundForm({
               <FormLabel>
                 Mode Pengembalian Dana <span className="text-red-500">*</span>
               </FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || ""}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -398,30 +408,29 @@ export function CreateRefundForm({
           )}
         />
 
-        {/* File Upload */}
+        {/* File Selection & Preview */}
         <div className="space-y-2">
           <FormLabel>Bukti (Opsional)</FormLabel>
           <FormDescription>
-            Upload foto sebagai bukti (JPG, PNG, WEBP - Maks 5MB)
+            Pilih foto sebagai bukti (JPG, PNG, WEBP - Maks 5MB)
           </FormDescription>
 
-          {uploadedFile ? (
+          {previewUrl && selectedFile ? (
             <div className="relative border rounded-lg p-3 bg-muted/50">
               <div className="flex items-start gap-3">
-                <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0">
-                  <Image
-                    src={uploadedFile.url}
-                    alt="Bukti refund"
-                    fill
-                    className="object-cover"
+                <div className="relative h-16 w-16 rounded overflow-hidden bg-background shrink-0 border">
+                  <img
+                    src={previewUrl}
+                    alt="Preview bukti refund"
+                    className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {uploadedFile.name}
+                    {selectedFile.name}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Berhasil diunggah
+                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Siap diunggah
                   </p>
                 </div>
                 <Button
@@ -429,7 +438,8 @@ export function CreateRefundForm({
                   variant="ghost"
                   size="icon"
                   className="shrink-0"
-                  onClick={removeUploadedFile}
+                  onClick={removeSelectedFile}
+                  disabled={isSubmitting}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -440,8 +450,8 @@ export function CreateRefundForm({
               <Input
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/webp"
-                onChange={handleFileUpload}
-                disabled={isUploading}
+                onChange={handleFileSelect}
+                disabled={isSubmitting}
                 className="hidden"
                 id="proof-upload"
               />
@@ -449,16 +459,12 @@ export function CreateRefundForm({
                 htmlFor="proof-upload"
                 className="cursor-pointer flex flex-col items-center gap-2"
               >
-                {isUploading ? (
-                  <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
-                ) : (
-                  <Upload className="h-8 w-8 text-muted-foreground" />
-                )}
+                <Upload className="h-8 w-8 text-muted-foreground" />
                 <div className="text-sm">
                   <span className="font-medium text-primary">
-                    Klik untuk upload
+                    Klik untuk pilih gambar
                   </span>
-                  <p className="text-muted-foreground">atau drag and drop</p>
+                  <p className="text-muted-foreground">Maksimal 5MB (JPG, PNG, WebP)</p>
                 </div>
               </label>
             </div>
@@ -479,7 +485,7 @@ export function CreateRefundForm({
               type="button"
               variant="outline"
               onClick={onCancel}
-              disabled={isSubmitting || isUploading}
+              disabled={isSubmitting}
               className="flex-1"
             >
               Batal
@@ -487,10 +493,10 @@ export function CreateRefundForm({
           )}
           <Button
             type="submit"
-            disabled={isSubmitting || isUploading}
+            disabled={isSubmitting}
             className="flex-1"
           >
-            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Ajukan Refund
           </Button>
         </div>

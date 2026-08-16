@@ -181,11 +181,10 @@ export function RefundDetails({
         <div>
           <p className="text-sm text-muted-foreground mb-2">Bukti Komplain</p>
           <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-            <Image
+            <img
               src={getImageUrl("/complaint-proof/" + refund.complaint_proof_url)}
               alt="Bukti komplain"
-              fill
-              className="object-contain"
+              className="w-full h-full object-contain"
             />
           </div>
         </div>
@@ -195,11 +194,10 @@ export function RefundDetails({
         <div>
           <p className="text-sm text-muted-foreground mb-2">Bukti Transfer</p>
           <div className="relative w-full h-48 rounded-lg overflow-hidden border">
-            <Image
+            <img
               src={getImageUrl("/disbursement-proof/" + refund.disbursement_proof_url)}
               alt="Bukti transfer"
-              fill
-              className="object-contain"
+              className="w-full h-full object-contain"
             />
           </div>
         </div>
