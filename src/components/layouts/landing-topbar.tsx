@@ -1,6 +1,15 @@
 "use client";
 
-import { Menu, X } from "lucide-react";
+import {
+  Home,
+  House,
+  Menu,
+  ShoppingBag,
+  ShoppingCart,
+  Store,
+  Users,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -14,11 +23,18 @@ export default function LandingTopbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // const navItems = [
+  //   { label: "Home", href: "/", icon: "home" },
+  //   { label: "Belanja", href: "/kantin", icon: "shopping_bag" },
+  //   { label: "Login Pelanggan", href: "/login-pelanggan", icon: "person" },
+  //   { label: "Login Mitra", href: "/login-kedai", icon: "store" },
+  // ];
+
   const navItems = [
-    { label: "Home", href: "/", icon: "home" },
-    { label: "Belanja", href: "/kantin", icon: "shopping_bag" },
-    { label: "Login Pelanggan", href: "/login-pelanggan", icon: "person" },
-    { label: "Login Mitra", href: "/login-kedai", icon: "store" },
+    { label: "Home", href: "/", icon: Home },
+    { label: "Belanja", href: "/kantin", icon: ShoppingBag },
+    { label: "Login Pelanggan", href: "/login-pelanggan", icon: Users },
+    { label: "Login Mitra", href: "/login-kedai", icon: Store },
   ];
 
   return (
@@ -29,13 +45,16 @@ export default function LandingTopbar() {
     >
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
-        
+
         <Link
           href="/"
           className="text-2xl font-black tracking-tighter text-[#DC2626] font-headline flex items-center"
         >
-          <img src="/logo.png" alt="Canteeners" className="w-8 h-8 object-contain" />
-          
+          <img
+            src="/logo.png"
+            alt="Canteeners"
+            className="w-8 h-8 object-contain"
+          />
           Canteeners
         </Link>
 
@@ -53,15 +72,8 @@ export default function LandingTopbar() {
                     : "text-white/90 hover:text-white"
               }`}
             >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 18,
-                  fontVariationSettings: i === 0 ? "'FILL' 1" : "'FILL' 0",
-                }}
-              >
-                {item.icon}
-              </span>
+              <item.icon size={20} className={i === 0 ? "text-primary" : ""} />
+
               {item.label}
             </Link>
           ))}
@@ -74,12 +86,7 @@ export default function LandingTopbar() {
             href="/kantin"
             className="flex items-center gap-2 btn-primary-landing text-sm px-5 py-2.5"
           >
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 18 }}
-            >
-              add_shopping_cart
-            </span>
+            <ShoppingCart size={18} />
             Mulai Pesanan
           </Link>
         </div>
@@ -110,12 +117,8 @@ export default function LandingTopbar() {
               onClick={() => setMenuOpen(false)}
               className="flex items-center gap-2.5 text-slate-700 font-semibold hover:text-[#DC2626] transition-colors py-1.5"
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 20, color: "#DC2626" }}
-              >
-                {item.icon}
-              </span>
+              <item.icon size={20} className="text-primary" />
+
               {item.label}
             </Link>
           ))}
@@ -127,12 +130,7 @@ export default function LandingTopbar() {
               onClick={() => setMenuOpen(false)}
               className="flex-1 flex items-center justify-center gap-1.5 btn-primary-landing text-sm px-4 py-2.5"
             >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 16 }}
-              >
-                add_shopping_cart
-              </span>
+              <ShoppingCart size={16} />
               Mulai Pesanan
             </Link>
           </div>

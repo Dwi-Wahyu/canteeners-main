@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Gift,
   TicketPercent,
   X,
   AlertCircle as AlertIcon,

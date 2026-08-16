@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useCallback } from "react";
 import TestimoniCarousel from "@/components/testimoni-carousel";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 
 /* ── Animated Counter ─────────────────────────────────────── */
 function AnimatedCounter({
@@ -411,9 +412,10 @@ export default function LandingAnimatedPage({
               className="group inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#b91c1c] border border-white/10 text-white rounded-full text-base md:text-lg px-8 py-3.5 md:py-4 font-bold transition-all duration-300 shadow-lg shadow-red-600/30 hover:shadow-red-600/50 hover:-translate-y-1 hover:scale-105"
             >
               Mulai Pesan
-              <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform duration-300">
+              {/* <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform duration-300">
                 arrow_forward
-              </span>
+              </span> */}
+              <ArrowRight className="text-xl group-hover:translate-x-1 transition-transform duration-300" />
             </Link>
             <Link
               href="/mitra"
@@ -754,9 +756,10 @@ export default function LandingAnimatedPage({
                 className="group inline-flex items-center justify-center gap-2 bg-white text-[#DC2626] hover:bg-red-50 rounded-full px-8 py-4 font-bold transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 text-lg"
               >
                 Daftar Jadi Mitra
-                <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">
+                {/* <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">
                   arrow_forward
-                </span>
+                </span> */}
+                <ArrowRight className="text-xl group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
               <Link
                 href="/faq"
