@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { notificationDialog } from "@/hooks/use-notification-dialog";
 import { formatRupiah } from "@/helper/format-rupiah";
+import SnkCheckoutDialog from "@/features/cart/ui/snk-checkout-dialog";
 import PostOrderTypeTab from "@/features/cart/ui/post-order-type-tab";
 import { processShopCart } from "@/features/cart/lib/cart-actions";
 import ShopCartPaymentMethod from "@/features/cart/ui/shop-cart-payment-method";
@@ -15,7 +16,6 @@ import NavButton from "@/components/nav-button";
 import { GetCustomerProfileType } from "@/features/user/types/user-queries-types";
 import { GuestDetailsFormDialog } from "./guest-details-form-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Accordion,
   AccordionContent,
@@ -190,14 +190,13 @@ export default function ShopCartClient({
   userId: string;
   shopCart: GetShopCartType;
   customerProfile: GetCustomerProfileType & {
-    user?: { name?: string | null; username?: string | null };
-    has_used_referral?: boolean;
-    violations?: any[];
+    user: { username: string | null };
+    has_used_referral: boolean;
   };
   nameAlreadySet: boolean;
 }) {
   const router = useRouter();
-  const [isSnkAgreed, setIsSnkAgreed] = useState(true);
+  const [showSnk, setShowSnk] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     shopCart.payment_method,
   );
@@ -209,8 +208,7 @@ export default function ShopCartClient({
   const [appliedCode, setAppliedCode] = useState<string | null>(null);
   const [selectedDiscountIds, setSelectedDiscountIds] = useState<string[]>([]);
 
-  const userObj = (customerProfile as any).user;
-  const isGuest = !userObj?.username;
+  const isGuest = !customerProfile.user.username;
 
   const handleApplyReferral = (code: string) => {
     setAppliedCode(code);
@@ -271,23 +269,18 @@ export default function ShopCartClient({
       return;
     }
 
-    if (!isSnkAgreed) {
-      toast.error("Tolong setujui Syarat & Ketentuan terlebih dahulu");
-      return;
-    }
-
-    const userName = userObj?.name;
-    const isNameInvalid = !userName || userName === "Tamu";
+    const isNameInvalid =
+      !customerProfile.user.name || customerProfile.user.name === "Tamu";
 
     if (isGuest && isNameInvalid) {
       setShowGuestDetailsFormDialog(true);
     } else {
-      setCheckouted(true);
+      setShowSnk(true);
     }
   }
 
   function saveGuestDetails() {
-    setCheckouted(true);
+    setShowSnk(true);
   }
 
   const [isPending, startTransition] = useTransition();
@@ -306,6 +299,8 @@ export default function ShopCartClient({
         });
 
         if (result.success) {
+          setShowSnk(false);
+
           notificationDialog.success({
             title: "Sukses checkout keranjang",
             message: "Order berhasil dicatat, mengalihkan ke detail order...",
@@ -316,10 +311,9 @@ export default function ShopCartClient({
             setTimeout(() => {
               notificationDialog.hide();
               router.push("/order/" + result.data?.order_id);
-            }, 1500);
+            }, 2000);
           }
         } else {
-          setCheckouted(false);
           notificationDialog.error({
             title: "Gagal checkout keranjang",
             message: result.error.message,
@@ -354,8 +348,6 @@ export default function ShopCartClient({
     customerProfile.suspend_until !== null &&
     new Date(customerProfile.suspend_until) > new Date();
 
-  const violations = (customerProfile as any).violations;
-
   const groupedItems = shopCart.items.reduce(
     (acc, item) => {
       const productName = item.product.name;
@@ -370,7 +362,7 @@ export default function ShopCartClient({
 
   return (
     <div className="flex flex-col gap-4">
-      {violations && violations.length >= 2 && !isSuspended && (
+      {customerProfile.violations && customerProfile.violations.length >= 2 && !isSuspended && (
         <Alert className="border-red-200 bg-red-50 text-red-900">
           <CircleAlert className="w-4 h-4 text-red-600" />
           <AlertTitle className="text-red-800">Peringatan Pelanggaran</AlertTitle>
@@ -428,7 +420,9 @@ export default function ShopCartClient({
             ) : hasUnavailableItem ? (
               <span>
                 Ada item di keranjang Anda yang saat ini tidak tersedia. Silakan
-                hapus item tersebut untuk melanjutkan checkout.
+                hapus item tersebut untuk melanjutkan checkout. Jika tidak bisa
+                dihapus silakan tambahkan item lain untuk bisa checkout kemudian
+                hapus item yang tidak tersedia.
               </span>
             ) : status === "INACTIVE" ? (
               <span>
@@ -628,62 +622,28 @@ export default function ShopCartClient({
       )}
 
       {shopCart.order_id === null && (
-        <div className="flex flex-col gap-3 mt-2">
-          {/* Inline S&K Checkbox */}
-          <div className="flex items-center space-x-2 bg-muted/30 p-3 rounded-lg border border-border">
-            <Checkbox
-              id="snk-agreement"
-              checked={isSnkAgreed}
-              onCheckedChange={(checked) => setIsSnkAgreed(!!checked)}
-            />
-            <label
-              htmlFor="snk-agreement"
-              className="text-xs text-muted-foreground leading-snug cursor-pointer select-none"
-            >
-              Saya menyetujui{" "}
-              <Link
-                href="/syarat-dan-ketentuan/pelanggan"
-                target="_blank"
-                className="text-primary font-medium underline"
-              >
-                Syarat & Ketentuan
-              </Link>{" "}
-              layanan pemesanan Canteeners.
-            </label>
+        <Button
+          className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
+          size={"lg"}
+          onClick={handleClickCheckout}
+          disabled={
+            isSuspended ||
+            !canOrder ||
+            isPending ||
+            (postOrderType === "DELIVERY_TO_TABLE" &&
+              customerProfile.table_number === null)
+          }
+        >
+          <h1>{shopCart.items.length} Item</h1>
+
+          <div className="flex gap-2 h-4 items-center">
+            <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
+
+            <Separator orientation="vertical" />
+
+            <h1 className="font-semibold">Checkout</h1>
           </div>
-
-          <Button
-            className="w-full bg-linear-to-t from-primary to-primary/80 border border-primary flex justify-between py-6 items-center"
-            size={"lg"}
-            onClick={handleClickCheckout}
-            disabled={
-              isSuspended ||
-              !canOrder ||
-              isPending ||
-              !isSnkAgreed ||
-              (postOrderType === "DELIVERY_TO_TABLE" &&
-                customerProfile.table_number === null)
-            }
-          >
-            <h1>{shopCart.items.length} Item</h1>
-
-            <div className="flex gap-2 h-4 items-center">
-              <h1>{formatRupiah(shopCart.total_price - finalDiscount)}</h1>
-
-              <Separator orientation="vertical" />
-
-              <h1 className="font-semibold">
-                {isPending ? (
-                  <span className="flex items-center gap-1">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Proses...
-                  </span>
-                ) : (
-                  "Checkout"
-                )}
-              </h1>
-            </div>
-          </Button>
-        </div>
+        </Button>
       )}
 
       <GuestDetailsFormDialog
@@ -691,6 +651,13 @@ export default function ShopCartClient({
         setShowGuestDetailsFormDialog={setShowGuestDetailsFormDialog}
         showGuestDetailsFormDialog={showGuestDetailsFormDialog}
         saveGuestDetails={saveGuestDetails}
+      />
+
+      <SnkCheckoutDialog
+        showSnk={showSnk}
+        setShowSnk={setShowSnk}
+        setCheckouted={setCheckouted}
+        isCheckoutPending={isPending}
       />
     </div>
   );

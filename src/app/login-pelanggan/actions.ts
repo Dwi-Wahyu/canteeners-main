@@ -3,5 +3,5 @@
 import { signIn } from "@/config/auth";
 
 export async function loginWithGoogle() {
-  await signIn("google");
+  await signIn("google", { redirectTo: "/kantin" });
 }
