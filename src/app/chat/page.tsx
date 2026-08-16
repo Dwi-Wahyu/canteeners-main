@@ -18,6 +18,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "nextjs-toploader/app";
 import NavButton from "@/components/nav-button";
 import { BottomNav } from "@/components/layouts/bottom-nav";
+import EmptyChat from "@/features/chat/ui/empty-chat";
 
 export default function CustomerChatListPage() {
   const { chats, isLoading, isLoadingMore, user, loadMore, hasMore } =
@@ -35,13 +36,21 @@ export default function CustomerChatListPage() {
   if (isLoading) {
     return (
       <div className="p-5">
-        <h1 className="text-xl font-bold text-gray-900">Chat & Orderan</h1>
-
-        <div className="space-y-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-20 rounded-lg" />
-          ))}
+        <div className="mb-4">
+          <h1 className="text-xl font-bold text-gray-900">Chat & Orderan</h1>
+          <div className="text-sm text-gray-500">
+            Daftar percakapan dengan pemilik kedai
+          </div>
         </div>
+
+        <div className="flex flex-col gap-4">
+          <Skeleton className="w-full h-10" />
+          <Skeleton className="w-full h-10" />
+          <Skeleton className="w-full h-10" />
+          <Skeleton className="w-full h-10" />
+          <Skeleton className="w-full h-10" />
+        </div>
+
         <BottomNav />
       </div>
     );
@@ -50,11 +59,9 @@ export default function CustomerChatListPage() {
   // User belum login atau data belum ready
   if (!user) {
     return (
-      <div className="p-5 ">
-        <h1 className="text-xl font-bold text-gray-900">Chat & Orderan</h1>
-
-        <div className="text-center text-muted-foreground py-10">
-          <p>Belum ada percakapan.</p>
+      <div>
+        <div className="flex-1 w-full justify-center">
+          <EmptyChat />
         </div>
         <BottomNav />
       </div>
@@ -62,7 +69,7 @@ export default function CustomerChatListPage() {
   }
 
   return (
-    <div className="p-5 ">
+    <div className="p-5">
       <div className="mb-4">
         <h1 className="text-xl font-bold text-gray-900">Chat & Orderan</h1>
         <div className="text-sm text-gray-500">
