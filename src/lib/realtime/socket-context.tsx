@@ -26,27 +26,36 @@ export class RealtimeClient {
 
   private open() {
     if (!this.token) return;
+
     let wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:3003";
     wsUrl = wsUrl.replace(/\/+$/, "");
     const wsPath = wsUrl.endsWith("/ws") ? "" : "/ws";
     const url = `${wsUrl}${wsPath}?token=${this.token}`;
 
     if (this.ws) {
+      this.ws.onopen = null;
+      this.ws.onmessage = null;
+      this.ws.onclose = null;
+      this.ws.onerror = null;
       this.ws.close();
+      this.ws = null;
     }
 
-    this.ws = new WebSocket(url);
+    const currentWs = new WebSocket(url);
+    this.ws = currentWs;
 
-    this.ws.onopen = () => {
+    currentWs.onopen = () => {
+      if (this.ws !== currentWs) return;
       this.reconnectAttempt = 0;
       this.pendingTopics.forEach((topic) => {
-        if (this.ws?.readyState === WebSocket.OPEN) {
-          this.ws.send(JSON.stringify({ type: "join", topic }));
+        if (currentWs.readyState === WebSocket.OPEN) {
+          currentWs.send(JSON.stringify({ type: "join", topic }));
         }
       });
     };
 
-    this.ws.onmessage = (e) => {
+    currentWs.onmessage = (e) => {
+      if (this.ws !== currentWs) return;
       try {
         const parsed = JSON.parse(e.data);
         const { event, ...data } = parsed;
@@ -58,14 +67,20 @@ export class RealtimeClient {
       }
     };
 
-    this.ws.onclose = () => {
+    currentWs.onclose = () => {
+      if (this.ws !== currentWs) return;
       const delay = Math.min(1000 * 2 ** this.reconnectAttempt, 15000);
       this.reconnectAttempt++;
-      setTimeout(() => this.token && this.open(), delay);
+      setTimeout(() => {
+        if (this.token && this.ws === currentWs) {
+          this.open();
+        }
+      }, delay);
     };
 
-    this.ws.onerror = (err) => {
-      console.warn("WS connection error", err);
+    currentWs.onerror = (err) => {
+      if (this.ws !== currentWs) return;
+      console.warn("WS connection error:", err);
     };
   }
 
