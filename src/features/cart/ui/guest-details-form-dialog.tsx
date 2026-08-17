@@ -93,8 +93,11 @@ export function GuestDetailsFormDialog({
         open={showGuestDetailsFormDialog}
         onOpenChange={setShowGuestDetailsFormDialog}
       >
-        <DrawerContent className="p-6 min-h-[45vh]">
-          <form onSubmit={handleSave} className="flex flex-col justify-between flex-1">
+        <DrawerContent className="p-6">
+          <form
+            onSubmit={handleSave}
+            className="flex flex-col justify-between flex-1"
+          >
             <div>
               <DrawerHeader className="text-left px-0 pt-0">
                 <DrawerTitle className="text-start">Masukkan Nama</DrawerTitle>
@@ -148,9 +151,7 @@ export function GuestDetailsFormDialog({
               </Button>
             </DialogClose>
             <Button type="submit" disabled={!guestName || isLoading}>
-              {isLoading && (
-                <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
-              )}
+              {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-1.5" />}
               Simpan
             </Button>
           </DialogFooter>
@@ -159,5 +160,3 @@ export function GuestDetailsFormDialog({
     </Dialog>
   );
 }
-
-
